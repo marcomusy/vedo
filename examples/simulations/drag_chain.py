@@ -17,7 +17,6 @@ def func(evt):
     plt.render()
 
 surf = Plane(s=[60, 60])
-# surf = ParametricShape("RandomHills").scale(50).c("k6")
 
 line = Line([l*n/2, 0], [-l*n/2, 0], res=n, lw=12)
 line.render_lines_as_tubes()

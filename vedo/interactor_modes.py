@@ -136,6 +136,179 @@ class MousePan(vtki.vtkInteractorStyleUser):
         if self.right:
             self._mouse_right_move()
 
+#############################################################################
+class FlyOverSurface(vtki.vtkInteractorStyleUser):
+    """
+    Interaction mode to fly over a surface.
+
+    Controls:
+        - Press arrows to move the camera in the plane of the surface.
+        - "t" (or "PageUp") will move the camera upper in z.
+        - "g" (or "PageDown") will move the camera lower in z.
+        - "x" and "X" will reset the camera to the default position towards positive or negative x.
+        - "y" and "Y" will reset the camera to the default position towards positive or negative y.
+        - "r" will reset the camera to the default position.
+    
+    Only keyboard interaction is active, mouse interaction is not.
+    """
+
+    def __init__(self, move_step=0.05, angle_step=1.5):
+        """
+        Interaction mode to fly over a surface.
+
+        Arguments:
+            move_step: float, optional
+                The step size for moving the camera in the plane of the surface.
+            angle_step: float, optional
+                The step size for rotating the camera.
+        
+        Example:
+            [interaction_modes3.py](https://github.com/marcomusy/vedo/blob/master/examples/basic/interaction_modes3.py)
+        """
+
+        super().__init__()
+
+        self.interactor = None  # filled in plotter.py
+        self.renderer = None    # filled in plotter.py
+        
+        self.angle_step = angle_step
+        self.move_step = move_step
+
+        self.tleft = vtki.vtkTransform()
+        self.tleft.RotateZ(self.angle_step)
+        
+        self.tright = vtki.vtkTransform()
+        self.tright.RotateZ(-self.angle_step)
+        
+        self.AddObserver("KeyPressEvent", self._key)
+
+    @property
+    def camera(self):
+        return self.renderer.GetActiveCamera()
+    
+    def _key(self, obj, _):
+
+        k = obj.GetKeySym()
+        if obj.GetShiftKey(): 
+            k = k.upper()
+        # print("Key press event", k, obj.GetShiftKey())
+
+        if k in ["r", "x"]:
+            # print("r pressed, reset camera")
+            self.bounds = self.renderer.ComputeVisiblePropBounds()
+            x0, x1, y0, y1, z0, z1 = self.bounds
+            dx = x1 - x0
+            z = max( z1 * 1, z0+(y1 - y0)/4, z0+(x1 - x0)/4)     
+            self.camera.SetViewUp(0.00001, 0, 1)
+            self.camera.SetPosition(x0-dx, (y0 + y1) / 2, z)
+            self.camera.SetFocalPoint(x0+dx, (y0 + y1) / 2, z)
+            self.renderer.ResetCameraClippingRange()
+        elif k in ["X"]:
+            # print("X pressed, reset camera")
+            self.bounds = self.renderer.ComputeVisiblePropBounds()
+            x0, x1, y0, y1, z0, z1 = self.bounds
+            dx = x1 - x0
+            z = max( z1 * 1, (y1 - y0)/4, (x1 - x0)/4)     
+            self.camera.SetViewUp(0.00001, 0, 1)
+            self.camera.SetPosition(x1+dx, (y0 + y1) / 2, z)
+            self.camera.SetFocalPoint(x0-dx/2,(y0+y1)/2,z0)
+            self.renderer.ResetCameraClippingRange()
+
+        elif k in ["y"]:
+            # print("y pressed, reset camera")
+            self.bounds = self.renderer.ComputeVisiblePropBounds()
+            x0, x1, y0, y1, z0, z1 = self.bounds
+            dy = y1 - y0
+            z = max( z1 * 1, z0+(y1 - y0)/4, z0+(x1 - x0)/4)     
+            self.camera.SetViewUp(0.00001, 0, 1)
+            self.camera.SetPosition(  (x0 + x1) / 2, y0-dy, z)
+            self.camera.SetFocalPoint((x0 + x1) / 2, y1+dy/2, z0)
+            self.renderer.ResetCameraClippingRange()
+        elif k in ["Y"]:
+            # print("Y pressed, reset camera")
+            self.bounds = self.renderer.ComputeVisiblePropBounds()
+            x0, x1, y0, y1, z0, z1 = self.bounds
+            dy = y1 - y0
+            z = max( z1 * 1, z0+(y1 - y0)/4, z0+(x1 - x0)/4)     
+            self.camera.SetViewUp(0.00001, 0, 1)
+            self.camera.SetPosition(  (x0 + x1) / 2, y1+dy, z)
+            self.camera.SetFocalPoint((x0 + x1) / 2, y0-dy/2, z0)
+            self.renderer.ResetCameraClippingRange()
+
+        elif k in ["Up", "w"]:
+            # print("Up pressed, move forward")
+            self.bounds = self.renderer.ComputeVisiblePropBounds()
+            diagonal = np.linalg.norm(np.array(self.bounds[1::2]) - np.array(self.bounds[::2]))
+            dx = self.move_step * diagonal
+            p = np.array(self.camera.GetPosition())
+            v = np.array(self.camera.GetDirectionOfProjection())
+            newp = p + dx * v
+            self.camera.SetPosition(newp[0], newp[1], p[2])
+            self.camera.SetViewUp(0.00001, 0, 1)            
+            self.renderer.ResetCameraClippingRange()
+
+        elif k in ["Down", "s"]:
+            # print("Down pressed, move backward")
+            self.bounds = self.renderer.ComputeVisiblePropBounds()
+            diagonal = np.linalg.norm(np.array(self.bounds[1::2]) - np.array(self.bounds[::2]))
+            dx = self.move_step * diagonal
+            p = np.array(self.camera.GetPosition())
+            v = np.array(self.camera.GetDirectionOfProjection())
+            newp = p - dx * v
+            self.camera.SetPosition(newp[0], newp[1], p[2])
+            self.camera.SetViewUp(0.00001, 0, 1)            
+            self.renderer.ResetCameraClippingRange()
+
+        elif k in ["Left", "a"]:
+            # print("Left pressed, rotate to the left")
+            self.bounds = self.renderer.ComputeVisiblePropBounds()
+            diagonal = np.linalg.norm(np.array(self.bounds[1::2]) - np.array(self.bounds[::2]))
+            w = np.array(self.camera.GetDirectionOfProjection())
+            p = np.array(self.camera.GetPosition())
+            w2 = np.array(self.tleft.TransformFloatPoint(w))
+            fc = np.array(self.camera.GetFocalPoint())
+            self.camera.SetFocalPoint(fc + np.linalg.norm(p-fc) * w2)
+            self.camera.SetViewUp(0.00001, 0, 1)            
+            self.renderer.ResetCameraClippingRange()
+
+        elif k in ["Right", "d"]:
+            # print("Right pressed, rotate to the right")
+            self.bounds = self.renderer.ComputeVisiblePropBounds()
+            diagonal = np.linalg.norm(np.array(self.bounds[1::2]) - np.array(self.bounds[::2]))
+            w = np.array(self.camera.GetDirectionOfProjection())
+            p = np.array(self.camera.GetPosition())
+            w2 = np.array(self.tright.TransformFloatPoint(w))
+            fc = np.array(self.camera.GetFocalPoint())
+            self.camera.SetFocalPoint(fc + np.linalg.norm(p-fc) * w2)
+            self.camera.SetViewUp(0.00001, 0, 1)
+            self.renderer.ResetCameraClippingRange()
+
+        elif k in ["t", "Prior"]:
+            # print("t pressed, move z up")
+            self.bounds = self.renderer.ComputeVisiblePropBounds()
+            diagonal = np.linalg.norm(np.array(self.bounds[1::2]) - np.array(self.bounds[::2]))
+            dx = self.move_step * diagonal
+            p = np.array(self.camera.GetPosition())
+            self.camera.SetPosition(p[0], p[1], p[2]+dx/4)
+            self.camera.SetViewUp(0.00001, 0, 1)
+            self.renderer.ResetCameraClippingRange()
+
+        elif k in ["g", "Next"]:
+            # print("g pressed, move z down")
+            self.bounds = self.renderer.ComputeVisiblePropBounds()
+            diagonal = np.linalg.norm(np.array(self.bounds[1::2]) - np.array(self.bounds[::2]))
+            dx = self.move_step * diagonal
+            p = np.array(self.camera.GetPosition())
+            self.camera.SetPosition(p[0], p[1], p[2]-dx/4)
+            self.camera.SetViewUp(0.00001, 0, 1)
+            self.renderer.ResetCameraClippingRange()
+
+        elif k in ["q", "Return"]:
+            self.interactor.ExitCallback()
+            return
+    
+        self.interactor.Render()
+
 
 ###################################################################################
 @dataclass

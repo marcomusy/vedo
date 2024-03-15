@@ -10,6 +10,7 @@
 - add example `examples/other/iminuit2.py`
 - add `rotation=..` to `Arrow2D()` class
 - improvements to `applications.MorphPlotter`
+- add `FlyOverSurface` class and  `examples/basic/interaction_modes3.py`
 
 
 ## Soft-breaking Changes
@@ -26,9 +27,10 @@ Changes that will break existing code and need active thinking and work to adapt
 
 ## New/Revised Examples
 ```
+examples/basic/interaction_modes3.py
+examples/advanced/warp4b.py
 examples/other/magic-class1.py
 examples/other/iminuit2.py
-examples/advanced/warp4b.py
 ```
 
 ### Broken Examples
