@@ -116,6 +116,10 @@ class _LoggingCustomFormatter(logging.Formatter):
 logger = logging.getLogger("vedo")
 
 _chsh = logging.StreamHandler()
+if sys.stdout is None:
+    sys.stdout = open(os.devnull, "w")
+if sys.stderr is None:
+    sys.stderr = open(os.devnull, "w")
 _chsh.flush = sys.stdout.flush
 _chsh.setLevel(logging.DEBUG)
 _chsh.setFormatter(_LoggingCustomFormatter())

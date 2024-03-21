@@ -3,6 +3,7 @@
 - "t" and "g" will move the camera up and down along z.
 - "x" and "X" will reset the camera to the default position towards +/-x.
 - "y" and "Y" will reset the camera to the default position towards +/-y.
+- "." and "," will rotate azimuth to the right or left.
 - "r" will reset the camera to the default position."""
 from vedo import *
 from vedo.interactor_modes import FlyOverSurface

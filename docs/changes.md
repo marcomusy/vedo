@@ -11,6 +11,8 @@
 - add `rotation=..` to `Arrow2D()` class
 - improvements to `applications.MorphPlotter`
 - add `FlyOverSurface` class and  `examples/basic/interaction_modes3.py`
+- address #1072 for pyinstaller 
+- add `mesh.extrude_and_trim_with()` method out of #1077
 
 
 ## Soft-breaking Changes

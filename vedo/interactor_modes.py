@@ -136,6 +136,7 @@ class MousePan(vtki.vtkInteractorStyleUser):
         if self.right:
             self._mouse_right_move()
 
+
 #############################################################################
 class FlyOverSurface(vtki.vtkInteractorStyleUser):
     """
@@ -147,9 +148,10 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
         - "g" (or "PageDown") will move the camera lower in z.
         - "x" and "X" will reset the camera to the default position towards positive or negative x.
         - "y" and "Y" will reset the camera to the default position towards positive or negative y.
+        - "." and "," will rotate azimuth to the right or left.
         - "r" will reset the camera to the default position.
     
-    Only keyboard interaction is active, mouse interaction is not.
+    Left button: Select a point on the surface to focus the camera on it.
     """
 
     def __init__(self, move_step=0.05, angle_step=1.5):
@@ -169,71 +171,111 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
         super().__init__()
 
         self.interactor = None  # filled in plotter.py
-        self.renderer = None    # filled in plotter.py
-        
+        self.renderer = None  # filled in plotter.py
+
         self.angle_step = angle_step
         self.move_step = move_step
 
         self.tleft = vtki.vtkTransform()
         self.tleft.RotateZ(self.angle_step)
-        
+
         self.tright = vtki.vtkTransform()
         self.tright.RotateZ(-self.angle_step)
-        
+
         self.AddObserver("KeyPressEvent", self._key)
+        self.AddObserver("RightButtonPressEvent", self._right_button_press)
+        self.AddObserver("MouseWheelForwardEvent", self._mouse_wheel_forward)
+        self.AddObserver("MouseWheelBackwardEvent", self._mouse_wheel_backward)
+        self.AddObserver("LeftButtonPressEvent", self._left_button_press)
 
     @property
     def camera(self):
         return self.renderer.GetActiveCamera()
-    
-    def _key(self, obj, _):
 
-        k = obj.GetKeySym()
-        if obj.GetShiftKey(): 
-            k = k.upper()
-        # print("Key press event", k, obj.GetShiftKey())
+    @property
+    def position(self):
+        return np.array(self.camera.GetPosition())
+
+    @position.setter
+    def position(self, value):
+        self.camera.SetPosition(value[:3])
+        self.camera.SetViewUp(0.00001, 0, 1)
+        self.renderer.ResetCameraClippingRange()
+
+    @property
+    def focal_point(self):
+        return np.array(self.camera.GetFocalPoint())
+
+    @focal_point.setter
+    def focal_point(self, value):
+        self.camera.SetFocalPoint(value[:3])
+        self.camera.SetViewUp(0.00001, 0, 1)
+        self.renderer.ResetCameraClippingRange()
+
+    def _right_button_press(self, obj, event):
+        # print("Right button", event)
+        self._key("Down", event)
+
+    def _left_button_press(self, obj, event):
+        # print("Left button", event)
+        newPickPoint = [0, 0, 0, 0]
+        focalDepth = 0
+        x, y = obj.interactor.GetEventPosition()
+        self.ComputeDisplayToWorld(self.renderer, x, y, focalDepth, newPickPoint)
+        self.focal_point = np.array(newPickPoint)
+        self.interactor.Render()
+
+    def _mouse_wheel_backward(self, obj, event):
+        # print("mouse_wheel_backward ", event)
+        self._key("Down", event)
+
+    def _mouse_wheel_forward(self, obj, event):
+        # print("mouse_wheel_forward ", event)
+        self._key("Up", event)
+
+    def _key(self, obj, event):
+
+        if "Mouse" in event or "Button" in event:
+            k = obj
+        else:
+            k = obj.GetKeySym()
+            if obj.GetShiftKey():
+                k = k.upper()
+        # print("FlyOverSurface. Key press", k)
 
         if k in ["r", "x"]:
             # print("r pressed, reset camera")
             self.bounds = self.renderer.ComputeVisiblePropBounds()
             x0, x1, y0, y1, z0, z1 = self.bounds
             dx = x1 - x0
-            z = max( z1 * 1, z0+(y1 - y0)/4, z0+(x1 - x0)/4)     
-            self.camera.SetViewUp(0.00001, 0, 1)
-            self.camera.SetPosition(x0-dx, (y0 + y1) / 2, z)
-            self.camera.SetFocalPoint(x0+dx, (y0 + y1) / 2, z)
-            self.renderer.ResetCameraClippingRange()
+            z = max(z1 * 1, z0 + (y1 - y0) / 4, z0 + (x1 - x0) / 4)
+            self.position = [x0 - dx, (y0 + y1) / 2, z]
+            self.focal_point = [x0 + dx / 2, (y0 + y1) / 2, z]
         elif k in ["X"]:
             # print("X pressed, reset camera")
             self.bounds = self.renderer.ComputeVisiblePropBounds()
             x0, x1, y0, y1, z0, z1 = self.bounds
             dx = x1 - x0
-            z = max( z1 * 1, (y1 - y0)/4, (x1 - x0)/4)     
-            self.camera.SetViewUp(0.00001, 0, 1)
-            self.camera.SetPosition(x1+dx, (y0 + y1) / 2, z)
-            self.camera.SetFocalPoint(x0-dx/2,(y0+y1)/2,z0)
-            self.renderer.ResetCameraClippingRange()
+            z = max(z1 * 1, (y1 - y0) / 4, (x1 - x0) / 4)
+            self.position = [x1 + dx, (y0 + y1) / 2, z]
+            self.focal_point = [x0 - dx / 2, (y0 + y1) / 2, z]
 
         elif k in ["y"]:
             # print("y pressed, reset camera")
             self.bounds = self.renderer.ComputeVisiblePropBounds()
             x0, x1, y0, y1, z0, z1 = self.bounds
             dy = y1 - y0
-            z = max( z1 * 1, z0+(y1 - y0)/4, z0+(x1 - x0)/4)     
-            self.camera.SetViewUp(0.00001, 0, 1)
-            self.camera.SetPosition(  (x0 + x1) / 2, y0-dy, z)
-            self.camera.SetFocalPoint((x0 + x1) / 2, y1+dy/2, z0)
-            self.renderer.ResetCameraClippingRange()
+            z = max(z1 * 1, z0 + (y1 - y0) / 4, z0 + (x1 - x0) / 4)
+            self.position = [(x0 + x1) / 2, y0 - dy, z]
+            self.focal_point = [(x0 + x1) / 2, y1 + dy / 2, z]
         elif k in ["Y"]:
             # print("Y pressed, reset camera")
             self.bounds = self.renderer.ComputeVisiblePropBounds()
             x0, x1, y0, y1, z0, z1 = self.bounds
             dy = y1 - y0
-            z = max( z1 * 1, z0+(y1 - y0)/4, z0+(x1 - x0)/4)     
-            self.camera.SetViewUp(0.00001, 0, 1)
-            self.camera.SetPosition(  (x0 + x1) / 2, y1+dy, z)
-            self.camera.SetFocalPoint((x0 + x1) / 2, y0-dy/2, z0)
-            self.renderer.ResetCameraClippingRange()
+            z = max(z1 * 1, z0 + (y1 - y0) / 4, z0 + (x1 - x0) / 4)
+            self.position = [(x0 + x1) / 2, y1 + dy, z]
+            self.focal_point = [(x0 + x1) / 2, y0 - dy / 2, z]
 
         elif k in ["Up", "w"]:
             # print("Up pressed, move forward")
@@ -243,10 +285,8 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
             p = np.array(self.camera.GetPosition())
             v = np.array(self.camera.GetDirectionOfProjection())
             newp = p + dx * v
-            self.camera.SetPosition(newp[0], newp[1], p[2])
-            self.camera.SetViewUp(0.00001, 0, 1)            
-            self.renderer.ResetCameraClippingRange()
-
+            self.position = [newp[0], newp[1], p[2]]
+            self.focal_point = self.focal_point + dx * v
         elif k in ["Down", "s"]:
             # print("Down pressed, move backward")
             self.bounds = self.renderer.ComputeVisiblePropBounds()
@@ -255,9 +295,8 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
             p = np.array(self.camera.GetPosition())
             v = np.array(self.camera.GetDirectionOfProjection())
             newp = p - dx * v
-            self.camera.SetPosition(newp[0], newp[1], p[2])
-            self.camera.SetViewUp(0.00001, 0, 1)            
-            self.renderer.ResetCameraClippingRange()
+            self.position = [newp[0], newp[1], p[2]]
+            self.focal_point = self.focal_point - dx * v
 
         elif k in ["Left", "a"]:
             # print("Left pressed, rotate to the left")
@@ -266,10 +305,7 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
             w = np.array(self.camera.GetDirectionOfProjection())
             p = np.array(self.camera.GetPosition())
             w2 = np.array(self.tleft.TransformFloatPoint(w))
-            fc = np.array(self.camera.GetFocalPoint())
-            self.camera.SetFocalPoint(fc + np.linalg.norm(p-fc) * w2)
-            self.camera.SetViewUp(0.00001, 0, 1)            
-            self.renderer.ResetCameraClippingRange()
+            self.focal_point = self.focal_point + np.linalg.norm(p-self.focal_point) * w2
 
         elif k in ["Right", "d"]:
             # print("Right pressed, rotate to the right")
@@ -278,35 +314,59 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
             w = np.array(self.camera.GetDirectionOfProjection())
             p = np.array(self.camera.GetPosition())
             w2 = np.array(self.tright.TransformFloatPoint(w))
-            fc = np.array(self.camera.GetFocalPoint())
-            self.camera.SetFocalPoint(fc + np.linalg.norm(p-fc) * w2)
-            self.camera.SetViewUp(0.00001, 0, 1)
-            self.renderer.ResetCameraClippingRange()
+            self.focal_point = self.focal_point + np.linalg.norm(p-self.focal_point) * w2
 
         elif k in ["t", "Prior"]:
             # print("t pressed, move z up")
             self.bounds = self.renderer.ComputeVisiblePropBounds()
             diagonal = np.linalg.norm(np.array(self.bounds[1::2]) - np.array(self.bounds[::2]))
             dx = self.move_step * diagonal
-            p = np.array(self.camera.GetPosition())
-            self.camera.SetPosition(p[0], p[1], p[2]+dx/4)
-            self.camera.SetViewUp(0.00001, 0, 1)
-            self.renderer.ResetCameraClippingRange()
+            p = self.position
+            self.position = [p[0], p[1], p[2] + dx / 4]
 
         elif k in ["g", "Next"]:
             # print("g pressed, move z down")
             self.bounds = self.renderer.ComputeVisiblePropBounds()
             diagonal = np.linalg.norm(np.array(self.bounds[1::2]) - np.array(self.bounds[::2]))
             dx = self.move_step * diagonal
-            p = np.array(self.camera.GetPosition())
-            self.camera.SetPosition(p[0], p[1], p[2]-dx/4)
-            self.camera.SetViewUp(0.00001, 0, 1)
-            self.renderer.ResetCameraClippingRange()
+            p = self.position
+            self.position = [p[0], p[1], p[2] - dx / 4]
+
+        elif k in ["comma", "COMMA"]:
+            # print("< pressed, rotate azimuth to the left")
+            self.bounds = self.renderer.ComputeVisiblePropBounds()
+            scene_center = [
+                self.bounds[0] + self.bounds[1],
+                self.bounds[2] + self.bounds[3],
+                self.bounds[4] + self.bounds[5],
+            ]
+            scene_center = np.array(scene_center) / 2
+            p = self.position
+            v = p - scene_center
+            newp = scene_center + self.tleft.TransformFloatPoint(v)
+            self.position = [newp[0], newp[1], p[2]]
+
+        elif k in ["period", "PERIOD"]:
+            # print("< pressed, rotate azimuth to the right")
+            self.bounds = self.renderer.ComputeVisiblePropBounds()
+            scene_center = [
+                self.bounds[0] + self.bounds[1],
+                self.bounds[2] + self.bounds[3],
+                self.bounds[4] + self.bounds[5],
+            ]
+            scene_center = np.array(scene_center) / 2
+            p = self.position
+            v = p - scene_center
+            newp = scene_center + self.tright.TransformFloatPoint(v)
+            self.position = [newp[0], newp[1], p[2]]
 
         elif k in ["q", "Return"]:
             self.interactor.ExitCallback()
             return
-    
+
+        else:
+            return
+
         self.interactor.Render()
 
 
@@ -734,7 +794,7 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
             self.end_x = self.start_x
             self.end_y = self.start_y
             self.initialize_screen_drawing()
-        elif KEY in ('2', '3'):
+        elif KEY in ("2", "3"):
             self.toggle_parallel_projection()
         elif KEY == "A":
             self.zoom_fit()
@@ -949,7 +1009,7 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
                 self.start_drag_on_props(self.picked_props)
             else:
                 pass
-                # print('Can not start drag, 
+                # print('Can not start drag,
                 # nothing selected and callback_start_drag not assigned')
 
     def finish_drag(self):
@@ -959,7 +1019,7 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
             # by called functions
             for pos0, actor in zip(
                 self.draginfo.dragged_actors_original_positions,
-                self.draginfo.actors_dragging
+                self.draginfo.actors_dragging,
             ):
                 actor.SetPosition(pos0)
             self.callback_end_drag(self.draginfo)
@@ -978,7 +1038,7 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
         draginfo.actors_dragging = props  # [*actors, *outlines]
 
         for a in draginfo.actors_dragging:
-            draginfo.dragged_actors_original_positions.append(a.GetPosition())  # numpy ndarray
+            draginfo.dragged_actors_original_positions.append(a.GetPosition())
 
         # Get the start position of the drag in 3d
         rwi = self.GetInteractor()
@@ -988,22 +1048,19 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
 
         temp_out = [0, 0, 0]
         self.ComputeWorldToDisplay(
-            ren, viewFocus[0], viewFocus[1], viewFocus[2],
-            temp_out
+            ren, viewFocus[0], viewFocus[1], viewFocus[2], temp_out
         )
         focalDepth = temp_out[2]
 
         newPickPoint = [0, 0, 0, 0]
         x, y = rwi.GetEventPosition()
-        self.ComputeDisplayToWorld(
-            ren, x, y, focalDepth, newPickPoint)
+        self.ComputeDisplayToWorld(ren, x, y, focalDepth, newPickPoint)
 
         mouse_pos_3d = np.array(newPickPoint[:3])
         draginfo.start_position_3d = mouse_pos_3d
         self.draginfo = draginfo
 
     def execute_drag(self):
-
         rwi = self.GetInteractor()
         ren = self.GetCurrentRenderer()
 
@@ -1033,8 +1090,8 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
         # print(f'delta_inplane = {delta_inplane}')
 
         for pos0, actor in zip(
-            self.draginfo.dragged_actors_original_positions, 
-            self.draginfo.actors_dragging
+            self.draginfo.dragged_actors_original_positions,
+            self.draginfo.actors_dragging,
         ):
             m = actor.GetUserMatrix()
             if m:
@@ -1052,8 +1109,8 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
     def cancel_drag(self):
         """Cancels the drag and restored the original positions of all dragged actors"""
         for pos0, actor in zip(
-            self.draginfo.dragged_actors_original_positions, 
-            self.draginfo.actors_dragging
+            self.draginfo.dragged_actors_original_positions,
+            self.draginfo.actors_dragging,
         ):
             actor.SetPosition(pos0)
         self.draginfo = None
@@ -1065,7 +1122,6 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
         rwi = self.GetInteractor()
         x, y = rwi.GetEventPosition()
         xp, yp = rwi.GetLastEventPosition()
-
         direction = y - yp
         self.move_mouse_wheel(direction / 10)
 
@@ -1090,15 +1146,14 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
             x, y = rwi.GetEventPosition()
             self.ComputeDisplayToWorld(ren, x, y, focalDepth, newPickPoint)
 
-            #   // Has to recalc old mouse point since the viewport has moved,
-            #   // so can't move it outside the loop
+            # Has to recalc old mouse point since the viewport has moved,
+            # so can't move it outside the loop
 
             oldPickPoint = [0, 0, 0, 0]
             xp, yp = rwi.GetLastEventPosition()
             self.ComputeDisplayToWorld(ren, xp, yp, focalDepth, oldPickPoint)
             #
-            #   // Camera motion is reversed
-            #
+            # Camera motion is reversed
             motionVector = (
                 oldPickPoint[0] - newPickPoint[0],
                 oldPickPoint[1] - newPickPoint[1],
@@ -1158,7 +1213,6 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
         upside_down_factor = -1 if up[2] < 0 else 1
 
         # rotate about focal point
-
         P = campos - focal  # camera position
 
         # Rotate left/right about the global Z axis
@@ -1179,7 +1233,6 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
 
         # apply the change in azimuth and elevation
         azi_new = azi + rxf / 60
-
         elev_new = elev + upside_down_factor * ryf / 60
 
         # the changed elevation changes H (D stays the same)
@@ -1195,14 +1248,10 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
         # if upside_down:
         #     up_z = -up_z
         #     up_h = -up_h
-
         up = (-up_h * np.cos(azi_new), -up_h * np.sin(azi_new), up_z)
-
         new_pos = focal + Pnew
-
         camera.SetViewUp(up)
         camera.SetPosition(new_pos)
-
         camera.OrthogonalizeViewUp()
 
         # Update
@@ -1292,8 +1341,6 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
         """Move the camera to focus on this particular prop3D"""
 
         position = prop3D.GetPosition()
-
-        # print(f"Focus on {position}")
 
         ren = self.GetCurrentRenderer()
         camera = ren.GetActiveCamera()

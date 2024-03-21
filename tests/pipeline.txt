@@ -152,7 +152,7 @@ cd ~/Projects/4d-gene-reconstruction/useful_scripts
     python interp_to_tetras.py
 
 
-# DOCUMETATION ###############################################################
+# DOCUMENTATION ###############################################################
 mount_staging
 pip install pdoc
 cd $VEDODIR/docs/pdoc

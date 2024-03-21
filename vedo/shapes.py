@@ -1409,7 +1409,7 @@ class NormalLines(Mesh):
 
     def __init__(self, msh, ratio=1, on="cells", scale=1.0) -> None:
 
-        poly = msh.clone().compute_normals().dataset
+        poly = msh.clone().dataset
 
         if "cell" in on:
             centers = vtki.new("CellCenters")

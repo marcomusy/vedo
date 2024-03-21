@@ -372,6 +372,7 @@ for name in [
     "vtkSelectEnclosedPoints",
     "vtkSelectPolyData",
     "vtkSubdivideTetra",
+    "vtkTrimmedExtrusionFilter",
 ]: location[name] = "vtkFiltersModeling"
 
 

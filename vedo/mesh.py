@@ -2064,6 +2064,111 @@ class Mesh(MeshVisual, Points):
         m.name = "ExtrudedMesh"
         return m
 
+    def extrude_and_trim_with(
+            self,
+            surface: "Mesh",
+            direction=(),
+            strategy="all",
+            cap=True,
+            cap_strategy="max",
+    ) -> "Mesh":
+        """
+        Extrude a Mesh and trim it with an input surface mesh.
+
+        Arguments:
+            surface : (Mesh)
+                the surface mesh to trim with.
+            direction : (list)
+                extrusion direction in the xy plane.
+            strategy : (str)
+                either "boundary_edges" or "all_edges".
+            cap : (bool)
+                enable or disable capping.
+            cap_strategy : (str)
+                either "intersection", "minimum_distance", "maximum_distance", "average_distance".
+
+        The input Mesh is swept along a specified direction forming a "skirt"
+        from the boundary edges 2D primitives (i.e., edges used by only one polygon);
+        and/or from vertices and lines.
+        The extent of the sweeping is limited by a second input: defined where
+        the sweep intersects a user-specified surface.
+
+        Capping of the extrusion can be enabled.
+        In this case the input, generating primitive is copied inplace as well
+        as to the end of the extrusion skirt.
+        (See warnings below on what happens if the intersecting sweep does not
+        intersect, or partially intersects the trim surface.)
+
+        Note that this method operates in two fundamentally different modes
+        based on the extrusion strategy. 
+        If the strategy is "boundary_edges", then only the boundary edges of the input's
+        2D primitives are extruded (verts and lines are extruded to generate lines and quads).
+        However, if the extrusions strategy is "all_edges", then every edge of the 2D primitives
+        is used to sweep out a quadrilateral polygon (again verts and lines are swept to produce lines and quads).
+
+        Warning:
+            The extrusion direction is assumed to define an infinite line.
+            The intersection with the trim surface is along a ray from the - to + direction,
+            however only the first intersection is taken.
+            Some polygonal objects have no free edges (e.g., sphere). When swept, this will result in two separate
+            surfaces if capping is on and "boundary_edges" enabled,
+            or no surface if capping is off and "boundary_edges" is enabled.
+            If all the extrusion lines emanating from an extruding primitive do not intersect the trim surface,
+            then no output for that primitive will be generated. In extreme cases, it is possible that no output
+            whatsoever will be generated.
+        
+        Example:
+            ```python
+            from vedo import *
+            sphere = Sphere([-1,0,4]).rotate_x(25).wireframe().color('red5')
+            circle = Circle([0,0,0], r=2, res=100).color('b6')
+            extruded_circle = circle.extrude_and_trim_with(
+                sphere, 
+                direction=[0,-0.2,1],
+                strategy="bound",
+                cap=True,
+                cap_strategy="intersection",
+            )
+            circle.lw(3).color("tomato").shift(dz=-0.1)
+            show(circle, sphere, extruded_circle, axes=1).close()
+            ```
+        """
+        trimmer = vtki.new("TrimmedExtrusionFilter")
+        trimmer.SetInputData(self.dataset)
+        trimmer.SetCapping(cap)
+        trimmer.SetExtrusionDirection(direction)
+        trimmer.SetTrimSurfaceData(surface.dataset)
+        if "bound" in strategy:
+            trimmer.SetExtrusionStrategyToBoundaryEdges()
+        elif "all" in strategy:
+            trimmer.SetExtrusionStrategyToAllEdges()
+        else:
+            vedo.logger.warning(f"extrude_and_trim(): unknown strategy {strategy}")
+        # print (trimmer.GetExtrusionStrategy())
+        
+        if "intersect" in cap_strategy:
+            trimmer.SetCappingStrategyToIntersection()
+        elif "min" in cap_strategy:
+            trimmer.SetCappingStrategyToMinimumDistance()
+        elif "max" in cap_strategy:
+            trimmer.SetCappingStrategyToMaximumDistance()
+        elif "ave" in cap_strategy:
+            trimmer.SetCappingStrategyToAverageDistance()
+        else:
+            vedo.logger.warning(f"extrude_and_trim(): unknown cap_strategy {cap_strategy}")
+        # print (trimmer.GetCappingStrategy())
+
+        trimmer.Update()
+
+        m = Mesh(trimmer.GetOutput())
+        m.copy_properties_from(self).flat().lighting("default")
+        m.pipeline = OperationNode(
+            "extrude_and_trim", parents=[self, surface],
+            comment=f"#pts {m.dataset.GetNumberOfPoints()}"
+        )
+        m.name = "ExtrudedAndTrimmedMesh"
+        return m
+
     def split(
         self, maxdepth=1000, flag=False, must_share_edge=False, sort_by_area=True
     ) -> Union[List["Mesh"], "Mesh"]:
