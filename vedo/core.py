@@ -1411,6 +1411,88 @@ class CommonAlgorithms:
         msh.pipeline = utils.OperationNode("tomesh", parents=[self], c="#9e2a2b")
         return msh
 
+    def signed_distance(self, dims=(20, 20, 20), bounds=None, invert=False, max_radius=None) -> "vedo.Volume":
+        """
+        Compute the `Volume` object whose voxels contains the signed distance from
+        the object. The calling object must have "Normals" defined.
+
+        Arguments:
+            bounds : (list, actor)
+                bounding box sizes
+            dims : (list)
+                dimensions (nr. of voxels) of the output volume.
+            invert : (bool)
+                flip the sign
+            max_radius : (float)
+                specify how far out to propagate distance calculation
+
+        Examples:
+            - [distance2mesh.py](https://github.com/marcomusy/vedo/blob/master/examples/basic/distance2mesh.py)
+
+                ![](https://vedo.embl.es/images/basic/distance2mesh.png)
+        """
+        if bounds is None:
+            bounds = self.bounds()
+        if max_radius is None:
+            max_radius = self.diagonal_size() / 2
+        dist = vtki.new("SignedDistance")
+        dist.SetInputData(self.dataset)
+        dist.SetRadius(max_radius)
+        dist.SetBounds(bounds)
+        dist.SetDimensions(dims)
+        dist.Update()
+        img = dist.GetOutput()
+        if invert:
+            mat = vtki.new("ImageMathematics")
+            mat.SetInput1Data(img)
+            mat.SetOperationToMultiplyByK()
+            mat.SetConstantK(-1)
+            mat.Update()
+            img = mat.GetOutput()
+
+        vol = vedo.Volume(img)
+        vol.name = "SignedDistanceVolume"
+        vol.pipeline = utils.OperationNode(
+            "signed_distance",
+            parents=[self],
+            comment=f"dims={tuple(vol.dimensions())}",
+            c="#e9c46a:#0096c7",
+        )
+        return vol
+    
+    def unsigned_distance(
+            self, dims=(25,25,25), bounds=(), max_radius=0, cap_value=0) -> "vedo.Volume":
+        """
+        Compute the `Volume` object whose voxels contains the unsigned distance. 
+        """
+        dist = vtki.new("UnsignedDistance")
+        dist.SetInputData(self.dataset)
+        dist.SetDimensions(dims)
+
+        if len(bounds) == 6:
+            dist.SetBounds(bounds)
+        # elif bounds == "auto":
+        #     dist.AdjustBoundsOn()
+        else:
+            dist.SetBounds(self.bounds())
+        if not max_radius:
+            max_radius = self.diagonal_size() / 10
+        dist.SetRadius(max_radius)
+
+        if self.point_locator:
+            dist.SetLocator(self.point_locator)
+        
+        if cap_value is not None:
+            dist.CappingOn()
+            dist.SetCapValue(cap_value)
+        dist.SetOutputScalarTypeToFloat()
+        dist.Update()
+        vol = vedo.Volume(dist.GetOutput())
+        vol.name = "UnsignedDistanceVolume"
+        vol.pipeline = utils.OperationNode(
+            "unsigned_distance", parents=[self], c="#e9c46a:#0096c7")
+        return vol
+
     def smooth_data(self, 
             niter=10, relaxation_factor=0.1, strategy=0, mask=None,
             exclude=("Normals", "TextureCoordinates"),

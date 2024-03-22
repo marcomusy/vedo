@@ -2723,7 +2723,6 @@ class Points(PointsVisual, PointAlgorithms):
     ) -> "vedo.Mesh":
         """
         Generate the surface halo which sits at the specified distance from the input one.
-        Uses the `vtkImplicitModeller` class.
 
         Arguments:
             distance : (float)
@@ -3262,55 +3261,6 @@ class Points(PointsVisual, PointAlgorithms):
         )
         return vol
 
-    def signed_distance(self, bounds=None, dims=(20, 20, 20), invert=False, maxradius=None) -> "vedo.Volume":
-        """
-        Compute the `Volume` object whose voxels contains the signed distance from
-        the point cloud. The point cloud must have Normals.
-
-        Arguments:
-            bounds : (list, actor)
-                bounding box sizes
-            dims : (list)
-                dimensions (nr. of voxels) of the output volume.
-            invert : (bool)
-                flip the sign
-            maxradius : (float)
-                specify how far out to propagate distance calculation
-
-        Examples:
-            - [distance2mesh.py](https://github.com/marcomusy/vedo/blob/master/examples/basic/distance2mesh.py)
-
-                ![](https://vedo.embl.es/images/basic/distance2mesh.png)
-        """
-        if bounds is None:
-            bounds = self.bounds()
-        if maxradius is None:
-            maxradius = self.diagonal_size() / 2
-        dist = vtki.new("SignedDistance")
-        dist.SetInputData(self.dataset)
-        dist.SetRadius(maxradius)
-        dist.SetBounds(bounds)
-        dist.SetDimensions(dims)
-        dist.Update()
-        img = dist.GetOutput()
-        if invert:
-            mat = vtki.new("ImageMathematics")
-            mat.SetInput1Data(img)
-            mat.SetOperationToMultiplyByK()
-            mat.SetConstantK(-1)
-            mat.Update()
-            img = mat.GetOutput()
-
-        vol = vedo.Volume(img)
-        vol.name = "SignedDistanceVolume"
-
-        vol.pipeline = utils.OperationNode(
-            "signed_distance",
-            parents=[self],
-            comment=f"dims={tuple(vol.dimensions())}",
-            c="#e9c46a:#0096c7",
-        )
-        return vol
 
     def tovolume(
         self,
