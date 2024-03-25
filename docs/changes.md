@@ -13,6 +13,7 @@
 - add `FlyOverSurface` class and  `examples/basic/interaction_modes3.py`
 - address #1072 for pyinstaller 
 - add `mesh.extrude_and_trim_with()` method out of #1077
+- fix `reset_camera()` by @sergei9838 and Eric
 
 
 ## Soft-breaking Changes
