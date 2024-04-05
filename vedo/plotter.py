@@ -1344,14 +1344,14 @@ class Plotter:
             self.renderer.ResetCamera()
         else:
             x0, x1, y0, y1, z0, z1 = self.renderer.ComputeVisiblePropBounds()
-
-            cam = self.renderer.GetActiveCamera()
+            cam = self.camera
 
             self.renderer.ComputeAspect()
             aspect = self.renderer.GetAspect()
             angle = np.pi * cam.GetViewAngle() / 180.0
-            dx, dy = (x1 - x0) * 0.999, (y1 - y0) * 0.999
-            dist = max(dx / aspect[0], dy) / np.sin(angle / 2) / 2
+            dx = x1 - x0
+            dy = y1 - y0
+            dist = max(dx / aspect[0], dy) / np.tan(angle / 2) / 2
 
             cam.SetViewUp(0, 1, 0)
             cam.SetPosition(x0 + dx / 2, y0 + dy / 2, dist * (1 + tight))

@@ -15,7 +15,7 @@
 - add `mesh.extrude_and_trim_with()` method out of #1077
 - fix reset clipping range in thumbnail generation as per #1085
 - add `mesh.euler_characteristic()`, `mesh.genus()` and `mesh.to_reeb_graph()` as per #1084
-
+- fix `reset_camera()` by @sergei9838 and Eric
 
 
 ## Soft-breaking Changes
