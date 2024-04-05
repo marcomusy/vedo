@@ -162,10 +162,13 @@ class DataArrayHelper:
             data = self.obj.dataset.GetFieldData()
         arrnames = []
         for i in range(data.GetNumberOfArrays()):
+            name = ""
             if self.association == 2:
                 name = data.GetAbstractArray(i).GetName()
             else:
-                name = data.GetArray(i).GetName()
+                iarr = data.GetArray(i)
+                if iarr:
+                    name = iarr.GetName()
             if name:
                 arrnames.append(name)
         return arrnames

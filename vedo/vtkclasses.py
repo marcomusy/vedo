@@ -315,6 +315,7 @@ for name in [
     "vtkIntersectionPolyDataFilter",
     "vtkLoopBooleanPolyDataFilter",
     "vtkMultiBlockDataGroupFilter",
+    "vtkPolyDataToReebGraphFilter",
     "vtkTransformPolyDataFilter",
     "vtkTransformFilter",
     "vtkOBBTree",

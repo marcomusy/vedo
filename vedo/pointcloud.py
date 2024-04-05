@@ -2650,10 +2650,11 @@ class Points(PointsVisual, PointAlgorithms):
         self.pipeline = utils.OperationNode("cut_with_scalar", parents=[self])
         return self
 
-    def crop(self, top=None, bottom=None, right=None, left=None, front=None, back=None) -> "Points":
+    def crop(self,
+             top=None, bottom=None, right=None, left=None, front=None, back=None,
+             bounds=()) -> "Points":
         """
         Crop an `Mesh` object.
-        Use this method at creation (before moving the object).
 
         Arguments:
             top : (float)
@@ -2668,6 +2669,8 @@ class Points(PointsVisual, PointAlgorithms):
                 fraction to crop from the right plane (positive x)
             left : (float)
                 fraction to crop from the left plane (negative x)
+            bounds : (list)
+                bounding box of the crop region as `[x0,x1, y0,y1, z0,z1]`
 
         Example:
             ```python
@@ -2676,27 +2679,28 @@ class Points(PointsVisual, PointAlgorithms):
             ```
             ![](https://user-images.githubusercontent.com/32848391/57081955-0ef1e800-6cf6-11e9-99de-b45220939bc9.png)
         """
+        if not len(bounds):
+            pos = np.array(self.pos())
+            x0, x1, y0, y1, z0, z1 = self.bounds()
+            x0, y0, z0 = [x0, y0, z0] - pos
+            x1, y1, z1 = [x1, y1, z1] - pos
+
+            dx, dy, dz = x1 - x0, y1 - y0, z1 - z0
+            if top:
+                z1 = z1 - top * dz
+            if bottom:
+                z0 = z0 + bottom * dz
+            if front:
+                y1 = y1 - front * dy
+            if back:
+                y0 = y0 + back * dy
+            if right:
+                x1 = x1 - right * dx
+            if left:
+                x0 = x0 + left * dx
+            bounds = (x0, x1, y0, y1, z0, z1)
+
         cu = vtki.new("Box")
-        pos = np.array(self.pos())
-        x0, x1, y0, y1, z0, z1 = self.bounds()
-        x0, y0, z0 = [x0, y0, z0] - pos
-        x1, y1, z1 = [x1, y1, z1] - pos
-
-        dx, dy, dz = x1 - x0, y1 - y0, z1 - z0
-        if top:
-            z1 = z1 - top * dz
-        if bottom:
-            z0 = z0 + bottom * dz
-        if front:
-            y1 = y1 - front * dy
-        if back:
-            y0 = y0 + back * dy
-        if right:
-            x1 = x1 - right * dx
-        if left:
-            x0 = x0 + left * dx
-        bounds = (x0, x1, y0, y1, z0, z1)
-
         cu.SetBounds(bounds)
 
         clipper = vtki.new("ClipPolyData")

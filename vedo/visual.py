@@ -167,6 +167,7 @@ class CommonVisual:
         ren_win.SetSize(size)
         ren.SetBackground(colors.get_color(bg))
         ren_win.AddRenderer(ren)
+        ren.ResetCameraClippingRange()
         ren_win.Render()
 
         nx, ny = ren_win.GetSize()

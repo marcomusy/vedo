@@ -473,8 +473,64 @@ class Mesh(MeshVisual, Points):
         )
         return self
 
+
+    def euler_characteristic(self) -> int:
+        """
+        Compute the Euler characteristic of the mesh.
+        The Euler characteristic is a topological invariant for surfaces.
+        """
+        return self.npoints - len(self.edges) + self.ncells
+
+    def genus(self) -> int:
+        """
+        Compute the genus of the mesh.
+        The genus is a topological invariant for surfaces.
+        """
+        nb = len(self.boundaries().split()) - 1
+        return (2 - self.euler_characteristic() - nb ) / 2
+    
+    def to_reeb_graph(self, field_id=0):
+        """
+        Convert the mesh into a Reeb graph.
+        The Reeb graph is a topological structure that captures the evolution
+        of the level sets of a scalar field.
+
+        Arguments:
+            field_id : (int)
+                the id of the scalar field to use.
+        
+        Example:
+            ```python
+            from vedo import *
+            mesh = Mesh("https://discourse.paraview.org/uploads/short-url/qVuZ1fiRjwhE1qYtgGE2HGXybgo.stl")
+            mesh.rotate_x(10).rotate_y(15).alpha(0.5)
+            mesh.pointdata["scalars"] = mesh.vertices[:, 2]
+
+            printc("is_closed  :", mesh.is_closed())
+            printc("is_manifold:", mesh.is_manifold())
+            printc("euler_char :", mesh.euler_characteristic())
+            printc("genus      :", mesh.genus())
+
+            reeb = mesh.to_reeb_graph()
+            ids = reeb[0].pointdata["Vertex Ids"]
+            pts = Points(mesh.vertices[ids], r=10)
+
+            show([[mesh, pts], reeb], N=2, sharecam=False)
+            ```
+        """
+        rg = vtki.new("PolyDataToReebGraphFilter")
+        rg.SetInputData(self.dataset)
+        rg.SetFieldId(field_id)
+        rg.Update()
+        gr = vedo.pyplot.DirectedGraph()
+        gr.mdg = rg.GetOutput()
+        gr.build()
+        return gr
+
+
     def shrink(self, fraction=0.85) -> "Mesh":
-        """Shrink the triangle polydata in the representation of the input mesh.
+        """
+        Shrink the triangle polydata in the representation of the input mesh.
 
         Examples:
             - [shrink.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/shrink.py)

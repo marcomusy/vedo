@@ -4194,21 +4194,25 @@ class DirectedGraph(Assembly):
                 arrows.rotate_z(self.rotZ)
             arrows.name = "DirectedGraphArrows"
 
-        node_labels = dgraph.labels(
-            self._node_labels,
-            scale=self.node_label_scale,
-            precision=0,
-            font=self.font,
-            justify=self.node_label_justify,
-        )
-        node_labels.color(self._c).pickable(True)
-        node_labels.name = "DirectedGraphNodeLabels"
+        node_labels = None
+        if self._node_labels:
+            node_labels = dgraph.labels(
+                self._node_labels,
+                scale=self.node_label_scale,
+                precision=0,
+                font=self.font,
+                justify=self.node_label_justify,
+            )
+            node_labels.color(self._c).pickable(True)
+            node_labels.name = "DirectedGraphNodeLabels"
 
-        edge_labels = dgraph.labels(
-            self._edge_labels, on="cells", scale=self.edge_label_scale, precision=0, font=self.font
-        )
-        edge_labels.color(self._c).pickable(True)
-        edge_labels.name = "DirectedGraphEdgeLabels"
+        edge_labels = None
+        if self._edge_labels:
+            edge_labels = dgraph.labels(
+                self._edge_labels, on="cells", scale=self.edge_label_scale, precision=0, font=self.font
+            )
+            edge_labels.color(self._c).pickable(True)
+            edge_labels.name = "DirectedGraphEdgeLabels"
 
         super().__init__([dgraph, node_labels, edge_labels, arrows])
         self.name = "DirectedGraphAssembly"

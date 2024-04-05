@@ -13,6 +13,9 @@
 - add `FlyOverSurface` class and  `examples/basic/interaction_modes3.py`
 - address #1072 for pyinstaller 
 - add `mesh.extrude_and_trim_with()` method out of #1077
+- fix reset clipping range in thumbnail generation as per #1085
+- add `mesh.euler_characteristic()`, `mesh.genus()` and `mesh.to_reeb_graph()` as per #1084
+
 
 
 ## Soft-breaking Changes
@@ -45,6 +48,7 @@ markpoint.py (misplaced leader indicator)
 cut_and_cap.py (incomplete capping)
 gyroscope1.py (broken physics)
 tests/issues/discussion_800.py (incomplete capping of tube)
+makevideo
 ```
 
 #### Broken Projects
