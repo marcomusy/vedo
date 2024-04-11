@@ -1,9 +1,8 @@
 """Surface plotting in spherical coordinates
 
 Spherical harmonic function is:
-Y(l=2, m=0) = 3\dotcos\^2\theta - 1
-(red points are made NaN on purpose)
-"""
+Y(l=2, m=0) = 3 :dot cos:^2:theta - 1
+(red points are made NaN on purpose)"""
 from vedo import *
 from vedo.pyplot import plot
 import numpy as np

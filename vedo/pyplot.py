@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from typing import Union
+from typing import Self, Union
 import numpy as np
 
 import vedo.vtkclasses as vtki
@@ -283,7 +283,7 @@ class Figure(Assembly):
         obj = utils.flatten(obj)
         return self.insert(*obj)
 
-    def _check_unpack_and_insert(self, fig: "Figure") -> "Figure":
+    def _check_unpack_and_insert(self, fig: "Figure") -> Self:
 
         if fig.label:
             self.labels.append(fig.label)
@@ -326,7 +326,7 @@ class Figure(Assembly):
 
         return self
 
-    def insert(self, *objs, rescale=True, as3d=True, adjusted=False, cut=True) -> "Figure":
+    def insert(self, *objs, rescale=True, as3d=True, adjusted=False, cut=True) -> Self:
         """
         Insert objects into a Figure.
 
@@ -424,7 +424,7 @@ class Figure(Assembly):
 
         return self
 
-    def add_label(self, text: str, c=None, marker="", mc="black") -> "Figure":
+    def add_label(self, text: str, c=None, marker="", mc="black") -> Self:
         """
         Manually add en entry label to the legend.
 
@@ -461,7 +461,7 @@ class Figure(Assembly):
         lw=1,
         lc="k4",
         z=0,
-    ) -> "Figure":
+    ) -> Self:
         """
         Add existing labels to form a legend box.
         Labels have been previously filled with eg: `plot(..., label="text")`
@@ -2990,7 +2990,7 @@ def _histogram_quad_bin(x, y, **kwargs):
 
 def _histogram_hex_bin(
     xvalues, yvalues, bins=12, norm=1, fill=True, c=None, cmap="terrain_r", alpha=1
-) -> "vedo.Assembly":
+) -> "Assembly":
     xmin, xmax = np.min(xvalues), np.max(xvalues)
     ymin, ymax = np.min(yvalues), np.max(yvalues)
     dx, dy = xmax - xmin, ymax - ymin

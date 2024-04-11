@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import numpy as np
-from typing import List, Tuple, Union, MutableSequence, Any
+from typing import List, Tuple, Union, MutableSequence, Any, Self
 
 import vedo.vtkclasses as vtki  # a wrapper for lazy imports
 
@@ -275,7 +275,7 @@ class Mesh(MeshVisual, Points):
         vtknormals = self.dataset.GetCellData().GetNormals()
         return vtk2numpy(vtknormals)
 
-    def compute_normals(self, points=True, cells=True, feature_angle=None, consistency=True) -> "Mesh":
+    def compute_normals(self, points=True, cells=True, feature_angle=None, consistency=True) -> Self:
         """
         Compute cell and vertex normals for the mesh.
 
@@ -311,7 +311,7 @@ class Mesh(MeshVisual, Points):
         self._update(out, reset_locators=False)
         return self
 
-    def reverse(self, cells=True, normals=False) -> "Mesh":
+    def reverse(self, cells=True, normals=False) -> Self:
         """
         Reverse the order of polygonal cells
         and/or reverse the direction of point and cell normals.
@@ -387,7 +387,7 @@ class Mesh(MeshVisual, Points):
         ne = fe.GetOutput().GetNumberOfCells()
         return not bool(ne)
 
-    def non_manifold_faces(self, remove=True, tol="auto") -> "Mesh":
+    def non_manifold_faces(self, remove=True, tol="auto") -> Self:
         """
         Detect and (try to) remove non-manifold faces of a triangular mesh:
 
@@ -528,7 +528,7 @@ class Mesh(MeshVisual, Points):
         return gr
 
 
-    def shrink(self, fraction=0.85) -> "Mesh":
+    def shrink(self, fraction=0.85) -> Self:
         """
         Shrink the triangle polydata in the representation of the input mesh.
 
@@ -546,7 +546,7 @@ class Mesh(MeshVisual, Points):
         self.pipeline = OperationNode("shrink", parents=[self])
         return self
 
-    def cap(self, return_cap=False) -> "Mesh":
+    def cap(self, return_cap=False) -> Self:
         """
         Generate a "cap" on a clipped mesh, or caps sharp edges.
 
@@ -604,7 +604,7 @@ class Mesh(MeshVisual, Points):
         )
         return self
 
-    def join(self, polys=True, reset=False) -> "Mesh":
+    def join(self, polys=True, reset=False) -> Self:
         """
         Generate triangle strips and/or polylines from
         input polygons, triangle strips, and lines.
@@ -741,7 +741,7 @@ class Mesh(MeshVisual, Points):
 
         return vlines
 
-    def join_with_strips(self, b1, closed=True) -> "Mesh":
+    def join_with_strips(self, b1, closed=True) -> Self:
         """
         Join booundary lines by creating a triangle strip between them.
 
@@ -800,7 +800,7 @@ class Mesh(MeshVisual, Points):
 
         return Mesh([points, [], [], strips], c="k6")
 
-    def split_polylines(self) -> "Mesh":
+    def split_polylines(self) -> Self:
         """Split polylines into separate segments."""
         tf = vtki.new("TriangleFilter")
         tf.SetPassLines(True)
@@ -815,7 +815,7 @@ class Mesh(MeshVisual, Points):
         )
         return self
 
-    def slice(self, origin=(0, 0, 0), normal=(1, 0, 0)) -> "Mesh":
+    def slice(self, origin=(0, 0, 0), normal=(1, 0, 0)) -> Self:
         """
         Slice a mesh with a plane and fill the contour.
 
@@ -839,7 +839,7 @@ class Mesh(MeshVisual, Points):
             mslices.pipeline = OperationNode("slice", parents=[self], comment=f"normal = {normal}")
         return mslices
 
-    def triangulate(self, verts=True, lines=True) -> "Mesh":
+    def triangulate(self, verts=True, lines=True) -> Self:
         """
         Converts mesh polygons into triangles.
 
@@ -881,7 +881,7 @@ class Mesh(MeshVisual, Points):
         )
         return self
 
-    def compute_cell_vertex_count(self) -> "Mesh":
+    def compute_cell_vertex_count(self) -> Self:
         """
         Add to this mesh a cell data array containing the nr of vertices that a polygonal face has.
         """
@@ -898,7 +898,7 @@ class Mesh(MeshVisual, Points):
         )
         return self
 
-    def compute_quality(self, metric=6) -> "Mesh":
+    def compute_quality(self, metric=6) -> Self:
         """
         Calculate metrics of quality for the elements of a triangular mesh.
         This method adds to the mesh a cell array named "Quality".
@@ -987,7 +987,7 @@ class Mesh(MeshVisual, Points):
         varr = vald.GetOutput().GetCellData().GetArray("ValidityState")
         return vtk2numpy(varr)
 
-    def compute_curvature(self, method=0) -> "Mesh":
+    def compute_curvature(self, method=0) -> Self:
         """
         Add scalars to `Mesh` that contains the curvature calculated in three different ways.
 
@@ -1012,7 +1012,7 @@ class Mesh(MeshVisual, Points):
         self.mapper.ScalarVisibilityOn()
         return self
 
-    def compute_elevation(self, low=(0, 0, 0), high=(0, 0, 1), vrange=(0, 1)) -> "Mesh":
+    def compute_elevation(self, low=(0, 0, 0), high=(0, 0, 1), vrange=(0, 1)) -> Self:
         """
         Add to `Mesh` a scalar array that contains distance along a specified direction.
 
@@ -1042,7 +1042,7 @@ class Mesh(MeshVisual, Points):
         self.mapper.ScalarVisibilityOn()
         return self
 
-    def subdivide(self, n=1, method=0, mel=None) -> "Mesh":
+    def subdivide(self, n=1, method=0, mel=None) -> Self:
         """
         Increase the number of vertices of a surface mesh.
 
@@ -1091,7 +1091,7 @@ class Mesh(MeshVisual, Points):
         return self
 
 
-    def decimate(self, fraction=0.5, n=None, preserve_volume=True, regularization=0.0) -> "Mesh":
+    def decimate(self, fraction=0.5, n=None, preserve_volume=True, regularization=0.0) -> Self:
         """
         Downsample the number of vertices in a mesh to `fraction`.
 
@@ -1165,7 +1165,7 @@ class Mesh(MeshVisual, Points):
             feature_angle=0,
             inflection_point_ratio=10,
             vertex_degree=0,
-        ) -> "Mesh":
+        ) -> Self:
         """
         Downsample the number of vertices in a mesh to `fraction`.
 
@@ -1240,7 +1240,7 @@ class Mesh(MeshVisual, Points):
         )
         return self
     
-    def decimate_binned(self, divisions=(), use_clustering=False) -> "Mesh":
+    def decimate_binned(self, divisions=(), use_clustering=False) -> Self:
         """
         Downsample the number of vertices in a mesh.
         
@@ -1356,7 +1356,7 @@ class Mesh(MeshVisual, Points):
             "generate_random_points", c="#edabab", parents=[self])
         return vpts
 
-    def delete_cells(self, ids: List[int]) -> "Mesh":
+    def delete_cells(self, ids: List[int]) -> Self:
         """
         Remove cells from the mesh object by their ID.
         Points (vertices) are not removed (you may use `clean()` to remove those).
@@ -1374,7 +1374,7 @@ class Mesh(MeshVisual, Points):
         )
         return self
 
-    def delete_cells_by_point_index(self, indices: List[int]) -> "Mesh":
+    def delete_cells_by_point_index(self, indices: List[int]) -> Self:
         """
         Delete a list of vertices identified by any of their vertex index.
 
@@ -1399,7 +1399,7 @@ class Mesh(MeshVisual, Points):
         self.pipeline = OperationNode("delete_cells_by_point_index", parents=[self])
         return self
 
-    def collapse_edges(self, distance: float, iterations=1) -> "Mesh":
+    def collapse_edges(self, distance: float, iterations=1) -> Self:
         """
         Collapse mesh edges so that are all above `distance`.
         
@@ -1487,7 +1487,7 @@ class Mesh(MeshVisual, Points):
                 i += 1
             return ball
 
-    def smooth(self, niter=15, pass_band=0.1, edge_angle=15, feature_angle=60, boundary=False) -> "Mesh":
+    def smooth(self, niter=15, pass_band=0.1, edge_angle=15, feature_angle=60, boundary=False) -> Self:
         """
         Adjust mesh point positions using the so-called "Windowed Sinc" method.
 
@@ -1530,7 +1530,7 @@ class Mesh(MeshVisual, Points):
         )
         return self
 
-    def fill_holes(self, size=None) -> "Mesh":
+    def fill_holes(self, size=None) -> Self:
         """
         Identifies and fills holes in the input mesh.
         Holes are identified by locating boundary edges, linking them together
@@ -1651,7 +1651,7 @@ class Mesh(MeshVisual, Points):
         return_point_ids=False,
         return_cell_ids=False,
         cell_edge=False,
-    ) -> Union["Mesh", np.ndarray]:
+    ) -> Union[Self, np.ndarray]:
         """
         Return the boundary lines of an input mesh.
         Check also `vedo.core.CommonAlgorithms.mark_boundaries()` method.
@@ -1739,7 +1739,7 @@ class Mesh(MeshVisual, Points):
             )
             return msh
 
-    def imprint(self, loopline, tol=0.01) -> "Mesh":
+    def imprint(self, loopline, tol=0.01) -> Self:
         """
         Imprint the contact surface of one object onto another surface.
 
@@ -1813,7 +1813,7 @@ class Mesh(MeshVisual, Points):
 
         return idxs
 
-    def extract_cells(self, ids: List[int]) -> "Mesh":
+    def extract_cells(self, ids: List[int]) -> Self:
         """
         Extract a subset of cells from a mesh and return it as a new mesh.
         """
@@ -1842,7 +1842,7 @@ class Mesh(MeshVisual, Points):
         msh.copy_properties_from(self)
         return msh
 
-    def connected_cells(self, index: int, return_ids=False) -> Union["Mesh", List[int]]:
+    def connected_cells(self, index: int, return_ids=False) -> Union[Self, List[int]]:
         """Find all cellls connected to an input vertex specified by its index."""
 
         # Find all cells connected to point index
@@ -1875,7 +1875,7 @@ class Mesh(MeshVisual, Points):
         gf.Update()
         return Mesh(gf.GetOutput()).lw(1)
 
-    def silhouette(self, direction=None, border_edges=True, feature_angle=False) -> "Mesh":
+    def silhouette(self, direction=None, border_edges=True, feature_angle=False) -> Self:
         """
         Return a new line `Mesh` which corresponds to the outer `silhouette`
         of the input as seen along a specified `direction`, this can also be
@@ -1938,7 +1938,7 @@ class Mesh(MeshVisual, Points):
         m.name = "Silhouette"
         return m
 
-    def isobands(self, n=10, vmin=None, vmax=None) -> "Mesh":
+    def isobands(self, n=10, vmin=None, vmax=None) -> Self:
         """
         Return a new `Mesh` representing the isobands of the active scalars.
         This is a new mesh where the scalar is now associated to cell faces and
@@ -2000,7 +2000,7 @@ class Mesh(MeshVisual, Points):
         m1.name = "IsoBands"
         return m1
 
-    def isolines(self, n=10, vmin=None, vmax=None) -> "Mesh":
+    def isolines(self, n=10, vmin=None, vmax=None) -> Self:
         """
         Return a new `Mesh` representing the isolines of the active scalars.
 
@@ -2039,7 +2039,7 @@ class Mesh(MeshVisual, Points):
         msh.name = "IsoLines"
         return msh
 
-    def extrude(self, zshift=1.0, direction=(), rotation=0.0, dr=0.0, cap=True, res=1) -> "Mesh":
+    def extrude(self, zshift=1.0, direction=(), rotation=0.0, dr=0.0, cap=True, res=1) -> Self:
         """
         Sweep a polygonal data creating a "skirt" from free edges and lines, and lines from vertices.
         The input dataset is swept around the z-axis to create new polygonal primitives.
@@ -2127,7 +2127,7 @@ class Mesh(MeshVisual, Points):
             strategy="all",
             cap=True,
             cap_strategy="max",
-    ) -> "Mesh":
+    ) -> Self:
         """
         Extrude a Mesh and trim it with an input surface mesh.
 
@@ -2227,7 +2227,7 @@ class Mesh(MeshVisual, Points):
 
     def split(
         self, maxdepth=1000, flag=False, must_share_edge=False, sort_by_area=True
-    ) -> Union[List["Mesh"], "Mesh"]:
+    ) -> Union[List[Self], Self]:
         """
         Split a mesh by connectivity and order the pieces by increasing area.
 
@@ -2308,7 +2308,7 @@ class Mesh(MeshVisual, Points):
                 )
         return blist
 
-    def extract_largest_region(self) -> "Mesh":
+    def extract_largest_region(self) -> Self:
         """
         Extract the largest connected part of a mesh and discard all the smaller pieces.
 
@@ -2331,7 +2331,7 @@ class Mesh(MeshVisual, Points):
         m.name = "MeshLargestRegion"
         return m
 
-    def boolean(self, operation: str, mesh2, method=0, tol=None) -> "Mesh":
+    def boolean(self, operation: str, mesh2, method=0, tol=None) -> Self:
         """Volumetric union, intersection and subtraction of surfaces.
 
         Use `operation` for the allowed operations `['plus', 'intersect', 'minus']`.
@@ -2379,7 +2379,7 @@ class Mesh(MeshVisual, Points):
         msh.name = self.name + operation + mesh2.name
         return msh
 
-    def intersect_with(self, mesh2, tol=1e-06) -> "Mesh":
+    def intersect_with(self, mesh2, tol=1e-06) -> Self:
         """
         Intersect this Mesh with the input surface to return a set of lines.
 
@@ -2450,7 +2450,7 @@ class Mesh(MeshVisual, Points):
 
         return pts2
 
-    def intersect_with_plane(self, origin=(0, 0, 0), normal=(1, 0, 0)) -> "Mesh":
+    def intersect_with_plane(self, origin=(0, 0, 0), normal=(1, 0, 0)) -> Self:
         """
         Intersect this Mesh with a plane to return a set of lines.
 
@@ -2485,7 +2485,7 @@ class Mesh(MeshVisual, Points):
         msh.name = "PlaneIntersection"
         return msh
     
-    def cut_closed_surface(self, origins, normals, invert=False, return_assembly=False) -> Union["Mesh", "vedo.Assembly"]:
+    def cut_closed_surface(self, origins, normals, invert=False, return_assembly=False) -> Union[Self, "vedo.Assembly"]:
         """
         Cut/clip a closed surface mesh with a collection of planes.
         This will produce a new closed surface by creating new polygonal
@@ -2568,7 +2568,7 @@ class Mesh(MeshVisual, Points):
             )
             return self
 
-    def collide_with(self, mesh2, tol=0, return_bool=False) -> Union["Mesh", bool]:
+    def collide_with(self, mesh2, tol=0, return_bool=False) -> Union[Self, bool]:
         """
         Collide this Mesh with the input surface.
         Information is stored in `ContactCells1` and `ContactCells2`.
@@ -2611,7 +2611,7 @@ class Mesh(MeshVisual, Points):
         msh.name = "SurfaceCollision"
         return msh
 
-    def geodesic(self, start, end) -> "Mesh":
+    def geodesic(self, start, end) -> Self:
         """
         Dijkstra algorithm to compute the geodesic line.
         Takes as input a polygonal mesh and performs a single source shortest path calculation.

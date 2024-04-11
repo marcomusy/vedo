@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 from weakref import ref as weak_ref_to
-from typing import Tuple, List, Union, Any
+from typing import Self, Tuple, List, Union, Any
 
 import vedo.vtkclasses as vtki
 
@@ -355,7 +355,7 @@ class Image(vedo.visual.ImageVisual):
         return "\n".join(allt)
 
     ######################################################################
-    def _update(self, data: vtki.vtkImageData) -> "Image":
+    def _update(self, data: vtki.vtkImageData) -> Self:
         self.dataset = data
         self.mapper.SetInputData(data)
         self.mapper.Modified()
@@ -463,7 +463,7 @@ class Image(vedo.visual.ImageVisual):
         return pic
 
 
-    def crop(self, top=None, bottom=None, right=None, left=None, pixels=False) -> "Image":
+    def crop(self, top=None, bottom=None, right=None, left=None, pixels=False) -> Self:
         """
         Crop image.
 
@@ -501,7 +501,7 @@ class Image(vedo.visual.ImageVisual):
         )
         return self
 
-    def pad(self, pixels=10, value=255) -> "Image":
+    def pad(self, pixels=10, value=255) -> Self:
         """
         Add the specified number of pixels at the image borders.
         Pixels can be a list formatted as `[left, right, bottom, top]`.
@@ -566,7 +566,7 @@ class Image(vedo.visual.ImageVisual):
         )
         return img
 
-    def append(self, images: list, axis="z", preserve_extents=False) -> "Image":
+    def append(self, images: list, axis="z", preserve_extents=False) -> Self:
         """
         Append the input images to the current one along the specified axis.
         Except for the append axis, all inputs must have the same extent.
@@ -614,7 +614,7 @@ class Image(vedo.visual.ImageVisual):
         )
         return self
 
-    def resize(self, newsize: Any) -> "Image":
+    def resize(self, newsize: Any) -> Self:
         """
         Resize the image resolution by specifying the number of pixels in width and height.
         If left to zero, it will be automatically calculated to keep the original aspect ratio.
@@ -647,7 +647,7 @@ class Image(vedo.visual.ImageVisual):
         )
         return self
 
-    def mirror(self, axis="x") -> "Image":
+    def mirror(self, axis="x") -> Self:
         """Mirror image along x or y axis. Same as `flip()`."""
         ff = vtki.new("ImageFlip")
         ff.SetInputData(self.dataset)
@@ -663,7 +663,7 @@ class Image(vedo.visual.ImageVisual):
         self.pipeline = utils.OperationNode(f"mirror {axis}", parents=[self], c="#f28482")
         return self
 
-    def flip(self, axis="y") -> "Image":
+    def flip(self, axis="y") -> Self:
         """Mirror image along x or y axis. Same as `mirror()`."""
         return self.mirror(axis=axis)
 
@@ -679,7 +679,7 @@ class Image(vedo.visual.ImageVisual):
         )
         return pic
 
-    def bw(self) -> "Image":
+    def bw(self) -> Self:
         """Make it black and white using luminance calibration."""
         n = self.dataset.GetPointData().GetNumberOfComponents()
         if n == 4:
@@ -698,7 +698,7 @@ class Image(vedo.visual.ImageVisual):
         self.pipeline = utils.OperationNode("black&white", parents=[self], c="#f28482")
         return self
 
-    def smooth(self, sigma=3, radius=None) -> "Image":
+    def smooth(self, sigma=3, radius=None) -> Self:
         """
         Smooth a `Image` with Gaussian kernel.
 
@@ -728,7 +728,7 @@ class Image(vedo.visual.ImageVisual):
         )
         return self
 
-    def median(self) -> "Image":
+    def median(self) -> Self:
         """
         Median filter that preserves thin lines and corners.
 
@@ -744,7 +744,7 @@ class Image(vedo.visual.ImageVisual):
         self.pipeline = utils.OperationNode("median", parents=[self], c="#f28482")
         return self
 
-    def enhance(self) -> "Image":
+    def enhance(self) -> Self:
         """
         Enhance a b&w image using the laplacian, enhancing high-freq edges.
 
@@ -879,7 +879,7 @@ class Image(vedo.visual.ImageVisual):
         pic.pipeline = utils.OperationNode("rFFT", parents=[self], c="#f28482")
         return pic
 
-    def filterpass(self, lowcutoff=None, highcutoff=None, order=3) -> "Image":
+    def filterpass(self, lowcutoff=None, highcutoff=None, order=3) -> Self:
         """
         Low-pass and high-pass filtering become trivial in the frequency domain.
         A portion of the pixels/voxels are simply masked or attenuated.
@@ -937,7 +937,7 @@ class Image(vedo.visual.ImageVisual):
         self.pipeline = utils.OperationNode("filterpass", parents=[self], c="#f28482")
         return self
 
-    def blend(self, pic, alpha1=0.5, alpha2=0.5) -> "Image":
+    def blend(self, pic, alpha1=0.5, alpha2=0.5) -> Self:
         """
         Take L, LA, RGB, or RGBA images as input and blends
         them according to the alpha values and/or the opacity setting for each input.
@@ -962,7 +962,7 @@ class Image(vedo.visual.ImageVisual):
         mirroring=False,
         bc="w",
         alpha=1,
-    ) -> "Image":
+    ) -> Self:
         """
         Warp an image using thin-plate splines.
 
@@ -1033,7 +1033,7 @@ class Image(vedo.visual.ImageVisual):
         self.pipeline = utils.OperationNode("warp", parents=parents, c="#f28482")
         return self
 
-    def invert(self) -> "Image":
+    def invert(self) -> Self:
         """
         Return an inverted image (inverted in each color channel).
         """
@@ -1043,7 +1043,7 @@ class Image(vedo.visual.ImageVisual):
         self.pipeline = utils.OperationNode("invert", parents=[self], c="#f28482")
         return self
 
-    def binarize(self, threshold=None, invert=False) -> "Image":
+    def binarize(self, threshold=None, invert=False) -> Self:
         """
         Return a new Image where pixel above threshold are set to 255
         and pixels below are set to 0.
@@ -1132,7 +1132,7 @@ class Image(vedo.visual.ImageVisual):
         )
         return out
 
-    def cmap(self, name: str, vmin=None, vmax=None) -> "Image":
+    def cmap(self, name: str, vmin=None, vmax=None) -> Self:
         """Colorize a image with a colormap representing pixel intensity"""
         n = self.dataset.GetPointData().GetNumberOfComponents()
         if n > 1:
@@ -1172,7 +1172,7 @@ class Image(vedo.visual.ImageVisual):
         )
         return self
 
-    def rotate(self, angle: float, center=(), scale=1.0, mirroring=False, bc="w", alpha=1.0) -> "Image":
+    def rotate(self, angle: float, center=(), scale=1.0, mirroring=False, bc="w", alpha=1.0) -> Self:
         """
         Rotate by the specified angle (anticlockwise).
 
@@ -1253,7 +1253,7 @@ class Image(vedo.visual.ImageVisual):
         narray = np.flip(narray, axis=0).astype(np.uint8)
         return narray.squeeze()
 
-    def add_rectangle(self, xspan: List[float], yspan: List[float], c="green5", alpha=1.0) -> "Image":
+    def add_rectangle(self, xspan: List[float], yspan: List[float], c="green5", alpha=1.0) -> Self:
         """Draw a rectangle box on top of current image. Units are pixels.
 
         Example:
@@ -1306,7 +1306,7 @@ class Image(vedo.visual.ImageVisual):
         self.pipeline = utils.OperationNode("rectangle", parents=[self], c="#f28482")
         return self
 
-    def add_line(self, p1: List[float], p2: List[float], lw=2, c="k2", alpha=1.0) -> "Image":
+    def add_line(self, p1: List[float], p2: List[float], lw=2, c="k2", alpha=1.0) -> Self:
         """Draw a line on top of current image. Units are pixels."""
         x1, x2 = p1
         y1, y2 = p2
@@ -1347,7 +1347,7 @@ class Image(vedo.visual.ImageVisual):
         self.pipeline = utils.OperationNode("line", parents=[self], c="#f28482")
         return self
 
-    def add_triangle(self, p1: List[float], p2: List[float], p3: List[float], c="red3", alpha=1.0) -> "Image":
+    def add_triangle(self, p1: List[float], p2: List[float], p3: List[float], c="red3", alpha=1.0) -> Self:
         """Draw a triangle on top of current image. Units are pixels."""
         x1, y1 = p1
         x2, y2 = p2
@@ -1404,7 +1404,7 @@ class Image(vedo.visual.ImageVisual):
         font="Theemim",
         dpi=200,
         justify="bottom-left",
-    ) -> "Image":
+    ) -> Self:
         """Add text to an image."""
 
         tp = vtki.vtkTextProperty()
@@ -1464,13 +1464,13 @@ class Image(vedo.visual.ImageVisual):
         )
         return self
 
-    def modified(self) -> "Image":
+    def modified(self) -> Self:
         """Use this method in conjunction with `tonumpy()`
         to update any modifications to the image array."""
         self.dataset.GetPointData().GetScalars().Modified()
         return self
 
-    def write(self, filename: str) -> "Image":
+    def write(self, filename: str) -> Self:
         """Write image to file as png or jpg."""
         vedo.file_io.write(self, filename)
         self.pipeline = utils.OperationNode(

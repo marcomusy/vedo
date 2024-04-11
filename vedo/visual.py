@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
-from typing import Union
+from typing import Self, Union
 from weakref import ref as weak_ref_to
 import numpy as np
 
@@ -115,7 +115,7 @@ class CommonVisual:
         idd = self.actor.AddObserver(event_name, func, priority)
         return idd
     
-    def invoke_event(self, event_name):
+    def invoke_event(self, event_name) -> Self:
         """Invoke an event."""
         event_name = utils.get_vtk_name_event(event_name)
         self.actor.InvokeEvent(event_name)
@@ -183,14 +183,14 @@ class CommonVisual:
         del ren_win
         return narr
 
-    def pickable(self, value=None):
+    def pickable(self, value=None) -> Self:
         """Set/get the pickability property of an object."""
         if value is None:
             return self.actor.GetPickable()
         self.actor.SetPickable(value)
         return self
 
-    def use_bounds(self, value=True):
+    def use_bounds(self, value=True) -> Self:
         """
         Instruct the current camera to either take into account or ignore
         the object bounds when resetting.
@@ -198,14 +198,14 @@ class CommonVisual:
         self.actor.SetUseBounds(value)
         return self
 
-    def draggable(self, value=None):  # NOT FUNCTIONAL?
+    def draggable(self, value=None) -> Self:  # NOT FUNCTIONAL?
         """Set/get the draggability property of an object."""
         if value is None:
             return self.actor.GetDragable()
         self.actor.SetDragable(value)
         return self
 
-    def on(self):
+    def on(self) -> Self:
         """Switch on  object visibility. Object is not removed."""
         self.actor.VisibilityOn()
         try:
@@ -223,7 +223,7 @@ class CommonVisual:
             pass
         return self
 
-    def off(self):
+    def off(self) -> Self:
         """Switch off object visibility. Object is not removed."""
         self.actor.VisibilityOff()
         try:
@@ -241,7 +241,7 @@ class CommonVisual:
             pass
         return self
 
-    def toggle(self):
+    def toggle(self) -> Self:
         """Toggle object visibility on/off."""
         v = self.actor.GetVisibility()
         if v:
@@ -262,7 +262,7 @@ class CommonVisual:
         horizontal=False,
         use_alpha=True,
         label_format=":6.3g",
-    ):
+    ) -> Self:
         """
         Add a 2D scalar bar for the specified obj.
 
@@ -345,7 +345,7 @@ class CommonVisual:
         below_text=None,
         nan_text="NaN",
         categories=None,
-    ):
+    ) -> Self:
         """
         Associate a 3D scalar bar to the object and add it to the scene.
         The new scalarbar object (Assembly) will be accessible as obj.scalarbar
@@ -488,7 +488,7 @@ class CommonVisual:
             self.alpha(alpha, vmin=vmin, vmax=vmax)
         return self
 
-    def alpha(self, alpha, vmin=None, vmax=None):
+    def alpha(self, alpha, vmin=None, vmax=None) -> Self:
         """
         Assign a set of tranparencies along the range of the scalar value.
         A single constant value can also be assigned.
@@ -567,7 +567,7 @@ class Actor2D(vtki.vtkActor2D):
         self.SetLayerNumber(value)
         return self
 
-    def pos(self, px=None, py=None):
+    def pos(self, px=None, py=None) -> Union[np.ndarray, Self]:
         """Set/Get the screen-coordinate position."""
         if isinstance(px, str):
             vedo.logger.error("Use string descriptors only inside the constructor")
@@ -582,7 +582,7 @@ class Actor2D(vtki.vtkActor2D):
         self.SetPosition(p)
         return self
 
-    def coordinate_system(self, value=None):
+    def coordinate_system(self, value=None) -> Self:
         """
         Set/get the coordinate system which this coordinate is defined in.
 
@@ -601,57 +601,57 @@ class Actor2D(vtki.vtkActor2D):
         coor.SetCoordinateSystem(value)
         return self
 
-    def on(self):
+    def on(self) -> Self:
         """Set object visibility."""
         self.VisibilityOn()
         return self
 
-    def off(self):
+    def off(self) -> Self:
         """Set object visibility."""
         self.VisibilityOn()
         return self
 
-    def toggle(self):
+    def toggle(self) -> Self:
         """Toggle object visibility."""
         self.SetVisibility(not self.GetVisibility())
         return self
 
-    def pickable(self, value=True):
+    def pickable(self, value=True) -> Self:
         """Set object pickability."""
         self.SetPickable(value)
         return self
 
-    def color(self, value=None):
+    def color(self, value=None) -> Union[np.ndarray, Self]:
         """Set/Get the object color."""
         if value is None:
             return self.properties.GetColor()
         self.properties.SetColor(colors.get_color(value))
         return self
 
-    def c(self, value=None):
+    def c(self, value=None) -> Union[np.ndarray, Self]:
         """Set/Get the object color."""
         return self.color(value)
 
-    def alpha(self, value=None):
+    def alpha(self, value=None) -> Union[float, Self]:
         """Set/Get the object opacity."""
         if value is None:
             return self.properties.GetOpacity()
         self.properties.SetOpacity(value)
         return self
 
-    def ps(self, point_size=None):
+    def ps(self, point_size=None) -> Union[int, Self]:
         if point_size is None:
             return self.properties.GetPointSize()
         self.properties.SetPointSize(point_size)
         return self
 
-    def lw(self, line_width=None):
+    def lw(self, line_width=None) -> Union[int, Self]:
         if line_width is None:
             return self.properties.GetLineWidth()
         self.properties.SetLineWidth(line_width)
         return self
 
-    def ontop(self, value=True):
+    def ontop(self, value=True) -> Self:
         """Keep the object always on top of everything else."""
         if value:
             self.properties.SetDisplayLocationToForeground()
@@ -659,7 +659,7 @@ class Actor2D(vtki.vtkActor2D):
             self.properties.SetDisplayLocationToBackground()
         return self
 
-    def add_observer(self, event_name, func, priority=0):
+    def add_observer(self, event_name, func, priority=0) -> int:
         """Add a callback function that will be called when an event occurs."""
         event_name = utils.get_vtk_name_event(event_name)
         idd = self.AddObserver(event_name, func, priority)
@@ -668,7 +668,7 @@ class Actor2D(vtki.vtkActor2D):
 ########################################################################################
 class Actor3DHelper:
 
-    def apply_transform(self, LT, concatenate=True):
+    def apply_transform(self, LT, concatenate=True) -> Self:
         """Apply a linear transformation to the actor."""
         if concatenate:
             self.transform.concatenate(LT)
@@ -677,7 +677,7 @@ class Actor3DHelper:
         self.actor.SetScale(self.transform.T.GetScale())
         return self
 
-    def pos(self, x=None, y=None, z=None):
+    def pos(self, x=None, y=None, z=None) -> Union[np.ndarray, Self]:
         """Set/Get object position."""
         if x is None:  # get functionality
             return self.transform.position
@@ -695,7 +695,7 @@ class Actor3DHelper:
         LT = vedo.LinearTransform().translate([x,y,z]-q)
         return self.apply_transform(LT)
 
-    def shift(self, dx, dy=0, dz=0):
+    def shift(self, dx, dy=0, dz=0) -> Self:
         """Add a vector to the current object position."""
         if vedo.utils.is_sequence(dx):
             vedo.utils.make3d(dx)
@@ -703,7 +703,7 @@ class Actor3DHelper:
         LT = vedo.LinearTransform().translate([dx, dy, dz])
         return self.apply_transform(LT)
 
-    def origin(self, point=None):
+    def origin(self, point=None) -> Union[np.ndarray, Self]:
         """
         Set/get origin of object.
         Useful for defining pivoting point when rotating and/or scaling.
@@ -713,12 +713,12 @@ class Actor3DHelper:
         self.actor.SetOrigin(point)
         return self
 
-    def scale(self, s, origin=True):
+    def scale(self, s, origin=True) -> Self:
         """Multiply object size by `s` factor."""
         LT = vedo.LinearTransform().scale(s, origin=origin)
         return self.apply_transform(LT)
 
-    def x(self, val=None):
+    def x(self, val=None) -> Union[float, Self]:
         """Set/Get object position along x axis."""
         p = self.transform.position
         if val is None:
@@ -726,7 +726,7 @@ class Actor3DHelper:
         self.pos(val, p[1], p[2])
         return self
 
-    def y(self, val=None):
+    def y(self, val=None) -> Union[float, Self]:
         """Set/Get object position along y axis."""
         p = self.transform.position
         if val is None:
@@ -734,7 +734,7 @@ class Actor3DHelper:
         self.pos(p[0], val, p[2])
         return self
 
-    def z(self, val=None):
+    def z(self, val=None) -> Union[float, Self]:
         """Set/Get object position along z axis."""
         p = self.transform.position
         if val is None:
@@ -742,22 +742,22 @@ class Actor3DHelper:
         self.pos(p[0], p[1], val)
         return self
 
-    def rotate_x(self, angle):
+    def rotate_x(self, angle) -> Self:
         """Rotate object around x axis."""
         LT = vedo.LinearTransform().rotate_x(angle)
         return self.apply_transform(LT)
 
-    def rotate_y(self, angle):
+    def rotate_y(self, angle) -> Self:
         """Rotate object around y axis."""
         LT = vedo.LinearTransform().rotate_y(angle)
         return self.apply_transform(LT)
 
-    def rotate_z(self, angle):
+    def rotate_z(self, angle) -> Self:
         """Rotate object around z axis."""
         LT = vedo.LinearTransform().rotate_z(angle)
         return self.apply_transform(LT)
 
-    def reorient(self, old_axis, new_axis, rotation=0, rad=False):
+    def reorient(self, old_axis, new_axis, rotation=0, rad=False) -> Self:
         """Rotate object to a new orientation."""
         if rad:
             rotation *= 180 / np.pi
@@ -769,21 +769,21 @@ class Actor3DHelper:
         self.actor.RotateWXYZ(angle, c,b,a)
         return self
 
-    def bounds(self):
+    def bounds(self) -> np.ndarray:
         """
         Get the object bounds.
         Returns a list in format `[xmin,xmax, ymin,ymax, zmin,zmax]`.
         """
-        return self.actor.GetBounds()
+        return np.array(self.actor.GetBounds())
 
-    def xbounds(self, i=None):
+    def xbounds(self, i=None) -> Union[float, tuple]:
         """Get the bounds `[xmin,xmax]`. Can specify upper or lower with i (0,1)."""
         b = self.bounds()
         if i is not None:
             return b[i]
         return (b[0], b[1])
 
-    def ybounds(self, i=None):
+    def ybounds(self, i=None) -> Union[float, tuple]:
         """Get the bounds `[ymin,ymax]`. Can specify upper or lower with i (0,1)."""
         b = self.bounds()
         if i == 0:
@@ -792,7 +792,7 @@ class Actor3DHelper:
             return b[3]
         return (b[2], b[3])
 
-    def zbounds(self, i=None):
+    def zbounds(self, i=None) -> Union[float, tuple]:
         """Get the bounds `[zmin,zmax]`. Can specify upper or lower with i (0,1)."""
         b = self.bounds()
         if i == 0:
@@ -801,7 +801,7 @@ class Actor3DHelper:
             return b[5]
         return (b[4], b[5])
     
-    def diagonal_size(self):
+    def diagonal_size(self) -> float:
         """Get the diagonal size of the bounding box."""
         b = self.bounds()
         return np.sqrt((b[1]-b[0])**2 + (b[3]-b[2])**2 + (b[5]-b[4])**2)
@@ -894,7 +894,7 @@ class PointsVisual(CommonVisual):
         return act2d
 
     ##################################################
-    def copy_properties_from(self, source, deep=True, actor_related=True):
+    def copy_properties_from(self, source, deep=True, actor_related=True) -> Self:
         """
         Copy properties from another ``Points`` object.
         """
@@ -943,7 +943,7 @@ class PointsVisual(CommonVisual):
         self.actor.SetVisibility(sa.GetVisibility())
         return self
 
-    def color(self, c=False, alpha=None):
+    def color(self, c=False, alpha=None) -> Union[np.ndarray, Self]:
         """
         Set/get mesh's color.
         If None is passed as input, will use colors from active scalars.
@@ -963,14 +963,14 @@ class PointsVisual(CommonVisual):
             self.alpha(alpha)
         return self
 
-    def c(self, color=False, alpha=None):
+    def c(self, color=False, alpha=None) -> Union[np.ndarray, Self]:
         """
         Shortcut for `color()`.
         If None is passed as input, will use colors from current active scalars.
         """
         return self.color(color, alpha)
 
-    def alpha(self, opacity=None):
+    def alpha(self, opacity=None) -> Union[float, Self]:
         """Set/get mesh's transparency. Same as `mesh.opacity()`."""
         if opacity is None:
             return self.properties.GetOpacity()
@@ -985,9 +985,9 @@ class PointsVisual(CommonVisual):
                 self.actor.SetBackfaceProperty(self.properties_backface)
         return self
 
-    def lut_color_at(self, value):
+    def lut_color_at(self, value) -> np.ndarray:
         """
-        Return the color of the lookup table at value.
+        Return the color and alpha in the lookup table at given value.
         """
         lut = self.mapper.GetLookupTable()
         if not lut:
@@ -997,23 +997,23 @@ class PointsVisual(CommonVisual):
         alpha = lut.GetOpacity(value)
         return np.array(rgb + [alpha])
 
-    def opacity(self, alpha=None):
+    def opacity(self, alpha=None) -> Union[float, Self]:
         """Set/get mesh's transparency. Same as `mesh.alpha()`."""
         return self.alpha(alpha)
 
-    def force_opaque(self, value=True):
+    def force_opaque(self, value=True) -> Self:
         """ Force the Mesh, Line or point cloud to be treated as opaque"""
         ## force the opaque pass, fixes picking in vtk9
         # but causes other bad troubles with lines..
         self.actor.SetForceOpaque(value)
         return self
 
-    def force_translucent(self, value=True):
+    def force_translucent(self, value=True) -> Self:
         """ Force the Mesh, Line or point cloud to be treated as translucent"""
         self.actor.SetForceTranslucent(value)
         return self
 
-    def point_size(self, value=None):
+    def point_size(self, value=None) -> Union[int, Self]:
         """Set/get mesh's point size of vertices. Same as `mesh.ps()`"""
         if value is None:
             return self.properties.GetPointSize()
@@ -1023,11 +1023,11 @@ class PointsVisual(CommonVisual):
             self.properties.SetPointSize(value)
         return self
 
-    def ps(self, pointsize=None):
+    def ps(self, pointsize=None) -> Union[int, Self]:
         """Set/get mesh's point size of vertices. Same as `mesh.point_size()`"""
         return self.point_size(pointsize)
 
-    def render_points_as_spheres(self, value=True):
+    def render_points_as_spheres(self, value=True) -> Self:
         """Make points look spheric or else make them look as squares."""
         self.properties.SetRenderPointsAsSpheres(value)
         return self
@@ -1042,7 +1042,7 @@ class PointsVisual(CommonVisual):
         specular_color=None,
         metallicity=None,
         roughness=None,
-    ):
+    ) -> Self:
         """
         Set the ambient, diffuse, specular and specular_power lighting constants.
 
@@ -1115,7 +1115,7 @@ class PointsVisual(CommonVisual):
 
         return self
 
-    def point_blurring(self, r=1, alpha=1.0, emissive=False):
+    def point_blurring(self, r=1, alpha=1.0, emissive=False) -> Self:
         """Set point blurring.
         Apply a gaussian convolution filter to the points.
         In this case the radius `r` is in absolute units of the mesh coordinates.
@@ -1270,7 +1270,7 @@ class PointsVisual(CommonVisual):
         n_colors=256,
         alpha=1.0,
         logscale=False,
-    ):
+    ) -> Self:
         """
         Set individual point/cell colors by providing a list of scalar values and a color map.
 
@@ -1464,7 +1464,7 @@ class PointsVisual(CommonVisual):
         #     self.mapper.SetArrayName(array_name)
         # return self
 
-    def add_trail(self, offset=(0, 0, 0), n=50, c=None, alpha=1.0, lw=2):
+    def add_trail(self, offset=(0, 0, 0), n=50, c=None, alpha=1.0, lw=2) -> Self:
         """
         Add a trailing line to mesh.
         This new mesh is accessible through `mesh.trail`.
@@ -1499,7 +1499,7 @@ class PointsVisual(CommonVisual):
             self.trail = tline  # holds the Line
         return self
 
-    def update_trail(self):
+    def update_trail(self) -> Self:
         """
         Update the trailing line of a moving object.
         """
@@ -1546,7 +1546,7 @@ class PointsVisual(CommonVisual):
             shad = shad.project_on_plane(plane, point, direction)
         return shad
 
-    def add_shadow(self, plane, point, direction=None, c=(0.6, 0.6, 0.6), alpha=1, culling=0):
+    def add_shadow(self, plane, point, direction=None, c=(0.6, 0.6, 0.6), alpha=1, culling=0) -> Self:
         """
         Generate a shadow out of an `Mesh` on one of the three Cartesian planes.
         The output is a new `Mesh` representing the shadow.
@@ -1603,7 +1603,7 @@ class PointsVisual(CommonVisual):
             # shad.metadata["direction"] = direction
         return self
 
-    def update_shadows(self):
+    def update_shadows(self) -> Self:
         """Update the shadows of a moving object."""
         for sha in self.shadows:
             plane = sha.info["plane"]
@@ -1938,7 +1938,7 @@ class PointsVisual(CommonVisual):
         a2d.SetMapper(mp)
         return a2d
 
-    def legend(self, txt):
+    def legend(self, txt) -> Self:
         """Book a legend text."""
         self.info["legend"] = txt
         # self.metadata["legend"] = txt
@@ -2298,7 +2298,7 @@ class MeshVisual(PointsVisual):
         # print("INIT MeshVisual", super())
         super().__init__()
 
-    def follow_camera(self, camera=None, origin=None):
+    def follow_camera(self, camera=None, origin=None) -> Self:
         """
         Return an object that will follow camera movements and stay locked to it.
         Use `mesh.follow_camera(False)` to disable it.
@@ -2341,7 +2341,7 @@ class MeshVisual(PointsVisual):
         self.actor = factor
         return self
 
-    def wireframe(self, value=True):
+    def wireframe(self, value=True) -> Self:
         """Set mesh's representation as wireframe or solid surface."""
         if value:
             self.properties.SetRepresentationToWireframe()
@@ -2349,7 +2349,7 @@ class MeshVisual(PointsVisual):
             self.properties.SetRepresentationToSurface()
         return self
 
-    def flat(self):
+    def flat(self)  -> Self:
         """Set surface interpolation to flat.
 
         <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/Phong_components_version_4.png" width="700">
@@ -2357,27 +2357,27 @@ class MeshVisual(PointsVisual):
         self.properties.SetInterpolationToFlat()
         return self
 
-    def phong(self):
+    def phong(self) -> Self:
         """Set surface interpolation to "phong"."""
         self.properties.SetInterpolationToPhong()
         return self
 
-    def backface_culling(self, value=True):
+    def backface_culling(self, value=True) -> Self:
         """Set culling of polygons based on orientation of normal with respect to camera."""
         self.properties.SetBackfaceCulling(value)
         return self
 
-    def render_lines_as_tubes(self, value=True):
+    def render_lines_as_tubes(self, value=True) -> Self:
         """Wrap a fake tube around a simple line for visualization"""
         self.properties.SetRenderLinesAsTubes(value)
         return self
 
-    def frontface_culling(self, value=True):
+    def frontface_culling(self, value=True) -> Self:
         """Set culling of polygons based on orientation of normal with respect to camera."""
         self.properties.SetFrontfaceCulling(value)
         return self
 
-    def backcolor(self, bc=None):
+    def backcolor(self, bc=None) -> Union[Self, np.ndarray]:
         """
         Set/get mesh's backface color.
         """
@@ -2400,11 +2400,11 @@ class MeshVisual(PointsVisual):
         self.mapper.ScalarVisibilityOff()
         return self
 
-    def bc(self, backcolor=False):
+    def bc(self, backcolor=False) -> Union[Self, np.ndarray]:
         """Shortcut for `mesh.backcolor()`."""
         return self.backcolor(backcolor)
 
-    def linewidth(self, lw=None):
+    def linewidth(self, lw=None) -> Union[Self, int]:
         """Set/get width of mesh edges. Same as `lw()`."""
         if lw is not None:
             if lw == 0:
@@ -2417,19 +2417,19 @@ class MeshVisual(PointsVisual):
             return self.properties.GetLineWidth()
         return self
 
-    def lw(self, linewidth=None):
+    def lw(self, linewidth=None) -> Union[Self, int]:
         """Set/get width of mesh edges. Same as `linewidth()`."""
         return self.linewidth(linewidth)
 
-    def linecolor(self, lc=None):
+    def linecolor(self, lc=None) -> Union[Self, np.ndarray]:
         """Set/get color of mesh edges. Same as `lc()`."""
         if lc is None:
-            return self.properties.GetEdgeColor()
+            return np.array(self.properties.GetEdgeColor())
         self.properties.EdgeVisibilityOn()
         self.properties.SetEdgeColor(colors.get_color(lc))
         return self
 
-    def lc(self, linecolor=None):
+    def lc(self, linecolor=None) -> Union[Self, np.ndarray]:
         """Set/get color of mesh edges. Same as `linecolor()`."""
         return self.linecolor(linecolor)
 
@@ -2443,7 +2443,7 @@ class MeshVisual(PointsVisual):
         scale=None,
         ushift=None,
         vshift=None,
-    ):
+    ) -> Self:
         """
         Assign a texture to mesh from image file or predefined texture `tname`.
         If tname is set to `None` texture is disabled.
@@ -2637,7 +2637,7 @@ class VolumeVisual(CommonVisual):
         # print("INIT VolumeVisual")
         super().__init__()
 
-    def alpha_unit(self, u=None):
+    def alpha_unit(self, u=None) -> Union[Self, float]:
         """
         Defines light attenuation per unit length. Default is 1.
         The larger the unit length, the further light has to travel to attenuate the same amount.
@@ -2652,7 +2652,7 @@ class VolumeVisual(CommonVisual):
         self.properties.SetScalarOpacityUnitDistance(u)
         return self
 
-    def alpha_gradient(self, alpha_grad, vmin=None, vmax=None):
+    def alpha_gradient(self, alpha_grad, vmin=None, vmax=None) -> Self:
         """
         Assign a set of tranparencies to a volume's gradient
         along the range of the scalar value.
@@ -2695,7 +2695,7 @@ class VolumeVisual(CommonVisual):
             gotf.AddPoint(vmax, alpha_grad)
         return self
 
-    def cmap(self, c, alpha=None, vmin=None, vmax=None):
+    def cmap(self, c, alpha=None, vmin=None, vmax=None) -> Self:
         """Same as `color()`.
 
         Arguments:
@@ -2708,7 +2708,7 @@ class VolumeVisual(CommonVisual):
         """
         return self.color(c, alpha, vmin, vmax)
 
-    def jittering(self, status=None):
+    def jittering(self, status=None) -> Union[Self, bool]:
         """
         If `True`, each ray traversal direction will be perturbed slightly
         using a noise-texture to get rid of wood-grain effects.
@@ -2719,7 +2719,7 @@ class VolumeVisual(CommonVisual):
             self.mapper.SetUseJittering(status)
         return self
 
-    def hide_voxels(self, ids):
+    def hide_voxels(self, ids) -> Self:
         """
         Hide voxels (cells) from visualization.
 
@@ -2743,7 +2743,7 @@ class VolumeVisual(CommonVisual):
         return self
 
 
-    def mode(self, mode=None):
+    def mode(self, mode=None) -> Union[Self, int]:
         """
         Define the volumetric rendering mode following this:
             - 0, composite rendering
@@ -2805,7 +2805,7 @@ class VolumeVisual(CommonVisual):
         self.mapper.SetBlendMode(mode)
         return self
 
-    def shade(self, status=None):
+    def shade(self, status=None) -> Union[Self, bool]:
         """
         Set/Get the shading of a Volume.
         Shading can be further controlled with `volume.lighting()` method.
@@ -2820,7 +2820,7 @@ class VolumeVisual(CommonVisual):
         return self
 
 
-    def mask(self, data):
+    def mask(self, data) -> Self:
         """
         Mask a volume visualization with a binary value.
         Needs to specify keyword mapper='gpu'.
@@ -2850,7 +2850,7 @@ class VolumeVisual(CommonVisual):
             vedo.logger.error("volume.mask() must create the volume with Volume(..., mapper='gpu')")
         return self
 
-    def interpolation(self, itype):
+    def interpolation(self, itype) -> Self:
         """
         Set interpolation type.
 
@@ -2879,21 +2879,21 @@ class ImageVisual(CommonVisual, Actor3DHelper):
         """
         return np.array(self.dataset.GetScalarRange())
 
-    def alpha(self, a=None):
+    def alpha(self, a=None) -> Union[Self, float]:
         """Set/get image's transparency in the rendering scene."""
         if a is not None:
             self.properties.SetOpacity(a)
             return self
         return self.properties.GetOpacity()
 
-    def level(self, value=None):
+    def level(self, value=None) -> Union[Self, float]:
         """Get/Set the image color level (brightness) in the rendering scene."""
         if value is None:
             return self.properties.GetColorLevel()
         self.properties.SetColorLevel(value)
         return self
 
-    def window(self, value=None):
+    def window(self, value=None) -> Union[Self, float]:
         """Get/Set the image color window (contrast) in the rendering scene."""
         if value is None:
             return self.properties.GetColorWindow()
@@ -2970,7 +2970,7 @@ class LightKit:
         self.back = dict(back)
         self.update()
 
-    def update(self):
+    def update(self) -> None:
         """Update the LightKit properties."""
         if "warmth" in self.key:
             self.lightkit.SetKeyLightWarmth(self.key["warmth"])

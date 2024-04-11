@@ -3,7 +3,7 @@
 import os.path
 import sys
 import time
-from typing import MutableSequence, Callable, Any, Union
+from typing import MutableSequence, Callable, Any, Union, Self
 import numpy as np
 
 import vedo.vtkclasses as vtki  # a wrapper for lazy imports
@@ -138,7 +138,7 @@ def show(
     mode=None,
     screenshot="",
     new=False,
-) -> Union["Plotter", None]:
+) -> Union[Self, None]:
     """
     Create on the fly an instance of class Plotter and show the object(s) provided.
 
@@ -883,7 +883,7 @@ class Plotter:
         # context manager like in "with Plotter() as plt:"
         self.close()
 
-    def initialize_interactor(self) -> "Plotter":
+    def initialize_interactor(self) -> Self:
         """Initialize the interactor if not already initialized."""
         if self.offscreen:
             return self
@@ -893,7 +893,7 @@ class Plotter:
                 self.interactor.RemoveObservers("CharEvent")
         return self
 
-    def process_events(self) -> "Plotter":
+    def process_events(self) -> Self:
         """Process all pending events."""
         self.initialize_interactor()
         if self.interactor:
@@ -903,7 +903,7 @@ class Plotter:
                 pass
         return self
 
-    def at(self, nren: int, yren=None) -> "Plotter":
+    def at(self, nren: int, yren=None) -> Self:
         """
         Select the current renderer number as an int.
         Can also use the `[nx, ny]` format.
@@ -927,7 +927,7 @@ class Plotter:
         self.renderer = self.renderers[nren]
         return self
 
-    def add(self, *objs, at=None) -> "Plotter":
+    def add(self, *objs, at=None) -> Self:
         """
         Append the input objects to the internal list of objects to be shown.
 
@@ -970,7 +970,7 @@ class Plotter:
 
         return self
 
-    def remove(self, *objs, at=None) -> "Plotter":
+    def remove(self, *objs, at=None) -> Self:
         """
         Remove input object to the internal list of objects to be shown.
 
@@ -1079,13 +1079,13 @@ class Plotter:
         """Return the list of actors."""
         return [ob.actor for ob in self.objects if hasattr(ob, "actor")]
 
-    def remove_lights(self) -> "Plotter":
+    def remove_lights(self) -> Self:
         """Remove all the present lights in the current renderer."""
         if self.renderer:
             self.renderer.RemoveAllLights()
         return self
 
-    def pop(self, at=None) -> "Plotter":
+    def pop(self, at=None) -> Self:
         """
         Remove the last added object from the rendering window.
         This method is typically used in loops or callback functions.
@@ -1099,7 +1099,7 @@ class Plotter:
             self.remove(self.objects[-1], at)
         return self
 
-    def render(self, resetcam=False) -> "Plotter":
+    def render(self, resetcam=False) -> Self:
         """Render the scene. This method is typically used in loops or callback functions."""
 
         if vedo.settings.dry_run_mode >= 2:
@@ -1121,7 +1121,7 @@ class Plotter:
                 self._cocoa_process_events = False
         return self
 
-    def interactive(self) -> "Plotter":
+    def interactive(self) -> Self:
         """
         Start window interaction.
         Analogous to `show(..., interactive=True)`.
@@ -1144,7 +1144,7 @@ class Plotter:
                 self.camera = None
         return self
 
-    def use_depth_peeling(self, at=None, value=True) -> "Plotter":
+    def use_depth_peeling(self, at=None, value=True) -> Self:
         """
         Specify whether use depth peeling algorithm at this specific renderer
         Call this method before the first rendering.
@@ -1156,7 +1156,7 @@ class Plotter:
         ren.SetUseDepthPeeling(value)
         return self
 
-    def background(self, c1=None, c2=None, at=None, mode=0) -> Union["Plotter", "np.ndarray"]:
+    def background(self, c1=None, c2=None, at=None, mode=0) -> Union[Self, "np.ndarray"]:
         """Set the color of the background for the current renderer.
         A different renderer index can be specified by keyword `at`.
 
@@ -1310,7 +1310,7 @@ class Plotter:
                 acts.append(a)
         return acts
     
-    def check_actors_trasform(self, at=None) -> "Plotter":
+    def check_actors_trasform(self, at=None) -> Self:
         """
         Reset the transformation matrix of all actors at specified renderer.
         This is only useful when actors have been moved/rotated/scaled manually
@@ -1334,7 +1334,7 @@ class Plotter:
                     pass
         return self
 
-    def reset_camera(self, tight=None) -> "Plotter":
+    def reset_camera(self, tight=None) -> Self:
         """
         Reset the camera position and zooming.
         If tight (float) is specified the zooming reserves a padding space
@@ -1362,7 +1362,7 @@ class Plotter:
             self.renderer.ResetCameraClippingRange(x0, x1, y0, y1, z0, z1)
         return self
 
-    def reset_viewup(self, smooth=True) -> "Plotter":
+    def reset_viewup(self, smooth=True) -> Self:
         """
         Reset the orientation of the camera to the closest orthogonal direction and view-up.
         """
@@ -1483,7 +1483,7 @@ class Plotter:
                 vcams.append(c)
             return vcams
 
-    def fly_to(self, point) -> "Plotter":
+    def fly_to(self, point) -> Self:
         """
         Fly camera to the specified point.
 
@@ -1506,7 +1506,7 @@ class Plotter:
             self.interactor.FlyTo(self.renderer, point)
         return self
 
-    def look_at(self, plane="xy") -> "Plotter":
+    def look_at(self, plane="xy") -> Self:
         """Move the camera so that it looks at the specified cartesian plane"""
         cam = self.renderer.GetActiveCamera()
         fp = np.array(cam.GetFocalPoint())
@@ -1568,7 +1568,7 @@ class Plotter:
         erec = None
         return events
 
-    def play(self, recorded_events="", repeats=0) -> "Plotter":
+    def play(self, recorded_events="", repeats=0) -> Self:
         """
         Play camera, mouse, keystrokes and all other events.
 
@@ -1611,7 +1611,7 @@ class Plotter:
         erec = None
         return self
 
-    def parallel_projection(self, value=True, at=None) -> "Plotter":
+    def parallel_projection(self, value=True, at=None) -> Self:
         """
         Use parallel projection `at` a specified renderer.
         Object is seen from "infinite" distance, e.i. remove any perspective effects.
@@ -1628,12 +1628,12 @@ class Plotter:
         r.Modified()
         return self
 
-    def render_hidden_lines(self, value=True) -> "Plotter":
+    def render_hidden_lines(self, value=True) -> Self:
         """Remove hidden lines when in wireframe mode."""
         self.renderer.SetUseHiddenLineRemoval(not value)
         return self
 
-    def fov(self, angle: float) -> "Plotter":
+    def fov(self, angle: float) -> Self:
         """
         Set the field of view angle for the camera.
         This is the angle of the camera frustum in the horizontal direction.
@@ -1646,28 +1646,28 @@ class Plotter:
         self.renderer.GetActiveCamera().SetViewAngle(angle)
         return self
 
-    def zoom(self, zoom: float) -> "Plotter":
+    def zoom(self, zoom: float) -> Self:
         """Apply a zooming factor for the current camera view"""
         self.renderer.GetActiveCamera().Zoom(zoom)
         return self
 
-    def azimuth(self, angle: float) -> "Plotter":
+    def azimuth(self, angle: float) -> Self:
         """Rotate camera around the view up vector."""
         self.renderer.GetActiveCamera().Azimuth(angle)
         return self
 
-    def elevation(self, angle: float) -> "Plotter":
+    def elevation(self, angle: float) -> Self:
         """Rotate the camera around the cross product of the negative
         of the direction of projection and the view up vector."""
         self.renderer.GetActiveCamera().Elevation(angle)
         return self
 
-    def roll(self, angle: float) -> "Plotter":
+    def roll(self, angle: float) -> Self:
         """Roll the camera about the direction of projection."""
         self.renderer.GetActiveCamera().Roll(angle)
         return self
 
-    def dolly(self, value: float) -> "Plotter":
+    def dolly(self, value: float) -> Self:
         """Move the camera towards (value>0) or away from (value<0) the focal point."""
         self.renderer.GetActiveCamera().Dolly(value)
         return self
@@ -1969,7 +1969,7 @@ class Plotter:
         self.widgets.append(iconw)
         return iconw
 
-    def add_global_axes(self, axtype=None, c=None) -> "Plotter":
+    def add_global_axes(self, axtype=None, c=None) -> Self:
         """Draw axes on scene. Available axes types:
 
         Arguments:
@@ -2118,7 +2118,7 @@ class Plotter:
 
         return self.hint_widget
 
-    def add_shadows(self) -> "Plotter":
+    def add_shadows(self) -> Self:
         """Add shadows at the current renderer."""
         if self.renderer:
             shadows = vtki.new("ShadowMapPass")
@@ -2132,7 +2132,7 @@ class Plotter:
             self.renderer.SetPass(camerapass)
         return self
 
-    def add_ambient_occlusion(self, radius: float, bias=0.01, blur=True, samples=100) -> "Plotter":
+    def add_ambient_occlusion(self, radius: float, bias=0.01, blur=True, samples=100) -> Self:
         """
         Screen Space Ambient Occlusion.
 
@@ -2193,7 +2193,7 @@ class Plotter:
         self.renderer.SetPass(cam)
         return self
 
-    def add_depth_of_field(self, autofocus=True) -> "Plotter":
+    def add_depth_of_field(self, autofocus=True) -> Self:
         """Add a depth of field effect in the scene."""
         lights = vtki.new("LightsPass")
 
@@ -2219,7 +2219,7 @@ class Plotter:
         self.renderer.SetPass(cam)
         return self
 
-    def _add_skybox(self, hdrfile: str) -> "Plotter":
+    def _add_skybox(self, hdrfile: str) -> Self:
         # many hdr files are at https://polyhaven.com/all
 
         reader = vtki.new("HDRReader")
@@ -2733,7 +2733,7 @@ class Plotter:
         # print(f"Registering event: {event_name} with id={cid}")
         return cid
 
-    def remove_callback(self, cid: Union[int, str]) -> "Plotter":
+    def remove_callback(self, cid: Union[int, str]) -> Self:
         """
         Remove a callback function by its id
         or a whole category of callbacks by their name.
@@ -2751,7 +2751,7 @@ class Plotter:
                 self.interactor.RemoveObserver(cid)
         return self
 
-    def remove_all_observers(self) -> "Plotter":
+    def remove_all_observers(self) -> Self:
         """
         Remove all observers.
 
@@ -3519,7 +3519,7 @@ class Plotter:
         self.widgets.append(widget)
         return widget
 
-    def clear(self, at=None, deep=False) -> "Plotter":
+    def clear(self, at=None, deep=False) -> Self:
         """Clear the scene from all meshes and volumes."""
         if at is not None:
             renderer = self.renderers[at]
@@ -3547,14 +3547,14 @@ class Plotter:
                     pass
         return self
 
-    def break_interaction(self) -> "Plotter":
+    def break_interaction(self) -> Self:
         """Break window interaction and return to the python execution flow"""
         if self.interactor:
             self.check_actors_trasform()
             self.interactor.ExitCallback()
         return self
 
-    def user_mode(self, mode) -> Union["Plotter", None]:
+    def user_mode(self, mode) -> Union[Self, None]:
         """
         Modify the user interaction mode.
 
@@ -3619,7 +3619,7 @@ class Plotter:
 
         return self
 
-    def close(self) -> "Plotter":
+    def close(self) -> Self:
         """Close the plotter."""
         # https://examples.vtk.org/site/Cxx/Visualization/CloseWindow/
         vedo.last_figure = None
@@ -3743,7 +3743,7 @@ class Plotter:
         w2if.Update()
         return vedo.image.Image(w2if.GetOutput())
 
-    def export(self, filename="scene.npz", binary=False) -> "Plotter":
+    def export(self, filename="scene.npz", binary=False) -> Self:
         """
         Export scene to file to HTML, X3D or Numpy file.
 

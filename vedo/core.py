@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import numpy as np
-from typing import List, Union, Any
+from typing import Self, List, Union, Any
 
 import vedo.vtkclasses as vtki
 
@@ -173,7 +173,7 @@ class DataArrayHelper:
                 arrnames.append(name)
         return arrnames
 
-    def items(self) -> List[Any]:
+    def items(self) -> List:
         """Return the list of available data array `(names, values)`."""
         if self.association == 0:
             data = self.obj.dataset.GetPointData()
@@ -439,7 +439,7 @@ class CommonAlgorithms:
         """Return the size in bytes of the object in memory."""
         return self.dataset.GetActualMemorySize()
 
-    def modified(self) -> Any:
+    def modified(self) -> Self:
         """Use in conjunction with `tonumpy()` to update any modifications to the image array."""
         self.dataset.GetPointData().Modified()
         scals = self.dataset.GetPointData().GetScalars()
@@ -447,7 +447,7 @@ class CommonAlgorithms:
             scals.Modified()
         return self
 
-    def box(self, scale=1, padding=0) -> Any:
+    def box(self, scale=1, padding=0) -> "vedo.Mesh":
         """
         Return the bounding box as a new `Mesh` object.
 
@@ -480,7 +480,7 @@ class CommonAlgorithms:
         bx.flat().lighting("off").wireframe(True)
         return bx
     
-    def update_dataset(self, dataset, **kwargs):
+    def update_dataset(self, dataset, **kwargs) -> Self:
         """Update the dataset of the object with the provided VTK dataset."""
         self._update(dataset, **kwargs)
         return self
@@ -550,7 +550,7 @@ class CommonAlgorithms:
         c = cmf.GetCenter()
         return np.array(c)
 
-    def copy_data_from(self, obj: Any) -> Any:
+    def copy_data_from(self, obj: Any) -> Self:
         """Copy all data (point and cell data) from this input object"""
         self.dataset.GetPointData().PassData(obj.dataset.GetPointData())
         self.dataset.GetCellData().PassData(obj.dataset.GetCellData())
@@ -677,7 +677,7 @@ class CommonAlgorithms:
         except AttributeError:
             return np.array([])
 
-    def mark_boundaries(self) -> Any:
+    def mark_boundaries(self) -> Self:
         """
         Mark cells and vertices if they lie on a boundary.
         A new array called `BoundaryCells` is added to the object.
@@ -779,7 +779,7 @@ class CommonAlgorithms:
         self._update(fe.GetOutput())
         return self
 
-    def map_cells_to_points(self, arrays=(), move=False) -> Any:
+    def map_cells_to_points(self, arrays=(), move=False) -> Self:
         """
         Interpolate cell data (i.e., data specified per cell or face)
         into point data (i.e., data specified at each vertex).
@@ -906,7 +906,7 @@ class CommonAlgorithms:
                     break
         return conn
 
-    def map_points_to_cells(self, arrays=(), move=False) -> Any:
+    def map_points_to_cells(self, arrays=(), move=False) -> Self:
         """
         Interpolate point data (i.e., data specified per point or vertex)
         into cell data (i.e., data specified per cell).
@@ -937,7 +937,7 @@ class CommonAlgorithms:
         self.pipeline = utils.OperationNode("map_points_to_cells", parents=[self])
         return self
 
-    def resample_data_from(self, source, tol=None, categorical=False) -> Any:
+    def resample_data_from(self, source, tol=None, categorical=False) -> Self:
         """
         Resample point and cell data from another dataset.
         The output has the same structure but its point data have
@@ -995,7 +995,7 @@ class CommonAlgorithms:
         on="points",
         null_strategy=1,
         null_value=0,
-    ) -> Any:
+    ) -> Self:
         """
         Interpolate over source to port its data onto the current object using various kernels.
 
@@ -1091,7 +1091,7 @@ class CommonAlgorithms:
         self.pipeline = utils.OperationNode("interpolate_data_from", parents=[self, source])
         return self
 
-    def add_ids(self) -> Any:
+    def add_ids(self) -> Self:
         """
         Generate point and cell ids arrays.
 
@@ -1252,7 +1252,7 @@ class CommonAlgorithms:
             vvecs = utils.vtk2numpy(vort.GetOutput().GetCellData().GetArray("Vorticity"))
         return vvecs
 
-    def probe(self, source) -> Any:
+    def probe(self, source) -> Self:
         """
         Takes a data set and probes its scalars at the specified points in space.
 
@@ -1276,7 +1276,7 @@ class CommonAlgorithms:
         self.pointdata.rename("vtkValidPointMask", "ValidPointMask")
         return self
 
-    def compute_cell_size(self) -> Any:
+    def compute_cell_size(self) -> Self:
         """
         Add to this object a cell data array
         containing the area, volume and edge length
@@ -1297,7 +1297,7 @@ class CommonAlgorithms:
         self._update(csf.GetOutput(), reset_locators=False)
         return self
 
-    def generate_random_data(self) -> Any:
+    def generate_random_data(self) -> Self:
         """Fill a dataset with random attributes"""
         gen = vtki.new("RandomAttributeGenerator")
         gen.SetInputData(self.dataset)
@@ -1368,15 +1368,14 @@ class CommonAlgorithms:
         )
         return data
 
-    def write(self, filename, binary=True) -> Any:
+    def write(self, filename, binary=True) -> None:
         """Write object to file."""
         out = vedo.file_io.write(self, filename, binary)
         out.pipeline = utils.OperationNode(
             "write", parents=[self], comment=filename[:15], shape="folder", c="#8a817c"
         )
-        return out
 
-    def tomesh(self, bounds=(), shrink=0):
+    def tomesh(self, bounds=(), shrink=0) -> "vedo.Mesh":
         """
         Extract boundary geometry from dataset (or convert data to polygonal type).
 
@@ -1499,7 +1498,7 @@ class CommonAlgorithms:
     def smooth_data(self, 
             niter=10, relaxation_factor=0.1, strategy=0, mask=None,
             exclude=("Normals", "TextureCoordinates"),
-        ) -> Any:
+        ) -> Self:
         """
         Smooth point attribute data using distance weighted Laplacian kernel.
 
@@ -1654,7 +1653,7 @@ class CommonAlgorithms:
 class PointAlgorithms(CommonAlgorithms):
     """Methods for point clouds."""
 
-    def apply_transform(self, LT: Any, concatenate=True, deep_copy=True) -> Any:
+    def apply_transform(self, LT: Any, concatenate=True, deep_copy=True) -> Self:
         """
         Apply a linear or non-linear transformation to the mesh polygonal data.
 
@@ -1756,7 +1755,7 @@ class PointAlgorithms(CommonAlgorithms):
         self.actor.PokeMatrix(iden)
         return LinearTransform(M)
 
-    def pos(self, x=None, y=None, z=None) -> Any:
+    def pos(self, x=None, y=None, z=None) -> Self:
         """Set/Get object position."""
         if x is None:  # get functionality
             return self.transform.position
@@ -1777,7 +1776,7 @@ class PointAlgorithms(CommonAlgorithms):
         LT = LinearTransform().translate(delta)
         return self.apply_transform(LT)
 
-    def shift(self, dx=0, dy=0, dz=0) -> Any:
+    def shift(self, dx=0, dy=0, dz=0) -> Self:
         """Add a vector to the current object position."""
         if utils.is_sequence(dx):
             dx, dy, dz = utils.make3d(dx)
@@ -1786,7 +1785,7 @@ class PointAlgorithms(CommonAlgorithms):
         LT = LinearTransform().translate([dx, dy, dz])
         return self.apply_transform(LT)
 
-    def x(self, val=None):
+    def x(self, val=None) -> Self:
         """Set/Get object position along x axis."""
         p = self.transform.position
         if val is None:
@@ -1794,7 +1793,7 @@ class PointAlgorithms(CommonAlgorithms):
         self.pos(val, p[1], p[2])
         return self
 
-    def y(self, val=None):
+    def y(self, val=None)-> Self:
         """Set/Get object position along y axis."""
         p = self.transform.position
         if val is None:
@@ -1802,7 +1801,7 @@ class PointAlgorithms(CommonAlgorithms):
         self.pos(p[0], val, p[2])
         return self
 
-    def z(self, val=None):
+    def z(self, val=None) -> Self:
         """Set/Get object position along z axis."""
         p = self.transform.position
         if val is None:
@@ -1810,7 +1809,7 @@ class PointAlgorithms(CommonAlgorithms):
         self.pos(p[0], p[1], val)
         return self
 
-    def rotate(self, angle: float, axis=(1, 0, 0), point=(0, 0, 0), rad=False) -> Any:
+    def rotate(self, angle: float, axis=(1, 0, 0), point=(0, 0, 0), rad=False) -> Self:
         """
         Rotate around an arbitrary `axis` passing through `point`.
 
@@ -1832,7 +1831,7 @@ class PointAlgorithms(CommonAlgorithms):
         LT.rotate(angle, axis, point, rad)
         return self.apply_transform(LT)
 
-    def rotate_x(self, angle: float, rad=False, around=None) -> Any:
+    def rotate_x(self, angle: float, rad=False, around=None) -> Self:
         """
         Rotate around x-axis. If angle is in radians set `rad=True`.
 
@@ -1843,7 +1842,7 @@ class PointAlgorithms(CommonAlgorithms):
         LT = LinearTransform().rotate_x(angle, rad, around)
         return self.apply_transform(LT)
 
-    def rotate_y(self, angle: float, rad=False, around=None) -> Any:
+    def rotate_y(self, angle: float, rad=False, around=None) -> Self:
         """
         Rotate around y-axis. If angle is in radians set `rad=True`.
 
@@ -1854,7 +1853,7 @@ class PointAlgorithms(CommonAlgorithms):
         LT = LinearTransform().rotate_y(angle, rad, around)
         return self.apply_transform(LT)
 
-    def rotate_z(self, angle: float, rad=False, around=None) -> Any:
+    def rotate_z(self, angle: float, rad=False, around=None) -> Self:
         """
         Rotate around z-axis. If angle is in radians set `rad=True`.
 
@@ -1865,7 +1864,7 @@ class PointAlgorithms(CommonAlgorithms):
         LT = LinearTransform().rotate_z(angle, rad, around)
         return self.apply_transform(LT)
 
-    def reorient(self, initaxis, newaxis, rotation=0, rad=False, xyplane=False) -> Any:
+    def reorient(self, initaxis, newaxis, rotation=0, rad=False, xyplane=False) -> Self:
         """
         Reorient the object to point to a new direction from an initial one.
         If `initaxis` is None, the object will be assumed in its "default" orientation.
@@ -1878,7 +1877,7 @@ class PointAlgorithms(CommonAlgorithms):
         LT.reorient(initaxis, newaxis, q, rotation, rad, xyplane)
         return self.apply_transform(LT)
 
-    def scale(self, s=None, reset=False, origin=True) -> Any:
+    def scale(self, s=None, reset=False, origin=True) -> Union[Self, np.array]:
         """
         Set/get object's scaling factor.
 

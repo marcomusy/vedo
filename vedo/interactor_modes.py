@@ -597,8 +597,6 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
         # Find the renderer that is active below the current mouse position
         x, y = interactor.GetEventPosition()
         self.FindPokedRenderer(x, y)
-        # sets the current renderer
-        # [this->SetCurrentRenderer(this->Interactor->FindPokedRenderer(x, y));]
 
         Shift = interactor.GetShiftKey()
         Ctrl = interactor.GetControlKey()
@@ -630,8 +628,6 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
         # Find the renderer that is active below the current mouse position
         x, y = rwi.GetEventPosition()
         self.FindPokedRenderer(x, y)
-        # sets the current renderer
-        # [this->SetCurrentRenderer(this->Interactor->FindPokedRenderer(x, y));]
 
         # The movement
         ren = self.GetCurrentRenderer()
@@ -1269,10 +1265,6 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
 
     def zoom_box(self, x1, y1, x2, y2):
         """Zooms to a box"""
-        # int width, height;
-        #   width = abs(this->EndPosition[0] - this->StartPosition[0]);
-        #   height = abs(this->EndPosition[1] - this->StartPosition[1]);
-
         if x1 > x2:
             _ = x1
             x1 = x2
@@ -1285,7 +1277,6 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
         width = x2 - x1
         height = y2 - y1
 
-        #   int *size = this->ren->GetSize();
         ren = self.GetCurrentRenderer()
         size = ren.GetSize()
         origin = ren.GetOrigin()

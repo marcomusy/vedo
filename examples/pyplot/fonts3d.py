@@ -73,7 +73,6 @@ LaTeX: :nabla:dotE=~4:pi~:rho, :nabla:timesE=~-1/c~~:partialB/:partialt
        :intx:dot~dx = :onehalf x:^2 + const.
        d^2 x^:mu  + :Gamma^:mu_:alpha:beta ~dx^:alpha ~dx^:beta  = 0
        -∇:^2u(x) = f(x) in Ω, u(x)~=~u_D (x) in :partial:Omega
-Protect underscore \\\_ and \\\^ with a backslash.
 """
 
 plt = Plotter(N=4, pos=(300, 0), size=(1600, 950))

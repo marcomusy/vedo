@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import time
-from typing import Union, List
+from typing import Self, Union, List
 from weakref import ref as weak_ref_to
 import numpy as np
 
@@ -92,7 +92,7 @@ def merge(*meshs, flag=False) -> Union["vedo.Mesh", "vedo.Points", None]:
     return msh
 
 
-def delaunay2d(plist, **kwargs) -> "Points":
+def delaunay2d(plist, **kwargs) -> Self:
     """delaunay2d() is deprecated, use Points().generate_delaunay2d() instead."""
     if isinstance(plist, Points):
         plist = plist.vertices
@@ -450,7 +450,7 @@ def pca_ellipsoid(points: Union[np.ndarray, "vedo.Points"], pvalue=0.673, res=24
 
 
 ###################################################
-def Point(pos=(0, 0, 0), r=12, c="red", alpha=1.0) -> "Points":
+def Point(pos=(0, 0, 0), r=12, c="red", alpha=1.0) -> Self:
     """
     Create a simple point in space.
 
@@ -592,7 +592,7 @@ class Points(PointsVisual, PointAlgorithms):
             self, parents=[], comment=f"#pts {self.dataset.GetNumberOfPoints()}"
         )
 
-    def _update(self, polydata, reset_locators=True) -> "Points":
+    def _update(self, polydata, reset_locators=True) -> Self:
         """Overwrite the polygonal dataset with a new vtkPolyData."""
         self.dataset = polydata
         self.mapper.SetInputData(self.dataset)
@@ -828,11 +828,11 @@ class Points(PointsVisual, PointAlgorithms):
     def __deepcopy__(self, memo):
         return self.clone(deep=memo)
     
-    def copy(self, deep=True) -> "Points":
+    def copy(self, deep=True) -> Self:
         """Return a copy of the object. Alias of `clone()`."""
         return self.clone(deep=deep)
 
-    def clone(self, deep=True) -> "Points":
+    def clone(self, deep=True) -> Self:
         """
         Clone a `PointCloud` or `Mesh` object to make an exact copy of it.
         Alias of `copy()`.
@@ -873,7 +873,7 @@ class Points(PointsVisual, PointAlgorithms):
 
         return cloned
 
-    def compute_normals_with_pca(self, n=20, orientation_point=None, invert=False) -> "Points":
+    def compute_normals_with_pca(self, n=20, orientation_point=None, invert=False) -> Self:
         """
         Generate point normals using PCA (principal component analysis).
         This algorithm estimates a local tangent plane around each sample point p
@@ -911,7 +911,7 @@ class Points(PointsVisual, PointAlgorithms):
         self.dataset.GetPointData().Modified()
         return self
 
-    def compute_acoplanarity(self, n=25, radius=None, on="points") -> "Points":
+    def compute_acoplanarity(self, n=25, radius=None, on="points") -> Self:
         """
         Compute acoplanarity which is a measure of how much a local region of the mesh
         differs from a plane.
@@ -1024,7 +1024,7 @@ class Points(PointsVisual, PointAlgorithms):
         )
         return dists
 
-    def clean(self) -> "Points":
+    def clean(self) -> Self:
         """Clean pointcloud or mesh by removing coincident points."""
         cpd = vtki.new("CleanPolyData")
         cpd.PointMergingOn()
@@ -1039,7 +1039,7 @@ class Points(PointsVisual, PointAlgorithms):
         )
         return self
 
-    def subsample(self, fraction: float, absolute=False) -> "Points":
+    def subsample(self, fraction: float, absolute=False) -> Self:
         """
         Subsample a point cloud by requiring that the points
         or vertices are far apart at least by the specified fraction of the object size.
@@ -1088,7 +1088,7 @@ class Points(PointsVisual, PointAlgorithms):
         )
         return self
 
-    def threshold(self, scalars: str, above=None, below=None, on="points") -> "Points":
+    def threshold(self, scalars: str, above=None, below=None, on="points") -> Self:
         """
         Extracts cells where scalar value satisfies threshold criterion.
 
@@ -1142,7 +1142,7 @@ class Points(PointsVisual, PointAlgorithms):
         self.pipeline = utils.OperationNode("threshold", parents=[self])
         return self
 
-    def quantize(self, value: float) -> "Points":
+    def quantize(self, value: float) -> Self:
         """
         The user should input a value and all {x,y,z} coordinates
         will be quantized to that absolute grain size.
@@ -1173,7 +1173,7 @@ class Points(PointsVisual, PointAlgorithms):
         vtknormals = self.dataset.GetPointData().GetNormals()
         return utils.vtk2numpy(vtknormals)
 
-    def align_to(self, target, iters=100, rigid=False, invert=False, use_centroids=False) -> "Points":
+    def align_to(self, target, iters=100, rigid=False, invert=False, use_centroids=False) -> Self:
         """
         Aligned to target mesh through the `Iterative Closest Point` algorithm.
 
@@ -1218,7 +1218,7 @@ class Points(PointsVisual, PointAlgorithms):
         )
         return self
 
-    def align_to_bounding_box(self, msh, rigid=False) -> "Points":
+    def align_to_bounding_box(self, msh, rigid=False) -> Self:
         """
         Align the current object's bounding box to the bounding box
         of the input object.
@@ -1274,7 +1274,7 @@ class Points(PointsVisual, PointAlgorithms):
         rigid=False,
         affine=False,
         least_squares=False,
-    ) -> "Points":
+    ) -> Self:
         """
         Transform mesh orientation and position based on a set of landmarks points.
         The algorithm finds the best matching of source points to target points
@@ -1352,7 +1352,7 @@ class Points(PointsVisual, PointAlgorithms):
         self.pipeline = utils.OperationNode("transform_with_landmarks", parents=[self])
         return self
 
-    def normalize(self) -> "Points":
+    def normalize(self) -> Self:
         """Scale average size to unit. The scaling is performed around the center of mass."""
         coords = self.vertices
         if not coords.shape[0]:
@@ -1365,7 +1365,7 @@ class Points(PointsVisual, PointAlgorithms):
         self.pipeline = utils.OperationNode("normalize", parents=[self])
         return self
 
-    def mirror(self, axis="x", origin=True) -> "Points":
+    def mirror(self, axis="x", origin=True) -> Self:
         """
         Mirror reflect along one of the cartesian axes
 
@@ -1396,7 +1396,7 @@ class Points(PointsVisual, PointAlgorithms):
                 self.reverse()
         return self
 
-    def flip_normals(self) -> "Points":
+    def flip_normals(self) -> Self:
         """Flip all normals orientation."""
         rs = vtki.new("ReverseSense")
         rs.SetInputData(self.dataset)
@@ -1407,7 +1407,7 @@ class Points(PointsVisual, PointAlgorithms):
         self.pipeline = utils.OperationNode("flip_normals", parents=[self])
         return self
 
-    def add_gaussian_noise(self, sigma=1.0) -> "Points":
+    def add_gaussian_noise(self, sigma=1.0) -> Self:
         """
         Add gaussian noise to point positions.
         An extra array is added named "GaussianNoise" with the displacements.
@@ -1636,7 +1636,7 @@ class Points(PointsVisual, PointAlgorithms):
         db = np.mean(np.linalg.norm(deltav, axis=1))
         return (da + db) / 2
 
-    def remove_outliers(self, radius: float, neighbors=5) -> "Points":
+    def remove_outliers(self, radius: float, neighbors=5) -> Self:
         """
         Remove outliers from a cloud of points within the specified `radius` search.
 
@@ -1677,7 +1677,7 @@ class Points(PointsVisual, PointAlgorithms):
             packing_factor=1,
             max_step=0,
             constraints=(),
-        ) -> "Points":
+        ) -> Self:
         """
         Smooth mesh or points with a 
         [Laplacian algorithm](https://vtk.org/doc/nightly/html/classvtkPointSmoothingFilter.html)
@@ -1771,7 +1771,7 @@ class Points(PointsVisual, PointAlgorithms):
         self.pipeline = utils.OperationNode("relax_point_positions", parents=[self])
         return self
 
-    def smooth_mls_1d(self, f=0.2, radius=None, n=0) -> "Points":
+    def smooth_mls_1d(self, f=0.2, radius=None, n=0) -> Self:
         """
         Smooth mesh or points with a `Moving Least Squares` variant.
         The point data array "Variances" will contain the residue calculated for each point.
@@ -1823,7 +1823,7 @@ class Points(PointsVisual, PointAlgorithms):
         self.pipeline = utils.OperationNode("smooth_mls_1d", parents=[self])
         return self
 
-    def smooth_mls_2d(self, f=0.2, radius=None, n=0) -> "Points":
+    def smooth_mls_2d(self, f=0.2, radius=None, n=0) -> Self:
         """
         Smooth mesh or points with a `Moving Least Squares` algorithm variant.
 
@@ -1902,7 +1902,7 @@ class Points(PointsVisual, PointAlgorithms):
         self.pipeline = utils.OperationNode("smooth_mls_2d", parents=[self])
         return self
 
-    def smooth_lloyd_2d(self, iterations=2, bounds=None, options="Qbb Qc Qx") -> "Points":
+    def smooth_lloyd_2d(self, iterations=2, bounds=None, options="Qbb Qc Qx") -> Self:
         """
         Lloyd relaxation of a 2D pointcloud.
         
@@ -1974,7 +1974,7 @@ class Points(PointsVisual, PointAlgorithms):
         out.pipeline = utils.OperationNode("smooth_lloyd", parents=[self])
         return out
 
-    def project_on_plane(self, plane="z", point=None, direction=None) -> "Points":
+    def project_on_plane(self, plane="z", point=None, direction=None) -> Self:
         """
         Project the mesh on one of the Cartesian planes.
 
@@ -2057,7 +2057,7 @@ class Points(PointsVisual, PointAlgorithms):
         self.vertices = coords
         return self
 
-    def warp(self, source, target, sigma=1.0, mode="3d") -> "Points":
+    def warp(self, source, target, sigma=1.0, mode="3d") -> Self:
         """
         "Thin Plate Spline" transformations describe a nonlinear warp transform defined by a set
         of source and target landmarks. Any point on the mesh close to a source landmark will
@@ -2112,7 +2112,7 @@ class Points(PointsVisual, PointAlgorithms):
         self.pipeline = utils.OperationNode("warp", parents=parents)
         return self
 
-    def cut_with_plane(self, origin=(0, 0, 0), normal=(1, 0, 0), invert=False) -> "Points":
+    def cut_with_plane(self, origin=(0, 0, 0), normal=(1, 0, 0), invert=False) -> Self:
         """
         Cut the mesh with the plane defined by a point and a normal.
 
@@ -2169,7 +2169,7 @@ class Points(PointsVisual, PointAlgorithms):
         self.pipeline = utils.OperationNode("cut_with_plane", parents=[self])
         return self
 
-    def cut_with_planes(self, origins, normals, invert=False) -> "Points":
+    def cut_with_planes(self, origins, normals, invert=False) -> Self:
         """
         Cut the mesh with a convex set of planes defined by points and normals.
 
@@ -2208,7 +2208,7 @@ class Points(PointsVisual, PointAlgorithms):
         self.pipeline = utils.OperationNode("cut_with_planes", parents=[self])
         return self
 
-    def cut_with_box(self, bounds, invert=False) -> "Points":
+    def cut_with_box(self, bounds, invert=False) -> Self:
         """
         Cut the current mesh with a box or a set of boxes.
         This is much faster than `cut_with_mesh()`.
@@ -2254,7 +2254,7 @@ class Points(PointsVisual, PointAlgorithms):
         self.pipeline = utils.OperationNode("cut_with_box", parents=[self])
         return self
 
-    def cut_with_line(self, points, invert=False, closed=True) -> "Points":
+    def cut_with_line(self, points, invert=False, closed=True) -> Self:
         """
         Cut the current mesh with a line vertically in the z-axis direction like a cookie cutter.
         The polyline is defined by a set of points (z-coordinates are ignored).
@@ -2299,7 +2299,7 @@ class Points(PointsVisual, PointAlgorithms):
         self.pipeline = utils.OperationNode("cut_with_line", parents=[self])
         return self
 
-    def cut_with_cookiecutter(self, lines) -> "Points":
+    def cut_with_cookiecutter(self, lines) -> Self:
         """
         Cut the current mesh with a single line or a set of lines.
 
@@ -2375,7 +2375,7 @@ class Points(PointsVisual, PointAlgorithms):
         self.pipeline = utils.OperationNode("cut_with_cookiecutter", parents=[self])
         return self
 
-    def cut_with_cylinder(self, center=(0, 0, 0), axis=(0, 0, 1), r=1, invert=False) -> "Points":
+    def cut_with_cylinder(self, center=(0, 0, 0), axis=(0, 0, 1), r=1, invert=False) -> Self:
         """
         Cut the current mesh with an infinite cylinder.
         This is much faster than `cut_with_mesh()`.
@@ -2429,7 +2429,7 @@ class Points(PointsVisual, PointAlgorithms):
         self.pipeline = utils.OperationNode("cut_with_cylinder", parents=[self])
         return self
 
-    def cut_with_sphere(self, center=(0, 0, 0), r=1.0, invert=False) -> "Points":
+    def cut_with_sphere(self, center=(0, 0, 0), r=1.0, invert=False) -> Self:
         """
         Cut the current mesh with an sphere.
         This is much faster than `cut_with_mesh()`.
@@ -2469,7 +2469,7 @@ class Points(PointsVisual, PointAlgorithms):
         self.pipeline = utils.OperationNode("cut_with_sphere", parents=[self])
         return self
 
-    def cut_with_mesh(self, mesh, invert=False, keep=False) -> Union["Points", "vedo.Assembly"]:
+    def cut_with_mesh(self, mesh, invert=False, keep=False) -> Union[Self, "vedo.Assembly"]:
         """
         Cut an `Mesh` mesh with another `Mesh`.
 
@@ -2555,7 +2555,7 @@ class Points(PointsVisual, PointAlgorithms):
 
     def cut_with_point_loop(
         self, points, invert=False, on="points", include_boundary=False
-    ) -> "Points":
+    ) -> Self:
         """
         Cut an `Mesh` object with a set of points forming a closed loop.
 
@@ -2613,7 +2613,7 @@ class Points(PointsVisual, PointAlgorithms):
         self.pipeline = utils.OperationNode("cut_with_pointloop", parents=parents)
         return self
 
-    def cut_with_scalar(self, value: float, name="", invert=False) -> "Points":
+    def cut_with_scalar(self, value: float, name="", invert=False) -> Self:
         """
         Cut a mesh or point cloud with some input scalar point-data.
 
@@ -2652,7 +2652,7 @@ class Points(PointsVisual, PointAlgorithms):
 
     def crop(self,
              top=None, bottom=None, right=None, left=None, front=None, back=None,
-             bounds=()) -> "Points":
+             bounds=()) -> Self:
         """
         Crop an `Mesh` object.
 
@@ -2769,7 +2769,7 @@ class Points(PointsVisual, PointAlgorithms):
         grid=None,
         quads=False,
         invert=False,
-    ) -> "Points":
+    ) -> Self:
         """
         Generate a polygonal Mesh from a closed contour line.
         If line is not closed it will be closed with a straight segment.
@@ -2994,7 +2994,7 @@ class Points(PointsVisual, PointAlgorithms):
         )
         return m
 
-    def compute_clustering(self, radius: float) -> "Points":
+    def compute_clustering(self, radius: float) -> Self:
         """
         Cluster points in space. The `radius` is the radius of local search.
         
@@ -3018,7 +3018,7 @@ class Points(PointsVisual, PointAlgorithms):
         )
         return self
 
-    def compute_connections(self, radius, mode=0, regions=(), vrange=(0, 1), seeds=(), angle=0.0) -> "Points":
+    def compute_connections(self, radius, mode=0, regions=(), vrange=(0, 1), seeds=(), angle=0.0) -> Self:
         """
         Extracts and/or segments points from a point cloud based on geometric distance measures
         (e.g., proximity, normal alignments, etc.) and optional measures such as scalar range.
@@ -3116,7 +3116,7 @@ class Points(PointsVisual, PointAlgorithms):
             return self.pointdata["DistanceToCamera"]
         return np.array([])
 
-    def densify(self, target_distance=0.1, nclosest=6, radius=None, niter=1, nmax=None) -> "Points":
+    def densify(self, target_distance=0.1, nclosest=6, radius=None, niter=1, nmax=None) -> Self:
         """
         Return a copy of the cloud with new added points.
         The new points are created in such a way that all points in any local neighborhood are
@@ -3644,7 +3644,7 @@ class Points(PointsVisual, PointAlgorithms):
         return m
 
     ####################################################
-    def visible_points(self, area=(), tol=None, invert=False) -> Union["Points", None]:
+    def visible_points(self, area=(), tol=None, invert=False) -> Union[Self, None]:
         """
         Extract points based on whether they are visible or not.
         Visibility is determined by accessing the z-buffer of a rendering window.

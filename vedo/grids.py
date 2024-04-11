@@ -3,7 +3,7 @@
 import os
 import time
 from weakref import ref as weak_ref_to
-from typing import Any
+from typing import Self, Any
 import numpy as np
 
 import vedo.vtkclasses as vtki  # a wrapper for lazy imports
@@ -430,7 +430,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
             self.point_locator = None
         return self
     
-    def merge(self, *others) -> "UnstructuredGrid":
+    def merge(self, *others) -> Self:
         """
         Merge multiple datasets into one single `UnstrcturedGrid`.
         """
@@ -480,7 +480,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         # OVERRIDE CommonAlgorithms.bounds() which is too slow
         return np.array(self.dataset.GetBounds())
 
-    def threshold(self, name=None, above=None, below=None, on="cells") -> "UnstructuredGrid":
+    def threshold(self, name=None, above=None, below=None, on="cells") -> Self:
         """
         Threshold the tetrahedral mesh by a cell scalar value.
         Reduce to only tets which satisfy the threshold limits.
@@ -566,7 +566,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         )
         return out
 
-    def shrink(self, fraction=0.8) -> "UnstructuredGrid":
+    def shrink(self, fraction=0.8) -> Self:
         """
         Shrink the individual cells.
 
@@ -620,7 +620,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         uarr = self.dataset.GetCellTypesArray()
         return utils.vtk2numpy(uarr)
 
-    def extract_cells_by_type(self, ctype):
+    def extract_cells_by_type(self, ctype) -> "UnstructuredGrid":
         """Extract a specific cell type and return a new `UnstructuredGrid`."""
         if isinstance(ctype, str):
             try:
@@ -693,7 +693,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         cid = self.dataset.FindCell(p, cell, cell_id, tol2, sub_id, pcoords, weights)
         return cid
 
-    def clean(self) -> "UnstructuredGrid":
+    def clean(self) -> Self:
         """
         Cleanup unused points and empty cells
         """
@@ -713,7 +713,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         )
         return self
 
-    def extract_cells_on_plane(self, origin: tuple, normal: tuple) -> "UnstructuredGrid":
+    def extract_cells_on_plane(self, origin: tuple, normal: tuple) -> Self:
         """
         Extract cells that are lying of the specified surface.
         """
@@ -738,7 +738,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         )
         return self
 
-    def extract_cells_on_sphere(self, center: tuple, radius: tuple) -> "UnstructuredGrid":
+    def extract_cells_on_sphere(self, center: tuple, radius: tuple) -> Self:
         """
         Extract cells that are lying of the specified surface.
         """
@@ -763,7 +763,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         )
         return self
 
-    def extract_cells_on_cylinder(self, center: tuple, axis: tuple, radius: float) -> "UnstructuredGrid":
+    def extract_cells_on_cylinder(self, center: tuple, axis: tuple, radius: float) -> Self:
         """
         Extract cells that are lying of the specified surface.
         """
@@ -1228,7 +1228,7 @@ class TetMesh(UnstructuredGrid):
         varr = vald.GetOutput().GetCellData().GetArray("ValidityState")
         return utils.vtk2numpy(varr)
 
-    def decimate(self, scalars_name: str, fraction=0.5, n=0) -> "TetMesh":
+    def decimate(self, scalars_name: str, fraction=0.5, n=0) -> Self:
         """
         Downsample the number of tets in a TetMesh to a specified fraction.
         Either `fraction` or `n` must be set.
@@ -1256,7 +1256,7 @@ class TetMesh(UnstructuredGrid):
         )
         return self
 
-    def subdvide(self) -> "TetMesh":
+    def subdvide(self) -> Self:
         """
         Increase the number of tetrahedrons of a `TetMesh`.
         Subdivides each tetrahedron into twelve smaller tetras.
@@ -1803,7 +1803,7 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         )
         return out
 
-    def cut_with_plane(self, origin=(0, 0, 0), normal="x") -> "vedo.UnstructuredGrid":
+    def cut_with_plane(self, origin=(0, 0, 0), normal="x") -> "UnstructuredGrid":
         """
         Cut the object with the plane defined by a point and a normal.
 
@@ -1832,14 +1832,14 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         clipper.Update()
         cout = clipper.GetOutput()
         ug = vedo.UnstructuredGrid(cout)
-        if isinstance(self, vedo.UnstructuredGrid):
+        if isinstance(self, UnstructuredGrid):
             self._update(cout)
             self.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
             return self
         ug.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
         return ug
 
-    def cut_with_mesh(self, mesh, invert=False, whole_cells=False, on_boundary=False) -> "vedo.UnstructuredGrid":
+    def cut_with_mesh(self, mesh, invert=False, whole_cells=False, on_boundary=False) -> "UnstructuredGrid":
         """
         Cut a `RectilinearGrid` with a `Mesh`.
 
@@ -1876,7 +1876,7 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
 
         clipper.Update()
 
-        out = vedo.UnstructuredGrid(clipper.GetOutput())
+        out = UnstructuredGrid(clipper.GetOutput())
         out.pipeline = utils.OperationNode("cut_with_mesh", parents=[self], c="#9e2a2b")
         return out
 
@@ -2245,7 +2245,7 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
         ug.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
         return ug
 
-    def cut_with_mesh(self, mesh: Mesh, invert=False, whole_cells=False, on_boundary=False) -> "vedo.UnstructuredGrid":
+    def cut_with_mesh(self, mesh: Mesh, invert=False, whole_cells=False, on_boundary=False) -> "UnstructuredGrid":
         """
         Cut a `RectilinearGrid` with a `Mesh`.
 
@@ -2284,7 +2284,7 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
 
         clipper.Update()
 
-        out = vedo.UnstructuredGrid(clipper.GetOutput())
+        out = UnstructuredGrid(clipper.GetOutput())
         out.pipeline = utils.OperationNode("cut_with_mesh", parents=[self], c="#9e2a2b")
         return out
 

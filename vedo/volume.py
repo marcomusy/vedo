@@ -2,7 +2,7 @@ import glob
 import os
 import time
 from weakref import ref as weak_ref_to
-from typing import Union, List, Iterable, Any
+from typing import Self, Union, List, Iterable
 
 import numpy as np
 
@@ -225,7 +225,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
             raise RuntimeError()
         self.actor.SetMapper(mapper)
 
-    def c(self, *args, **kwargs) -> "Volume":
+    def c(self, *args, **kwargs) -> Self:
         """Deprecated. Use `Volume.cmap()` instead."""
         vedo.logger.warning("Volume.c() is deprecated, use Volume.cmap() instead")
         return self.cmap(*args, **kwargs)
@@ -389,7 +389,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         newvol.pipeline = utils.OperationNode("clone", parents=[self], c="#bbd0ff", shape="diamond")
         return newvol
 
-    def astype(self, dtype: Union[str, int]) -> "Volume":
+    def astype(self, dtype: Union[str, int]) -> Self:
         """
         Reset the type of the scalars array.
 
@@ -411,7 +411,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
             raise ValueError()
         return self
 
-    def component_weight(self, i: int, weight: float) -> "Volume":
+    def component_weight(self, i: int, weight: float) -> Self:
         """Set the scalar component weight in range [0,1]."""
         self.properties.SetComponentWeight(i, weight)
         return self
@@ -669,7 +669,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
             source: Union["vedo.Points", List],
             target: Union["vedo.Points", List],
             sigma=1, mode="3d", fit=True,
-        ) -> "Volume":
+        ) -> Self:
         """
         Warp volume scalars within a Volume by specifying
         source and target sets of points.
@@ -701,7 +701,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
             self, 
             T: Union[transformations.LinearTransform, transformations.NonLinearTransform],
             fit=True, interpolation="cubic",
-        ) -> "Volume":
+        ) -> Self:
         """
         Apply a transform to the scalars in the volume.
 
@@ -750,7 +750,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         print("Volume.imagedata() is deprecated, use Volume.dataset instead")
         return self.dataset
     
-    def modified(self) -> "Volume":
+    def modified(self) -> Self:
         """
         Mark the object as modified.
 
@@ -805,14 +805,14 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         """Return the range of the scalar values."""
         return np.array(self.dataset.GetScalarRange())
 
-    def spacing(self, s=None) -> Union["Volume", Iterable[float]]:
+    def spacing(self, s=None) -> Union[Self, Iterable[float]]:
         """Set/get the voxels size in the 3 dimensions."""
         if s is not None:
             self.dataset.SetSpacing(s)
             return self
         return np.array(self.dataset.GetSpacing())
 
-    def origin(self, s=None) -> Union["Volume", Iterable[float]]:
+    def origin(self, s=None) -> Union[Self, Iterable[float]]:
         """
         Set/get the origin of the volumetric dataset.
 
@@ -827,7 +827,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
             return self
         return np.array(self.dataset.GetOrigin())
     
-    def pos(self, p=None) -> Union["Volume", Iterable[float]]:
+    def pos(self, p=None) -> Union[Self, Iterable[float]]:
         """Set/get the position of the volumetric dataset."""
         if p is not None:
             self.origin(p)
@@ -839,12 +839,12 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         # note that this does not have the set method like origin and spacing
         return np.array(self.dataset.GetCenter())
     
-    def shift(self, s: list) -> "Volume":
+    def shift(self, s: list) -> Self:
         """Shift the volumetric dataset by a vector."""
         self.origin(self.origin() + np.array(s))
         return self
 
-    def rotate_x(self, angle: float, rad=False, around=None) -> "Volume":
+    def rotate_x(self, angle: float, rad=False, around=None) -> Self:
         """
         Rotate around x-axis. If angle is in radians set `rad=True`.
 
@@ -855,7 +855,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         LT = transformations.LinearTransform().rotate_x(angle, rad, around)
         return self.apply_transform(LT, fit=True, interpolation="linear")
 
-    def rotate_y(self, angle: float, rad=False, around=None) -> "Volume":
+    def rotate_y(self, angle: float, rad=False, around=None) -> Self:
         """
         Rotate around y-axis. If angle is in radians set `rad=True`.
 
@@ -866,7 +866,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         LT = transformations.LinearTransform().rotate_y(angle, rad, around)
         return self.apply_transform(LT, fit=True, interpolation="linear")
 
-    def rotate_z(self, angle: float, rad=False, around=None) -> "Volume":
+    def rotate_z(self, angle: float, rad=False, around=None) -> Self:
         """
         Rotate around z-axis. If angle is in radians set `rad=True`.
 
@@ -897,7 +897,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         """
         return self.dataset.ComputePointId(ijk)
 
-    def permute_axes(self, x: int, y: int, z: int) -> "Volume":
+    def permute_axes(self, x: int, y: int, z: int) -> Self:
         """
         Reorder the axes of the Volume by specifying
         the input axes which are supposed to become the new X, Y, and Z.
@@ -912,7 +912,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         )
         return self
 
-    def resample(self, new_spacing: List[float], interpolation=1) -> "Volume":
+    def resample(self, new_spacing: List[float], interpolation=1) -> Self:
         """
         Resamples a `Volume` to be larger or smaller.
 
@@ -941,7 +941,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         return self
 
 
-    def threshold(self, above=None, below=None, replace=None, replace_value=None) -> "Volume":
+    def threshold(self, above=None, below=None, replace=None, replace_value=None) -> Self:
         """
         Binary or continuous volume thresholding.
         Find the voxels that contain a value above/below the input values
@@ -986,7 +986,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         self.pipeline = utils.OperationNode("threshold", parents=[self], c="#4cc9f0")
         return self
 
-    def crop(self, left=None, right=None, back=None, front=None, bottom=None, top=None, VOI=()) -> "Volume":
+    def crop(self, left=None, right=None, back=None, front=None, bottom=None, top=None, VOI=()) -> Self:
         """
         Crop a `Volume` object.
 
@@ -1032,7 +1032,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         )
         return self
 
-    def append(self, *volumes, axis="z", preserve_extents=False) -> "Volume":
+    def append(self, *volumes, axis="z", preserve_extents=False) -> Self:
         """
         Take the components from multiple inputs and merges them into one output.
         Except for the append axis, all inputs must have the same extent.
@@ -1086,7 +1086,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         )
         return self
 
-    def pad(self, voxels=10, value=0) -> "Volume":
+    def pad(self, voxels=10, value=0) -> Self:
         """
         Add the specified number of voxels at the `Volume` borders.
         Voxels can be a list formatted as `[nx0, nx1, ny0, ny1, nz0, nz1]`.
@@ -1130,7 +1130,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         )
         return self
 
-    def resize(self, newdims: List[int]) -> "Volume":
+    def resize(self, newdims: List[int]) -> Self:
         """Increase or reduce the number of voxels of a Volume with interpolation."""
         rsz = vtki.new("ImageResize")
         rsz.SetResizeMethodToOutputDimensions()
@@ -1144,7 +1144,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         )
         return self
 
-    def normalize(self) -> "Volume":
+    def normalize(self) -> Self:
         """Normalize that scalar components for each point."""
         norm = vtki.new("ImageNormalize")
         norm.SetInputData(self.dataset)
@@ -1153,7 +1153,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         self.pipeline = utils.OperationNode("normalize", parents=[self], c="#4cc9f0")
         return self
 
-    def mirror(self, axis="x") -> "Volume":
+    def mirror(self, axis="x") -> Self:
         """
         Mirror flip along one of the cartesian axes.
         """
@@ -1396,7 +1396,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         )
         return self
 
-    def frequency_pass_filter(self, low_cutoff=None, high_cutoff=None, order=1) -> "Volume":
+    def frequency_pass_filter(self, low_cutoff=None, high_cutoff=None, order=1) -> Self:
         """
         Low-pass and high-pass filtering become trivial in the frequency domain.
         A portion of the pixels/voxels are simply masked or attenuated.
@@ -1449,7 +1449,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         self.pipeline = utils.OperationNode("frequency_pass_filter", parents=[self], c="#4cc9f0")
         return self
 
-    def smooth_gaussian(self, sigma=(2, 2, 2), radius=None) -> "Volume":
+    def smooth_gaussian(self, sigma=(2, 2, 2), radius=None) -> Self:
         """
         Performs a convolution of the input Volume with a gaussian.
 
@@ -1478,7 +1478,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         self.pipeline = utils.OperationNode("smooth_gaussian", parents=[self], c="#4cc9f0")
         return self
 
-    def smooth_median(self, neighbours=(2, 2, 2)) -> "Volume":
+    def smooth_median(self, neighbours=(2, 2, 2)) -> Self:
         """
         Median filter that replaces each pixel with the median value
         from a rectangular neighborhood around that pixel.
@@ -1494,7 +1494,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         self.pipeline = utils.OperationNode("smooth_median", parents=[self], c="#4cc9f0")
         return self
 
-    def erode(self, neighbours=(2, 2, 2)) -> "Volume":
+    def erode(self, neighbours=(2, 2, 2)) -> Self:
         """
         Replace a voxel with the minimum over an ellipsoidal neighborhood of voxels.
         If `neighbours` of an axis is 1, no processing is done on that axis.
@@ -1512,7 +1512,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         self.pipeline = utils.OperationNode("erode", parents=[self], c="#4cc9f0")
         return self
 
-    def dilate(self, neighbours=(2, 2, 2)) -> "Volume":
+    def dilate(self, neighbours=(2, 2, 2)) -> Self:
         """
         Replace a voxel with the maximum over an ellipsoidal neighborhood of voxels.
         If `neighbours` of an axis is 1, no processing is done on that axis.
@@ -1530,7 +1530,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         self.pipeline = utils.OperationNode("dilate", parents=[self], c="#4cc9f0")
         return self
 
-    def magnitude(self) -> "Volume":
+    def magnitude(self) -> Self:
         """Colapses components with magnitude function."""
         imgm = vtki.new("ImageMagnitude")
         imgm.SetInputData(self.dataset)
@@ -1605,7 +1605,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         vol.pipeline = utils.OperationNode("correlation_with", parents=[self, vol2], c="#4cc9f0")
         return vol
 
-    def scale_voxels(self, scale=1) -> "Volume":
+    def scale_voxels(self, scale=1) -> Self:
         """Scale the voxel content by factor `scale`."""
         rsl = vtki.new("ImageReslice")
         rsl.SetInputData(self.dataset)

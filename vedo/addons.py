@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import numpy as np
-from typing import Union
+from typing import Self, Union
 
 import vedo.vtkclasses as vtki   # a wrapper for lazy imports
 
@@ -157,33 +157,33 @@ class Flagpost(vtki.vtkFlagpoleLabel):
         prop.SetLineSpacing(vspacing * 1.2)
         self.SetUseBounds(False)
 
-    def text(self, value: str) -> "Flagpost":
+    def text(self, value: str) -> Self:
         self.SetInput(value)
         return self
 
-    def on(self) -> "Flagpost":
+    def on(self) -> Self:
         self.VisibilityOn()
         return self
 
-    def off(self) -> "Flagpost":
+    def off(self) -> Self:
         self.VisibilityOff()
         return self
 
-    def toggle(self) -> "Flagpost":
+    def toggle(self) -> Self:
         self.SetVisibility(not self.GetVisibility())
         return self
 
-    def use_bounds(self, value=True) -> "Flagpost":
+    def use_bounds(self, value=True) -> Self:
         self.SetUseBounds(value)
         return self
 
-    def color(self, c) -> "Flagpost":
+    def color(self, c) -> Self:
         c = get_color(c)
         self.GetTextProperty().SetColor(c)
         self.GetProperty().SetColor(c)
         return self
 
-    def pos(self, p) -> "Flagpost":
+    def pos(self, p) -> Self:
         p = np.asarray(p)
         self.top = self.top - self.base + p
         self.base = p
@@ -655,15 +655,15 @@ class SliderWidget(vtki.vtkSliderWidget):
         if vals[1] is not None:
             self.GetRepresentation().SetMaximumValue(vals[1])
 
-    def on(self) -> "SliderWidget":
+    def on(self) -> Self:
         self.EnabledOn()
         return self
 
-    def off(self) -> "SliderWidget":
+    def off(self) -> Self:
         self.EnabledOff()
         return self
 
-    def toggle(self) -> "SliderWidget":
+    def toggle(self) -> Self:
         self.SetEnabled(not self.GetEnabled())
         return self
 
@@ -1675,12 +1675,12 @@ class BaseCutter:
         self._alpha = 0.5
         self._keypress_id = None
 
-    def invert(self):
+    def invert(self) -> Self:
         """Invert selection."""
         self.clipper.SetInsideOut(not self.clipper.GetInsideOut())
         return self
 
-    def bounds(self, value=None):
+    def bounds(self, value=None) -> Union[Self, np.ndarray]:
         """Set or get the bounding box."""
         if value is None:
             return self.cutter.GetBounds()
@@ -1688,17 +1688,17 @@ class BaseCutter:
             self._implicit_func.SetBounds(value)
             return self
 
-    def on(self):
+    def on(self) -> Self:
         """Switch the widget on or off."""
         self.widget.On()
         return self
 
-    def off(self):
+    def off(self) -> Self:
         """Switch the widget on or off."""
         self.widget.Off()
         return self
 
-    def add_to(self, plt):
+    def add_to(self, plt) -> Self:
         """Assign the widget to the provided `Plotter` instance."""
         self.widget.SetInteractor(plt.interactor)
         self.widget.SetCurrentRenderer(plt.renderer)
@@ -1726,7 +1726,7 @@ class BaseCutter:
             plt.interactor.Render()
         return self
 
-    def remove_from(self, plt):
+    def remove_from(self, plt) -> Self:
         """Remove the widget to the provided `Plotter` instance."""
         self.widget.Off()
         self.widget.RemoveAllObservers() ### NOT SURE
@@ -1737,7 +1737,7 @@ class BaseCutter:
             plt.interactor.RemoveObserver(self._keypress_id)
         return self
 
-    def add_observer(self, event, func, priority=1):
+    def add_observer(self, event, func, priority=1) -> int:
         """Add an observer to the widget."""
         event = utils.get_vtk_name_event(event)
         cid = self.widget.AddObserver(event, func, priority)
@@ -1872,7 +1872,7 @@ class PlaneCutter(vtki.vtkPlaneWidget, BaseCutter):
         """Set the normal of the plane."""
         self.widget.SetNormal(value)
 
-    def _select_polygons(self, vobj, event):
+    def _select_polygons(self, vobj, event) -> None:
         vobj.GetPlane(self._implicit_func)
 
     def _keypress(self, vobj, event):
@@ -2276,23 +2276,23 @@ class ProgressBarWidget(vtki.vtkActor2D):
         self.GetProperty().SetLineWidth(lw*2)
 
 
-    def lw(self, value: int) -> "ProgressBarWidget":
+    def lw(self, value: int) -> Self:
         """Set width."""
         self.GetProperty().SetLineWidth(value*2)
         return self
 
-    def c(self, color) -> "ProgressBarWidget":
+    def c(self, color) -> Self:
         """Set color."""
         c = get_color(color)
         self.GetProperty().SetColor(c)
         return self
 
-    def alpha(self, value) -> "ProgressBarWidget":
+    def alpha(self, value) -> Self:
         """Set opacity."""
         self.GetProperty().SetOpacity(value)
         return self
 
-    def update(self, fraction=None) -> "ProgressBarWidget":
+    def update(self, fraction=None) -> Self:
         """Update progress bar to fraction of the window width."""
         if fraction is None:
             if self.iterations is None:
@@ -2775,7 +2775,7 @@ class Ruler2D(vtki.vtkAxisActor2D):
         self.renderer = plt.renderer
         self.cid = plt.interactor.AddObserver("RenderEvent", self._update_viz, 1.0)
 
-    def color(self, c) -> "Ruler2D":
+    def color(self, c) -> Self:
         """Assign a new color."""
         c = get_color(c)
         self.GetTitleTextProperty().SetColor(c)
@@ -2783,12 +2783,12 @@ class Ruler2D(vtki.vtkAxisActor2D):
         self.GetProperty().SetColor(c)
         return self
 
-    def off(self):
+    def off(self) -> None:
         """Switch off the ruler completely."""
         self.renderer.RemoveObserver(self.cid)
         self.renderer.RemoveActor(self)
 
-    def set_points(self, p0, p1) -> "Ruler2D":
+    def set_points(self, p0, p1) -> Self:
         """Set new values for the ruler start and end points."""
         self.p0 = np.asarray(p0)
         self.p1 = np.asarray(p1)
@@ -2855,7 +2855,7 @@ class DistanceTool(Group):
         self.ruler = None
         self.title = ""
 
-    def on(self) -> "DistanceTool":
+    def on(self) -> Self:
         """Switch tool on."""
         self.cid = self.plotter.add_callback("click", self._onclick)
         self.VisibilityOn()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from typing import List
+from typing import Self, List
 import numpy as np
 
 import vedo.vtkclasses as vtki # a wrapper for lazy imports
@@ -220,7 +220,7 @@ class LinearTransform:
         obj.apply_transform(self)
         return obj
 
-    def reset(self) -> "LinearTransform":
+    def reset(self) -> Self:
         """Reset transformation."""
         self.T.Identity()
         return self
@@ -269,7 +269,7 @@ class LinearTransform:
             eigvec[:,2] * eigval[2],
         ])
 
-    def pop(self) -> "LinearTransform":
+    def pop(self) -> Self:
         """Delete the transformation on the top of the stack
         and sets the top to the next transformation on the stack."""
         self.T.Pop()
@@ -283,7 +283,7 @@ class LinearTransform:
             return True
         return False
 
-    def invert(self) -> "LinearTransform":
+    def invert(self) -> Self:
         """Invert the transformation. Acts in-place."""
         self.T.Inverse()
         self.inverse_flag = bool(self.T.GetInverseFlag())
@@ -295,7 +295,7 @@ class LinearTransform:
         t.invert()
         return t
 
-    def transpose(self) -> "LinearTransform":
+    def transpose(self) -> Self:
         """Transpose the transformation. Acts in-place."""
         M = vtki.vtkMatrix4x4()
         self.T.GetTranspose(M)
@@ -310,7 +310,7 @@ class LinearTransform:
         """Clone transformation to make an exact copy."""
         return LinearTransform(self.T)
 
-    def concatenate(self, T, pre_multiply=False) -> "LinearTransform":
+    def concatenate(self, T, pre_multiply=False) -> Self:
         """
         Post-multiply (by default) 2 transfomations.
         T can also be a 4x4 matrix or 3x3 matrix.
@@ -370,18 +370,18 @@ class LinearTransform:
         """Get the number of concatenated transforms."""
         return self.T.GetNumberOfConcatenatedTransforms()
 
-    def translate(self, p) -> "LinearTransform":
+    def translate(self, p) -> Self:
         """Translate, same as `shift`."""
         if len(p) == 2:
             p = [p[0], p[1], 0]
         self.T.Translate(p)
         return self
 
-    def shift(self, p) -> "LinearTransform":
+    def shift(self, p) -> Self:
         """Shift, same as `translate`."""
         return self.translate(p)
 
-    def scale(self, s, origin=True) -> "LinearTransform":
+    def scale(self, s, origin=True) -> Self:
         """Scale."""
         if not _is_sequence(s):
             s = [s, s, s]
@@ -405,7 +405,7 @@ class LinearTransform:
             self.T.Scale(*s)
         return self
 
-    def rotate(self, angle, axis=(1, 0, 0), point=(0, 0, 0), rad=False) -> "LinearTransform":
+    def rotate(self, angle, axis=(1, 0, 0), point=(0, 0, 0), rad=False) -> Self:
         """
         Rotate around an arbitrary `axis` passing through `point`.
 
@@ -467,7 +467,7 @@ class LinearTransform:
             self.T.Translate(around)
         return self
 
-    def rotate_x(self, angle: float, rad=False, around=None) -> "LinearTransform":
+    def rotate_x(self, angle: float, rad=False, around=None) -> Self:
         """
         Rotate around x-axis. If angle is in radians set `rad=True`.
 
@@ -475,7 +475,7 @@ class LinearTransform:
         """
         return self._rotatexyz("x", angle, rad, around)
 
-    def rotate_y(self, angle: float, rad=False, around=None) -> "LinearTransform":
+    def rotate_y(self, angle: float, rad=False, around=None) -> Self:
         """
         Rotate around y-axis. If angle is in radians set `rad=True`.
 
@@ -483,7 +483,7 @@ class LinearTransform:
         """
         return self._rotatexyz("y", angle, rad, around)
 
-    def rotate_z(self, angle: float, rad=False, around=None) -> "LinearTransform":
+    def rotate_z(self, angle: float, rad=False, around=None) -> Self:
         """
         Rotate around z-axis. If angle is in radians set `rad=True`.
 
@@ -491,7 +491,7 @@ class LinearTransform:
         """
         return self._rotatexyz("z", angle, rad, around)
 
-    def set_position(self, p) -> "LinearTransform":
+    def set_position(self, p) -> Self:
         """Set position."""
         if len(p) == 2:
             p = np.array([p[0], p[1], 0])
@@ -554,7 +554,7 @@ class LinearTransform:
         M = [[m.GetElement(i, j) for j in range(3)] for i in range(3)]
         return np.array(M)
 
-    def write(self, filename="transform.mat") -> "LinearTransform":
+    def write(self, filename="transform.mat") -> Self:
         """Save transformation to ASCII file."""
         import json
         m = self.T.GetMatrix()
@@ -572,7 +572,7 @@ class LinearTransform:
 
     def reorient(
         self, initaxis, newaxis, around=(0, 0, 0), rotation=0.0, rad=False, xyplane=True
-    ) -> "LinearTransform":
+    ) -> Self:
         """
         Set/Get object orientation.
 
@@ -769,12 +769,12 @@ class NonLinearTransform:
     def __repr__(self):
         return self.__str__()
 
-    def print(self) -> "NonLinearTransform":
+    def print(self) -> Self:
         """Print transformation."""
         print(self.__str__())
         return self
 
-    def update(self) -> "NonLinearTransform":
+    def update(self) -> Self:
         """Update transformation."""
         self.T.Update()
         return self
@@ -884,7 +884,7 @@ class NonLinearTransform:
         """Clone transformation to make an exact copy."""
         return NonLinearTransform(self.T)
 
-    def write(self, filename) -> "NonLinearTransform":
+    def write(self, filename) -> Self:
         """Save transformation to ASCII file."""
         import json
 
@@ -906,7 +906,7 @@ class NonLinearTransform:
         self.inverse_flag = bool(self.T.GetInverseFlag())
         return self
 
-    def compute_inverse(self) -> "NonLinearTransform":
+    def compute_inverse(self) -> Self:
         """Compute inverse."""
         t = self.clone()
         t.invert()
