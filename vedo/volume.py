@@ -2,7 +2,8 @@ import glob
 import os
 import time
 from weakref import ref as weak_ref_to
-from typing import Self, Union, List, Iterable
+from typing import Union, List, Iterable
+from typing_extensions import Self
 
 import numpy as np
 

@@ -3,7 +3,8 @@
 import os
 import time
 from weakref import ref as weak_ref_to
-from typing import Self, Any
+from typing import Any
+from typing_extensions import Self
 import numpy as np
 
 import vedo.vtkclasses as vtki  # a wrapper for lazy imports

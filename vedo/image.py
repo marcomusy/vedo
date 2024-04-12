@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 from weakref import ref as weak_ref_to
-from typing import Self, Tuple, List, Union, Any
+from typing import Tuple, List, Union, Any
+from typing_extensions import Self
 
 import vedo.vtkclasses as vtki
 

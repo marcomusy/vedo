@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import numpy as np
-from typing import Self, Union
+from typing import Union
+from typing_extensions import Self
 
 import vedo.vtkclasses as vtki   # a wrapper for lazy imports
 

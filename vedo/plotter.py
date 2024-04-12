@@ -3,7 +3,8 @@
 import os.path
 import sys
 import time
-from typing import MutableSequence, Callable, Any, Union, Self
+from typing import MutableSequence, Callable, Any, Union
+from typing_extensions import Self
 import numpy as np
 
 import vedo.vtkclasses as vtki  # a wrapper for lazy imports
