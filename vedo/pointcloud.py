@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import time
-from typing import Self, Union, List
+from typing import Union, List
+from typing_extensions import Self
 from weakref import ref as weak_ref_to
 import numpy as np
 
