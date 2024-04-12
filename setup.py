@@ -62,7 +62,7 @@ setup(
         "console_scripts": ["vedo=vedo.cli:execute_cli"],
     },
 
-    install_requires=["vtk", "numpy", "Pygments"],
+    install_requires=["vtk", "numpy", "Pygments", "typing-extensions"],
     include_package_data=True,
 
 )
