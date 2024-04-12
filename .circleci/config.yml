@@ -26,6 +26,7 @@ jobs:
           command: |
             sudo apt-get update
             sudo apt install libgl1-mesa-dev xvfb -y
+            pip3 install typing-extensions
             pip3 install vedo
             pip3 install matplotlib
             pip3 install scipy
