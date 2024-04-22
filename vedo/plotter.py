@@ -4093,11 +4093,11 @@ class Plotter:
             return
 
         elif key == "S":
-            def serial_fname(start=0):
-                fname = f"screenshot{int(start) if start > 0 else ''}.png"
-                return serial_fname(start + 1) if os.path.isfile(fname) else fname
-
-            fname = serial_fname()
+            fname = "screenshot.png"
+            i = 1
+            while os.path.isfile(fname):
+                fname = f"screenshot{i}.png"
+                i += 1
             vedo.file_io.screenshot(fname)
             vedo.printc(rf":camera: Saved rendering window to {fname}", c="b")
             return
