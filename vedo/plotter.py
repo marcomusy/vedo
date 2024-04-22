@@ -4093,8 +4093,13 @@ class Plotter:
             return
 
         elif key == "S":
-            vedo.file_io.screenshot("screenshot.png")
-            vedo.printc(r":camera: Saved rendering window to 'screenshot.png'", c="b")
+            fname = "screenshot.png"
+            i = 1
+            while os.path.isfile(fname):
+                fname = f"screenshot{i}.png"
+                i += 1
+            vedo.file_io.screenshot(fname)
+            vedo.printc(rf":camera: Saved rendering window to {fname}", c="b")
             return
 
         elif key == "C":
