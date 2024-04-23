@@ -16,7 +16,12 @@ import logging
 import numpy as np
 from numpy import sin, cos, sqrt, exp, log, dot, cross  # just because handy
 
-from vtkmodules.vtkCommonCore import vtkVersion
+try:
+    from vtkmodules.vtkCommonCore import vtkVersion
+except ModuleNotFoundError:
+    print("Cannot find VTK installation. Please install it with:")
+    print("pip install vtk")
+    sys.exit(1)
 
 #################################################
 from vedo.version import _version as __version__
