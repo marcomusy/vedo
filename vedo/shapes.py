@@ -969,7 +969,7 @@ class RoundedLine(Mesh):
                     ptsnew.append(p0 + nv)
                 if uv[2] <= 0:
                     # the following computation can return a value
-                    # ever so slightly > 1.0 causing argcos to fail.
+                    # ever so slightly > 1.0 causing arccos to fail.
                     uv_arg = np.dot(u, v) / du / dv
                     if uv_arg > 1.0:
                         # since the argument to arcos is 1, simply
