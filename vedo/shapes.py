@@ -968,7 +968,16 @@ class RoundedLine(Mesh):
                 if k == 0:
                     ptsnew.append(p0 + nv)
                 if uv[2] <= 0:
-                    alpha = np.arccos(np.dot(u, v) / du / dv)
+                    # the following computation can return a value
+                    # ever so slightly > 1.0 causing arccos to fail.
+                    uv_arg = np.dot(u, v) / du / dv
+                    if uv_arg > 1.0:
+                        # since the argument to arcos is 1, simply
+                        # assign alpha to 0.0 without calculating the
+                        # arccos
+                        alpha = 0.0
+                    else:
+                        alpha = np.arccos(uv_arg)
                     db = lw * np.tan(alpha / 2)
                     p1new = p1 + nv - v / dv * db
                     ptsnew.append(p1new)
