@@ -3047,7 +3047,7 @@ class Plane(Mesh):
         points = np.array(points, dtype=float)
         bounds = self.vertices
 
-        mask = np.isclose(np.dot(points - self.center, self.normal), tol)
+        mask = np.isclose(np.dot(points - self.center, self.normal), 0, atol=tol)
 
         for i in [1, 3]:
             AB = bounds[i] - bounds[0]
