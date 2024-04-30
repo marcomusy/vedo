@@ -48,12 +48,13 @@ markpoint.py (misplaced leader indicator)
 cut_and_cap.py (incomplete capping)
 gyroscope1.py (broken physics)
 tests/issues/discussion_800.py (incomplete capping of tube)
-makevideo
+make_video
 ```
 
 #### Broken Projects
 umap_viewer3d
 trackviewer (some problems with removing a track, and z spacing)
+closing the window in spyder doesnt work anymore.
 
 #### Broken Exports to .npz:
 boolean.py

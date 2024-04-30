@@ -951,9 +951,12 @@ class Plotter:
         for a in acts:
 
             if ren:
-
                 if isinstance(a, vedo.addons.BaseCutter):
                     a.add_to(self)  # from cutters
+                    continue
+
+                if isinstance(a, vtki.vtkLight):
+                    ren.AddLight(a)
                     continue
 
                 try:
@@ -961,12 +964,15 @@ class Plotter:
                 except TypeError:
                     ren.AddActor(a.actor)
 
-                if hasattr(a, "rendered_at"):
+                try:
                     ir = self.renderers.index(ren)
-                    a.rendered_at.add(ir)
+                    a.rendered_at.add(ir) # might not have rendered_at
+                except (AttributeError, ValueError):
+                    pass
+
                 if isinstance(a, vtki.vtkFollower):
                     a.SetCamera(self.camera)
-                if isinstance(a, vedo.visual.LightKit):
+                elif isinstance(a, vedo.visual.LightKit):
                     a.lightkit.AddLightsToRenderer(ren)
 
         return self
@@ -3003,36 +3009,36 @@ class Plotter:
             objs = [objs]
 
         #################
-        wannabe_acts2 = []
+        wannabe_acts = []
         for a in objs:
 
             try:
-                wannabe_acts2.append(a.actor)
+                wannabe_acts.append(a.actor)
             except AttributeError:
-                wannabe_acts2.append(a)  # already actor
+                wannabe_acts.append(a)  # already actor
 
             try:
-                wannabe_acts2.append(a.scalarbar)
+                wannabe_acts.append(a.scalarbar)
             except AttributeError:
                 pass
 
             try:
                 for sh in a.shadows:
-                    wannabe_acts2.append(sh.actor)
+                    wannabe_acts.append(sh.actor)
             except AttributeError:
                 pass
 
             try:
-                wannabe_acts2.append(a.trail.actor)
+                wannabe_acts.append(a.trail.actor)
                 if a.trail.shadows:  # trails may also have shadows
                     for sh in a.trail.shadows:
-                        wannabe_acts2.append(sh.actor)
+                        wannabe_acts.append(sh.actor)
             except AttributeError:
                 pass
 
         #################
         scanned_acts = []
-        for a in wannabe_acts2:  # scan content of list
+        for a in wannabe_acts:  # scan content of list
 
             if a is None:
                 pass
@@ -3072,7 +3078,7 @@ class Plotter:
                 scanned_acts.append(a.actor)
 
             elif isinstance(a, vtki.vtkLight):
-                self.renderer.AddLight(a)
+                scanned_acts.append(a)
 
             elif isinstance(a, vedo.visual.LightKit):
                 a.lightkit.AddLightsToRenderer(self.renderer)

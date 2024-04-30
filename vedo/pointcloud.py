@@ -679,7 +679,7 @@ class Points(PointsVisual, PointAlgorithms):
             elif a_tensors and a_tensors.GetName() == key:
                 mark_active += " ***"
             out += mark_active.ljust(14) + f': "{key}" ({arr.dtype}), dim={dim}'
-            if dim == 1:
+            if dim == 1 and len(arr):
                 rng = utils.precision(arr.min(), 3) + ", " + utils.precision(arr.max(), 3)
                 out += f", range=({rng})\n"
             else:
@@ -699,7 +699,7 @@ class Points(PointsVisual, PointAlgorithms):
             elif a_tensors and a_tensors.GetName() == key:
                 mark_active += " ***"
             out += mark_active.ljust(14) + f': "{key}" ({arr.dtype}), dim={dim}'
-            if dim == 1:
+            if dim == 1 and len(arr):
                 rng = utils.precision(arr.min(), 3) + ", " + utils.precision(arr.max(), 3)
                 out += f", range=({rng})\n"
             else:

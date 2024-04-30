@@ -1694,14 +1694,14 @@ class PointsVisual(CommonVisual):
 
         try:
             if cells:
+                ns = np.sqrt(self.ncells)
                 elems = self.cell_centers
                 norms = self.cell_normals
-                ns = np.sqrt(self.ncells)
                 justify = "centered" if justify == "" else justify
             else:
+                ns = np.sqrt(self.npoints)
                 elems = self.vertices
                 norms = self.vertex_normals
-                ns = np.sqrt(self.npoints)
         except AttributeError:
             norms = []
         
@@ -2954,7 +2954,7 @@ class LightKit:
     Example:
         ```python
         from vedo import *
-        lightkit = LightKit(head={"warmth":0.6))
+        lightkit = LightKit(head={"warmth":0.6})
         mesh = Mesh(dataurl+"bunny.obj")
         plt = Plotter()
         plt.remove_lights().add(mesh, lightkit)
