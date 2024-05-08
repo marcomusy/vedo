@@ -231,8 +231,10 @@ class Settings:
 
         self.default_backend = "vtk"
         try:
-            get_ipython()
-            self.default_backend = "2d"
+            # adapted from: https://stackoverflow.com/a/39662359/2912349
+            shell = get_ipython().__class__.__name__
+            if shell == 'ZMQInteractiveShell':
+                self.default_backend = "2d"
         except NameError:
             pass
 
