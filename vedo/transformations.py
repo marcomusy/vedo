@@ -423,12 +423,15 @@ class LinearTransform:
             ```
             ![](https://vedo.embl.es/images/feats/rotate_axis.png)
         """
+        if all(axis == 0):
+            return self
         if not angle:
             return self
         if rad:
             anglerad = angle
         else:
             anglerad = np.deg2rad(angle)
+        
         axis = np.asarray(axis) / np.linalg.norm(axis)
         a = np.cos(anglerad / 2)
         b, c, d = -axis * np.sin(anglerad / 2)
