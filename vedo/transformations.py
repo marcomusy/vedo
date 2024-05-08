@@ -423,7 +423,7 @@ class LinearTransform:
             ```
             ![](https://vedo.embl.es/images/feats/rotate_axis.png)
         """
-        if all(axis == 0):
+        if np.all(axis == 0):
             return self
         if not angle:
             return self
