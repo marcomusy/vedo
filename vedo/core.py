@@ -1654,7 +1654,7 @@ class CommonAlgorithms:
 class PointAlgorithms(CommonAlgorithms):
     """Methods for point clouds."""
 
-    def apply_transform(self, LT: Any, concatenate=True, deep_copy=True) -> Self:
+    def apply_transform(self, LT: Any, deep_copy=True) -> Self:
         """
         Apply a linear or non-linear transformation to the mesh polygonal data.
 
@@ -1703,13 +1703,12 @@ class PointAlgorithms(CommonAlgorithms):
 
         ################
         if LT_is_linear:
-            if concatenate:
-                try:
-                    # self.transform might still not be linear
-                    self.transform.concatenate(LT)
-                except AttributeError:
-                    # in that case reset it
-                    self.transform = LinearTransform()
+            try:
+                # self.transform might still not be linear
+                self.transform.concatenate(LT)
+            except AttributeError:
+                # in that case reset it
+                self.transform = LinearTransform()
 
         ################
         if isinstance(self.dataset, vtki.vtkPolyData):

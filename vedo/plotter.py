@@ -3496,8 +3496,8 @@ class Plotter:
         at = options.pop("at", None)
         draggable = options.pop("draggable", True)
 
-        widget = vtki.vtkOrientationMarkerWidget()
         r, g, b = vedo.get_color(c)
+        widget = vtki.vtkOrientationMarkerWidget()
         widget.SetOutlineColor(r, g, b)
         if len(objects) == 1:
             widget.SetOrientationMarker(objects[0].actor)

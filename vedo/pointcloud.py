@@ -18,7 +18,7 @@ from vedo.visual import PointsVisual
 __docformat__ = "google"
 
 __doc__ = """
-Submodule to work with point clouds <br>
+Submodule to work with point clouds.
 
 ![](https://vedo.embl.es/images/basic/pca.png)
 """
@@ -471,8 +471,6 @@ class Points(PointsVisual, PointAlgorithms):
         """
         Build an object made of only vertex points for a list of 2D/3D points.
         Both shapes (N, 3) or (3, N) are accepted as input, if N>3.
-        For very large point clouds a list of colors and alpha can be assigned to each
-        point in the form c=[(R,G,B,A), ... ] where 0<=R<256, ... 0<=A<256.
 
         Arguments:
             inputobj : (list, tuple)
@@ -564,6 +562,10 @@ class Points(PointsVisual, PointAlgorithms):
             verts = vedo.file_io.load(inputobj)
             self.filename = inputobj
             self.dataset = verts.dataset
+
+        elif "meshlib" in str(type(inputobj)):
+            from meshlib import mrmeshnumpy as mn
+            self.dataset = utils.buildPolyData(mn.toNumpyArray(inputobj.points))
 
         else:
             # try to extract the points from a generic VTK input data object
