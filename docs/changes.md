@@ -16,12 +16,17 @@
 - fix reset clipping range in thumbnail generation as per #1085
 - add `mesh.euler_characteristic()`, `mesh.genus()` and `mesh.to_reeb_graph()` as per #1084
 - fix `reset_camera()` by @sergei9838 and Eric
+- fix handle empty axis for rotation #1113 by @JeffreyWardman 
+- fix set backend to '2d' in IPython REPLs #1108 by @paulbrodersen
+- fix add tolerance to contains #1105 by @JeffreyWardman
+- fix minor bug in RoundedLine #1104 by @PinkMushroom
+- fix avoid overwriting screenshots with "S" key #1100 by @j042
 
 
 ## Soft-breaking Changes
 Changes that will break existing code whose fixing is trivial:
 
-- None
+- remove concatenate=True flag from `apply_transform()`
 
 
 ## Hard-breaking Changes

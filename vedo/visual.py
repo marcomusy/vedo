@@ -669,10 +669,9 @@ class Actor2D(vtki.vtkActor2D):
 ########################################################################################
 class Actor3DHelper:
 
-    def apply_transform(self, LT, concatenate=True) -> Self:
+    def apply_transform(self, LT) -> Self:
         """Apply a linear transformation to the actor."""
-        if concatenate:
-            self.transform.concatenate(LT)
+        self.transform.concatenate(LT)
         self.actor.SetPosition(self.transform.T.GetPosition())
         self.actor.SetOrientation(self.transform.T.GetOrientation())
         self.actor.SetScale(self.transform.T.GetScale())
