@@ -21,6 +21,7 @@
 - fix add tolerance to contains #1105 by @JeffreyWardman
 - fix minor bug in RoundedLine #1104 by @PinkMushroom
 - fix avoid overwriting screenshots with "S" key #1100 by @j042
+- add support for meshlib
 
 
 ## Soft-breaking Changes
