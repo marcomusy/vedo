@@ -27,7 +27,7 @@
 ## Soft-breaking Changes
 Changes that will break existing code whose fixing is trivial:
 
-- remove concatenate=True flag from `apply_transform()`
+- remove concatenate=True flag from `apply_transform()` in  #1111
 
 
 ## Hard-breaking Changes
