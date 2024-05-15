@@ -1253,15 +1253,31 @@ class CommonAlgorithms:
             vvecs = utils.vtk2numpy(vort.GetOutput().GetCellData().GetArray("Vorticity"))
         return vvecs
 
-    def probe(self, source) -> Self:
+    def probe(
+            self,
+            source,
+            categorical=False,
+            snap=False,
+            tol=0,
+        ) -> Self:
         """
         Takes a data set and probes its scalars at the specified points in space.
 
         Note that a mask is also output with valid/invalid points which can be accessed
         with `mesh.pointdata['ValidPointMask']`.
 
+        Arguments:
+            source : any dataset
+                the data set to probe.
+            categorical : bool
+                control whether the source pointdata is to be treated as categorical.
+            snap : bool
+                snap to the cell with the closest point if no cell was found
+            tol : float
+                the tolerance to use when performing the probe.
+
         Check out also:
-            `interpolate_data_from()`
+            `interpolate_data_from()` and `tovolume()`
 
         Examples:
             - [probe_points.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/probe_points.py)
@@ -1271,6 +1287,15 @@ class CommonAlgorithms:
         probe_filter = vtki.new("ProbeFilter")
         probe_filter.SetSourceData(source.dataset)
         probe_filter.SetInputData(self.dataset)
+        probe_filter.PassCellArraysOn()
+        probe_filter.PassFieldArraysOn()
+        probe_filter.PassPointArraysOn()
+        probe_filter.SetCategoricalData(categorical)
+        probe_filter.ComputeToleranceOff()
+        if tol:
+            probe_filter.ComputeToleranceOn()
+            probe_filter.SetTolerance(tol)
+        probe_filter.SetSnapToCellWithClosestPoint(snap)
         probe_filter.Update()
         self._update(probe_filter.GetOutput(), reset_locators=False)
         self.pipeline = utils.OperationNode("probe", parents=[self, source])

@@ -3155,11 +3155,14 @@ class Points(PointsVisual, PointAlgorithms):
         """
         src = vtki.new("ProgrammableSource")
         opts = self.vertices
+        # zeros = np.zeros(3)
 
         def _read_points():
             output = src.GetPolyDataOutput()
             points = vtki.vtkPoints()
             for p in opts:
+                # print(p)
+                # if not np.array_equal(p, zeros):
                 points.InsertNextPoint(p)
             output.SetPoints(points)
 
@@ -3167,6 +3170,7 @@ class Points(PointsVisual, PointAlgorithms):
 
         dens = vtki.new("DensifyPointCloudFilter")
         dens.SetInputConnection(src.GetOutputPort())
+        # dens.SetInputData(self.dataset) # this does not work
         dens.InterpolateAttributeDataOn()
         dens.SetTargetDistance(target_distance)
         dens.SetMaximumNumberOfIterations(niter)
@@ -3183,11 +3187,11 @@ class Points(PointsVisual, PointAlgorithms):
             vedo.logger.error("set either radius or nclosest")
             raise RuntimeError()
         dens.Update()
-        pts = utils.vtk2numpy(dens.GetOutput().GetPoints().GetData())
-        cld = Points(pts, c=None).point_size(self.properties.GetPointSize())
+
+        cld = Points(dens.GetOutput())
+        cld.copy_properties_from(self)
         cld.interpolate_data_from(self, n=nclosest, radius=radius)
         cld.name = "DensifiedCloud"
-
         cld.pipeline = utils.OperationNode(
             "densify",
             parents=[self],

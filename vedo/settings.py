@@ -310,6 +310,7 @@ class Settings:
         self.k3d_line_shader = "thick"
 
         self.font_parameters = dict(
+
             Normografo=dict(
                 mono=False,
                 fscale=0.75,
@@ -479,6 +480,14 @@ class Settings:
                 islocal=False,
             ),
             Cartoons123=dict(
+                mono=False,
+                fscale=0.8,
+                hspacing=0.75,
+                lspacing=0.15,
+                dotsep="x",
+                islocal=False,
+            ),
+            Darwin=dict(
                 mono=False,
                 fscale=0.8,
                 hspacing=0.75,

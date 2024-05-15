@@ -106,7 +106,7 @@ source.rotate_y(90).rotate_z(-60).rotate_x(40)
 target = Mesh(dataurl+"290.vtk").color("yellow5")
 target.rotate_y(-40)
 
-plt = MorphPlotter(source, target, size=(2490, 850), axes=14)
+plt = MorphPlotter(source, target, size=(2400, 850), axes=14)
 plt.cmap_name = "RdYlBu_r"
 plt.show()
 plt.close()

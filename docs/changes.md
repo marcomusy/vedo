@@ -22,12 +22,14 @@
 - fix minor bug in RoundedLine #1104 by @PinkMushroom
 - fix avoid overwriting screenshots with "S" key #1100 by @j042
 - add support for meshlib
+- add more kw options to `core.probe()`
+- increase precision in writing obj files as per #1119 by @ManuGraiph
 
 
 ## Soft-breaking Changes
 Changes that will break existing code whose fixing is trivial:
 
-- remove concatenate=True flag from `apply_transform()` in  #1111
+- remove concatenate=True flag from `apply_transform()` discussed in  #1111
 
 
 ## Hard-breaking Changes
@@ -42,6 +44,7 @@ examples/basic/interaction_modes3.py
 examples/advanced/warp4b.py
 examples/other/magic-class1.py
 examples/other/iminuit2.py
+examples/other/meshlib1.py
 ```
 
 ### Broken Examples
@@ -57,10 +60,11 @@ tests/issues/discussion_800.py (incomplete capping of tube)
 make_video
 ```
 
-#### Broken Projects
-umap_viewer3d
+#### Broken Projects and Known Issues
+umap_viewer3d should be revised
 trackviewer (some problems with removing a track, and z spacing)
 closing the window in spyder doesnt work anymore.
+pyplot.plot cannot plot constant line or single point
 
 #### Broken Exports to .npz:
 boolean.py

@@ -227,9 +227,9 @@ c1 = Cube().rotate_z(5).x(2).y(1)
 print("cube1 position", c1.pos())
 T = c1.transform  # rotate by 5 degrees, sum 2 to x and 1 to y
 c2 = Cube().c('r4')
-c2.apply_transform(T)   # ignore previous movements
-c2.apply_transform(T, concatenate=True)
-c2.apply_transform(T, concatenate=True)
+c2.apply_transform(T)
+c2.apply_transform(T)
+c2.apply_transform(T)
 print("cube2 position", c2.pos())
 if doshow:
     show(c1, c2, axes=1).close()
