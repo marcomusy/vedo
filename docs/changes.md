@@ -24,6 +24,7 @@
 - add support for meshlib
 - add more kw options to `core.probe()`
 - increase precision in writing obj files as per #1119 by @ManuGraiph
+- add `plotter.freeze()` to freeze interaction of current renderer in #1122
 
 
 ## Soft-breaking Changes

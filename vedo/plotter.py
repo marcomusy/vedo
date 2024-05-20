@@ -3561,7 +3561,16 @@ class Plotter:
             self.interactor.ExitCallback()
         return self
 
-    def user_mode(self, mode) -> Union[Self, None]:
+    def freeze(self, value=False) -> Self:
+        """Freeze the current renderer. Use this with `sharecam=False`."""
+        if not self.interactor:
+            return self
+        if not self.renderer:
+            return self
+        self.renderer.SetInteractive(value)
+        return self
+
+    def user_mode(self, mode) -> Self:
         """
         Modify the user interaction mode.
 
@@ -3577,7 +3586,7 @@ class Plotter:
         [VTK interactor styles](https://vtk.org/doc/nightly/html/classvtkInteractorStyle.html)
         """
         if not self.interactor:
-            return None
+            return self
         
         curr_style = self.interactor.GetInteractorStyle().GetClassName()
         # print("Current style:", curr_style)
