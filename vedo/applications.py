@@ -946,7 +946,7 @@ class RayCastPlotter(Plotter):
             if widget:
                 k = int(widget.value)
                 volume.cmap(cmaps[k])
-                self.remove(self.color_scalarbar)
+            self.remove(self.color_scalarbar)
             self.color_scalarbar = vedo.addons.ScalarBar(
                 volume, horizontal=True, font_size=2, pos=[0.8,0.02], size=[30,1500],
             )
@@ -964,15 +964,15 @@ class RayCastPlotter(Plotter):
 
         ############################## alpha sliders
         # Create transfer mapping scalar value to opacity transfer function
-        otf = self.properties.GetScalarOpacity()
-
         def setOTF():
+            otf = self.properties.GetScalarOpacity()
             otf.RemoveAllPoints()
             otf.AddPoint(smin, 0.0)
             otf.AddPoint(smin + (smax - smin) * 0.1, 0.0)
             otf.AddPoint(x0alpha, self.alphaslider0)
             otf.AddPoint(x1alpha, self.alphaslider1)
             otf.AddPoint(x2alpha, self.alphaslider2)
+            slider_cmap()
 
         setOTF()  ################
 

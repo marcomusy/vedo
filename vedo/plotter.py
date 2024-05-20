@@ -3561,13 +3561,13 @@ class Plotter:
             self.interactor.ExitCallback()
         return self
 
-    def freeze(self, value=False) -> Self:
+    def freeze(self, value=True) -> Self:
         """Freeze the current renderer. Use this with `sharecam=False`."""
         if not self.interactor:
             return self
         if not self.renderer:
             return self
-        self.renderer.SetInteractive(value)
+        self.renderer.SetInteractive(not value)
         return self
 
     def user_mode(self, mode) -> Self:

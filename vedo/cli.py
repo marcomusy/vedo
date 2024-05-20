@@ -793,6 +793,14 @@ def draw_scene(args):
     ):
         # print('DEBUG normal mode for single VOXEL file with Isosurface Slider mode')
         vol = file_io.load(args.files[0], force=args.reload)
+
+        if vol.shape[2] == 1:
+            # print('DEBUG It is a 2D image!')
+            img = vedo.Image(args.files[0])
+            plt = vedo.Plotter().parallel_projection()
+            plt.show(img, zoom="tightest", mode="image").close()
+            return
+
         sp = vol.spacing()
         vol.spacing([sp[0] * args.x_spacing, 
                      sp[1] * args.y_spacing, 
@@ -802,7 +810,7 @@ def draw_scene(args):
         plt = applications.IsosurfaceBrowser(
             vol, c=args.color, cmap=args.cmap, precompute=False, use_gpu=True
         )
-        plt.show(zoom=args.zoom, viewup="z")
+        plt.show(zoom=args.zoom, viewup="z").close()
         return
 
     ########################################################################
