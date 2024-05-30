@@ -1473,6 +1473,19 @@ class Tube(Mesh):
                 resolution, number of the sides of the tube
             c : (color)
                 constant color or list of colors for each point.
+            
+        Example:
+            Create a tube along a line, with data associated to each point:
+
+            ```python
+            from vedo import *
+            line = Line([(0,0,0), (1,1,1), (2,0,1), (3,1,0)]).lw(5)
+            scalars = np.array([0, 1, 2, 3])
+            line.pointdata["myscalars"] = scalars
+            tube = Tube(line, r=0.1).lw(1)
+            tube.cmap('viridis', "myscalars").add_scalarbar3d()
+            show(line, tube, axes=1).close()
+            ```
 
         Examples:
             - [ribbon.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/ribbon.py)

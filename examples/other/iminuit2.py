@@ -1,4 +1,5 @@
-"""Fit a 3D polynomial surface to a set of noisy data using iminuit."""
+"""Fit a 3D polynomial surface to a set of noisy data using iminuit.
+You can rotate the scene by dragging with the left mouse button."""
 from iminuit import Minuit
 from vedo import Points, Arrows2D, show, dataurl, printc, settings
 
@@ -18,7 +19,7 @@ def cost_fcn(pars):
     return cost / pts.size
 
 # Load a set of points from a file and fit a surface to them
-points = Points(dataurl+"data_points.vtk").ps(6).color("k3")
+points = Points(dataurl + "data_points.vtk").ps(6).color("k3")
 pts = points.coordinates
 
 # Run the fit (minimize the cost_fcn) and print the result

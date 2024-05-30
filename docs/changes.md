@@ -1,6 +1,5 @@
 
 ## Changes and Fixes
-
 - add typing annotations
 - add magic-class example
 - fix bug in `IsosurfaceBrowser` in #1064
@@ -24,7 +23,7 @@
 - add support for meshlib
 - add more kw options to `core.probe()`
 - increase precision in writing obj files as per #1119 by @ManuGraiph
-- add `plotter.freeze()` to freeze interaction of current renderer in #1122
+- add `plotter.freeze()` to freeze interaction of current renderer in #1122 by @sergei9838
 
 
 ## Soft-breaking Changes
@@ -46,6 +45,9 @@ examples/advanced/warp4b.py
 examples/other/magic-class1.py
 examples/other/iminuit2.py
 examples/other/meshlib1.py
+
+tests/issues/discussion_1123.py
+tests/issues/issue_1118.py
 ```
 
 ### Broken Examples
