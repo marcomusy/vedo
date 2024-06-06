@@ -4125,7 +4125,7 @@ class Plotter:
             vedo.printc("\n###################################################", c="y")
             vedo.printc("## Template python code to position this camera: ##", c="y")
             vedo.printc("cam = dict(", c="y")
-            vedo.printc("    position=" + utils.precision(cam.GetPosition(), 6) + ",", c="y")
+            vedo.printc("    pos=" + utils.precision(cam.GetPosition(), 6) + ",", c="y")
             vedo.printc("    focal_point=" + utils.precision(cam.GetFocalPoint(), 6) + ",", c="y")
             vedo.printc("    viewup=" + utils.precision(cam.GetViewUp(), 6) + ",", c="y")
             vedo.printc("    roll=" + utils.precision(cam.GetRoll(), 6) + ",", c="y")
