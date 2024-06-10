@@ -43,6 +43,7 @@ __all__ = [
     "SplineTool",
     "Goniometer",
     "Button",
+    "ButtonWidget",
     "Flagpost",
     "ProgressBarWidget",
     "BoxCutter",
@@ -341,6 +342,202 @@ class LegendBox(shapes.TextBase, vtki.vtkLegendBoxActor):
         else:
             self.UseBackgroundOff()
         self.LockBorderOn()
+
+
+class ButtonWidget:
+    """
+    Create a button widget.
+    """
+
+    def __init__(
+            self, 
+            function, 
+            states=(), 
+            c=("white"),
+            bc=("green4"),
+            alpha=1.0,
+            font="Calco",
+            size=100,
+            plotter=None,
+        ):
+        """
+        Create a button widget.
+
+        States can be either text strings or images.
+
+        Arguments:
+            function : (function)
+                external function to be called by the widget
+            states : (list)
+                the list of possible states, eg. ['On', 'Off']
+            c : (list)
+                the list of colors for each state eg. ['red3', 'green5']
+            bc : (list)
+                the list of background colors for each state
+            alpha : (float)
+                opacity level
+            font : (str)
+                font type
+            size : (int)
+                size of button font
+            plotter : (Plotter)
+                the plotter object to which the widget is added
+        
+        Example:
+            ```py
+            from vedo import *
+
+            def button_func(widget, evtname):
+                print("button_func called")
+                cone.color(button.state)
+                
+            def on_mouse_click(event):
+                if event.object:
+                    print("on_mouse_click", event)
+                    cone.color(button.state)
+
+            # Create a cone
+            cone = Cone().color(0)
+
+            # Create a plotter
+            plt = Plotter(bg='bb', axes=1)
+            plt.add_callback('mouse click', on_mouse_click)
+
+            plt.add(cone)
+
+            # Create a button widget
+            img0 = Image("play-button.png")
+            img1 = Image("power-on.png")
+
+            button = ButtonWidget(
+                button_func, 
+                # states=["State 0", "State 1"], 
+                states=[img0, img1],
+                c=["red4", "blue4"],
+                bc=("k9", "k5"),
+                size=100,
+                plotter=plt,
+            )
+            button.pos([0,0]).enable()
+
+            plt.show()
+            ```
+        """
+
+        self.widget = vtki.new("ButtonWidget")
+
+        self.function = function
+        self.states = states
+        self.colors = c
+        self.background_colors = bc
+        self.plotter = plotter
+        self.size = size
+
+        assert len(states) == len(c),  "states and colors must have the same length"
+        assert len(states) == len(bc), "states and background colors must have the same length"
+
+        self.interactor = None
+        if plotter is not None:
+            self.interactor = plotter.interactor
+            self.widget.SetInteractor(plotter.interactor)
+        else:
+            if vedo.plotter_instance:
+                self.interactor = vedo.plotter_instance.interactor
+                self.widget.SetInteractor(self.interactor)
+
+        self.representation = vtki.new("TexturedButtonRepresentation2D")
+        self.representation.SetNumberOfStates(len(states))
+        for i, state in enumerate(states):
+        
+            if isinstance(state, vedo.Image):
+                state = state.dataset
+        
+            elif isinstance(state, str):
+                txt = state
+                tp = vtki.vtkTextProperty()
+                tp.BoldOff()
+                tp.FrameOff()
+                col = c[i]
+                tp.SetColor(vedo.get_color(col))
+                tp.ShadowOff()
+                tp.ItalicOff()
+                col = bc[i]
+                tp.SetBackgroundColor(vedo.get_color(col))
+                tp.SetBackgroundOpacity(alpha)
+                tp.UseTightBoundingBoxOff()
+
+                # tp.SetJustificationToLeft()
+                # tp.SetVerticalJustificationToCentered()
+                # tp.SetJustificationToCentered()
+                width, height = 100*len(txt), 1000
+
+                fpath = vedo.utils.get_font_path(font)
+                tp.SetFontFamily(vtki.VTK_FONT_FILE)
+                tp.SetFontFile(fpath)
+                
+                tr = vtki.new("TextRenderer")
+                fs = tr.GetConstrainedFontSize(txt, tp, width, height, 500)
+                tp.SetFontSize(fs)
+
+                img = vtki.vtkImageData()
+                tr.RenderString(tp, txt, img, [width, height], 500)
+                state = img
+
+            self.representation.SetButtonTexture(i, state)
+
+        self.widget.SetRepresentation(self.representation)
+        self.widget.AddObserver("StateChangedEvent", function)
+
+    def __del__(self):
+        self.widget.Off()
+        self.widget.SetInteractor(None)
+        self.widget.SetRepresentation(None)
+        self.representation = None
+        self.interactor = None
+        self.function = None
+        self.states = ()
+        self.widget = None
+        self.plotter = None
+
+    def pos(self, pos):
+        assert len(pos) == 2, "pos must be a 2D position"
+        if not self.plotter:
+            vedo.logger.warning("ButtonWidget: pos() can only be used if a Plotter is provided") 
+            return self
+        coords = vtki.vtkCoordinate()
+        coords.SetCoordinateSystemToNormalizedDisplay()
+        coords.SetValue(pos[0], pos[1])
+        sz = self.size
+        ren = self.plotter.renderer
+        p = coords.GetComputedDisplayValue(ren)
+        bds = [0, 0, 0, 0, 0, 0]
+        bds[0] = p[0]   - sz
+        bds[1] = bds[0] + sz
+        bds[2] = p[1]   - sz
+        bds[3] = bds[2] + sz
+        self.representation.SetPlaceFactor(1)
+        self.representation.PlaceWidget(bds)
+        return self
+
+    def enable(self):
+        self.widget.On()
+        return self
+
+    def disable(self):
+        self.widget.Off()
+        return self
+    
+    def next_state(self):
+        self.representation.NextState()
+        return self
+    
+    @property
+    def state(self):
+        return self.representation.GetState()
+    
+    @state.setter
+    def state(self, i):
+        self.representation.SetState(i)
 
 
 class Button(vedo.shapes.Text2D):

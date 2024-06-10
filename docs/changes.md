@@ -24,6 +24,7 @@
 - add more kw options to `core.probe()`
 - increase precision in writing obj files as per #1119 by @ManuGraiph
 - add `plotter.freeze()` to freeze interaction of current renderer in #1122 by @sergei9838
+- add class `ButtonWidget` to address issue #1138
 
 
 ## Soft-breaking Changes
@@ -41,6 +42,7 @@ Changes that will break existing code and need active thinking and work to adapt
 ## New/Revised Examples
 ```
 examples/basic/interaction_modes3.py
+examples/basic/buttons3.py
 examples/advanced/warp4b.py
 examples/other/magic-class1.py
 examples/other/iminuit2.py

@@ -606,6 +606,7 @@ for name in [
     "vtkBalloonRepresentation",
     "vtkBalloonWidget",
     "vtkBoxWidget",
+    "vtkButtonWidget",
     "vtkContourWidget",
     "vtkPlaneWidget",
     "vtkFocalPlanePointPlacer",
@@ -617,6 +618,7 @@ for name in [
     "vtkSliderRepresentation3D",
     "vtkSliderWidget",
     "vtkSphereWidget",
+    "vtkTexturedButtonRepresentation2D",
 ]: location[name] = "vtkInteractionWidgets"
 
 location["vtkCameraOrientationWidget"] = "vtkInteractionWidgets"
