@@ -14,24 +14,23 @@ plt = Plotter(shape=custom_shape, size=(1600, 900))
 s0 = ParametricShape(0)
 s1 = ParametricShape(1)
 
-plt.show(s0, "renderer0", at=0)
-plt.show(s1, "renderer1", at=1)
+plt.at(0).add(s0, "renderer0")
+plt.at(1).add(s1, "renderer1")
 
 
 def slider1(widget, event):
-    value = slider_rep.GetValue()
+    value = widget.value
     s0.rotate_y(value)
     s1.rotate_y(-value)
 
+opts = dict(
+    slider_length=0.06,
+    slider_width=0.6,
+    end_cap_length=0.02,
+    end_cap_width=0.5,
+    tube_width=0.1,
+    title_height=0.15,
+)
+plt.at(2).add_slider(slider1, -5, 5, value=0, pos=([0.05, 0.02], [0.55, 0.02]), **opts)
 
-plt.renderer = plt.renderers[2]  # make it the current renderer
-slider = plt.add_slider(slider1, -5, 5, value=0, pos=([0.05, 0.02], [0.55, 0.02]))
-slider_rep = slider.GetRepresentation()
-vscale = 20
-slider_rep.SetSliderLength(0.003 * vscale)  # make it thicker
-slider_rep.SetSliderWidth(0.025 * vscale)
-slider_rep.SetEndCapLength(0.001 * vscale)
-slider_rep.SetEndCapWidth(0.025 * vscale)
-slider_rep.SetTubeWidth(0.0075 * vscale)
-
-plt.interactive().close()
+plt.show(interactive=True).close()

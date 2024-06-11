@@ -2065,7 +2065,12 @@ class Video:
 
             for f in utils.humansort(self.frames):
                 image = imageio.v3.imread(f)
-                writer.append_data(image)
+                try:
+                    writer.append_data(image)
+                except TypeError:
+                    vedo.logger.error(f"Could not append data to video {self.name}")
+                    vedo.logger.error("Please install imageio with: pip install imageio[ffmpeg]")
+                    break
             try:
                 writer.close()
                 colors.printc(f"... saved as {self.name}", c="m")

@@ -131,8 +131,8 @@ cd ~/Projects/server/brainrender/examples
     python streamlines.py
     python volumetric_data.py
 ################
-cd ~/Projects/clonal_analysis2d_depth
-    python -m analysis_plots
+cd ~/Projects/clonal_analysis
+    python -m analysis_plots2d
 ################
 cd ~/Projects/server/gustaf
     git pull
@@ -153,7 +153,7 @@ cd ~/Projects/4d-gene-reconstruction/useful_scripts
     python interp_to_tetras.py
 ################
 cd ~/Projects/abm_playground/
-    python main.py
+    python cell_sim.py
 
 
 # DOCUMENTATION ###############################################################

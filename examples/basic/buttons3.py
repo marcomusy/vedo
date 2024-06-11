@@ -4,7 +4,11 @@ from vedo import *
 def button_func(widget, evtname):
     print("button_func called")
     cone.color(button.state)
-    
+    if button.state:
+        plt.background("black")
+    else:
+        plt.background("white")
+
 def on_mouse_click(event):
     if event.object:
         print("on_mouse_click", event)
@@ -14,7 +18,7 @@ def on_mouse_click(event):
 cone = Cone().color(0)
 
 # Create a plotter
-plt = Plotter(bg='bb', axes=1)
+plt = Plotter(bg='w', axes=1)
 plt.add_callback('mouse click', on_mouse_click)
 
 plt.add(cone, __doc__)

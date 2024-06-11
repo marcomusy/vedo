@@ -24,7 +24,7 @@
 - add more kw options to `core.probe()`
 - increase precision in writing obj files as per #1119 by @ManuGraiph
 - add `plotter.freeze()` to freeze interaction of current renderer in #1122 by @sergei9838
-- add class `ButtonWidget` to address issue #1138
+- add class `addons.ButtonWidget` to address issue #1138
 
 
 ## Soft-breaking Changes
@@ -42,33 +42,26 @@ Changes that will break existing code and need active thinking and work to adapt
 ## New/Revised Examples
 ```
 examples/basic/interaction_modes3.py
+examples/basic/interaction_modes4.py
 examples/basic/buttons3.py
 examples/advanced/warp4b.py
 examples/other/magic-class1.py
 examples/other/iminuit2.py
 examples/other/meshlib1.py
-
-tests/issues/discussion_1123.py
-tests/issues/issue_1118.py
 ```
 
 ### Broken Examples
 Examples that are not fully functional and need some fixing:
 ```
-examples/basic/light_sources.py
-
-earth_model.py (wrong colormapping?)
 markpoint.py (misplaced leader indicator)
 cut_and_cap.py (incomplete capping)
 gyroscope1.py (broken physics)
 tests/issues/discussion_800.py (incomplete capping of tube)
-make_video
 ```
 
 #### Broken Projects and Known Issues
 umap_viewer3d should be revised
 trackviewer (some problems with removing a track, and z spacing)
-closing the window in spyder doesnt work anymore.
 pyplot.plot cannot plot constant line or single point
 
 #### Broken Exports to .npz:

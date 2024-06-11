@@ -1142,8 +1142,9 @@ class Plotter:
             # print("self.interactor.Start() done")
             if self._must_close_now:
                 # print("self.interactor.TerminateApp()")
-                self.interactor.GetRenderWindow().Finalize()
-                self.interactor.TerminateApp()
+                if self.interactor:
+                    self.interactor.GetRenderWindow().Finalize()
+                    self.interactor.TerminateApp()
                 self.interactor = None
                 self.window = None
                 self.renderer = None
@@ -3678,8 +3679,10 @@ class Plotter:
             self.break_interaction()
         elif self._must_close_now:
             # dont call ExitCallback here
-            self.interactor.GetRenderWindow().Finalize()
-            self.interactor.TerminateApp()
+            if self.interactor:
+                self.break_interaction()
+                self.interactor.GetRenderWindow().Finalize()
+                self.interactor.TerminateApp()
             self.camera = None
             self.renderer = None
             self.renderers = []

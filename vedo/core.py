@@ -1077,6 +1077,14 @@ class CommonAlgorithms:
         interpolator.SetValidPointsMaskArrayName("ValidPointMask")
         for ex in exclude:
             interpolator.AddExcludedArray(ex)
+
+        # remove arrays that are already present in the source
+        # this is because the interpolator will ignore them otherwise
+        for i in range(self.dataset.GetPointData().GetNumberOfArrays()):
+            name = self.dataset.GetPointData().GetArrayName(i)
+            if name not in exclude:
+                self.dataset.GetPointData().RemoveArray(name)
+
         interpolator.Update()
 
         if on == "cells":

@@ -1,9 +1,9 @@
-"""Press TAB to toggle active panel"""
+"""Press TAB to toggle active panel and freeze the other"""
 from vedo import *
 from vedo.interactor_modes import MousePan
 
 settings.enable_default_keyboard_callbacks = False
-settings.default_font = "Darwin"
+settings.default_font = "Roboto"
 
 active = 0
 inactive = 1
