@@ -34,7 +34,7 @@ __all__ = [
     "plot",
     "histogram",
     "fit",
-    "donut",
+    "pie_chart",
     "violin",
     "whisker",
     "streamplot",
@@ -3282,7 +3282,7 @@ def _histogram_spheric(thetavalues, phivalues, rmax=1.2, res=8, cmap="rainbow", 
     return newsg
 
 
-def donut(
+def pie_chart(
     fractions,
     title="",
     tsize=0.3,

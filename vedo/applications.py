@@ -1476,12 +1476,12 @@ class FreeHandCutPlotter(Plotter):
         self.idmousemove = self.add_callback("MouseMove", self._on_mouse_move)
         self.drawmode = False
         self.tol = tol  # tolerance of point distance
-        self.cpoints = np.array([])
+        self.cpoints = []
         self.points = None
         self.spline = None
         self.jline = None
         self.topline = None
-        self.top_pts = np.array([])
+        self.top_pts = []
 
     def init(self, init_points):
         """Set an initial number of points to define a region"""

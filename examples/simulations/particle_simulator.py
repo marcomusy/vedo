@@ -97,14 +97,14 @@ class Particle:
 #####################################################################################################
 if __name__ == "__main__":
 
-    plt = Plotter(title="Particle Simulator", bg="black", axes=0, interactive=False)
+    plt = Plotter(title="Particle Simulator", bg="black", interactive=False)
 
     plt += Cube().c('w').wireframe(True).lighting('off') # a wireframe cube
 
-    sim = ParticleSim(dt=1e-5, iterations=60)
+    sim = ParticleSim(dt=1e-5, iterations=50)
     sim.add_particle((-0.4, 0, 0), color="w", charge=3e-6, radius=0.01, fixed=True)  # the target
 
-    positions = np.random.randn(500, 3) / 60  # generate a beam of particles
+    positions = np.random.randn(100, 3) / 60  # generate a beam of particles
     for p in positions:
         p[0] = -0.5  # Fix x position. Their charge are small/negligible compared to target:
         sim.add_particle(p, charge=0.01e-6, mass=0.1e-6, vel=(1000, 0, 0), negligible=True)

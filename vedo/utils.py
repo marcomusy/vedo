@@ -803,8 +803,7 @@ def vtk2numpy(varr):
             varr = varr.GetMatrix()
         except AttributeError:
             pass
-        n = 4
-        M = [[varr.GetElement(i, j) for j in range(n)] for i in range(n)]
+        M = [[varr.GetElement(i, j) for j in range(4)] for i in range(4)]
         return np.array(M)
     return vtk_to_numpy(varr)
 

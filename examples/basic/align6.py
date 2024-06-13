@@ -20,11 +20,12 @@ axes2 = Axes(msh2)
 # Set up a Plotter object with 2 subrenderers
 plt = Plotter(N=2)
 
-# Show the original mesh, axes, and cube in the left renderer with the script description
-plt.at(0).show(msh1, axes1, cube, __doc__)
+# Add the original mesh, axes, and cube in the left renderer with the script description
+plt.at(0).add(msh1, axes1, cube, __doc__)
 
-# Show the aligned mesh and axes in the right renderer, viewing from the top
-plt.at(1).show(msh2, axes2, viewup='z')
+# Add the aligned mesh and axes in the right renderer, viewing from the top
+plt.at(1).add(msh2, axes2, cube)
 
-# Enable interaction and close the plotter when done
+# Show all and close the plotter when done
+plt.show(viewup='z', zoom=0.6)
 plt.interactive().close()

@@ -6,8 +6,8 @@ from vedo import *
 settings.interpolate_scalars_before_mapping = True
 
 s = Sphere()
-s.color("white").alpha(0.25).backface_culling(True)
-s.pointdata['scalars1'] = np.sqrt(range(s.npoints))
+s.color("white").alpha(0.25).backface_culling()
+s.pointdata['myscalars'] = s.coordinates[:,1]
 print(s)
 
 # Pick a few points on the sphere
@@ -16,7 +16,7 @@ pts = Points(sv).ps(12)
 
 # Cut the loop region identified by the points
 scut = s.clone().cut_with_point_loop(sv, invert=False).scale(1.01)
-scut.cmap("Paired", "scalars1").alpha(1).add_scalarbar()
+scut.cmap("Paired", "myscalars").alpha(1).add_scalarbar()
 print(scut)
 
 show(s, pts, scut, __doc__, axes=1, viewup="z")

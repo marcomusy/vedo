@@ -1254,6 +1254,16 @@ def write(objct: Any, fileoutput: str, binary=True) -> Any:
                     outF.write(f"l {ls}\n")
         return objct
 
+    elif fr.endswith(".off"):
+        with open(fileoutput, "w", encoding="UTF-8") as outF:
+            outF.write("OFF\n")
+            outF.write(str(objct.npoints) + " " + str(objct.ncells) + " 0\n\n")
+            for p in objct.vertices:
+                outF.write(" ".join([str(i) for i in p]) + "\n")
+            for c in objct.cells:
+                outF.write(str(len(c)) + " " + " ".join([str(i) for i in c]) + "\n")
+        return objct
+
     elif fr.endswith(".xml"):  # write tetrahedral dolfin xml
         vertices = objct.vertices.astype(str)
         faces = np.array(objct.cells).astype(str)

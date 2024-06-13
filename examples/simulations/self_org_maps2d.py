@@ -9,7 +9,7 @@
 # -----------------------------------------------------------------------------
 import numpy as np
 import scipy.spatial
-from vedo import *
+from vedo import Sphere, Grid, Plotter, progressbar
 
 
 class SOM:
@@ -27,7 +27,7 @@ class SOM:
         I = np.random.randint(0, len(self.samples), n_epoch)
         self.samples = self.samples[I]
 
-        for i in progressbar(range(n_epoch)):
+        for i in progressbar(n_epoch):
             # Get random sample
             data = self.samples[i]
 
@@ -49,9 +49,9 @@ class SOM:
                     for j in range(n):
                         grdpts[i*n+j] = (x[i,j], y[i,j], z[i,j])
                 grd.vertices = grdpts
-                plt.azimuth(1.0).render()
+                if plt: plt.azimuth(1.0).render()
 
-        plt.interactive().close()
+        if plt: plt.interactive().close()
 
         return [self.codebook[:,i].reshape(n,n) for i in range(3)]
 
@@ -63,12 +63,13 @@ if __name__ == "__main__":
     P = np.c_[X.ravel(), Y.ravel()]
     D = scipy.spatial.distance.cdist(P, P)
 
-    s = Sphere(res=90).cut_with_plane(origin=(0,-.3,0), normal='y').subsample(0.01)
+    sphere = Sphere(res=90).cut_with_plane(origin=(0,-.3,0), normal='y')
+    sphere.subsample(0.01).add_gaussian_noise(0.5).point_size(3)
 
     plt = Plotter(axes=6, interactive=False)
     grd = Grid(res=[n-1, n-1]).c('green2')
-    plt.show(__doc__, s.ps(1), grd)
+    plt.show(__doc__, sphere, grd)
 
     som = SOM((len(P), 3), D)
-    som.samples = s.vertices
+    som.samples = sphere.vertices.copy()
     som.learn(n_epoch=4000, sigma=(1, 0.01), lrate=(1, 0.01))

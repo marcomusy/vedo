@@ -20,7 +20,7 @@
 - fix add tolerance to contains #1105 by @JeffreyWardman
 - fix minor bug in RoundedLine #1104 by @PinkMushroom
 - fix avoid overwriting screenshots with "S" key #1100 by @j042
-- add support for meshlib
+- add support for `meshlib`
 - add more kw options to `core.probe()`
 - increase precision in writing obj files as per #1119 by @ManuGraiph
 - add `plotter.freeze()` to freeze interaction of current renderer in #1122 by @sergei9838
@@ -48,6 +48,8 @@ examples/advanced/warp4b.py
 examples/other/magic-class1.py
 examples/other/iminuit2.py
 examples/other/meshlib1.py
+
+tests/issues/issue_1077.py
 ```
 
 ### Broken Examples
@@ -55,7 +57,6 @@ Examples that are not fully functional and need some fixing:
 ```
 markpoint.py (misplaced leader indicator)
 cut_and_cap.py (incomplete capping)
-gyroscope1.py (broken physics)
 tests/issues/discussion_800.py (incomplete capping of tube)
 ```
 

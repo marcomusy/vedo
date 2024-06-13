@@ -257,6 +257,7 @@ def exe_convert(args):
         "ply",
         "stl",
         "obj",
+        "off",
         "byu",
         "xml",
         "vti",

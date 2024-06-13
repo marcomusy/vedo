@@ -28,8 +28,7 @@ plt += __doc__
 
 shaft = Cylinder([[0, 0, 0], Ls * gaxis], r=0.03).c("dark green")
 rotor = Cylinder([(Ls - 0.55) * gaxis, (Ls - 0.45) * gaxis], r=R).c("tomato")
-bar   = Cylinder([Ls*gaxis/2-R*vector(0,1,0), Ls*gaxis/2+R*vector(0,1,0)], r=R/6).c("red5")
-gyro = shaft + rotor + bar  # group meshes into a single one of type Assembly
+gyro = shaft + rotor   # group meshes into a single one of type Assembly
 
 spring = Spring(top, gpos, r1=0.06, thickness=0.01).c("gray")
 plt += [gyro, spring]       # add it to Plotter.
