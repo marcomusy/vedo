@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from vedo import shapes, show, dataurl, settings
 from vedo import Image, Mesh, Points, Point
-from vedo.pyplot import Figure, donut
+from vedo.pyplot import Figure, pie_chart
 
 
 settings.use_parallel_projection = True
@@ -23,7 +23,7 @@ fig += pic.scale(0.005).pos(2,10)
 
 fig += Points([[8,1],[10,3]], r=15)
 
-fig += donut([0.1, 0.2, 0.3, 0.1, 0.3], c=[1,2,3,4,'w']).scale(1).pos(1,6,.2)
+fig += pie_chart([0.1, 0.2, 0.3, 0.1, 0.3], c=[1,2,3,4,'w']).scale(1).pos(1,6,.2)
 
 fig += Point([2,3])
 fig += Point([4,5])
