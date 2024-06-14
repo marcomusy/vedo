@@ -1632,7 +1632,7 @@ class SplinePlotter(Plotter):
     Interactive drawing of splined curves on meshes.
     """
 
-    def __init__(self, obj, init_points=(), closed=False, splined=True, **kwargs):
+    def __init__(self, obj, init_points=(), closed=False, splined=True, mode="auto", **kwargs):
         """
         Create an interactive application that allows the user to click points and
         retrieve the coordinates of such points and optionally a spline or line
@@ -1648,12 +1648,13 @@ class SplinePlotter(Plotter):
                 Close the spline or line.
             splined : (bool)
                 Join points with a spline or a simple line.
+            mode : (str)
+                Set the mode of interaction.
             **kwargs : (dict)
                 keyword arguments to pass to Plotter.
         """
         super().__init__(**kwargs)
 
-        self.mode = "trackball"
         self.verbose = True
         self.splined = splined
         self.resolution = None  # spline resolution (None = automatic)
@@ -1672,9 +1673,13 @@ class SplinePlotter(Plotter):
         else:
             self.object = obj
 
-        if isinstance(self.object, vedo.Image):
-            self.mode = "image"
-            self.parallel_projection(True)
+        self.mode = mode
+        if self.mode == "auto":
+            if isinstance(self.object, vedo.Image):
+                self.mode = "image"
+                self.parallel_projection(True)
+            else:
+                self.mode = "TrackballCamera"
 
         t = (
             "Click to add a point\n"
@@ -1691,11 +1696,12 @@ class SplinePlotter(Plotter):
         self.callid2 = self.add_callback("LeftButtonPress", self._on_left_click)
         self.callid3 = self.add_callback("RightButtonPress", self._on_right_click)
 
+
     def points(self, newpts=None) -> Union["SplinePlotter", np.ndarray]:
         """Retrieve the 3D coordinates of the clicked points"""
         if newpts is not None:
             self.cpoints = newpts
-            self._update()
+            self.update()
             return self
         return np.array(self.cpoints)
 
@@ -1706,22 +1712,22 @@ class SplinePlotter(Plotter):
             # remove clicked point if clicked twice
             pid = self.vpoints.closest_point(evt.picked3d, return_point_id=True)
             self.cpoints.pop(pid)
-            self._update()
+            self.update()
             return
         p = evt.picked3d
         self.cpoints.append(p)
-        self._update()
+        self.update()
         if self.verbose:
             vedo.colors.printc("Added point:", precision(p, 4), c="g")
 
     def _on_right_click(self, evt):
         if evt.actor and len(self.cpoints) > 0:
             self.cpoints.pop()  # pop removes from the list the last pt
-            self._update()
+            self.update()
             if self.verbose:
                 vedo.colors.printc("Deleted last point", c="r")
 
-    def _update(self):
+    def update(self):
         self.remove(self.line, self.vpoints)  # remove old points and spline
         self.vpoints = Points(self.cpoints).ps(self.psize).c(self.pcolor)
         self.vpoints.name = "points"
@@ -1753,6 +1759,7 @@ class SplinePlotter(Plotter):
 
     def start(self) -> "SplinePlotter":
         """Start the interaction"""
+        self.update()
         self.show(self.object, self.instructions, mode=self.mode)
         return self
 
