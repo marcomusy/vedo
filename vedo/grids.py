@@ -1257,7 +1257,7 @@ class TetMesh(UnstructuredGrid):
         )
         return self
 
-    def subdvide(self) -> Self:
+    def subdivide(self) -> Self:
         """
         Increase the number of tetrahedrons of a `TetMesh`.
         Subdivides each tetrahedron into twelve smaller tetras.
@@ -1266,7 +1266,7 @@ class TetMesh(UnstructuredGrid):
         sd.SetInputData(self.dataset)
         sd.Update()
         self._update(sd.GetOutput())
-        self.pipeline = utils.OperationNode("subdvide", c="#edabab", parents=[self])
+        self.pipeline = utils.OperationNode("subdivide", c="#edabab", parents=[self])
         return self
 
     def generate_random_points(self, n, min_radius=0) -> "vedo.Points":

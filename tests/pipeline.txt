@@ -183,7 +183,7 @@ git push
 
 # upload to pypi
 python setup.py sdist bdist_wheel
-twine upload dist/vedo-?.?.?.tar.gz -r pypi
+twine upload dist/vedo-?.?.?.tar.gz -r pypi -r pypi -u __token__ -p pypi- ......
 
 # make github release
 cd $VEDODIR
