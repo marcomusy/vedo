@@ -20,8 +20,8 @@
 - fix add tolerance to contains #1105 by @JeffreyWardman
 - fix minor bug in RoundedLine #1104 by @PinkMushroom
 - fix avoid overwriting screenshots with "S" key #1100 by @j042
-- add support for `meshlib`
-- add more kw options to `core.probe()`
+- add support for `meshlib` in https://doc.meshinspector.com/index.html
+- add more keyword options to `core.probe()` method
 - increase precision in writing obj files as per #1119 by @ManuGraiph
 - add `plotter.freeze()` to freeze interaction of current renderer in #1122 by @sergei9838
 - add class `addons.ButtonWidget` to address issue #1138
