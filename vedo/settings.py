@@ -68,8 +68,12 @@ class Settings:
     enable_default_mouse_callbacks = True
     enable_default_keyboard_callbacks = True
 
+    # Force single precsion of points coordinates.
+    # Useful for very large point clouds and meshes. Default is True.
+    force_single_precision_points = True
+
     # Progress bar delay before showing up [sec]
-    self.progressbar_delay = 0.5
+    progressbar_delay = 0.5
 
     # If False, when multiple renderers are present, render only once at the end
     immediate_rendering = True
@@ -180,6 +184,7 @@ class Settings:
         "renderer_frame_alpha",
         "renderer_frame_width",
         "renderer_frame_padding",
+        "force_single_precision_points",
         "point_smoothing",
         "line_smoothing",
         "polygon_smoothing",
@@ -244,6 +249,8 @@ class Settings:
         self.progressbar_delay = 0.5
         self.palette = 0
         self.remember_last_figure_format = False
+
+        self.force_single_precision_points = True
 
         self.cache_directory = ".cache"  # "/vedo" is added automatically
 

@@ -899,7 +899,10 @@ def buildPolyData(vertices, faces=None, lines=None, strips=None, index_offset=0)
 
     vertices = make3d(vertices)
     source_points = vtki.vtkPoints()
-    source_points.SetData(numpy2vtk(vertices, dtype=np.float32))
+    if vedo.settings.force_single_precision_points:
+        source_points.SetData(numpy2vtk(vertices, dtype=np.float32))
+    else:
+        source_points.SetData(numpy2vtk(vertices))
     poly.SetPoints(source_points)
 
     if lines is not None:
