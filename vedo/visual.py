@@ -2727,7 +2727,7 @@ class VolumeVisual(CommonVisual):
             ```python
             from vedo import *
             embryo = Volume(dataurl+'embryo.tif')
-            embryo.hide_voxels(list(range(10000)))
+            embryo.hide_voxels(list(range(400000)))
             show(embryo, axes=1).close()
             ```
 
@@ -2740,6 +2740,44 @@ class VolumeVisual(CommonVisual):
         garr = utils.numpy2vtk(ghost_mask, name=name, dtype=np.uint8)
         self.dataset.GetCellData().AddArray(garr)
         self.dataset.GetCellData().Modified()
+        return self
+
+    def mask(self, data) -> Self:
+        """
+        Mask a volume visualization with a binary value.
+        Needs to specify `volume.mapper = "gpu"`.
+
+        Example:
+        ```python
+        from vedo import np, Volume, show
+        data_matrix = np.zeros([75, 75, 75], dtype=np.uint8)
+        # all voxels have value zero except:
+        data_matrix[ 0:35,  0:35,  0:35] = 1
+        data_matrix[35:55, 35:55, 35:55] = 2
+        data_matrix[55:74, 55:74, 55:74] = 3
+        vol = Volume(data_matrix).cmap('Blues')
+        vol.mapper = "gpu"
+        data_mask = np.zeros_like(data_matrix)
+        data_mask[10:65, 10:60, 20:70] = 1
+        vol.mask(data_mask)
+        show(vol, axes=1).close()
+        ```
+        See also:
+            `volume.hide_voxels()`
+        """
+        rdata = data.astype(np.uint8).ravel(order="F")
+        varr = utils.numpy2vtk(rdata, name="input_mask")
+
+        img = vtki.vtkImageData()
+        img.SetDimensions(self.dimensions())
+        img.GetPointData().AddArray(varr)
+        img.GetPointData().SetActiveScalars(varr.GetName())
+
+        try:
+            self.mapper.SetMaskTypeToBinary()
+            self.mapper.SetMaskInput(img)
+        except AttributeError:
+            vedo.logger.error("volume.mask() must specify volume.mapper = 'gpu'")
         return self
 
 
@@ -2817,37 +2855,6 @@ class VolumeVisual(CommonVisual):
         if status is None:
             return self.properties.GetShade()
         self.properties.SetShade(status)
-        return self
-
-
-    def mask(self, data) -> Self:
-        """
-        Mask a volume visualization with a binary value.
-        Needs to specify keyword mapper='gpu'.
-
-        Example:
-        ```python
-            from vedo import np, Volume, show
-            data_matrix = np.zeros([75, 75, 75], dtype=np.uint8)
-            # all voxels have value zero except:
-            data_matrix[0:35,   0:35,  0:35] = 1
-            data_matrix[35:55, 35:55, 35:55] = 2
-            data_matrix[55:74, 55:74, 55:74] = 3
-            vol = Volume(data_matrix, c=['white','b','g','r'], mapper='gpu')
-            data_mask = np.zeros_like(data_matrix)
-            data_mask[10:65, 10:45, 20:75] = 1
-            vol.mask(data_mask)
-            show(vol, axes=1).close()
-        ```
-        See also:
-            `volume.hide_voxels()`
-        """
-        mask = vedo.Volume(data.astype(np.uint8))
-        try:
-            self.mapper.SetMaskTypeToBinary()
-            self.mapper.SetMaskInput(mask.dataset)
-        except AttributeError:
-            vedo.logger.error("volume.mask() must create the volume with Volume(..., mapper='gpu')")
         return self
 
     def interpolation(self, itype) -> Self:

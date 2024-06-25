@@ -224,6 +224,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         else:
             print("Error unknown mapper type", [mapper])
             raise RuntimeError()
+        mapper.SetInputData(self.dataset)
         self.actor.SetMapper(mapper)
 
     def c(self, *args, **kwargs) -> Self:

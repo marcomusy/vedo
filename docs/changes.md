@@ -1,6 +1,11 @@
 
 ## Changes and Fixes
 
+- add `settings.force_single_precision_points = False` in #1137 by @JeffreyWardman and @sean-d-zydex
+- fix Volume masking in #1146 by @ivishalanand 
+
+
+
 
 ## Soft-breaking Changes
 Changes that will break existing code whose fixing is trivial:
