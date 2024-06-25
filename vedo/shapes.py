@@ -4016,7 +4016,7 @@ def _get_font_letter(font, letter):
     font_meshes = _load_font(font)
     try:
         pts, faces = font_meshes[letter]
-        return utils.buildPolyData(pts, faces)
+        return utils.buildPolyData(pts.astype(float), faces)
     except KeyError:
         return None
 
