@@ -1481,7 +1481,6 @@ class Plotter:
 
         if len(output_times) == 0:
             cin.InterpolateCamera(t * rng, self.camera)
-            self.renderer.SetActiveCamera(self.camera)
             return [self.camera]
         else:
             vcams = []

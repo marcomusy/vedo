@@ -1986,8 +1986,8 @@ class Video:
 
         if nc:
             for i in range(n):
-                plt.move_camera(cams, i / n)
-                plt.show()
+                plt.move_camera(cams, i / (n-1))
+                plt.render()
                 self.add_frame()
 
         else:  ########################################
@@ -1995,7 +1995,7 @@ class Video:
             for i in range(n):
                 plt.camera.Elevation((elevation[1] - elevation[0]) / n)
                 plt.camera.Azimuth((azimuth[1] - azimuth[0]) / n)
-                plt.show()
+                plt.render()
                 self.add_frame()
 
         return self
