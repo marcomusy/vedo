@@ -3,6 +3,7 @@
 
 - add `settings.force_single_precision_points = False` in #1137 by @JeffreyWardman and @sean-d-zydex
 - fix Volume masking in #1146 by @ivishalanand 
+- fix `LegendBox` in #1153 by @GerritFischer
 
 
 
@@ -20,6 +21,7 @@ Changes that will break existing code and need active thinking and work to adapt
 
 ## New/Revised Examples
 ```
+tests/issues/issue_1146.py
 ```
 
 

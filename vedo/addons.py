@@ -326,6 +326,28 @@ class LegendBox(shapes.TextBase, vtki.vtkLegendBoxActor):
         else:
             self.SetHeight(height)
 
+        self.pos(pos)
+
+        if alpha:
+            self.UseBackgroundOn()
+            self.SetBackgroundColor(get_color(bg))
+            self.SetBackgroundOpacity(alpha)
+        else:
+            self.UseBackgroundOff()
+        self.LockBorderOn()
+
+    @property
+    def width(self):
+        """Return the width of the legend box."""
+        return self.GetWidth()
+
+    @property
+    def height(self):
+        """Return the height of the legend box."""
+        return self.GetHeight()
+
+    def pos(self, pos):
+        """Set the position of the legend box."""
         sx, sy = 1 - self.GetWidth(), 1 - self.GetHeight()
         if pos == 1 or ("top" in pos and "left" in pos):
             self.GetPositionCoordinate().SetValue(0, sy)
@@ -335,14 +357,20 @@ class LegendBox(shapes.TextBase, vtki.vtkLegendBoxActor):
             self.GetPositionCoordinate().SetValue(0, 0)
         elif pos == 4 or ("bottom" in pos and "right" in pos):
             self.GetPositionCoordinate().SetValue(sx, 0)
-        if alpha:
-            self.UseBackgroundOn()
-            self.SetBackgroundColor(get_color(bg))
-            self.SetBackgroundOpacity(alpha)
+        elif ("cent" in pos and "right" in pos):
+            self.GetPositionCoordinate().SetValue(sx, sy-0.25)
+        elif ("cent" in pos and "left" in pos):
+            self.GetPositionCoordinate().SetValue(0, sy-0.25)
+        elif ("cent" in pos and "bottom" in pos):
+            self.GetPositionCoordinate().SetValue(sx-0.25, 0)
+        elif ("cent" in pos and "top" in pos):
+            self.GetPositionCoordinate().SetValue(sx-0.25, sy)
+        elif utils.is_sequence(pos):
+            self.GetPositionCoordinate().SetValue(pos[0], pos[1])
         else:
-            self.UseBackgroundOff()
-        self.LockBorderOn()
+            vedo.logger.error("LegendBox: pos must be in range [1-4] or a [x,y] list")
 
+        return self
 
 class ButtonWidget:
     """
@@ -1960,7 +1988,7 @@ class PlaneCutter(vtki.vtkPlaneWidget, BaseCutter):
             alpha=0.05,
     ):
         """
-        Create a box widget to cut away parts of a Mesh.
+        Create a box widget to cut away parts of a `Mesh`.
 
         Arguments:
             mesh : (Mesh)
