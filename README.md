@@ -235,6 +235,8 @@ Lecture Notes in Computer Science, vol 13434. Springer, Cham.
 - N. Lamb *et al.*, *"DeepJoin: Learning a Joint Occupancy, Signed Distance, and Normal Field Function for Shape Repair"*,
 ACM Transactions on Graphics (TOG), vol 41, 6, 2022.
 [DOI](https://dl.acm.org/doi/abs/10.1145/3550454.3555470)
+- J. Cotterell *et al.*, *"Cell 3D Positioning by Optical encoding (C3PO) and its application to spatial transcriptomics"*, bioRxiv 2024.03.12.584578;
+[DOI](https://doi.org/10.1101/2024.03.12.584578)
 
 
 **Have you found this software useful for your research? Star ✨ the project and cite it as:**
