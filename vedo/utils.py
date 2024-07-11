@@ -775,7 +775,11 @@ def numpy2vtk(arr, dtype=None, deep=True, name=""):
     arr = np.ascontiguousarray(arr)
 
     if dtype == "id":
-        varr = numpy_to_vtkIdTypeArray(arr.astype(np.int64), deep=deep)
+        if vtki.vtkIdTypeArray().GetDataTypeSize() != 4:
+            ast = np.int64
+        else:
+            ast = np.int32
+        varr = numpy_to_vtkIdTypeArray(arr.astype(ast), deep=deep)
     elif dtype:
         varr = numpy_to_vtk(arr.astype(dtype), deep=deep)
     else:
