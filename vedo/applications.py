@@ -1303,7 +1303,7 @@ class Browser(Plotter):
 
         self += objects
 
-        if is_sequence(objects[0]):
+        if len(objects) and is_sequence(objects[0]):
             nobs = len(objects[0])
             for ob in objects:
                 n = len(ob)
@@ -1311,7 +1311,8 @@ class Browser(Plotter):
                 assert len(ob) == nobs, msg
         else:
             nobs = len(objects)
-            objects = [objects]
+            if nobs:
+                objects = [objects]
 
         self.slider = None
         self.timer_callback_id = None

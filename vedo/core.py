@@ -906,6 +906,40 @@ class CommonAlgorithms:
                 if i >= n:
                     break
         return conn
+    
+    def cell_edge_neighbors(self):
+        """
+        Get the cell neighbor indices of each cell.
+
+        Returns a python list of lists.
+        """
+
+        def face_to_edges(face):
+            edges = []
+            size = len(face)
+            for i in range(1, size + 1):
+                if i == size:
+                    edges.append([face[i - 1], face[0]])
+                else:
+                    edges.append([face[i - 1], face[i]])
+            return edges
+
+        pd = self.dataset
+        pd.BuildLinks()
+
+        neicells = []
+        for i, cell in enumerate(self.cells):
+            nn = []
+            for edge in face_to_edges(cell):
+                neighbors = vtki.vtkIdList()
+                pd.GetCellEdgeNeighbors(i, edge[0], edge[1], neighbors)
+                if neighbors.GetNumberOfIds() > 0:
+                    neighbor = neighbors.GetId(0)
+                    nn.append(neighbor)
+            neicells.append(nn)
+
+        return neicells
+
 
     def map_points_to_cells(self, arrays=(), move=False) -> Self:
         """
@@ -1163,6 +1197,7 @@ class CommonAlgorithms:
         gra.ComputeVorticityOff()
         gra.ComputeGradientOn()
         gra.Update()
+        # self._update(gra.GetOutput(), reset_locators=False)
         if on.startswith("p"):
             gvecs = utils.vtk2numpy(gra.GetOutput().GetPointData().GetArray("Gradient"))
         else:
@@ -1209,6 +1244,7 @@ class CommonAlgorithms:
         div.SetDivergenceArrayName("Divergence")
         div.SetFasterApproximation(fast)
         div.Update()
+        # self._update(div.GetOutput(), reset_locators=False)
         if on.startswith("p"):
             dvecs = utils.vtk2numpy(div.GetOutput().GetPointData().GetArray("Divergence"))
         else:
@@ -1531,12 +1567,44 @@ class CommonAlgorithms:
 
     def smooth_data(self, 
             niter=10, relaxation_factor=0.1, strategy=0, mask=None,
+            mode="distance2",
             exclude=("Normals", "TextureCoordinates"),
         ) -> Self:
         """
         Smooth point attribute data using distance weighted Laplacian kernel.
-
         The effect is to blur regions of high variation and emphasize low variation regions.
+
+        A central concept of this method is the point smoothing stencil.
+        A smoothing stencil for a point p(i) is the list of points p(j) which connect to p(i) via an edge.
+        To smooth the attributes of point p(i), p(i)'s attribute data a(i) are iteratively averaged using
+        the distance weighted average of the attributes of a(j) (the weights w[j] sum to 1).
+        This averaging process is repeated until the maximum number of iterations is reached.
+
+        The relaxation factor (R) is also important as the smoothing process proceeds in an iterative fashion.
+        The a(i+1) attributes are determined from the a(i) attributes as follows:
+            a(i+1) = (1-R)*a(i) + R*sum(w(j)*a(j))
+    
+        Convergence occurs faster for larger relaxation factors.
+        Typically a small number of iterations is required for large relaxation factors,
+        and in cases where only points adjacent to the boundary are being smoothed, a single iteration with R=1 may be
+        adequate (i.e., just a distance weighted average is computed).
+
+        Warning:
+            Certain data attributes cannot be correctly interpolated. For example, surface normals are expected to be |n|=1;
+            after attribute smoothing this constraint is likely to be violated.
+            Other vectors and tensors may suffer from similar issues.
+            In such a situation, specify `exclude=...` which will not be smoothed (and simply passed through to the output).
+            Distance weighting function is based on averaging, 1/r, or 1/r**2 weights, where r is the distance
+            between the point to be smoothed and an edge connected neighbor (defined by the smoothing stencil).
+            The weights are normalized so that sum(w(i))==1. When smoothing based on averaging, the weights are simply 1/n,
+            where n is the number of connected points in the stencil.
+            The smoothing process reduces high frequency information in the data attributes.
+            With excessive smoothing (large numbers of iterations, and/or a large relaxation factor) important details may be lost,
+            and the attributes will move towards an "average" value.
+            While this filter will process any dataset type, if the input data is a 3D image volume, it's likely much faster to use
+            an image-based algorithm to perform data smoothing.
+            To determine boundary points in polygonal data, edges used by only one cell are considered boundary
+            (and hence the associated points defining the edge). 
 
         Arguments:
             niter : (int)
@@ -1550,6 +1618,11 @@ class CommonAlgorithms:
                     - 2: only point data connected to a boundary point are smoothed
             mask : (str, np.ndarray)
                 array to be used as a mask (ignore then the strategy keyword)
+            mode : (str)
+                smoothing mode, either "distance2", "distance" or "average"
+                    - distance**2 weighted (i.e., 1/r**2 interpolation weights)
+                    - distance weighted (i.e., 1/r) approach;
+                    - simple average of all connected points in the stencil
             exclude : (list)
                 list of arrays to be excluded from smoothing
         """
@@ -1565,7 +1638,15 @@ class CommonAlgorithms:
         for ex in exclude:
             saf.AddExcludedArray(ex)
 
-        saf.SetWeightsTypeToDistance2()
+        if mode == "distance":
+            saf.SetWeightsTypeToDistance()
+        elif mode == "distance2":
+            saf.SetWeightsTypeToDistance2()
+        elif mode == "average":
+            saf.SetWeightsTypeToAverage()
+        else:
+            vedo.logger.error(f"smooth_data(): unknown mode {mode}")
+            raise TypeError
 
         saf.SetSmoothingStrategy(strategy)
         if mask is not None:

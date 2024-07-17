@@ -1050,6 +1050,79 @@ class Mesh(MeshVisual, Points):
         self.mapper.ScalarVisibilityOn()
         return self
 
+
+    def laplacian_diffusion(self, array_name, dt, num_steps) -> Self:
+        """
+        Apply a diffusion process to a scalar array defined on the points of a mesh.
+
+        Arguments:
+            array_name : (str)
+                name of the array to diffuse.
+            dt : (float)
+                time step.
+            num_steps : (int)
+                number of iterations.
+        """
+        try:
+            import scipy.sparse
+            import scipy.sparse.linalg
+        except ImportError:
+            vedo.logger.error("scipy not found. Cannot run laplacian_diffusion()")
+            return self
+        
+        def build_laplacian():
+            rows = []
+            cols = []
+            data = []
+            n_points = points.shape[0]
+            avg_area = np.mean(areas) * 10000
+            # print("avg_area", avg_area)
+
+            for triangle in cells:
+                for i in range(3):
+                    for j in range(i + 1, 3):
+                        u = triangle[i]
+                        v = triangle[j]
+                        rows.append(u)
+                        cols.append(v)
+                        rows.append(v)
+                        cols.append(u)
+                        data.append(-1/avg_area)
+                        data.append(-1/avg_area)
+
+            L = scipy.sparse.coo_matrix(
+                (data, (rows, cols)), shape=(n_points, n_points)
+            ).tocsc()
+
+            degree = -np.array(L.sum(axis=1)).flatten() # adjust the diagonal
+            print("degree", degree)
+            L.setdiag(degree)
+            return L
+
+        def _diffuse(u0, L, dt, num_steps):
+            # mean_area = np.mean(areas) * 10000
+            # print("mean_area", mean_area)
+            mean_area = 1
+            I = scipy.sparse.eye(L.shape[0], format="csc")
+            A = I - (dt/mean_area) * L 
+            u = u0
+            for _ in range(int(num_steps)):
+                u = A.dot(u)
+            return u
+
+        self.compute_cell_size()
+        areas = self.celldata["Area"]
+        points = self.vertices
+        cells = self.cells
+        u0 = self.pointdata[array_name]
+
+        # Simulate diffusion
+        L = build_laplacian()
+        u = _diffuse(u0, L, dt, num_steps)
+        self.pointdata[array_name] = u
+        return self
+
+
     def subdivide(self, n=1, method=0, mel=None) -> Self:
         """
         Increase the number of vertices of a surface mesh.

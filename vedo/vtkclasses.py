@@ -118,6 +118,7 @@ for name in [
     "vtkFloatArray",
     "vtkIdList",
     "vtkIntArray",
+    "vtkLogger",
     "vtkLookupTable",
     "vtkMath",
     "vtkPoints",

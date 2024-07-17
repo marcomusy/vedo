@@ -4,7 +4,7 @@
 - add `settings.force_single_precision_points = False` in #1137 by @JeffreyWardman and @sean-d-zydex
 - fix Volume masking in #1146 by @ivishalanand 
 - fix `LegendBox` in #1153 by @GerritFischer
-
+- add `mesh.laplacian_diffusion()`
 
 
 
