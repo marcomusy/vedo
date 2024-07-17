@@ -1095,7 +1095,7 @@ class Mesh(MeshVisual, Points):
             ).tocsc()
 
             degree = -np.array(L.sum(axis=1)).flatten() # adjust the diagonal
-            print("degree", degree)
+            # print("degree", degree)
             L.setdiag(degree)
             return L
 
