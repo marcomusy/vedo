@@ -29,12 +29,17 @@ __all__ = [
 
 try:
     import matplotlib
-    _has_matplotlib = True
-    cmaps = {}
+    try:
+        matplotlib.colormaps # v3.4 will fail this
+        _has_matplotlib = True
+        cmaps = {}
+    except AttributeError:
+        _has_matplotlib = False
 except ModuleNotFoundError:
     from vedo.cmaps import cmaps
     _has_matplotlib = False
     # see below, this is dealt with in color_map()
+# print("colors.py: _has_matplotlib", _has_matplotlib)
 
 #########################################################
 # handy global shortcuts for terminal printing
