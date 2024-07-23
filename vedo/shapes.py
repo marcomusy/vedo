@@ -3041,11 +3041,24 @@ class Plane(Mesh):
     @property
     def normal(self) -> np.ndarray:
         pts = self.vertices
-        AB = pts[1] - pts[0]
-        AC = pts[2] - pts[0]
+        # this is necessary because plane can have high resolution
+        # p0, p1 = pts[0], pts[1]
+        # AB = p1 - p0
+        # AB /= np.linalg.norm(AB)
+        # for pt in pts[2:]:
+        #     AC = pt - p0
+        #     AC /= np.linalg.norm(AC)
+        #     cosine_angle = np.dot(AB, AC)
+        #     if abs(cosine_angle) < 0.99:
+        #         normal = np.cross(AB, AC)
+        #         return normal / np.linalg.norm(normal)
+        p0, p1, p2 = pts[0], pts[1], pts[int(len(pts)/2 +0.5)]
+        AB = p1 - p0
+        AB /= np.linalg.norm(AB)
+        AC = p2 - p0
+        AC /= np.linalg.norm(AC)
         normal = np.cross(AB, AC)
-        normal = normal / np.linalg.norm(normal)
-        return normal
+        return normal / np.linalg.norm(normal)
 
     @property
     def center(self) -> np.ndarray:

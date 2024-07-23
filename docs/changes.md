@@ -5,13 +5,16 @@
 - fix Volume masking in #1146 by @ivishalanand 
 - fix `LegendBox` in #1153 by @GerritFischer
 - add `mesh.laplacian_diffusion()`
-- fix DistanceTool in #1158
+- fix `DistanceTool` in #1158
+- fix `shapes.Plane.normal` in #1159 by @smoothumut
+
 
 
 
 ## Soft-breaking Changes
 Changes that will break existing code whose fixing is trivial:
 
+- None
 
 
 ## Hard-breaking Changes
