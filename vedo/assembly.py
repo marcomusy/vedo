@@ -137,7 +137,7 @@ class Group(vtki.vtkPropAssembly):
             if a:
                 try:
                     self.AddPart(a)
-                except:
+                except AttributeError:
                     self.AddPart(a.actor)
         return self
 
