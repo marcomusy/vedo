@@ -2471,7 +2471,7 @@ def vedo2trimesh(mesh):
     if len(tris) == 0:
         tris = None
 
-    return Trimesh(vertices=points, faces=tris, face_colors=ccols, vertex_colors=vcols)
+    return Trimesh(vertices=points, faces=tris, face_colors=ccols, vertex_colors=vcols, process=False)
 
 
 def trimesh2vedo(inputobj):
