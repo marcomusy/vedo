@@ -135,7 +135,10 @@ class Group(vtki.vtkPropAssembly):
             obj = [obj]
         for a in obj:
             if a:
-                self.AddPart(a)
+                try:
+                    self.AddPart(a)
+                except TypeError:
+                    self.AddPart(a.actor)
         return self
 
     def _unpack(self):
