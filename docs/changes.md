@@ -5,6 +5,7 @@
 - fix Volume masking in #1146 by @ivishalanand 
 - fix `LegendBox` in #1153 by @GerritFischer
 - add `mesh.laplacian_diffusion()`
+- fix DistanceTool in #1158
 
 
 
