@@ -3117,7 +3117,11 @@ class DistanceTool(Group):
             if self.callback is not None:
                 self.callback(event)
 
-        self += acts
+        for a in acts:
+            try:
+                self += a.actor
+            except AttributeError:
+                self += a
         self.toggle = not self.toggle
 
 
