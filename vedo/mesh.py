@@ -2308,7 +2308,7 @@ class Mesh(MeshVisual, Points):
 
     def split(
         self, maxdepth=1000, flag=False, must_share_edge=False, sort_by_area=True
-    ) -> Union[List[Self], Self]:
+    ) -> List[Self]:
         """
         Split a mesh by connectivity and order the pieces by increasing area.
 
@@ -2350,7 +2350,7 @@ class Mesh(MeshVisual, Points):
         if flag:
             self.pipeline = OperationNode("split mesh", parents=[self])
             self._update(out)
-            return self
+            return [self]
 
         msh = Mesh(out)
         if must_share_edge:

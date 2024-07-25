@@ -2088,7 +2088,7 @@ class VolumeAlgorithms(CommonAlgorithms):
         )
         return out
     
-    def isosurface_discrete(self, value=None, nsmooth=15) -> "vedo.mesh.Mesh":
+    def isosurface_discrete(self, values, nsmooth=15) -> "vedo.mesh.Mesh":
         """
         Create boundary/isocontour surfaces from a label map (e.g., a segmented image) using a threaded,
         3D version of the multiple objects/labels Surface Nets algorithm.
@@ -2097,6 +2097,11 @@ class VolumeAlgorithms(CommonAlgorithms):
         labeled regions / objects.
         (Note that on output each region [corresponding to a different segmented object] will share
         points/edges on a common boundary, i.e., two neighboring objects will share the boundary that separates them).
+        
+        Besides output geometry defining the surface net, the filter outputs a two-component celldata array indicating
+        the labels on either side of the polygons composing the output Mesh. 
+        (This can be used for advanced operations like extracting shared/contacting boundaries between two objects.
+        The name of this celldata array is "BoundaryLabels").
 
         Arguments:
             value : (float, list)
@@ -2107,8 +2112,6 @@ class VolumeAlgorithms(CommonAlgorithms):
         Examples:
             - [isosurfaces2.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/isosurfaces2.py)
         """
-        if not utils.is_sequence(value):
-            value = [value]
         
         snets = vtki.new("SurfaceNets3D")
         snets.SetInputData(self.dataset)
@@ -2122,7 +2125,7 @@ class VolumeAlgorithms(CommonAlgorithms):
         else:
             snets.SmoothingOff()
 
-        for i, val in enumerate(value):
+        for i, val in enumerate(values):
             snets.SetValue(i, val)
         snets.Update()
         snets.SetOutputMeshTypeToTriangles()

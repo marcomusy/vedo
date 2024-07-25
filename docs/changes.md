@@ -7,7 +7,8 @@
 - add `mesh.laplacian_diffusion()`
 - fix `DistanceTool` in #1158
 - fix `shapes.Plane.normal` in #1159 by @smoothumut
-
+- add `Arrow.top_point()` and `Arrow.base_point()` to extract current arrow position #1163 @smoothumut
+- fix `Arrow.top_index` to produce the correct index value
 
 
 

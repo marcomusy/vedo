@@ -1906,18 +1906,24 @@ class Arrow(Mesh):
         super().__init__(tf.GetOutput(), c, alpha)
 
         self.transform = LinearTransform().translate(start_pt)
-        # self.pos(start_pt)
 
         self.phong().lighting("plastic")
         self.actor.PickableOff()
         self.actor.DragableOff()
         self.base = np.array(start_pt, dtype=float)  # used by pyplot
         self.top  = np.array(end_pt,   dtype=float)  # used by pyplot
-        self.top_index = None
+        self.top_index = self.source.GetTipResolution() * 4
         self.fill = True                    # used by pyplot.__iadd__()
         self.s = s if s is not None else 1  # used by pyplot.__iadd__()
         self.name = "Arrow"
+    
+    def top_point(self):
+        """Return the current coordinates of the tip of the Arrow."""
+        return self.transform.transform_point(self.top)
 
+    def base_point(self):
+        """Return the current coordinates of the base of the Arrow."""
+        return self.transform.transform_point(self.base)
 
 class Arrows(Glyph):
     """
