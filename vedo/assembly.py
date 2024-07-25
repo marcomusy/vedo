@@ -80,10 +80,15 @@ class Group(vtki.vtkPropAssembly):
         """Form groups of generic objects (not necessarily meshes)."""
         super().__init__()
 
+        self.objects = []
+        
         if isinstance(objects, dict):
             for name in objects:
                 objects[name].name = name
             objects = list(objects.values())
+        elif vedo.utils.is_sequence(objects):
+            self.objects = objects
+            
 
         self.actor = self
 
@@ -139,6 +144,7 @@ class Group(vtki.vtkPropAssembly):
                     self.AddPart(a)
                 except TypeError:
                     self.AddPart(a.actor)
+                    self.objcects.append(a)
         return self
 
     def _unpack(self):
@@ -166,6 +172,7 @@ class Group(vtki.vtkPropAssembly):
         """Remove all parts"""
         for a in self._unpack():
             self.RemovePart(a)
+        self.objects = []
         return self
 
     def on(self) -> "Group":
@@ -192,6 +199,10 @@ class Group(vtki.vtkPropAssembly):
         """Print info about the object."""
         print(self)
         return self
+
+    def objects(self) -> List["vedo.Mesh"]:
+        """Return the list of objects in the group."""
+        return self.objects
 
 
 #################################################
