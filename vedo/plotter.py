@@ -2707,7 +2707,7 @@ class Plotter:
             ```
 
         Examples:
-            - [spline_draw.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/spline_draw.py)
+            - [spline_draw1.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/spline_draw1.py)
             - [colorlines.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/colorlines.py)
 
                 ![](https://vedo.embl.es/images/advanced/spline_draw.png)

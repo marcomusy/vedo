@@ -9,7 +9,8 @@
 - fix `shapes.Plane.normal` in #1159 by @smoothumut
 - add `Arrow.top_point()` and `Arrow.base_point()` to extract current arrow position #1163 @smoothumut
 - fix `Arrow.top_index` to produce the correct index value
-
+- add `assembly.Group.objects` by @smoothumut
+- add `addons.DrawingWidget` class for tracing on planar props
 
 
 ## Soft-breaking Changes
@@ -27,6 +28,7 @@ Changes that will break existing code and need active thinking and work to adapt
 ## New/Revised Examples
 ```
 tests/issues/issue_1146.py
+examples/advanced/spline_draw2.py
 ```
 
 
