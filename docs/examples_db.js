@@ -767,7 +767,7 @@ vedo_example_db =
         imgsrc: 'images/advanced/timer_callback1.jpg',
     },
     {
-        pyname: 'spline_draw',
+        pyname: 'spline_draw1',
         kbd   : '',
         categ : 'advanced',
         short : 'draw a spline',
