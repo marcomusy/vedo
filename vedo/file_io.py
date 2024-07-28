@@ -1907,7 +1907,7 @@ class Video:
     Generate a video from a rendering window.
     """
 
-    def __init__(self, name="movie.mp4", duration=None, fps=24, backend="imageio"):
+    def __init__(self, name="movie.mp4", duration=None, fps=24, scale=1, backend="imageio"):
         """
         Class to generate a video from the specified rendering window.
         Program `ffmpeg` is used to create video from each generated frame.
@@ -1915,10 +1915,12 @@ class Video:
         Arguments:
             name : (str)
                 name of the output file.
-            fps : (int)
-                set the number of frames per second.
             duration : (float)
                 set the total `duration` of the video and recalculates `fps` accordingly.
+            fps : (int)
+                set the number of frames per second.
+            scale : (int)
+                set the image magnification as an integer multiplicative factor.
             backend : (str)
                 the backend engine to be used `['imageio', 'ffmpeg', 'cv']`
 
@@ -1933,6 +1935,7 @@ class Video:
         self.fps = float(fps)
         self.command = "ffmpeg -loglevel panic -y -r"
         self.options = "-b:v 8000k"
+        self.scale = scale
 
         self.frames = []
         self.tmp_dir = TemporaryDirectory()
@@ -1942,7 +1945,7 @@ class Video:
     def add_frame(self) -> "Video":
         """Add frame to current video."""
         fr = self.get_filename(str(len(self.frames)) + ".png")
-        screenshot(fr)
+        screenshot(fr, scale=self.scale)
         self.frames.append(fr)
         return self
 

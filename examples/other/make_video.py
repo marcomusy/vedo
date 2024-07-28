@@ -1,7 +1,6 @@
 """Make a video file with or without graphic window"""
 from vedo import dataurl, Plotter, Mesh, Video
 
-# settings.screeshot_scale = 2  # to get higher resolution
 
 msh = Mesh(dataurl+"spider.ply").rotate_x(-90)
 msh.texture(dataurl+"textures/leather.jpg")

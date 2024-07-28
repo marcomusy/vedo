@@ -11,6 +11,7 @@
 - fix `Arrow.top_index` to produce the correct index value
 - add `assembly.Group.objects` by @smoothumut
 - add `addons.DrawingWidget` class for tracing on planar props
+- add `Video(..., scale=1)` keyword in #1168 by @YongcaiHuang
 
 
 ## Soft-breaking Changes
