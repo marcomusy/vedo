@@ -12,6 +12,7 @@
 - add `assembly.Group.objects` by @smoothumut
 - add `addons.DrawingWidget` class for tracing on planar props
 - add `Video(..., scale=1)` keyword in #1168 by @YongcaiHuang
+- modify `legosurface(boundary=True)` default in #1166
 
 
 ## Soft-breaking Changes
@@ -40,6 +41,7 @@ Examples that are not fully functional and need some fixing:
 markpoint.py (misplaced leader indicator)
 cut_and_cap.py (incomplete capping)
 tests/issues/discussion_800.py (incomplete capping of tube)
+examples/volumetric/numpy2volume1.py ()
 ```
 
 

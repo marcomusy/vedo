@@ -6,12 +6,12 @@ X, Y, Z = np.mgrid[:30, :30, :30]
 # Distance from the center at (15, 15, 15)
 scalar_field = ((X-15)**2 + (Y-15)**2 + (Z-15)**2) /225
 
-vol = Volume(scalar_field)
+vol = Volume(scalar_field).crop(0.3)
 vol.add_scalarbar3d()
 print('numpy array from Volume:', vol.tonumpy().shape)
 
-lego = vol.legosurface(vmin=1, vmax=2)
-lego.cmap('hot_r', vmin=1, vmax=2).add_scalarbar3d()
+lego = vol.legosurface(vmin=1.1, vmax=2)
+lego.cmap('hot_r', vmin=1.1, vmax=2).add_scalarbar3d()
 
 text1 = Text2D(__doc__, c='blue')
 text2 = Text2D('..and its lego isosurface representation\nvmin=1, vmax=2', c='dr')

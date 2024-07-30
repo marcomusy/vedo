@@ -2147,7 +2147,7 @@ class VolumeAlgorithms(CommonAlgorithms):
         vmin=None,
         vmax=None,
         invert=False,
-        boundary=False,
+        boundary=True,
         array_name="input_scalars",
     ) -> "vedo.mesh.Mesh":
         """
@@ -2180,10 +2180,12 @@ class VolumeAlgorithms(CommonAlgorithms):
             srng[0] = vmin
         if vmax is not None:
             srng[1] = vmax
-        tol = 0.00001 * (srng[1] - srng[0])
-        srng[0] -= tol
-        srng[1] += tol
+        if not boundary:
+            tol = 0.00001 * (srng[1] - srng[0])
+            srng[0] -= tol
+            srng[1] += tol
         window.SetWindowRange(srng)
+        # print("legosurface window range:", srng)
 
         extract = vtki.new("ExtractGeometry")
         extract.SetInputData(self.dataset)

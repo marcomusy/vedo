@@ -177,6 +177,7 @@ for name in [
     "vtkImplicitDataSet",
     "vtkImplicitSelectionLoop",
     "vtkImplicitWindowFunction",
+    # "vtkImplicitVolume",
     "vtkIterativeClosestPointTransform",
     "vtkLine",
     "vtkMultiBlockDataSet",
