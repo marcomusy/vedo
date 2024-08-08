@@ -281,7 +281,10 @@ class Mesh(MeshVisual, Points):
         Check out also `compute_normals(cells=True)` and `compute_normals_with_pca()`.
         """
         vtknormals = self.dataset.GetCellData().GetNormals()
-        return vtk2numpy(vtknormals)
+        numpy_normals = vtk2numpy(vtknormals)
+        if len(numpy_normals) == 0 and len(self.cells) != 0:
+            raise ValueError("VTK failed to return any normal vectors. You may need to call `Mesh.compute_normals()` before accessing `Mesh.cell_normals`.")
+        return numpy_normals
 
     def compute_normals(self, points=True, cells=True, feature_angle=None, consistency=True) -> Self:
         """
