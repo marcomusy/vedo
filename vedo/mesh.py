@@ -2417,7 +2417,14 @@ class Mesh(MeshVisual, Points):
 
         Use `operation` for the allowed operations `['plus', 'intersect', 'minus']`.
 
-        Two possible algorithms are available by changing `method`.
+        Two possible algorithms are available.
+        Setting `method` to 0 (the default) uses the boolean operation algorithm
+        written by Cory Quammen, Chris Weigle, and Russ Taylor (https://doi.org/10.54294/216g01);
+        setting `method` to 1 will use the "loop" boolean algorithm
+        written by Adam Updegrove (https://doi.org/10.1016/j.advengsoft.2016.01.015).
+
+        Use `tol` to specify the absolute tolerance used to determine
+        when the distance between two points is considered to be zero (defaults to 1e-6).
 
         Example:
             - [boolean.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/boolean.py)
