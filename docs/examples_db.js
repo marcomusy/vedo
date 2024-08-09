@@ -107,7 +107,7 @@ vedo_example_db =
         imgsrc: 'images/basic/silhouette2.png',
     },
     {
-        pyname: 'cutter',
+        pyname: 'cut_interactive',
         kbd   : '',
         categ : 'basic',
         short : 'interactive mesh cutter',
