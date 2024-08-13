@@ -999,7 +999,7 @@ def _from_numpy(d: dict) -> Mesh:
 #############################################################################
 def _import_npy(fileinput: Union[str, os.PathLike]) -> "vedo.Plotter":
     """Import a vedo scene from numpy format."""
-    filename = str(fileinput)
+    fileinput = str(fileinput)
 
     fileinput = download(fileinput, verbose=False, force=True)
     if fileinput.endswith(".npy"):
