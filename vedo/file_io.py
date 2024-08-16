@@ -173,7 +173,7 @@ _x3d_html_template = """
 """
 
 ########################################################################
-def load(inputobj: Union[list, str], unpack=True, force=False) -> Any:
+def load(inputobj: Union[list, str, os.PathLike], unpack=True, force=False) -> Any:
     """
     Load any vedo objects from file or from the web.
 
@@ -199,6 +199,11 @@ def load(inputobj: Union[list, str], unpack=True, force=False) -> Any:
         show(g)
         ```
     """
+    if isinstance(inputobj, list):
+        inputobj = [str(f) for f in inputobj]
+    else:
+        inputobj = str(inputobj)
+    
     acts = []
     if utils.is_sequence(inputobj):
         flist = inputobj
@@ -607,13 +612,14 @@ def file_info(file_path: str) -> Tuple[str, str]:
 
 
 ###################################################################
-def loadStructuredPoints(filename, as_points=True):
+def loadStructuredPoints(filename: Union[str, os.PathLike], as_points=True):
     """
     Load and return a `vtkStructuredPoints` object from file.
     
     If `as_points` is True, return a `Points` object
     instead of a `vtkStructuredPoints`.
     """
+    filename = str(filename)
     reader = vtki.new("StructuredPointsReader")
     reader.SetFileName(filename)
     reader.Update()
@@ -626,8 +632,9 @@ def loadStructuredPoints(filename, as_points=True):
     return reader.GetOutput()
 
 ########################################################################
-def loadStructuredGrid(filename):
+def loadStructuredGrid(filename: Union[str, os.PathLike]):
     """Load and return a `vtkStructuredGrid` object from file."""
+    filename = str(filename)
     if filename.endswith(".vts"):
         reader = vtki.new("XMLStructuredGridReader")
     else:
@@ -638,8 +645,9 @@ def loadStructuredGrid(filename):
 
 
 ###################################################################
-def load3DS(filename: str) -> Assembly:
+def load3DS(filename: Union[str, os.PathLike]) -> Assembly:
     """Load `3DS` file format from file."""
+    filename = str(filename)
     renderer = vtki.vtkRenderer()
     renWin = vtki.vtkRenderWindow()
     renWin.AddRenderer(renderer)
@@ -669,8 +677,9 @@ def load3DS(filename: str) -> Assembly:
     return vedo.Assembly(wrapped_acts)
 
 ########################################################################
-def loadOFF(filename: str) -> Mesh:
+def loadOFF(filename: Union[str, os.PathLike]) -> Mesh:
     """Read the OFF file format (polygonal mesh)."""
+    filename = str(filename)
     with open(filename, "r", encoding="UTF-8") as f:
         lines = f.readlines()
 
@@ -708,20 +717,22 @@ def loadOFF(filename: str) -> Mesh:
     return Mesh(utils.buildPolyData(vertices, faces))
 
 ########################################################################
-def loadGeoJSON(filename: str) -> Mesh:
+def loadGeoJSON(filename: Union[str, os.PathLike]) -> Mesh:
     """Load GeoJSON files."""
+    filename = str(filename)
     jr = vtki.new("GeoJSONReader")
     jr.SetFileName(filename)
     jr.Update()
     return Mesh(jr.GetOutput())
 
 ########################################################################
-def loadDolfin(filename: str) -> Union[Mesh, "vedo.TetMesh", None]:
+def loadDolfin(filename: Union[str, os.PathLike]) -> Union[Mesh, "vedo.TetMesh", None]:
     """
     Reads a `Fenics/Dolfin` file format (.xml or .xdmf).
 
     Return a `Mesh` or a `TetMesh` object.
     """
+    filename = str(filename)
     try:
         import dolfin
     except ImportError:
@@ -751,8 +762,9 @@ def loadDolfin(filename: str) -> Union[Mesh, "vedo.TetMesh", None]:
 
 
 ########################################################################
-def loadPVD(filename: str) -> Union[List[Any], None]:
+def loadPVD(filename: Union[str, os.PathLike]) -> Union[List[Any], None]:
     """Read paraview files."""
+    filename = str(filename)
     import xml.etree.ElementTree as et
 
     tree = et.parse(filename)
@@ -779,12 +791,13 @@ def loadPVD(filename: str) -> Union[List[Any], None]:
     return listofobjs
 
 ########################################################################
-def loadNeutral(filename:str) -> "vedo.TetMesh":
+def loadNeutral(filename: Union[str, os.PathLike]) -> "vedo.TetMesh":
     """
     Reads a `Neutral` tetrahedral file format.
 
     Returns an `TetMesh` object.
     """
+    filename = str(filename)
     with open(filename, "r", encoding="UTF-8") as f:
         lines = f.readlines()
 
@@ -804,8 +817,9 @@ def loadNeutral(filename:str) -> "vedo.TetMesh":
     return vedo.TetMesh([coords, idolf_tets])
 
 ########################################################################
-def loadGmesh(filename: str) -> Mesh:
+def loadGmesh(filename: Union[str, os.PathLike]) -> Mesh:
     """Reads a `gmesh` file format. Return an `Mesh` object."""
+    filename = str(filename)
     with open(filename, "r", encoding="UTF-8") as f:
         lines = f.readlines()
 
@@ -837,12 +851,13 @@ def loadGmesh(filename: str) -> Mesh:
     return Mesh(poly)
 
 ########################################################################
-def loadPCD(filename: str) -> Points:
+def loadPCD(filename: Union[str, os.PathLike]) -> Points:
     """Return a `Mesh` made of only vertex points
     from the `PointCloud` library file format.
     
     Returns an `Points` object.
     """
+    filename = str(filename)
     with open(filename, "r", encoding="UTF-8") as f:
         lines = f.readlines()
 
@@ -982,8 +997,9 @@ def _from_numpy(d: dict) -> Mesh:
     return msh
 
 #############################################################################
-def _import_npy(fileinput: str) -> "vedo.Plotter":
+def _import_npy(fileinput: Union[str, os.PathLike]) -> "vedo.Plotter":
     """Import a vedo scene from numpy format."""
+    fileinput = str(fileinput)
 
     fileinput = download(fileinput, verbose=False, force=True)
     if fileinput.endswith(".npy"):
@@ -1113,8 +1129,9 @@ def _import_npy(fileinput: str) -> "vedo.Plotter":
     return plt
 
 ###########################################################
-def loadImageData(filename: str) -> Union[vtki.vtkImageData, None]:
+def loadImageData(filename: Union[str, os.PathLike]) -> Union[vtki.vtkImageData, None]:
     """Read and return a `vtkImageData` object from file."""
+    filename = str(filename)
     if ".tif" in filename.lower():
         reader = vtki.new("TIFFReader")
         # print("GetOrientationType ", reader.GetOrientationType())
@@ -1145,7 +1162,7 @@ def loadImageData(filename: str) -> Union[vtki.vtkImageData, None]:
     return reader.GetOutput()
 
 ###########################################################
-def write(objct: Any, fileoutput: str, binary=True) -> Any:
+def write(objct: Any, fileoutput: Union[str, os.PathLike], binary=True) -> Any:
     """
     Write object to file. Same as `save()`.
 
@@ -1153,6 +1170,7 @@ def write(objct: Any, fileoutput: str, binary=True) -> Any:
     
     - `vtk, vti, ply, obj, stl, byu, vtp, vti, mhd, xyz, xml, tif, png, bmp`
     """
+    fileoutput = str(fileoutput)
     obj = objct.dataset
 
     try:
@@ -1333,7 +1351,7 @@ def read(obj: Any, unpack=True, force=False) -> Any:
     return load(obj, unpack, force)
 
 ###############################################################################
-def export_window(fileoutput: str, binary=False, plt=None) -> "vedo.Plotter":
+def export_window(fileoutput: Union[str, os.PathLike], binary=False, plt=None) -> "vedo.Plotter":
     """
     Exporter which writes out the rendered scene into an HTML, X3D or Numpy file.
 
@@ -1348,6 +1366,7 @@ def export_window(fileoutput: str, binary=False, plt=None) -> "vedo.Plotter":
         the rendering window can also be exported to `numpy` file `scene.npz`
         by pressing `E` key at any moment during visualization.
     """
+    fileoutput = str(fileoutput)
     if plt is None:
         plt = vedo.plotter_instance
 
@@ -1594,6 +1613,8 @@ def _to_numpy(act: Any) -> dict:
 
 #########################################################################
 def _export_npy(plt, fileoutput="scene.npz") -> None:
+    
+    fileoutput = str(fileoutput)
 
     sdict = {}
     sdict["shape"] = plt.shape
@@ -1672,13 +1693,15 @@ def _export_npy(plt, fileoutput="scene.npz") -> None:
 
 
 ########################################################################
-def import_window(fileinput: str) -> Union["vedo.Plotter", None]:
+def import_window(fileinput: Union[str, os.PathLike]) -> Union["vedo.Plotter", None]:
     """
     Import a whole scene from a Numpy NPZ file.
 
     Returns:
         `vedo.Plotter` instance
     """
+    fileinput = str(fileinput)
+
     if fileinput.endswith(".npy") or fileinput.endswith(".npz"):
         return _import_npy(fileinput)
     
@@ -1694,7 +1717,7 @@ def import_window(fileinput: str) -> Union["vedo.Plotter", None]:
     return None
 
 
-def load_obj(fileinput: str, mtl_file=None, texture_path=None) -> List[Mesh]:
+def load_obj(fileinput: Union[str, os.PathLike], mtl_file=None, texture_path=None) -> List[Mesh]:
     """
     Import a set of meshes from a OBJ wavefront file.
 
@@ -1707,6 +1730,8 @@ def load_obj(fileinput: str, mtl_file=None, texture_path=None) -> List[Mesh]:
     Returns:
         `list(Mesh)`
     """
+    fileinput = str(fileinput)
+
     window = vtki.vtkRenderWindow()
     window.SetOffScreenRendering(1)
     renderer = vtki.vtkRenderer()
@@ -1756,6 +1781,7 @@ def screenshot(filename="screenshot.png", scale=1, asarray=False) -> Union["vedo
         asarray : (bool)
             Return a numpy array of the image
     """
+    filename = str(filename)
     # print("calling screenshot", filename, scale, asarray)
 
     if not vedo.plotter_instance or not vedo.plotter_instance.window:
@@ -1770,7 +1796,6 @@ def screenshot(filename="screenshot.png", scale=1, asarray=False) -> Union["vedo
         narr = np.flip(narr, axis=0)
         return narr  ##########
 
-    filename = str(filename)
 
     if filename.endswith(".pdf"):
         writer = vtki.new("GL2PSExporter")
@@ -1913,7 +1938,7 @@ class Video:
         Program `ffmpeg` is used to create video from each generated frame.
 
         Arguments:
-            name : (str)
+            name : (Union[str, os.PathLike])
                 name of the output file.
             duration : (float)
                 set the total `duration` of the video and recalculates `fps` accordingly.
@@ -1929,7 +1954,7 @@ class Video:
 
             ![](https://user-images.githubusercontent.com/32848391/50739007-2bfc2b80-11da-11e9-97e6-620a3541a6fa.jpg)
         """
-        self.name = name
+        self.name = str(name)
         self.duration = duration
         self.backend = backend
         self.fps = float(fps)
