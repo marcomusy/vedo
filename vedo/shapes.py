@@ -3200,6 +3200,10 @@ class Box(Mesh):
         If `pos` is a list of 6 numbers, this will be interpreted as the bounding box:
         `[xmin,xmax, ymin,ymax, zmin,zmax]`
 
+        Note that the shape polygonal data contains duplicated vertices. This is to allow
+        each face to have its own normal, which is essential for some operations.
+        Use the `clean()` method to remove duplicate points.
+
         Examples:
             - [aspring1.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/aspring1.py)
 
@@ -3262,7 +3266,13 @@ class Box(Mesh):
 
 
 class Cube(Box):
-    """Build a cube."""
+    """
+    Build a cube shape.
+    
+    Note that the shape polygonal data contains duplicated vertices. This is to allow
+    each face to have its own normal, which is essential for some operations.
+    Use the `clean()` method to remove duplicate points.
+    """
 
     def __init__(self, pos=(0, 0, 0), side=1.0, c="g4", alpha=1.0) -> None:
         """Build a cube of size `side`."""

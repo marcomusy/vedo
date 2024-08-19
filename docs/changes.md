@@ -13,6 +13,15 @@
 - add `addons.DrawingWidget` class for tracing on planar props
 - add `Video(..., scale=1)` keyword in #1168 by @YongcaiHuang
 - modify `legosurface(boundary=True)` default in #1166
+- make load functions compatible with pathlib #1176 by @Louis-Pujol
+- fixed broken link to example #1175 by @jo-mueller
+- add documentation to Mesh.boolean() #1173 by @jkunimune
+- raise an error when calling cell_normals before compute_normals() #1172 by @jkunimune
+- add documentation warning as computing normals can affect appearence of the mesh #1174 by @jkunimune
+- add documentation about `Cube` and `Box` having duplicated vertices to allow defining normals #1171
+- add documentation do address the behaviour of `mesh.volume()` and `mesh.is_closed()` wrt duplicated vertices.
+- add `plotter.reset_clipping_range()` to reset the camera clipping range based on the bounds of the visible actors #1170
+
 
 
 ## Soft-breaking Changes
@@ -41,7 +50,6 @@ Examples that are not fully functional and need some fixing:
 markpoint.py (misplaced leader indicator)
 cut_and_cap.py (incomplete capping)
 tests/issues/discussion_800.py (incomplete capping of tube)
-examples/volumetric/numpy2volume1.py ()
 ```
 
 

@@ -1369,6 +1369,17 @@ class Plotter:
                 cam.SetParallelScale(ps * (1 + tight))
             self.renderer.ResetCameraClippingRange(x0, x1, y0, y1, z0, z1)
         return self
+    
+    def reset_clipping_range(self, bounds=None) -> Self:
+        """
+        Reset the camera clipping range to include all visible actors.
+        If bounds is given, it will be used instead of computing it.
+        """
+        if bounds is None:
+            self.renderer.ResetCameraClippingRange()
+        else:
+            self.renderer.ResetCameraClippingRange(bounds)
+        return self
 
     def reset_viewup(self, smooth=True) -> Self:
         """

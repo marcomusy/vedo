@@ -305,6 +305,10 @@ class Mesh(MeshVisual, Points):
         .. warning::
             If `feature_angle` is set then the Mesh can be modified, and it
             can have a different nr. of vertices from the original.
+
+            Note that the appearance of the mesh may change if the normals are computed,
+            as shading is automatically enabled when such information is present.
+            Use `mesh.flat()` to avoid smoothing effects.
         """
         pdnorm = vtki.new("PolyDataNormals")
         pdnorm.SetInputData(self.dataset)
@@ -357,27 +361,37 @@ class Mesh(MeshVisual, Points):
         return self
 
     def volume(self) -> float:
-        """Get/set the volume occupied by mesh."""
+        """
+        Compute the volume occupied by mesh.
+        The mesh must be triangular for this to work.
+        To triangulate a mesh use `mesh.triangulate()`.
+        """
         mass = vtki.new("MassProperties")
         mass.SetGlobalWarningDisplay(0)
         mass.SetInputData(self.dataset)
         mass.Update()
+        mass.SetGlobalWarningDisplay(1)
         return mass.GetVolume()
 
     def area(self) -> float:
         """
         Compute the surface area of the mesh.
         The mesh must be triangular for this to work.
-        See also `mesh.triangulate()`.
+        To triangulate a mesh use `mesh.triangulate()`.
         """
         mass = vtki.new("MassProperties")
         mass.SetGlobalWarningDisplay(0)
         mass.SetInputData(self.dataset)
         mass.Update()
+        mass.SetGlobalWarningDisplay(1)
         return mass.GetSurfaceArea()
 
     def is_closed(self) -> bool:
-        """Return `True` if the mesh is watertight."""
+        """
+        Return `True` if the mesh is watertight.
+        Note that if the mesh contains coincident points the result may be flase.
+        Use in this case `mesh.clean()` to merge coincident points.
+        """
         fe = vtki.new("FeatureEdges")
         fe.BoundaryEdgesOn()
         fe.FeatureEdgesOff()

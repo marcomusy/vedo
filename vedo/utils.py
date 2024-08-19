@@ -1056,7 +1056,7 @@ def is_ragged(arr, deep=False) -> bool:
     """
     A ragged or inhomogeneous array in Python is an array
     with arrays of different lengths as its elements.
-    To check if an array is ragged,we iterate through the elements
+    To check if an array is ragged, we iterate through the elements
     and check if their lengths are the same.
 
     Example:
@@ -2095,7 +2095,7 @@ def camera_from_quaternion(pos, quaternion, distance=10000, ngl_correct=True) ->
     return camera
 
 
-def camera_from_neuroglancer(state, zoom=300) -> vtki.vtkCamera:
+def camera_from_neuroglancer(state, zoom) -> vtki.vtkCamera:
     """
     Define a `vtkCamera` from a neuroglancer state dictionary.
 
@@ -2104,7 +2104,6 @@ def camera_from_neuroglancer(state, zoom=300) -> vtki.vtkCamera:
             an neuroglancer state dictionary.
         zoom: (float)
             how much to multiply zoom by to get camera backoff distance
-            default = 300 > ngl_zoom = 1 > 300 nm backoff distance.
 
     Returns:
         `vtki.vtkCamera`, a vtk camera setup that matches this state.
@@ -2116,7 +2115,7 @@ def camera_from_neuroglancer(state, zoom=300) -> vtki.vtkCamera:
     return camera_from_quaternion(pos_nm, orient, pzoom * zoom, ngl_correct=True)
 
 
-def oriented_camera(center=(0, 0, 0), up_vector=(0, 1, 0), backoff_vector=(0, 0, 1), backoff=1.0) -> vtki.vtkCamera:
+def oriented_camera(center, up_vector, backoff_vector, backoff) -> vtki.vtkCamera:
     """
     Generate a `vtkCamera` pointed at a specific location,
     oriented with a given up direction, set to a backoff.
