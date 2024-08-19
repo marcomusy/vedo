@@ -685,13 +685,11 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
 
     def find_cell(self, p: list) -> int:
         """Locate the cell that contains a point and return the cell ID."""
-        cell = vtki.vtkTetra()
-        cell_id = vtki.mutable(0)
-        tol2 = vtki.mutable(0)
-        sub_id = vtki.mutable(0)
-        pcoords = [0, 0, 0]
-        weights = [0, 0, 0]
-        cid = self.dataset.FindCell(p, cell, cell_id, tol2, sub_id, pcoords, weights)
+        if self.cell_locator is None:
+            self.cell_locator = vtki.new("CellLocator")
+            self.cell_locator.SetDataSet(self.dataset)
+            self.cell_locator.BuildLocator()
+        cid = self.cell_locator.FindCell(p)
         return cid
 
     def clean(self) -> Self:

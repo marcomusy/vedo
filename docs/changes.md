@@ -21,7 +21,7 @@
 - add documentation about `Cube` and `Box` having duplicated vertices to allow defining normals #1171
 - add documentation do address the behaviour of `mesh.volume()` and `mesh.is_closed()` wrt duplicated vertices.
 - add `plotter.reset_clipping_range()` to reset the camera clipping range based on the bounds of the visible actors #1170
-
+- fix issue with find_cell() in #1095
 
 
 ## Soft-breaking Changes
