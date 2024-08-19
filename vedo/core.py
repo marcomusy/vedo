@@ -2088,7 +2088,9 @@ class VolumeAlgorithms(CommonAlgorithms):
         )
         return out
     
-    def isosurface_discrete(self, values, nsmooth=15) -> "vedo.mesh.Mesh":
+    def isosurface_discrete(
+            self, values, background_label=None, internal_boundaries=True, use_quads=False, nsmooth=0,
+        ) -> "vedo.mesh.Mesh":
         """
         Create boundary/isocontour surfaces from a label map (e.g., a segmented image) using a threaded,
         3D version of the multiple objects/labels Surface Nets algorithm.
@@ -2106,13 +2108,23 @@ class VolumeAlgorithms(CommonAlgorithms):
         Arguments:
             value : (float, list)
                 single value or list of values to draw the isosurface(s).
+            background_label : (float)
+                this value specifies the label value to use when referencing the background
+                region outside of any of the specified regions.
+            boundaries : (bool, list)
+                if True, the output will only contain the boundary surface. Internal surfaces will be removed.
+                If a list of integers is provided, only the boundaries between the specified labels will be extracted.
+            use_quads : (bool)
+                if True, the output polygons will be quads. If False, the output polygons will be triangles.
             nsmooth : (int)
                 number of iterations of smoothing (0 means no smoothing).
 
         Examples:
             - [isosurfaces2.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/isosurfaces2.py)
         """
-        
+        logger = vtki.get_class("Logger")
+        logger.SetStderrVerbosity(logger.VERBOSITY_ERROR)
+
         snets = vtki.new("SurfaceNets3D")
         snets.SetInputData(self.dataset)
 
@@ -2125,11 +2137,32 @@ class VolumeAlgorithms(CommonAlgorithms):
         else:
             snets.SmoothingOff()
 
+        if internal_boundaries is False:
+            snets.SetOutputStyleToBoundary()
+        elif internal_boundaries is True:
+            snets.SetOutputStyleToDefault()
+        elif utils.is_sequence(internal_boundaries):
+            snets.SetOutputStyleToSelected()
+            snets.InitializeSelectedLabelsList()
+            for val in internal_boundaries:
+                snets.AddSelectedLabel(val)
+        else:
+            vedo.logger.error("isosurface_discrete(): unknown boundaries option")
+
+        n = len(values)
+        snets.SetNumberOfContours(n)
+        snets.SetNumberOfLabels(n)
+
+        if background_label is not None:
+            snets.SetBackgroundLabel(background_label)
+
         for i, val in enumerate(values):
             snets.SetValue(i, val)
-        snets.Update()
-        snets.SetOutputMeshTypeToTriangles()
-        snets.SetOutputStyleToBoundary()
+        
+        if use_quads:
+            snets.SetOutputMeshTypeToQuads()
+        else:
+            snets.SetOutputMeshTypeToTriangles()
         snets.Update()
 
         out = vedo.mesh.Mesh(snets.GetOutput())
@@ -2139,6 +2172,8 @@ class VolumeAlgorithms(CommonAlgorithms):
             comment=f"#pts {out.dataset.GetNumberOfPoints()}",
             c="#4cc9f0:#e9c46a",
         )
+
+        logger.SetStderrVerbosity(logger.VERBOSITY_INFO)
         return out
 
 

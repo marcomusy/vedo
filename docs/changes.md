@@ -22,6 +22,8 @@
 - add documentation do address the behaviour of `mesh.volume()` and `mesh.is_closed()` wrt duplicated vertices.
 - add `plotter.reset_clipping_range()` to reset the camera clipping range based on the bounds of the visible actors #1170
 - fix issue with find_cell() in #1095
+- improvements to `volume.isosurface_discrete()` in #1180 by @snownontrace
+
 
 
 ## Soft-breaking Changes
@@ -40,6 +42,7 @@ Changes that will break existing code and need active thinking and work to adapt
 ```
 tests/issues/issue_1146.py
 examples/advanced/spline_draw2.py
+examples/volumetric/isosurfaces2.py
 ```
 
 
