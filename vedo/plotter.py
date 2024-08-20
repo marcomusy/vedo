@@ -1122,7 +1122,7 @@ class Plotter:
 
         self.window.Render()
 
-        if self._cocoa_process_events and self.interactor.GetInitialized():
+        if self._cocoa_process_events and self.interactor and self.interactor.GetInitialized():
             if "Darwin" in vedo.sys_platform and not self.offscreen:
                 self.interactor.ProcessEvents()
                 self._cocoa_process_events = False
