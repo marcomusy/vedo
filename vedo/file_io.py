@@ -1787,6 +1787,9 @@ def screenshot(filename="screenshot.png", scale=1, asarray=False) -> Union["vedo
     if not vedo.plotter_instance or not vedo.plotter_instance.window:
         # vedo.logger.error("in screenshot(), rendering window is not present, skip.")
         return vedo.plotter_instance  ##########
+    
+    if vedo.plotter_instance.renderer:
+        vedo.plotter_instance.renderer.ResetCameraClippingRange()
 
     if asarray and scale == 1 and not vedo.plotter_instance.offscreen:
         nx, ny = vedo.plotter_instance.window.GetSize()
@@ -1796,7 +1799,7 @@ def screenshot(filename="screenshot.png", scale=1, asarray=False) -> Union["vedo
         narr = np.flip(narr, axis=0)
         return narr  ##########
 
-
+    ###########################
     if filename.endswith(".pdf"):
         writer = vtki.new("GL2PSExporter")
         writer.SetRenderWindow(vedo.plotter_instance.window)
