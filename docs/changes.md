@@ -23,6 +23,7 @@
 - add `plotter.reset_clipping_range()` to reset the camera clipping range based on the bounds of the visible actors #1170
 - fix issue with find_cell() in #1095
 - improvements to `volume.isosurface_discrete()` in #1180 by @snownontrace
+- fix bug on video frame by resetting camera clipping range in #1180 by @snownontrace
 - changes in the scalarbar2d object.
 
 
