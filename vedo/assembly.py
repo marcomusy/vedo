@@ -133,9 +133,7 @@ class Group(vtki.vtkPropAssembly):
         return out.rstrip() + "\x1b[0m"
 
     def __iadd__(self, obj):
-        """
-        Add an object to the group
-        """
+        """Add an object to the group."""
         if not vedo.utils.is_sequence(obj):
             obj = [obj]
         for a in obj:
@@ -144,7 +142,30 @@ class Group(vtki.vtkPropAssembly):
                     self.AddPart(a)
                 except TypeError:
                     self.AddPart(a.actor)
-                    self.objcects.append(a)
+                    self.objects.append(a)
+        return self
+
+    def __isub__(self, obj):
+        """Remove an object to the group."""
+        if not vedo.utils.is_sequence(obj):
+            obj = [obj]
+        for a in obj:
+            if a:
+                try:
+                    self.RemovePart(a)
+                except TypeError:
+                    self.RemovePart(a.actor)
+                    self.objects.append(a)
+        return self
+
+    def add(self, obj):
+        """Add an object to the group."""
+        self.__iadd__(obj)
+        return self
+    
+    def remove(self, obj):
+        """Remove an object to the group."""
+        self.__isub__(obj)
         return self
 
     def _unpack(self):
@@ -400,6 +421,36 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
                 else:
                     self.scalarbar = Group([unpack_group(self.scalarbar), unpack_group(obj.scalarbar)])
             self.pipeline = vedo.utils.OperationNode("add mesh", parents=[self, obj], c="#f08080")
+        return self
+
+    def __isub__(self, obj):
+        """
+        Remove an object to the assembly.
+        """
+        if not vedo.utils.is_sequence(obj):
+            obj = [obj]
+        for a in obj:
+            if a:
+                try:
+                    self.RemovePart(a)
+                    self.objects.remove(a)
+                except TypeError:
+                    self.RemovePart(a.actor)
+                    self.objects.remove(a)
+        return self
+
+    def add(self, obj):
+        """
+        Add an object to the assembly.
+        """
+        self.__add__(obj)
+        return self
+    
+    def remove(self, obj):
+        """
+        Remove an object to the assembly.
+        """
+        self.__isub__(obj)
         return self
 
     def __contains__(self, obj):

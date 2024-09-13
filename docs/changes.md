@@ -44,6 +44,7 @@ Changes that will break existing code and need active thinking and work to adapt
 tests/issues/issue_1146.py
 examples/advanced/spline_draw2.py
 examples/volumetric/isosurfaces2.py
+examples/pyplot/fit_curve2.py
 ```
 
 

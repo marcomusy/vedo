@@ -1453,7 +1453,7 @@ vedo_example_db =
         imgsrc: 'images/pyplot/fit_erf.png',
     },
     {
-        pyname: 'fit_curve',
+        pyname: 'fit_curve1',
         kbd   : '',
         categ : 'plotting',
         short : 'fit data w/ error bars',
