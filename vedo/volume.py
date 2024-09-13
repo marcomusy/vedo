@@ -36,22 +36,28 @@ class Volume(VolumeAlgorithms, VolumeVisual):
     """
     def __init__(
         self,
-        inputobj=None,
+        input_obj=None,
         dims=None,
         origin=None,
         spacing=None,
     ) -> None:
         """
-        This class can be initialized with a numpy object,
-        a `vtkImageData` or a list of 2D bmp files.
+        This class can be initialized with a numpy object, a `vtkImageData` or a list of 2D bmp files.
 
         Arguments:
+            input_obj : (str, vtkImageData, np.ndarray)
+                input data can be a file name, a vtkImageData or a numpy object.
             origin : (list)
                 set volume origin coordinates
             spacing : (list)
                 voxel dimensions in x, y and z.
             dims : (list)
                 specify the dimensions of the volume.
+
+        Note:
+            If your input is an array ordered as ZYX you can permute it to XYZ with:
+            `array = np.transpose(array, axes=[2, 1, 0])`.
+            Alternatively you can also use the `Volume(zyx_array).permute_axes(2,1,0)` method.
 
         Example:
             ```python
@@ -92,31 +98,31 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         self.line_locator = None
 
         ###################
-        if isinstance(inputobj, str):
-            if "https://" in inputobj:
-                inputobj = vedo.file_io.download(inputobj, verbose=False)  # fpath
-            elif os.path.isfile(inputobj):
-                self.filename = inputobj
+        if isinstance(input_obj, str):
+            if "https://" in input_obj:
+                input_obj = vedo.file_io.download(input_obj, verbose=False)  # fpath
+            elif os.path.isfile(input_obj):
+                self.filename = input_obj
             else:
-                inputobj = sorted(glob.glob(inputobj))
+                input_obj = sorted(glob.glob(input_obj))
 
         ###################
-        inputtype = str(type(inputobj))
+        inputtype = str(type(input_obj))
 
         # print('Volume inputtype', inputtype, c='b')
 
-        if inputobj is None:
+        if input_obj is None:
             img = vtki.vtkImageData()
 
-        elif utils.is_sequence(inputobj):
+        elif utils.is_sequence(input_obj):
 
-            if isinstance(inputobj[0], str) and ".bmp" in inputobj[0].lower():
+            if isinstance(input_obj[0], str) and ".bmp" in input_obj[0].lower():
                 # scan sequence of BMP files
                 ima = vtki.new("ImageAppend")
                 ima.SetAppendAxis(2)
-                pb = utils.ProgressBar(0, len(inputobj))
+                pb = utils.ProgressBar(0, len(input_obj))
                 for i in pb.range():
-                    f = inputobj[i]
+                    f = input_obj[i]
                     if "_rec_spr" in f: # OPT specific
                         continue
                     picr = vtki.new("BMPReader")
@@ -132,31 +138,31 @@ class Volume(VolumeAlgorithms, VolumeVisual):
 
             else:
 
-                if len(inputobj.shape) == 1:
-                    varr = utils.numpy2vtk(inputobj)
+                if len(input_obj.shape) == 1:
+                    varr = utils.numpy2vtk(input_obj)
                 else:
-                    varr = utils.numpy2vtk(inputobj.ravel(order="F"))
+                    varr = utils.numpy2vtk(input_obj.ravel(order="F"))
                 varr.SetName("input_scalars")
 
                 img = vtki.vtkImageData()
                 if dims is not None:
                     img.SetDimensions(dims[2], dims[1], dims[0])
                 else:
-                    if len(inputobj.shape) == 1:
+                    if len(input_obj.shape) == 1:
                         vedo.logger.error("must set dimensions (dims keyword) in Volume")
                         raise RuntimeError()
-                    img.SetDimensions(inputobj.shape)
+                    img.SetDimensions(input_obj.shape)
                 img.GetPointData().AddArray(varr)
                 img.GetPointData().SetActiveScalars(varr.GetName())
 
-        elif isinstance(inputobj, vtki.vtkImageData):
-            img = inputobj
+        elif isinstance(input_obj, vtki.vtkImageData):
+            img = input_obj
 
-        elif isinstance(inputobj, str):
-            if "https://" in inputobj:
-                inputobj = vedo.file_io.download(inputobj, verbose=False)
-            img = vedo.file_io.loadImageData(inputobj)
-            self.filename = inputobj
+        elif isinstance(input_obj, str):
+            if "https://" in input_obj:
+                input_obj = vedo.file_io.download(input_obj, verbose=False)
+            img = vedo.file_io.loadImageData(input_obj)
+            self.filename = input_obj
 
         else:
             vedo.logger.error(f"cannot understand input type {inputtype}")

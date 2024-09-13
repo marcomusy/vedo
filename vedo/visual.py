@@ -254,10 +254,10 @@ class CommonVisual:
     def add_scalarbar(
         self,
         title="",
-        pos=(0.775, 0.05),
+        pos=(),
+        size=(80, 400),
+        font_size=14,
         title_yoffset=15,
-        font_size=12,
-        size=(60, 350),
         nlabels=None,
         c=None,
         horizontal=False,
@@ -265,19 +265,21 @@ class CommonVisual:
         label_format=":6.3g",
     ) -> Self:
         """
-        Add a 2D scalar bar for the specified obj.
+        Add a 2D scalar bar for the specified object.
 
         Arguments:
             title : (str)
                 scalar bar title
-            pos : (float,float)
-                position coordinates of the bottom left corner
-            title_yoffset : (float)
-                vertical space offset between title and color scalarbar
-            font_size : (float)
-                size of font for title and numeric labels
+            pos : (list)
+                position coordinates of the bottom left corner.
+                Can also be a pair of (x,y) values in the range [0,1]
+                to indicate the position of the bottom left and top right corners.
             size : (float,float)
                 size of the scalarbar in number of pixels (width, height)
+            font_size : (float)
+                size of font for title and numeric labels
+            title_yoffset : (float)
+                vertical space offset between title and color scalarbar
             nlabels : (int)
                 number of numeric labels
             c : (list)
@@ -311,9 +313,9 @@ class CommonVisual:
             self,
             title,
             pos,
-            title_yoffset,
-            font_size,
             size,
+            font_size,
+            title_yoffset,
             nlabels,
             c,
             horizontal,

@@ -67,8 +67,8 @@ cd $VEDODIR/examples/other/trimesh && ./run_all.sh
 
 # DOLFIN #####################################################################
 # conda create -n fenics -c conda-forge fenics
-# conda install conda-forge::mshr
 # conda activate fenics
+# conda install conda-forge::mshr
 cd $VEDODIR
 conda activate fenics
 pip install -qe .
@@ -94,7 +94,6 @@ jupyter notebook > /dev/null 2>&1
 cd ~/Projects/server/trackviewer
     ./main_test.py
 ################
-cd /g/sharpe/software/clone_viewer2
 cd ~/Projects/clonal_analysis/clone_viewer3
     ./clone_viewer_gio3d.py
 ################
@@ -112,8 +111,8 @@ cd ~/Projects/new_yalla/limb_opti_here
 cd ~/Projects/server/welsh_embryo_stager
    python stager.py pics/E14.5_L3-03_HL2.5X.jpg
 ################
-cd ~/Projects/server/oocytes
-   python main4b.py
+cd ~/Projects/oocytes
+   python step3.py
 ################
 cd ~/Projects/umap_viewer3d
    python main6.py

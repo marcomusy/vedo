@@ -1167,6 +1167,7 @@ class Image(vedo.visual.ImageVisual):
         imap.SetLookupTable(lut)
         imap.SetInputData(img)
         imap.Update()
+
         self._update(imap.GetOutput())
         self.pipeline = utils.OperationNode(
             "cmap", comment=f'"{name}"', parents=[self], c="#f28482"

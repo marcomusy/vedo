@@ -948,7 +948,10 @@ class RayCastPlotter(Plotter):
                 volume.cmap(cmaps[k])
             self.remove(self.color_scalarbar)
             self.color_scalarbar = vedo.addons.ScalarBar(
-                volume, horizontal=True, font_size=2, pos=[0.8,0.02], size=[30,1500],
+                volume,
+                horizontal=True,
+                pos=[(0.8, 0), (0.97, 0.1)],
+                font_size=0
             )
             self.add(self.color_scalarbar)
 

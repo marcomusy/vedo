@@ -1196,10 +1196,10 @@ def Light(pos, focal_point=(0, 0, 0), angle=180, c=None, intensity=1):
 def ScalarBar(
     obj,
     title="",
-    pos=(0.775, 0.05),
-    title_yoffset=15,
-    font_size=12,
-    size=(None, None),
+    pos=(),
+    size=(80, 400),
+    font_size=14,
+    title_yoffset=20,
     nlabels=None,
     c="k",
     horizontal=False,
@@ -1207,19 +1207,21 @@ def ScalarBar(
     label_format=":6.3g",
 ) -> Union[vtki.vtkScalarBarActor, None]:
     """
-    A 2D scalar bar for the specified obj.
+    A 2D scalar bar for the specified object.
 
     Arguments:
         title : (str)
             scalar bar title
-        pos : (float,float)
-            position coordinates of the bottom left corner
-        title_yoffset : (float)
-            vertical space offset between title and color scalarbar
-        font_size : (float)
-            size of font for title and numeric labels
+        pos : (list)
+            position coordinates of the bottom left corner.
+            Can also be a pair of (x,y) values in the range [0,1]
+            to indicate the position of the bottom-left and top-right corners.
         size : (float,float)
             size of the scalarbar in number of pixels (width, height)
+        font_size : (float)
+            size of font for title and numeric labels
+        title_yoffset : (float)
+            vertical space offset between title and color scalarbar
         nlabels : (int)
             number of numeric labels
         c : (list)
@@ -1269,7 +1271,6 @@ def ScalarBar(
 
     c = get_color(c)
     sb = vtki.vtkScalarBarActor()
-    # sb.SetTextPosition(0)
 
     # print("GetLabelFormat", sb.GetLabelFormat())
     label_format = label_format.replace(":", "%-#")
@@ -1306,45 +1307,54 @@ def ScalarBar(
         sb.SetVerticalTitleSeparation(title_yoffset)
         sb.SetTitleTextProperty(titprop)
 
+    sb.SetTextPad(0)
     sb.UnconstrainedFontSizeOn()
     sb.DrawAnnotationsOn()
     sb.DrawTickLabelsOn()
     sb.SetMaximumNumberOfColors(256)
-
-    if horizontal:
-        sb.SetOrientationToHorizontal()
-        sb.SetNumberOfLabels(3)
-        sb.SetTextPositionToSucceedScalarBar()
-        sb.SetPosition(pos)
-        sb.SetMaximumWidthInPixels(1000)
-        sb.SetMaximumHeightInPixels(50)
-    else:
-        sb.SetNumberOfLabels(7)
-        sb.SetTextPositionToPrecedeScalarBar()
-        sb.SetPosition(pos[0] + 0.09, pos[1])
-        sb.SetMaximumWidthInPixels(60)
-        sb.SetMaximumHeightInPixels(250)
-
-    if not horizontal:
-        if size[0] is not None:
-            sb.SetMaximumWidthInPixels(size[0])
-        if size[1] is not None:
-            sb.SetMaximumHeightInPixels(size[1])
-    else:
-        if size[0] is not None:
-            sb.SetMaximumHeightInPixels(size[0])
-        if size[1] is not None:
-            sb.SetMaximumWidthInPixels(size[1])
-
     if nlabels is not None:
         sb.SetNumberOfLabels(nlabels)
+
+    if len(pos) == 0 or utils.is_sequence(pos[0]):
+        if len(pos) == 0:
+            pos = ((0.87, 0.05), (0.97, 0.5))
+            if horizontal:
+                pos = ((0.5, 0.05), (0.97, 0.15))
+        sb.SetTextPositionToPrecedeScalarBar()
+        if horizontal:
+            if not nlabels: sb.SetNumberOfLabels(3)
+            sb.SetOrientationToHorizontal()
+            sb.SetTextPositionToSucceedScalarBar()
+        sb.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
+        sb.GetPosition2Coordinate().SetCoordinateSystemToNormalizedViewport()
+
+        s = np.array(pos[1]) - np.array(pos[0])
+        sb.GetPositionCoordinate().SetValue(pos[0][0], pos[0][1])
+        sb.GetPosition2Coordinate().SetValue(s[0], s[1]) # size !!??
+
+    else:
+
+        if horizontal:
+            size = (size[1], size[0])  # swap size
+            sb.SetPosition(pos[0]-0.7, pos[1])
+            if not nlabels: sb.SetNumberOfLabels(3)
+            sb.SetOrientationToHorizontal()
+            sb.SetTextPositionToSucceedScalarBar()
+        else:
+            sb.SetPosition(pos[0], pos[1])
+            if not nlabels: sb.SetNumberOfLabels(7)
+            sb.SetTextPositionToPrecedeScalarBar()
+        sb.SetHeight(1)
+        sb.SetWidth(1)
+        if size[0] is not None: sb.SetMaximumWidthInPixels(size[0])
+        if size[1] is not None: sb.SetMaximumHeightInPixels(size[1])
 
     sctxt = sb.GetLabelTextProperty()
     sctxt.SetFontFamily(vtki.VTK_FONT_FILE)
     sctxt.SetFontFile(utils.get_font_path(vedo.settings.default_font))
     sctxt.SetColor(c)
     sctxt.SetShadow(0)
-    sctxt.SetFontSize(font_size - 2)
+    sctxt.SetFontSize(font_size)
     sb.SetAnnotationTextProperty(sctxt)
     sb.PickableOff()
     return sb
