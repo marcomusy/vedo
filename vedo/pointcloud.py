@@ -577,6 +577,11 @@ class Points(PointsVisual, PointAlgorithms):
                 for i in range(inputobj.GetPointData().GetNumberOfArrays()):
                     arr = inputobj.GetPointData().GetArray(i)
                     self.dataset.GetPointData().AddArray(arr)
+                carr = vtki.vtkCellArray()
+                for i in range(self.dataset.GetNumberOfPoints()):
+                    carr.InsertNextCell(1)
+                    carr.InsertCellPoint(i)
+                self.dataset.SetVerts(carr)
             except:
                 vedo.logger.error(f"cannot build Points from type {type(inputobj)}")
                 raise RuntimeError()

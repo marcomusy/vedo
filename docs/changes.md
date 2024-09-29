@@ -47,6 +47,11 @@ examples/volumetric/isosurfaces2.py
 examples/pyplot/fit_curve2.py
 ```
 
+## To Do
+- improve 4/5 keys to show a scalarbar
+- add interpolate_scalar5 to webpage
+- fix draw_spline1,2 in webpage
+
 
 ### Broken Examples
 Examples that are not fully functional and need some fixing:
