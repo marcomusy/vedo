@@ -25,6 +25,7 @@
 - improvements to `volume.isosurface_discrete()` in #1180 by @snownontrace
 - fix bug on video frame by resetting camera clipping range in #1180 by @snownontrace
 - changes in the scalarbar2d object.
+- fix purging of nan in pyplot.plot()
 
 
 ## Soft-breaking Changes

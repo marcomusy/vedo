@@ -1569,8 +1569,7 @@ class PlotXY(Figure):
             xlim = [_x0, _x1]
 
         # purge NaN from data
-        validIds = np.all(np.logical_not(np.isnan(data)))
-        data = np.array(data[validIds])[0]
+        data = data[~np.isnan(data).any(axis=1), :]
 
         fig_kwargs["title"] = title
         fig_kwargs["xtitle"] = xtitle

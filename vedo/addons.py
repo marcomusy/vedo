@@ -3569,8 +3569,10 @@ def Axes(
     else:
         if not number_of_divisions:
             number_of_divisions = ndiv
-
-    rx, ry, rz = np.ceil(drange / drangemax * number_of_divisions).astype(int)
+        if not drangemax or np.any(np.isnan(drange)):
+            rx, ry, rz = 1, 1, 1
+        else:
+            rx, ry, rz = np.ceil(drange / drangemax * number_of_divisions).astype(int)
 
     if xtitle:
         xticks_float, xticks_str = utils.make_ticks(x0, x1, rx, x_values_and_labels, digits)
