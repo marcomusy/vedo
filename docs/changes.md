@@ -42,16 +42,20 @@ Changes that will break existing code and need active thinking and work to adapt
 
 ## New/Revised Examples
 ```
-tests/issues/issue_1146.py
 examples/advanced/spline_draw2.py
 examples/volumetric/isosurfaces2.py
 examples/pyplot/fit_curve2.py
+
+tests/issues/issue_1146.py
+tests/issues/discussion_1190.py
+tests/snippets/test_interactive_plotxy.py
 ```
 
 ## To Do
 - improve 4/5 keys to show a scalarbar
 - add interpolate_scalar5 to webpage
 - fix draw_spline1,2 in webpage
+- fix trasform in image.tomesh() is not transmitted to mesh
 
 
 ### Broken Examples

@@ -1,14 +1,14 @@
 
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://en.wikipedia.org/wiki/MIT_License)
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/vedo/badges/version.svg)](https://anaconda.org/conda-forge/vedo)
-[![Ubuntu 23.10 package](https://repology.org/badge/version-for-repo/ubuntu_23_10/vedo.svg)](https://repology.org/project/vedo/versions)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5842090.svg)](https://doi.org/10.5281/zenodo.5842090)
+[![Ubuntu 24.10 package](https://repology.org/badge/version-for-repo/ubuntu_24_10/vedo.svg)](https://repology.org/project/vedo/versions)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4587871.svg)](https://doi.org/10.5281/zenodo.4587871)
 
 ![](https://vedo.embl.es/images/feats/teapot_banner.png)
 
 
 A python module for scientific analysis of 3D objects and
-point clouds based on [VTK](https://www.vtk.org/) and [numpy](http://www.numpy.org/).
+point clouds based on [VTK](https://www.vtk.org/) and [Numpy](http://www.numpy.org/).
 
 Check out the [**GitHub repository**](https://github.com/marcomusy/vedo)
 and the [**vedo main page here**](https://vedo.embl.es).

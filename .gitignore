@@ -2,6 +2,9 @@
 .DS_Store
 
 docs/pdoc/html
+develop/
+dist/
+vtk_data
 
 vedo.egg-info
 build
@@ -19,12 +22,10 @@ examples/notebooks/.ipynb_checkpoints
 
 untitled*.py
 bug_*.py
-prove
-store
-speed_tester.py
 data
 www
 
 dev_*.py
 z?.py
+x?.py
 v?.py

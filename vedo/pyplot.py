@@ -3151,7 +3151,6 @@ def _histogram_polar(
         ct, st = np.cos(t), np.sin(t)
 
         if show_errors:
-            show_lines = False
             err = np.sqrt(histodata[i]) / vmax * r2
             errl = shapes.Line(
                 ((r1 + r - err) * ct, (r1 + r - err) * st, 0.01),
