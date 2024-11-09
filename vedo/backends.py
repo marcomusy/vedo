@@ -200,7 +200,7 @@ def start_k3d(actors2show):
             ) * np.array([-1, 1] * 3)
 
             kobj = k3d.volume(
-                kimage.astype(np.float32),
+                kimage.astype(float),
                 color_map=kcmap,
                 # color_range=ia.dataset.GetScalarRange(),
                 alpha_coef=10,
@@ -243,7 +243,7 @@ def start_k3d(actors2show):
                 aves = ia.diagonal_size() * iap.GetLineWidth() / 100
 
                 kobj = k3d.line(
-                    pts.astype(np.float32),
+                    pts.astype(float),
                     color=_rgb2int(iap.GetColor()),
                     opacity=iap.GetOpacity(),
                     shader=settings.k3d_line_shader,
@@ -316,7 +316,7 @@ def start_k3d(actors2show):
             aves = ia.average_size() * iap.GetPointSize() / 200
 
             kobj = k3d.points(
-                ia.vertices.astype(np.float32),
+                ia.vertices.astype(float),
                 color=_rgb2int(iap.GetColor()),
                 colors=kcols,
                 opacity=iap.GetOpacity(),
