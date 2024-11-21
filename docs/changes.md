@@ -26,6 +26,7 @@
 - fix bug on video frame by resetting camera clipping range in #1180 by @snownontrace
 - changes in the scalarbar2d object.
 - fix purging of nan in pyplot.plot()
+- fix line trace to skip first point
 
 
 ## Soft-breaking Changes
@@ -49,6 +50,7 @@ examples/pyplot/fit_curve2.py
 tests/issues/issue_1146.py
 tests/issues/discussion_1190.py
 tests/snippets/test_interactive_plotxy.py
+tests/snippets/test_elastic_pendulum.py
 ```
 
 ## To Do

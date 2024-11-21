@@ -1,15 +1,14 @@
-"""Draw the shadows and trailing lines of 2 planes. Not really
-a simulation.. just a way to illustrate how to move objects around!"""
+"""Draw the shadows and trailing lines of 2 planes."""
 from vedo import *
 
 world = Box([0,0,0], 30, 16, 8).wireframe()
 
 plane1 = Mesh(dataurl+"cessna.vtk").c("green")
-plane1.pos(-15, 2, 0.15).add_trail(n=100)
+plane1.add_trail(n=100)
 plane1.add_shadow('z', -4).add_shadow('y', 8)
 
 plane2 = plane1.clone().c("tomato")
-plane2.pos(-15,-2,-0.20).add_trail(n=100)
+plane2.add_trail(n=100)
 plane2.add_shadow('z', -4).add_shadow('y', 8)
 
 # Setup the scene

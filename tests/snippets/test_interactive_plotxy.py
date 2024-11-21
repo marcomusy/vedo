@@ -1,3 +1,6 @@
+"""Create an interactive plot that allows the user to control a parameter using a slider, 
+The plot shows the solution to a system of equations for y given x and a constant C. 
+The user can change the value of C using a slider, and the plot will update the y-range."""
 import numpy as np
 from scipy.optimize import fsolve
 from vedo import Plotter, settings
@@ -53,8 +56,8 @@ def update_plot(widget=None, event=""):
 # Create Plotter and the slider to control the value of C
 settings.default_font = "Brachium"
 
-plt = Plotter(size=(900, 650), title="Exercise")
+plt = Plotter(size=(1200, 760), title="Exercise")
 slider = plt.add_slider(update_plot, -10.0, 10.0, value=C_init, title="C value", c="green3")
 update_plot()  # Initial plot
 
-plt.show(mode="2d", zoom=1.35)
+plt.show(__doc__, mode="2d", zoom=1.35)

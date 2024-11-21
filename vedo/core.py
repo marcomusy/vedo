@@ -2047,6 +2047,8 @@ class VolumeAlgorithms(CommonAlgorithms):
         Set `value` as single float or list of values to draw the isosurface(s).
         Use flying_edges for faster results (but sometimes can interfere with `smooth()`).
 
+        The isosurface values can be accessed with `mesh.metadata["isovalue"]`.
+
         Examples:
             - [isosurfaces1.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/isosurfaces1.py)
 
@@ -2079,6 +2081,7 @@ class VolumeAlgorithms(CommonAlgorithms):
 
         out = vedo.mesh.Mesh(poly, c=None).phong()
         out.mapper.SetScalarRange(scrange[0], scrange[1])
+        out.metadata["isovalue"] = value
 
         out.pipeline = utils.OperationNode(
             "isosurface",
@@ -2104,6 +2107,8 @@ class VolumeAlgorithms(CommonAlgorithms):
         the labels on either side of the polygons composing the output Mesh. 
         (This can be used for advanced operations like extracting shared/contacting boundaries between two objects.
         The name of this celldata array is "BoundaryLabels").
+
+        The values can be accessed with `mesh.metadata["isovalue"]`.
 
         Arguments:
             value : (float, list)
@@ -2166,6 +2171,7 @@ class VolumeAlgorithms(CommonAlgorithms):
         snets.Update()
 
         out = vedo.mesh.Mesh(snets.GetOutput())
+        out.metadata["isovalue"] = values
         out.pipeline = utils.OperationNode(
             "isosurface_discrete",
             parents=[self],

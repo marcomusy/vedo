@@ -11,13 +11,12 @@ p = Point([-2,0,0]).ps(12).color("black")
 p.add_trail(lw=3, n=50)
 
 plt = Plotter(axes=6, interactive=False)
-
-# add meshes to Plotter list
-plt += [s, p, __doc__]
+plt.show(s, p, __doc__)
 
 for i in range(150):
     p.pos(-2+i/100.0, sin(i/5.0)/15, 0).update_trail()
-    plt.show(azimuth=-0.2)
+    plt.azimuth(-0.2)
+    plt.render()
 
 # stay interactive and after pressing q close
 plt.interactive().close()

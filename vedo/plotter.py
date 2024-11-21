@@ -1029,6 +1029,8 @@ class Plotter:
                     except AttributeError:
                         pass
 
+        if ren is None:
+            return self
         ir = self.renderers.index(ren)
 
         ids = []
@@ -1305,6 +1307,8 @@ class Plotter:
         """
         if at is None:
             renderer = self.renderer
+            if renderer is None:
+                return []
             at = self.renderers.index(renderer)
         elif isinstance(at, int):
             renderer = self.renderers[at]

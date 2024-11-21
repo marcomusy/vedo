@@ -1499,6 +1499,7 @@ class PointsVisual(CommonVisual):
 
             tline = vedo.shapes.Line(pos, pos, res=n, c=col, alpha=alpha, lw=lw)
             self.trail = tline  # holds the Line
+            self.trail.initilized = False # so the first update will be a reset
         return self
 
     def update_trail(self) -> Self:
@@ -1506,8 +1507,13 @@ class PointsVisual(CommonVisual):
         Update the trailing line of a moving object.
         """
         currentpos = self.pos()
+        if not self.trail.initilized:
+            self.trail_points = [currentpos] * self.trail.npoints
+            self.trail.initilized = True
+            return self
         self.trail_points.append(currentpos)  # cycle
         self.trail_points.pop(0)
+
         data = np.array(self.trail_points) + self.trail_offset
         tpoly = self.trail.dataset
         tpoly.GetPoints().SetData(utils.numpy2vtk(data, dtype=np.float32))
