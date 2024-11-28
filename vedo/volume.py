@@ -190,7 +190,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
                 self.properties.SetShade(True)
                 self.properties.SetInterpolationType(1)
                 self.cmap("RdBu_r")
-                self.alpha([0.0, 0.0, 0.2, 0.4, 0.8, 1.0])
+                self.alpha([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
                 self.alpha_gradient(None)
                 self.properties.SetScalarOpacityUnitDistance(1.0)
 
