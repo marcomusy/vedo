@@ -27,6 +27,8 @@
 - changes in the scalarbar2d object.
 - fix purging of nan in pyplot.plot()
 - fix line trace to skip first point
+- adjust volume transfer function for transparency @Poisoned
+
 
 
 ## Soft-breaking Changes
@@ -84,3 +86,11 @@ mesh_map2cell.py
 texturecubes.py
 meshquality.py
 streamlines1.py
+
+#### volume alphas look bad
+erode_dilate.py
+euclidian_dist.py
+numpy2volume0.py
+numpy_imread.py
+slab_vol.py
+warp_scalars.py

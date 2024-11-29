@@ -174,9 +174,20 @@ Check out the example galleries organized by subject here:
 ## ✏  Contributing
 
 Any contributions are **greatly appreciated**!
-If you have a suggestion that would make this better, please fork the repo and create a pull request.
+If you have a suggestion that would make this better,
+please fork the repo and create a pull request. This is how:
+```bash
+# 1. Fork the repository on GitHub then clone your fork locally:
+git clone https://github.com/your-username/vedo.git
+# 2. Create a new branch for your feature or bugfix:
+git checkout -b feature/my-feature
+# 3. Make your changes and commit them:
+git commit -m "Description of my feature"
+# 4. Push your changes to your fork:
+git push origin feature/my-feature
+# 5. Open a Pull Request on the main repository.
+```
 You can also simply open an issue with the tag "enhancement".
-
 
 
 ## 📜  References

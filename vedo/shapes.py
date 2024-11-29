@@ -3398,7 +3398,7 @@ class Spring(Mesh):
 
         super().__init__(tuf.GetOutput(), c, alpha)
 
-        self.phong()
+        self.phong().lighting("metallic")
         self.base = np.array(start_pt, dtype=float)
         self.top  = np.array(end_pt, dtype=float)
         self.name = "Spring"

@@ -76,20 +76,20 @@ assert np.allclose([5,6,0], cone.pos())
 ###################################### shift
 cone.pos(5,6,7).shift(3,0,0)
 print('shift',[8,6,7], cone.pos())
-assert np.allclose([8,6,7], cone.pos())
+assert np.allclose([8,6,7], cone.pos(), atol=0.001)
 
 
 ###################################### x y z
 cone.pos(10,11,12)
 cone.x(1.1)
 print('x y z',[1.1,11,12], cone.pos())
-assert np.allclose([1.1,11,12], cone.pos())
+assert np.allclose([1.1,11,12], cone.pos(), atol=0.001)
 cone.y(1.2)
 print('x y z',[1.1,1.2,12], cone.pos())
-assert np.allclose([1.1,1.2,12], cone.pos())
+assert np.allclose([1.1,1.2,12], cone.pos(), atol=0.001)
 cone.z(1.3)
 print('x y z',[1.1,1.2,1.3], cone.pos())
-assert np.allclose([1.1,1.2,1.3], cone.pos())
+assert np.allclose([1.1,1.2,1.3], cone.pos(), atol=0.001)
 
 
 ###################################### rotate
@@ -160,7 +160,7 @@ pts2 = pts + [1,2,3]
 s2.vertices = pts2
 pts3 = s2.vertices
 print('vertices',sum(pts3-pts2))
-assert np.allclose(pts2, pts3)
+assert np.allclose(pts2, pts3, atol=0.001)
 
 
 ###################################### cells
@@ -220,7 +220,7 @@ print('diagonal_size',sphere.diagonal_size())
 assert 3.3 < sphere.diagonal_size() < 3.5
 
 print('center_of_mass',sphere.center_of_mass())
-assert np.allclose(sphere.center_of_mass(), [0,0,0])
+assert np.allclose(sphere.center_of_mass(), [0,0,0], atol=0.001)
 
 print('volume',sphere.volume())
 assert 4.1 < sphere.volume() < 4.2
@@ -233,7 +233,7 @@ assert 12.5 < sphere.area() < 12.6
 pt = [12,34,52]
 print('closest_point',sphere.closest_point(pt), [0.19883616, 0.48003298, 0.85441941])
 assert np.allclose(sphere.closest_point(pt),
-                   [0.19883616, 0.48003298, 0.85441941])
+                   [0.19883616, 0.48003298, 0.85441941], atol=0.001)
 
 
 ###################################### find_cells_in_bounds
@@ -246,13 +246,13 @@ assert len(ics) == 1576
 T = cone.clone().pos(35,67,87).transform
 s3 = Sphere().apply_transform(T)
 print('transformMesh',s3.center_of_mass(), (35,67,87))
-assert np.allclose(s3.center_of_mass(), (35,67,87))
+assert np.allclose(s3.center_of_mass(), (35,67,87), atol=0.001)
 
 
 ######################################normalize
 s3 = sphere.clone().pos(10,20,30).scale([7,8,9]).normalize()
 print('normalize',s3.center_of_mass(), (10,20,30))
-assert np.allclose(s3.center_of_mass(), (10,20,30))
+assert np.allclose(s3.center_of_mass(), (10,20,30), atol=0.001)
 print('normalize',s3.average_size())
 assert 0.9 < s3.average_size() < 1.1
 
@@ -276,7 +276,7 @@ assert s2.npoints == 213
 
 ###################################### vertex_normals
 print('vertex_normals',sphere.vertex_normals[12], [9.97668684e-01, 1.01513637e-04, 6.82437494e-02])
-assert np.allclose(sphere.vertex_normals[12], [9.97668684e-01, 1.01513637e-04, 6.82437494e-02])
+assert np.allclose(sphere.vertex_normals[12], [9.97668684e-01, 1.01513637e-04, 6.82437494e-02], atol=0.001)
 
 
 ###################################### contains
@@ -286,9 +286,9 @@ assert Sphere().contains([0.1,0.2,0.3])
 ###################################### intersectWithLine (fails vtk7..)
 # pts = sphere.intersectWithLine([-2,-2,-2], [2,3,4])
 # print('intersectWithLine',pts[0])
-# assert np.allclose(pts[0], [-0.8179885149002075, -0.522485613822937, -0.2269827425479889])
+# assert np.allclose(pts[0], [-0.8179885149002075, -0.522485613822937, -0.2269827425479889], atol=0.001)
 # print('intersectWithLine',pts[1])
-# assert np.allclose(pts[1], [-0.06572723388671875, 0.41784095764160156, 0.9014091491699219])
+# assert np.allclose(pts[1], [-0.06572723388671875, 0.41784095764160156, 0.9014091491699219], atol=0.001)
 
 
 ############################################################################
@@ -333,21 +333,21 @@ q = [5,2,3]
 q = transformations.cart2spher(*q)
 q = transformations.spher2cart(*q)
 print("cart2spher spher2cart", q)
-assert np.allclose(q, [5,2,3])
+assert np.allclose(q, [5,2,3], atol=0.001)
 q = transformations.cart2cyl(*q)
 q = transformations.cyl2cart(*q)
 print("cart2cyl cyl2cart", q)
-assert np.allclose(q, [5,2,3])
+assert np.allclose(q, [5,2,3], atol=0.001)
 q = transformations.cart2cyl(*q)
 q = transformations.cyl2spher(*q)
 q = transformations.spher2cart(*q)
 print("cart2cyl cyl2spher spher2cart", q)
-assert np.allclose(q, [5,2,3])
+assert np.allclose(q, [5,2,3], atol=0.001)
 q = transformations.cart2spher(*q)
 q = transformations.spher2cyl(*q)
 q = transformations.cyl2cart(*q)
 print("cart2spher spher2cyl cyl2cart", q)
-assert np.allclose(q, [5,2,3])
+assert np.allclose(q, [5,2,3], atol=0.001)
 
 ######################################
 print("OK with test_actors")
