@@ -14,7 +14,7 @@ z1, z2 = -1.5, -0.5
 ids = mesh.find_cells_in_bounds(zbounds=(z1,z2))
 
 # Print the cell IDs in green to the console
-printc('IDs of cells within bounds:\n', sorted(ids), c='g')
+printc('IDs of cells within bounds:\n', ids, c='g')
 
 # Create two Plane objects at the specified z-positions
 p1 = Plane(normal=(0,0,1), s=[2,2]).z(z1).alpha(0.5)

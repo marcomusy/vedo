@@ -283,7 +283,11 @@ class Mesh(MeshVisual, Points):
         vtknormals = self.dataset.GetCellData().GetNormals()
         numpy_normals = vtk2numpy(vtknormals)
         if len(numpy_normals) == 0 and len(self.cells) != 0:
-            raise ValueError("VTK failed to return any normal vectors. You may need to call `Mesh.compute_normals()` before accessing `Mesh.cell_normals`.")
+            vedo.logger.warning(
+                "failed to return normal vectors.\n"
+                "You may need to call `Mesh.compute_normals()` before accessing 'Mesh.cell_normals'."
+            )
+            numpy_normals = np.zeros((self.ncells, 3)) + [0,0,1]
         return numpy_normals
 
     def compute_normals(self, points=True, cells=True, feature_angle=None, consistency=True) -> Self:

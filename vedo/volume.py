@@ -190,7 +190,12 @@ class Volume(VolumeAlgorithms, VolumeVisual):
                 self.properties.SetShade(True)
                 self.properties.SetInterpolationType(1)
                 self.cmap("RdBu_r")
-                self.alpha([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+                # make asigmoidal transfer function by default
+                # xvalues = np.linspace(0, 1, 11)
+                # sigmoid = np.clip(1/(1+np.exp(-20*(xvalues-0.5))), 0, 1)
+                # print("Volume: setting sigmoidal transfer function", xvalues, sigmoid)
+                # self.alpha(sigmoid)
+                self.alpha([0.0, 0.001, 0.3, 0.5, 0.7, 0.8, 1.0]) # we need to revert this..
                 self.alpha_gradient(None)
                 self.properties.SetScalarOpacityUnitDistance(1.0)
 

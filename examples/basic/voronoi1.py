@@ -11,6 +11,7 @@ vor = pts.generate_voronoi(padding=0.01)
 vor.cmap('Set3', "VoronoiID", on='cells').wireframe(False)
 
 # Create a label for each cell showing its ID
+vor.compute_normals() # needed for the labels to face the camera
 labels = vor.labels("VoronoiID", on='cells', scale=0.01, justify='center')
 
 # Plot the objects and close the window to continue

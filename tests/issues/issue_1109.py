@@ -21,6 +21,8 @@ zslice.cmap("hot_r").lw(1).alpha(0.9).add_scalarbar3d()
 cc = CellCenters(zslice).shift([-spacing[0] / 2, -spacing[1] / 2, 0])
 cc.resample_data_from(zslice)
 
+zslice.compute_normals()
+
 zslice2 = zslice.clone()
 zslice2.celldata["pixel_value"] = cc.pointdata["input_scalars"]
 print(zslice2.celldata["pixel_value"])

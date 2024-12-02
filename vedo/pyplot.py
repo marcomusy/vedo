@@ -3683,6 +3683,7 @@ def matrix(
         sbar = gr.scalarbar
     labs = None
     if scale != 0:
+        gr.compute_normals(points=False)
         labs = gr.labels(
             on="cells",
             scale=scale / max(m, n),

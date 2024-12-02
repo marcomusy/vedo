@@ -34,13 +34,13 @@
 
 
 ## Soft-breaking Changes
-Changes that will break existing code whose fixing is trivial:
+Changes that may break existing code whose fixing is trivial:
 
-- None
+- in `file_io.screenshot()` add fourth channel representing trasparency @miek0tube
 
 
 ## Hard-breaking Changes
-Changes that will break existing code and need active thinking and work to adapt
+Changes that will break existing code and need active thinking and some work to adapt
 
 - None
 

@@ -1881,15 +1881,11 @@ def screenshot(filename="screenshot.png", scale=1, asarray=False) -> Union["vedo
     if asarray:
         pd = w2if.GetOutput().GetPointData()
         npdata = utils.vtk2numpy(pd.GetArray("ImageScalars"))
-        npdata = npdata[:, [0, 1, 2]]
+        # npdata = npdata[:, [0, 1, 2]]  # remove alpha channel, issue #1199
         ydim, xdim, _ = w2if.GetOutput().GetDimensions()
         npdata = npdata.reshape([xdim, ydim, -1])
         npdata = np.flip(npdata, axis=0)
         return npdata ###########################
-
-    # elif settings.default_backend == "2d" and vedo.notebook_plotter:
-    #     vedo.notebook_plotter.save(filename) # a PIL Image
-    #     return vedo.notebook_plotter  ##########
 
     if filename.lower().endswith(".png"):
         writer = vtki.new("PNGWriter")

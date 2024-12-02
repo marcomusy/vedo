@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from weakref import ref as weak_ref_to
-from typing import List, Union, Any, Self
+from typing import List, Union, Any
+from typing_extensions import Self
+
 import numpy as np
 
 import vedo.file_io
@@ -331,8 +333,8 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
 
         n = len(self.unpack())
         out += "n. of objects".ljust(14) + ": " + str(n) + " "
-        names = set([a.name for a in self.unpack() if a.name])
-        if names:
+        names = np.unique([a.name for a in self.unpack() if a.name])
+        if len(names):
             out += str(names).replace("'","")[:56]
         out += "\n"
 

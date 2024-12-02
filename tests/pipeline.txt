@@ -112,7 +112,7 @@ cd ~/Projects/server/welsh_embryo_stager
    python stager.py pics/E14.5_L3-03_HL2.5X.jpg
 ################
 cd ~/Projects/oocytes
-   python step3.py
+   python step5.py
 ################
 cd ~/Projects/umap_viewer3d
    python main6.py
