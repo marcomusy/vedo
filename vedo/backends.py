@@ -38,6 +38,10 @@ def get_notebook_backend(actors2show=()):
     if settings.default_backend.startswith("ipyvtk"):
         return start_ipyvtklink()
 
+    #########################################
+    if settings.default_backend.startswith("panel"):
+        return start_panel()
+
     vedo.logger.error(f"Unknown jupyter backend: {settings.default_backend}")
     return None
 
@@ -66,6 +70,33 @@ def start_2d():
             plt.close()
         return pil_img
 
+#####################################################################################
+def start_panel():
+    try:
+        import panel as pn
+        pn.extension('vtk', design='material', sizing_mode='stretch_width', template='material')
+        # pn.state.template.config.raw_css.append("""
+        # #main {
+        # padding: 0;
+        # }""")
+    except ImportError:
+        print("panel is not installed, try:\n> conda install panel")
+        return None
+
+    print("panel backend NOT YET FUNCTIONAL")
+    plt = vedo.plotter_instance
+
+    if hasattr(plt, "window") and plt.window:
+        plt.renderer.ResetCamera()
+        vtkpan = pn.pane.VTK(
+            plt.window, 
+            margin=0, sizing_mode='stretch_both',
+            min_height=600,
+            orientation_widget=True,
+            enable_keybindings=True,
+        )
+        vedo.notebook_plotter = vtkpan
+        return vedo.notebook_plotter
 
 ####################################################################################
 def start_k3d(actors2show):
@@ -200,7 +231,7 @@ def start_k3d(actors2show):
             ) * np.array([-1, 1] * 3)
 
             kobj = k3d.volume(
-                kimage.astype(float),
+                kimage.astype(np.float32),
                 color_map=kcmap,
                 # color_range=ia.dataset.GetScalarRange(),
                 alpha_coef=10,
@@ -243,11 +274,11 @@ def start_k3d(actors2show):
                 aves = ia.diagonal_size() * iap.GetLineWidth() / 100
 
                 kobj = k3d.line(
-                    pts.astype(float),
+                    pts.astype(np.float32),
                     color=_rgb2int(iap.GetColor()),
                     opacity=iap.GetOpacity(),
                     shader=settings.k3d_line_shader,
-                    width=aves,
+                    width=aves.astype(float),
                     name=name,
                 )
                 vedo.notebook_plotter += kobj
@@ -316,12 +347,12 @@ def start_k3d(actors2show):
             aves = ia.average_size() * iap.GetPointSize() / 200
 
             kobj = k3d.points(
-                ia.vertices.astype(float),
+                ia.vertices.astype(np.float32),
                 color=_rgb2int(iap.GetColor()),
                 colors=kcols,
                 opacity=iap.GetOpacity(),
                 shader=settings.k3d_point_shader,
-                point_size=aves,
+                point_size=aves.astype(float),
                 name=name,
             )
             vedo.notebook_plotter += kobj

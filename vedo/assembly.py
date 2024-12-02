@@ -331,7 +331,7 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
 
         n = len(self.unpack())
         out += "n. of objects".ljust(14) + ": " + str(n) + " "
-        names = [a.name for a in self.unpack() if a.name]
+        names = set([a.name for a in self.unpack() if a.name])
         if names:
             out += str(names).replace("'","")[:56]
         out += "\n"

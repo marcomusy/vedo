@@ -510,29 +510,28 @@ class Plotter:
             ####################################
 
         #############################################################
-        if vedo.settings.default_backend in ["vtk", "2d", "trame"]:
+        if screensize == "auto":
+            screensize = (2160, 1440)  # TODO: get actual screen size
 
-            if screensize == "auto":
-                screensize = (2160, 1440)  # TODO: get actual screen size
+        # build the rendering window:
+        self.window = vtki.vtkRenderWindow()
 
-            # build the rendering window:
-            self.window = vtki.vtkRenderWindow()
+        self.window.GlobalWarningDisplayOff()
 
-            self.window.GlobalWarningDisplayOff()
+        if self.title == "vedo":  # check if dev version
+            if "dev" in vedo.__version__:
+                self.title = f"vedo ({vedo.__version__})"
+        self.window.SetWindowName(self.title)
 
-            if self.title == "vedo":  # check if dev version
-                if "dev" in vedo.__version__:
-                    self.title = f"vedo ({vedo.__version__})"
-            self.window.SetWindowName(self.title)
+        # more vedo.settings
+        if vedo.settings.use_depth_peeling:
+            self.window.SetAlphaBitPlanes(vedo.settings.alpha_bit_planes)
+        self.window.SetMultiSamples(vedo.settings.multi_samples)
 
-            # more vedo.settings
-            if vedo.settings.use_depth_peeling:
-                self.window.SetAlphaBitPlanes(vedo.settings.alpha_bit_planes)
-            self.window.SetMultiSamples(vedo.settings.multi_samples)
+        self.window.SetPolygonSmoothing(vedo.settings.polygon_smoothing)
+        self.window.SetLineSmoothing(vedo.settings.line_smoothing)
+        self.window.SetPointSmoothing(vedo.settings.point_smoothing)
 
-            self.window.SetPolygonSmoothing(vedo.settings.polygon_smoothing)
-            self.window.SetLineSmoothing(vedo.settings.line_smoothing)
-            self.window.SetPointSmoothing(vedo.settings.point_smoothing)
 
         #############################################################
         if N:  # N = number of renderers. Find out the best
@@ -697,7 +696,6 @@ class Plotter:
                     arenderer.SetTwoSidedLighting(vedo.settings.two_sided_lighting)
 
                     arenderer.SetUseDepthPeeling(vedo.settings.use_depth_peeling)
-                    # arenderer.SetUseDepthPeelingForVolumes(vedo.settings.use_depth_peeling)
                     if vedo.settings.use_depth_peeling:
                         arenderer.SetMaximumNumberOfPeels(vedo.settings.max_number_of_peels)
                         arenderer.SetOcclusionRatio(vedo.settings.occlusion_ratio)
@@ -750,12 +748,14 @@ class Plotter:
                 except AttributeError:
                     pass
 
+        # Backend ####################################################
+        if vedo.settings.default_backend in ["panel", "trame", "k3d"]:
+            return  ################
+            ########################
+
         #########################################################
         if self.qt_widget or self.wx_widget:
-            # self.window.SetSize(int(self.size[0]), int(self.size[1]))
             self.interactor.SetRenderWindow(self.window)
-            # vsty = vtki.new("InteractorStyleTrackballCamera")
-            # self.interactor.SetInteractorStyle(vsty)
             if vedo.settings.enable_default_keyboard_callbacks:
                 self.interactor.AddObserver("KeyPressEvent", self._default_keypress)
             if vedo.settings.enable_default_mouse_callbacks:
@@ -795,6 +795,7 @@ class Plotter:
             self.interactor.AddObserver("LeftButtonPressEvent", self._default_mouseleftclick)
 
     ##################################################################### ..init ends here.
+
 
     def __str__(self):
         """Return Plotter info."""
@@ -3327,7 +3328,7 @@ class Plotter:
         self.add(objects)
 
         # Backend ###############################################################
-        if vedo.settings.default_backend in ["k3d"]:
+        if vedo.settings.default_backend in ["k3d", "panel"]:
             return backends.get_notebook_backend(self.objects)
         #########################################################################
 
@@ -3469,7 +3470,7 @@ class Plotter:
                     self.clock = time.time() - self._clockt0
 
         # 2d ####################################################################
-        if vedo.settings.default_backend == "2d":
+        if vedo.settings.default_backend in ["2d"]:
             return backends.get_notebook_backend()
         #########################################################################
 
