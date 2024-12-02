@@ -28,6 +28,8 @@
 - fix purging of nan in pyplot.plot()
 - fix line trace to skip first point
 - adjust volume transfer function for transparency @Poisoned
+- fixing axes type 10 by @Poisoned
+- improvements to input/output functionality for Assembly @ttsesm
 
 
 

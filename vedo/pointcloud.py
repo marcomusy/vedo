@@ -28,7 +28,6 @@ __all__ = [
     "Point",
     "CellCenters",
     "merge",
-    "delaunay2d",  # deprecated, use .generate_delaunay2d()
     "fit_line",
     "fit_circle",
     "fit_plane",
@@ -91,18 +90,6 @@ def merge(*meshs, flag=False) -> Union["vedo.Mesh", "vedo.Points", None]:
         "merge", parents=objs, comment=f"#pts {msh.dataset.GetNumberOfPoints()}"
     )
     return msh
-
-
-def delaunay2d(plist, **kwargs) -> Self:
-    """delaunay2d() is deprecated, use Points().generate_delaunay2d() instead."""
-    if isinstance(plist, Points):
-        plist = plist.vertices
-    else:
-        plist = np.ascontiguousarray(plist)
-        plist = utils.make3d(plist)
-    pp = Points(plist).generate_delaunay2d(**kwargs)
-    print("WARNING: delaunay2d() is deprecated, use Points().generate_delaunay2d() instead")
-    return pp
 
 
 def _rotate_points(points, n0=None, n1=(0, 0, 1)) -> Union[np.ndarray, tuple]:

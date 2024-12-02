@@ -377,6 +377,20 @@ def _load_file(filename, unpack):
                     acts.append(vedo.UnstructuredGrid(b))
             return acts
         return mb
+    
+    ######################################################### assembly:
+    elif fl.endswith(".npy"):
+        data = np.load(filename, allow_pickle=True)
+        try:
+            # old format with a single object
+            meshs = [from_numpy(dd) for dd in data]
+        except TypeError:
+            data = data.item()
+            meshs = []
+            for ad in data["objects"][0]["parts"]:
+                obb = from_numpy(ad)
+                meshs.append(obb)
+        return Assembly(meshs)
 
     ###########################################################
     elif fl.endswith(".geojson"):
@@ -881,7 +895,7 @@ def loadPCD(filename: Union[str, os.PathLike]) -> Points:
     return Points(poly).point_size(4)
 
 #########################################################################
-def _from_numpy(d: dict) -> Mesh:
+def from_numpy(d: dict) -> Mesh:
     # recreate a mesh from numpy arrays
     keys = d.keys()
 
@@ -1062,13 +1076,13 @@ def _import_npy(fileinput: Union[str, os.PathLike]) -> "vedo.Plotter":
     for d in data["objects"]:
         ### Mesh
         if d['type'].lower() == 'mesh':
-            obj = _from_numpy(d)
+            obj = from_numpy(d)
 
         ### Assembly
         elif d['type'].lower() == 'assembly':
             assacts = []
             for ad in d["actors"]:
-                assacts.append(_from_numpy(ad))
+                assacts.append(from_numpy(ad))
             obj = Assembly(assacts)
             obj.SetScale(d["scale"])
             obj.SetPosition(d["position"])
@@ -1171,6 +1185,15 @@ def write(objct: Any, fileoutput: Union[str, os.PathLike], binary=True) -> Any:
     - `vtk, vti, ply, obj, stl, byu, vtp, vti, mhd, xyz, xml, tif, png, bmp`
     """
     fileoutput = str(fileoutput)
+
+    ###############################
+    if isinstance(objct, Assembly):
+        dd = to_numpy(objct)
+        sdict = {"objects": [dd]}
+        np.save(fileoutput, sdict)
+        return objct
+    
+    ###############################
     obj = objct.dataset
 
     try:
@@ -1424,7 +1447,7 @@ def export_window(fileoutput: Union[str, os.PathLike], binary=False, plt=None) -
     return plt
 
 #########################################################################
-def _to_numpy(act: Any) -> dict:
+def to_numpy(act: Any) -> dict:
     """Encode a vedo object to numpy format."""
 
     ########################################################
@@ -1603,6 +1626,14 @@ def _to_numpy(act: Any) -> dict:
         adict["bgcol"] = obj.properties.GetBackgroundColor()
         adict["alpha"] = obj.properties.GetBackgroundOpacity()
         adict["frame"] = obj.properties.GetFrame()
+    
+    ######################################################## Assembly
+    elif isinstance(obj, Assembly):
+        adict["type"] = "Assembly"
+        _fillcommon(obj, adict)
+        adict["parts"] = []
+        for a in obj.unpack():
+            adict["parts"].append(to_numpy(a))
 
     else:
         # vedo.logger.warning(f"to_numpy: cannot export object of type {type(obj)}")
@@ -1681,7 +1712,7 @@ def _export_npy(plt, fileoutput="scene.npz") -> None:
     for a in allobjs:
         # print("to_numpy(): dumping", [a], a.name)
         # try:
-        npobj = _to_numpy(a)
+        npobj = to_numpy(a)
         sdict["objects"].append(npobj)
         # except AttributeError:
         #     vedo.logger.warning(f"Cannot export object of type {type(a)}")

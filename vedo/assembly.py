@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from weakref import ref as weak_ref_to
-from typing import List, Union, Any
+from typing import List, Union, Any, Self
 import numpy as np
 
+import vedo.file_io
 import vedo.vtkclasses as vtki  # a wrapper for lazy imports
 
 import vedo
@@ -237,29 +238,14 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
         Group many objects and treat them as a single new object,
         keeping track of internal transformations.
 
+        File can be loaded by passing its name as a string. Format must be `npy`.
+
         Examples:
             - [gyroscope1.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/gyroscope1.py)
 
             ![](https://vedo.embl.es/images/simulations/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif)
         """
         super().__init__()
-
-        # Init by filename
-        if len(meshs) == 1 and isinstance(meshs[0], str):
-            filename = vedo.file_io.download(meshs[0], verbose=False)
-            data = np.load(filename, allow_pickle=True)
-            meshs = [vedo.file_io._from_numpy(dd) for dd in data]
-        # Name and load from dictionary
-        if len(meshs) == 1 and isinstance(meshs[0], dict):
-            meshs = meshs[0]
-            for name in meshs:
-                meshs[name].name = name
-            meshs = list(meshs.values())
-        else:
-            if len(meshs) == 1:
-                meshs = meshs[0]
-            else:
-                meshs = vedo.utils.flatten(meshs)
 
         self.actor = self
         self.actor.retrieve_object = weak_ref_to(self)
@@ -272,6 +258,37 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
         self.time = 0
 
         self.transform = LinearTransform()
+
+        # Init by filename
+        if len(meshs) == 1 and isinstance(meshs[0], str):
+            filename = vedo.file_io.download(meshs[0], verbose=False)            
+            data = np.load(filename, allow_pickle=True)
+            try:
+                # old format with a single object
+                meshs = [vedo.file_io.from_numpy(dd) for dd in data]
+            except TypeError:
+                # new format with a dictionary
+                data = data.item()
+                meshs = []
+                for ad in data["objects"][0]["parts"]:
+                    obb = vedo.file_io.from_numpy(ad)
+                    meshs.append(obb)
+                self.transform = LinearTransform(data["objects"][0]["transform"])
+                self.actor.SetPosition(self.transform.T.GetPosition())
+                self.actor.SetOrientation(self.transform.T.GetOrientation())
+                self.actor.SetScale(self.transform.T.GetScale())
+
+        # Name and load from dictionary
+        if len(meshs) == 1 and isinstance(meshs[0], dict):
+            meshs = meshs[0]
+            for name in meshs:
+                meshs[name].name = name
+            meshs = list(meshs.values())
+        else:
+            if len(meshs) == 1:
+                meshs = meshs[0]
+            else:
+                meshs = vedo.utils.flatten(meshs)
 
         self.objects = [m for m in meshs if m]
         self.actors  = [m.actor for m in self.objects]
@@ -471,6 +488,13 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
         """Return nr. of objects in the assembly."""
         return len(self.objects)
 
+    def write(self, filename="assembly.npy") -> Self:
+        """
+        Write the object to file in `numpy` format (npy).
+        """
+        vedo.file_io.write(self, filename)
+        return self
+
     # TODO ####
     # def propagate_transform(self):
     #     """Propagate the transformation to all parts."""
@@ -660,13 +684,3 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
         """Return a copy of the object. Alias of `clone()`."""
         return self.clone()
 
-    # def write(self, filename="assembly.npy") -> "Assembly":
-    #     """
-    #     Write the object to file in `numpy` format.
-    #     """
-    #     objs = []
-    #     for ob in self.unpack():
-    #         d = vedo.file_io._to_numpy(ob)
-    #         objs.append(d)
-    #     np.save(filename, objs)
-    #     return self
