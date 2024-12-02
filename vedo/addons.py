@@ -4838,8 +4838,8 @@ def add_global_axes(axtype=None, c=None, bounds=()) -> None:
         ca = xc + yc + zc
         ca.PickableOff()
         ca.UseBoundsOn()
-        plt.renderer.AddActor(ca)
         plt.axes_instances[r] = ca
+        plt.add(ca)
 
     elif plt.axes == 11:
         vbb, ss = compute_visible_bounds()[0:2]
