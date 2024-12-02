@@ -4826,18 +4826,18 @@ def add_global_axes(axtype=None, c=None, bounds=()) -> None:
         vbb = compute_visible_bounds()[0]
         x0 = (vbb[0] + vbb[1]) / 2, (vbb[3] + vbb[2]) / 2, (vbb[5] + vbb[4]) / 2
         rx, ry, rz = (vbb[1] - vbb[0]) / 2, (vbb[3] - vbb[2]) / 2, (vbb[5] - vbb[4]) / 2
-        rm = max(rx, ry, rz)
-        xc = shapes.Disc(x0, r1=rm, r2=rm, c="lr", res=(1, 72))
-        yc = shapes.Disc(x0, r1=rm, r2=rm, c="lg", res=(1, 72))
-        yc.rotate_x(90)
-        zc = shapes.Disc(x0, r1=rm, r2=rm, c="lb", res=(1, 72))
-        zc.rotate_y(90)
-        xc.alpha(0.5).wireframe().linewidth(2).actor.PickableOff()
-        yc.alpha(0.5).wireframe().linewidth(2).actor.PickableOff()
-        zc.alpha(0.5).wireframe().linewidth(2).actor.PickableOff()
+        # compute diagonal length of the bounding box
+        rm = np.sqrt(rx ** 2 + ry ** 2 + rz ** 2)
+        d = 0.005 * rm
+        xc = shapes.Disc(x0, r1=rm, r2=rm+d, c="lr", res=(1, 120))
+        yc = shapes.Disc(x0, r1=rm, r2=rm+d, c="lg", res=(1, 120)).rotate_x(90)
+        zc = shapes.Disc(x0, r1=rm, r2=rm+d, c="lb", res=(1, 120)).rotate_y(90)
+        xc.pickable(0).lighting("off")
+        yc.pickable(0).lighting("off")
+        zc.pickable(0).lighting("off")
         ca = xc + yc + zc
         ca.PickableOff()
-        ca.UseBoundsOn()
+        ca.UseBoundsOff()
         plt.axes_instances[r] = ca
         plt.add(ca)
 
