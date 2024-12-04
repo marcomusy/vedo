@@ -1209,7 +1209,7 @@ class Plotter:
                             vtki.vtkViewport.GradientModes.VTK_GRADIENT_RADIAL_VIEWPORT_FARTHEST_SIDE,
                             vtki.vtkViewport.GradientModes.VTK_GRADIENT_RADIAL_VIEWPORT_FARTHEST_CORNER,
                         ]
-                        r.SetGradientMode(modes[vedo.settings.background_gradient_orientation])
+                        r.SetGradientMode(modes[mode])
                     except AttributeError:
                         pass
 
