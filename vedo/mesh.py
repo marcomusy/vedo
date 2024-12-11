@@ -843,6 +843,11 @@ class Mesh(MeshVisual, Points):
             comment=f"#lines {self.dataset.GetNumberOfLines()}"
         )
         return self
+    
+    def remove_all_lines(self) -> Self:
+        """Remove all line elements from the mesh."""
+        self.dataset.GetLines().Reset()
+        return self
 
     def slice(self, origin=(0, 0, 0), normal=(1, 0, 0)) -> Self:
         """

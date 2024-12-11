@@ -30,6 +30,7 @@
 - adjust volume transfer function for transparency @Poisoned
 - fixing axes type 10 by @Poisoned
 - improvements to input/output functionality for Assembly @ttsesm
+- added `mesh.remove_all_lines()` method
 
 
 

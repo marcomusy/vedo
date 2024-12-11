@@ -618,6 +618,12 @@ class Actor2D(vtki.vtkActor2D):
         """Toggle object visibility."""
         self.SetVisibility(not self.GetVisibility())
         return self
+    
+    def visibility(value=None) -> bool:
+        """Get/Set object visibility."""
+        if value is not None:
+            self.SetVisibility(value)
+        return self.GetVisibility()
 
     def pickable(self, value=True) -> Self:
         """Set object pickability."""

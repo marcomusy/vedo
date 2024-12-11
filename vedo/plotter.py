@@ -836,7 +836,7 @@ class Plotter:
             try:
                 b = a.bounds()
                 bns.append(b)
-            except AttributeError:
+            except (AttributeError, TypeError):
                 pass
             try:
                 totpt += a.npoints
