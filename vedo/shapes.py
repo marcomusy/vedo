@@ -2980,18 +2980,20 @@ class Grid(Mesh):
 
 class Plane(Mesh):
     """Create a plane in space."""
-
     def __init__(
-            self,
-            pos=(0, 0, 0),
-            normal=(0, 0, 1),
-            s=(1, 1),
-            res=(1, 1),
-            c="gray5", alpha=1.0,
-        ) -> None:
+        self,
+        pos=(0, 0, 0),
+        normal=(0, 0, 1),
+        s=(1, 1),
+        res=(1, 1),
+        edge_direction=(),
+        c="gray5",
+        alpha=1.0,
+    ) -> None:
         """
         Create a plane of size `s=(xsize, ysize)` oriented perpendicular
-        to vector `normal` so that it passes through point `pos`.
+        to vector `normal` so that it passes through point `pos`, optionally
+        aligning an edge with `direction`.
 
         Arguments:
             pos : (list)
@@ -3002,10 +3004,11 @@ class Plane(Mesh):
                 size of the plane along x and y
             res : (list)
                 resolution of the plane along x and y
+            edge_direction : (list)
+                direction vector to align one edge of the plane
         """
         if isinstance(pos, vtki.vtkPolyData):
             super().__init__(pos, c, alpha)
-            # self.transform = LinearTransform().translate(pos)
 
         else:
             ps = vtki.new("PlaneSource")
@@ -3013,25 +3016,46 @@ class Plane(Mesh):
             tri = vtki.new("TriangleFilter")
             tri.SetInputConnection(ps.GetOutputPort())
             tri.Update()
-            
             super().__init__(tri.GetOutput(), c, alpha)
 
             pos = utils.make3d(pos)
             normal = np.asarray(normal, dtype=float)
             axis = normal / np.linalg.norm(normal)
+
+            # Calculate orientation using normal
             theta = np.arccos(axis[2])
             phi = np.arctan2(axis[1], axis[0])
 
             t = LinearTransform()
             t.scale([s[0], s[1], 1])
+
+            # Rotate to align normal
             t.rotate_y(np.rad2deg(theta))
             t.rotate_z(np.rad2deg(phi))
+
+            # Additional direction alignment
+            if len(edge_direction) >= 2:
+                direction = utils.make3d(edge_direction).astype(float)
+                direction /= np.linalg.norm(direction)
+
+                if s[0] <= s[1]:
+                    current_direction = np.asarray([0,1,0])
+                else:
+                    current_direction = np.asarray([1,0,0])
+
+                transformed_current_direction = t.transform_point(current_direction)
+                n = transformed_current_direction / np.linalg.norm(transformed_current_direction)
+
+                if np.linalg.norm(transformed_current_direction) >= 1e-6:
+                    angle = np.arccos(np.dot(n, direction))
+                    t.rotate(axis=axis, angle=np.rad2deg(angle))
+
             t.translate(pos)
             self.apply_transform(t)
 
         self.lighting("off")
         self.name = "Plane"
-        self.variance = 0
+        self.variance = 0 # used by pointcloud.fit_plane()
 
     def clone(self, deep=True) -> "Plane":
         newplane = Plane()

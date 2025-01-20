@@ -2106,7 +2106,13 @@ class Points(PointsVisual, PointAlgorithms):
         self.pipeline = utils.OperationNode("warp", parents=parents)
         return self
 
-    def cut_with_plane(self, origin=(0, 0, 0), normal=(1, 0, 0), invert=False) -> Self:
+    def cut_with_plane(
+            self,
+            origin=(0, 0, 0),
+            normal=(1, 0, 0),
+            invert=False,
+            # generate_ids=False,
+    ) -> Self:
         """
         Cut the mesh with the plane defined by a point and a normal.
 
@@ -2115,6 +2121,8 @@ class Points(PointsVisual, PointAlgorithms):
                 the cutting plane goes through this point
             normal : (array)
                 normal of the cutting plane
+            invert : (bool)
+                select which side of the plane to keep
 
         Example:
             ```python
@@ -2153,13 +2161,29 @@ class Points(PointsVisual, PointAlgorithms):
         clipper.SetInputData(self.dataset)
         clipper.SetClipFunction(plane)
         clipper.GenerateClippedOutputOff()
-        clipper.GenerateClipScalarsOff()
+        clipper.SetGenerateClipScalars(0)
         clipper.SetInsideOut(invert)
         clipper.SetValue(0)
         clipper.Update()
 
-        self._update(clipper.GetOutput())
+        # if generate_ids:
+        #     saved_scalars = None # otherwise the scalars are lost
+        #     if self.dataset.GetPointData().GetScalars():
+        #         saved_scalars = self.dataset.GetPointData().GetScalars()
+        #     varr = clipper.GetOutput().GetPointData().GetScalars()
+        #     if varr.GetName() is None:
+        #         varr.SetName("DistanceToCut")
+        #     arr = utils.vtk2numpy(varr)
+        #     # array of original ids
+        #     ids = np.arange(arr.shape[0]).astype(int)
+        #     ids[arr == 0] = -1
+        #     ids_arr = utils.numpy2vtk(ids, dtype=int)
+        #     ids_arr.SetName("OriginalIds")
+        #     clipper.GetOutput().GetPointData().AddArray(ids_arr)
+        #     if saved_scalars:
+        #         clipper.GetOutput().GetPointData().AddArray(saved_scalars)
 
+        self._update(clipper.GetOutput())
         self.pipeline = utils.OperationNode("cut_with_plane", parents=[self])
         return self
 

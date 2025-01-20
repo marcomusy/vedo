@@ -31,6 +31,7 @@
 - fixing axes type 10 by @Poisoned
 - improvements to input/output functionality for Assembly @ttsesm
 - added `mesh.remove_all_lines()` method
+- added keyword `Plane(edge_direction=...)` by @smoothumut
 
 
 
@@ -54,6 +55,8 @@ examples/pyplot/fit_curve2.py
 
 tests/issues/issue_1146.py
 tests/issues/discussion_1190.py
+tests/issues/test_sph_harm2.py
+
 tests/snippets/test_interactive_plotxy.py
 tests/snippets/test_elastic_pendulum.py
 ```
