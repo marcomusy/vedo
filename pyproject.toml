@@ -37,20 +37,25 @@ dependencies = [
     "Pygments"
 ]
 
-[project.optional-dependencies]
-dev = [
-    "pytest",
-    "pytest-xdist",
-]
-
 [project.urls]
 Homepage = "https://github.com/marcomusy/vedo"
 Documentation = "https://vedo.embl.es"
 Repository = "https://github.com/marcomusy/vedo"
 Changelog = "https://github.com/marcomusy/vedo/blob/master/docs/changes.md"
 
+
 [tool.setuptools]
-packages = ["vedo"]
+
+packages = [
+    "vedo",
+    "vedo.examples.basic",
+    "vedo.examples.advanced",
+    "vedo.examples.pyplot",
+    "vedo.examples.simulations",
+    "vedo.examples.volumetric",
+    "vedo.examples.other"
+]
+
 include-package-data = true
 
 [tool.setuptools.package-data]
@@ -59,13 +64,14 @@ vedo = [
     "fonts/*",
 ]
 
-[tool.setuptools.data-files]
-"examples/advanced" = ["examples/advanced/*"]
-"examples/basic" = ["examples/basic/*"]
-"examples/other" = ["examples/other/*.py"]
-"examples/pyplot" = ["examples/pyplot/*"]
-"examples/simulations" = ["examples/simulations/*"]
-"examples/volumetric" = ["examples/volumetric/*"]
+[tool.setuptools.package-dir]
+vedo = "vedo"
+"vedo.examples.basic" = "examples/basic"
+"vedo.examples.advanced" = "examples/advanced"
+"vedo.examples.pyplot" = "examples/pyplot"
+"vedo.examples.simulations" = "examples/simulations"
+"vedo.examples.volumetric" = "examples/volumetric"
+"vedo.examples.other" = "examples/other"
 
 [tool.setuptools.dynamic]
 version = {attr = "vedo.version._version"}
