@@ -33,7 +33,6 @@ classifiers = [
 dependencies = [
     "vtk>=9.0.0",
     "pillow",
-    "six",
     "typing-extensions",
     "Pygments"
 ]
@@ -52,6 +51,21 @@ Changelog = "https://github.com/marcomusy/vedo/blob/master/docs/changes.md"
 
 [tool.setuptools]
 packages = ["vedo"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+vedo = [
+    "*",
+    "fonts/*",
+]
+
+[tool.setuptools.data-files]
+"examples/advanced" = ["examples/advanced/*"]
+"examples/basic" = ["examples/basic/*"]
+"examples/other" = ["examples/other/*", "examples/other/dolfin/*", "examples/other/trimesh/*"]
+"examples/pyplot" = ["examples/pyplot/*"]
+"examples/simulations" = ["examples/simulations/*"]
+"examples/volumetric" = ["examples/volumetric/*"]
 
 [tool.setuptools.dynamic]
 version = {attr = "vedo.version._version"}
