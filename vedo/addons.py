@@ -965,6 +965,7 @@ class SliderWidget(vtki.vtkSliderWidget):
 
     def __init__(self):
         super().__init__()
+        self.previous_value = None
 
     @property
     def interactor(self):
@@ -980,7 +981,9 @@ class SliderWidget(vtki.vtkSliderWidget):
 
     @property
     def value(self):
-        return self.GetRepresentation().GetValue()
+        val = self.GetRepresentation().GetValue()
+        # self.previous_value = val
+        return val
 
     @value.setter
     def value(self, val):
@@ -1390,8 +1393,7 @@ def ScalarBar3D(
 
     Input `obj` input can be:
 
-        - a list of numbers,
-        - a list of two numbers in the form (min, max),
+        - a look-up-table,
         - a Mesh already containing a set of scalars associated to vertices or cells,
         - if None the last object in the list of actors will be used.
 
@@ -1439,6 +1441,10 @@ def ScalarBar3D(
 
     elif isinstance(obj, Volume):
         lut = utils.ctf2lut(obj)
+        vmin, vmax = lut.GetRange()
+
+    elif isinstance(obj, vtki.vtkLookupTable):
+        lut = obj
         vmin, vmax = lut.GetRange()
 
     else:

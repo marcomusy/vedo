@@ -2112,8 +2112,8 @@ class Mesh(MeshVisual, Points):
         Return a new `Mesh` representing the isolines of the active scalars.
 
         Arguments:
-            n : (int)
-                number of isolines in the range
+            n : (int, list)
+                number of isolines in the range, a list of specific values can also be passed.
             vmin : (float)
                 minimum of the range
             vmax : (float)
@@ -2131,7 +2131,17 @@ class Mesh(MeshVisual, Points):
             vmin = r0
         if vmax is None:
             vmax = r1
-        bcf.GenerateValues(n, vmin, vmax)
+        if is_sequence(n):
+            i=0
+            for j in range(len(n)):
+                if vmin<=n[j]<=vmax:
+                    bcf.SetValue(i, n[i])
+                    i += 1
+                else:
+                    #print("value out of range")
+                    continue
+        else:
+            bcf.GenerateValues(n, vmin, vmax)
         bcf.Update()
         sf = vtki.new("Stripper")
         sf.SetJoinContiguousSegments(True)

@@ -28,6 +28,7 @@ __all__ = [
 #################################################
 def _get_img(obj: Union[np.ndarray, str], flip=False, translate=()) -> vtki.vtkImageData:
     # compute vtkImageData from numpy array or filename
+    img = None
 
     if isinstance(obj, str):
         if "https://" in obj:
