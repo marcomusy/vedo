@@ -40,6 +40,10 @@ from vedo import applications
 
 __all__ = []
 
+def main():
+    """Execute the command line interface and return the result."""
+    return execute_cli()
+
 ##############################################################################################
 def execute_cli():
 

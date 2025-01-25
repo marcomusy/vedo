@@ -1131,6 +1131,86 @@ class Lines(Mesh):
         self.name = "Lines"
 
 
+class Arc(Line):
+    """
+    Build a 2D circular arc between 2 points.
+    """
+
+    def __init__(
+        self,
+        center=None,
+        point1=None,
+        point2=None,
+        normal=None,
+        angle=None,
+        invert=False,
+        res=60,
+        c="k3",
+        alpha=1.0,
+    ) -> None:
+        """
+        Build a 2D circular arc between 2 points.
+        Two modes are available:
+            1. [center, point1, point2] are specified
+
+            2. [point1, normal, angle] are specified.
+
+        In the first case it creates an arc defined by two endpoints and a center.
+        In the second the arc spans the shortest angular sector defined by
+        a starting point, a normal and a spanning angle.
+        if `invert=True`, then the opposite happens.
+
+        Example 1:
+        ```python
+        from vedo import *
+        center = [0,1,0]
+        p1 = [1,2,0.4]
+        p2 = [0.5,3,-1]
+        arc = Arc(center, p1, p2).lw(5).c("purple5")
+        line2 = Line(center, p2)
+        pts = Points([center, p1,p2], r=9, c='r')
+        show(pts, line2, arc, f"length={arc.length()}", axes=1).close()
+        ```
+
+        Example 2:
+        ```python
+        from vedo import *
+        arc = Arc(point1=[0,1,0], normal=[0,0,1], angle=270)
+        arc.lw(5).c("purple5")
+        origin = Point([0,0,0], r=9, c='r')
+        show(origin, arc, arc.labels2d(), axes=1).close()
+        ```
+        """
+        ar = vtki.new("ArcSource")
+        if point2 is not None:
+            center = utils.make3d(center)
+            point1 = utils.make3d(point1)
+            point2 = utils.make3d(point2)
+            ar.UseNormalAndAngleOff()
+            ar.SetPoint1(point1-center)
+            ar.SetPoint2(point2-center)
+        elif normal is not None and angle and point1 is not None:
+            normal = utils.make3d(normal)
+            point1 = utils.make3d(point1)
+            ar.UseNormalAndAngleOn()
+            ar.SetAngle(angle)
+            ar.SetPolarVector(point1)
+            ar.SetNormal(normal)
+            self.top = normal
+        else:
+            vedo.logger.error("in Arc(), incorrect input combination.")
+            raise TypeError
+        ar.SetNegative(invert)
+        ar.SetResolution(res)
+        ar.Update()
+
+        super().__init__(ar.GetOutput(), c, alpha)
+        self.lw(2).lighting("off")
+        if point2 is not None: # nb: not center
+            self.pos(center)
+        self.name = "Arc"
+
+
 class Spline(Line):
     """
     Find the B-Spline curve through a set of points. This curve does not necessarily
@@ -2436,65 +2516,6 @@ class Disc(Mesh):
         self.flat()
         self.pos(utils.make3d(pos))
         self.name = "Disc"
-
-
-class Arc(Mesh):
-    """
-    Build a 2D circular arc between 2 points.
-    """
-
-    def __init__(
-        self,
-        center,
-        point1,
-        point2=None,
-        normal=None,
-        angle=None,
-        invert=False,
-        res=50,
-        c="gray4",
-        alpha=1.0,
-    ) -> None:
-        """
-        Build a 2D circular arc between 2 points `point1` and `point2`.
-
-        If `normal` is specified then `center` is ignored, and
-        normal vector, a starting `point1` (polar vector)
-        and an angle defining the arc length need to be assigned.
-
-        Arc spans the shortest angular sector point1 and point2,
-        if `invert=True`, then the opposite happens.
-        """
-        if len(point1) == 2:
-            point1 = (point1[0], point1[1], 0)
-        if point2 is not None and len(point2) == 2:
-            point2 = (point2[0], point2[1], 0)
-
-        ar = vtki.new("ArcSource")
-        if point2 is not None:
-            self.top = point2
-            point2 = point2 - np.asarray(point1)
-            ar.UseNormalAndAngleOff()
-            ar.SetPoint1([0, 0, 0])
-            ar.SetPoint2(point2)
-            # ar.SetCenter(center)
-        elif normal is not None and angle is not None:
-            ar.UseNormalAndAngleOn()
-            ar.SetAngle(angle)
-            ar.SetPolarVector(point1)
-            ar.SetNormal(normal)
-        else:
-            vedo.logger.error("incorrect input combination")
-            return
-        ar.SetNegative(invert)
-        ar.SetResolution(res)
-        ar.Update()
-
-        super().__init__(ar.GetOutput(), c, alpha)
-        self.pos(center)
-        self.lw(2).lighting("off")
-        self.name = "Arc"
-
 
 class IcoSphere(Mesh):
     """
