@@ -62,7 +62,7 @@ vedo = [
 [tool.setuptools.data-files]
 "examples/advanced" = ["examples/advanced/*"]
 "examples/basic" = ["examples/basic/*"]
-"examples/other" = ["examples/other/*", "examples/other/dolfin/*", "examples/other/trimesh/*"]
+"examples/other" = ["examples/other/*"]
 "examples/pyplot" = ["examples/pyplot/*"]
 "examples/simulations" = ["examples/simulations/*"]
 "examples/volumetric" = ["examples/volumetric/*"]
