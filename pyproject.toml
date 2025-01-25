@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vedo"
+dynamic = ["version"]
+description = "A python module for scientific visualization, analysis of 3D objects and point clouds."
+authors = [
+    {name = "Marco Musy", email = "marco.musy@gmail.com"}
+]
+maintainers = [
+    {name = "Marco Musy", email = "marco.musy@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.7"
+license = {file = "LICENSE"}
+keywords = ["vtk", "3d", "visualization", "mesh", "volume", "point-cloud"]
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "Development Status :: 5 - Production/Stable",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Visualization",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Scientific/Engineering :: Medical Science Apps."
+]
+dependencies = [
+    "vtk>=9.0.0",
+    "pillow",
+    "six",
+    "typing-extensions",
+    "Pygments"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-xdist",
+]
+
+[project.urls]
+Homepage = "https://github.com/marcomusy/vedo"
+Documentation = "https://vedo.embl.es"
+Repository = "https://github.com/marcomusy/vedo"
+Changelog = "https://github.com/marcomusy/vedo/blob/master/docs/changes.md"
+
+[tool.setuptools]
+packages = ["vedo"]
+
+[tool.setuptools.dynamic]
+version = {attr = "vedo.version._version"}
+
+[project.scripts]
+vedo = "vedo.cli:main"
+
