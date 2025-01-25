@@ -7,10 +7,10 @@ name = "vedo"
 dynamic = ["version"]
 description = "A python module for scientific visualization, analysis of 3D objects and point clouds."
 authors = [
-    {name = "Marco Musy", email = "marco.musy@gmail.com"}
+    {name = "Marco Musy", email = "marco.musy@embl.es"}
 ]
 maintainers = [
-    {name = "Marco Musy", email = "marco.musy@gmail.com"}
+    {name = "Marco Musy", email = "marco.musy@embl.es"}
 ]
 readme = "README.md"
 requires-python = ">=3.7"
