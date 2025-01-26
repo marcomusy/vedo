@@ -1,5 +1,5 @@
 import numpy as np
-from vedo import Volume, CellCenters, show
+from vedo import Volume, show
 
 # make up some fake data
 X, Y, Z = np.mgrid[:4, :4, :2]
@@ -18,7 +18,7 @@ zslice.cmap("hot_r").lw(1).alpha(0.9).add_scalarbar3d()
 
 # create a set of points at the cell centers and associate the scalar value
 # corresponding to the bottom left corner of each voxel
-cc = CellCenters(zslice).shift([-spacing[0] / 2, -spacing[1] / 2, 0])
+cc = zslice.cell_centers().shift([-spacing[0] / 2, -spacing[1] / 2, 0])
 cc.resample_data_from(zslice)
 
 zslice.compute_normals()
@@ -31,7 +31,7 @@ lego = vol.legosurface(vmin=0, vmax=10).wireframe()
 
 show(
     [
-        (vol, lego, CellCenters(vol)),
+        (vol, lego, vol.cell_centers()),
         (
             lego,
             cc,
