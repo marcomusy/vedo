@@ -1708,7 +1708,7 @@ class PointsVisual(CommonVisual):
         try:
             if cells:
                 ns = np.sqrt(self.ncells)
-                elems = self.cell_centers
+                elems = self.cell_centers().points
                 norms = self.cell_normals
                 justify = "centered" if justify == "" else justify
             else:
@@ -1872,7 +1872,7 @@ class PointsVisual(CommonVisual):
         ```python
         from vedo import Sphere, show
         sph = Sphere(quads=True, res=4).compute_normals().wireframe()
-        sph.celldata["zvals"] = sph.cell_centers[:,2]
+        sph.celldata["zvals"] = sph.cell_centers().coordinates[:,2]
         l2d = sph.labels("zvals", on="cells", precision=2).backcolor('orange9')
         show(sph, l2d, axes=1).close()
         ```
@@ -1894,7 +1894,7 @@ class PointsVisual(CommonVisual):
             if content != "id" and content not in self.celldata.keys():
                 vedo.logger.error(f"In labels2d: cell array {content} does not exist.")
                 return None
-            cellcloud = vedo.Points(self.cell_centers)
+            cellcloud = self.cell_centers()
             arr = self.dataset.GetCellData().GetScalars()
             poly = cellcloud.dataset
             poly.GetPointData().SetScalars(arr)

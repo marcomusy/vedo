@@ -9,7 +9,7 @@ msh = Mesh(dataurl+"cow.vtk").c("cyan7")
 
 pts1, pts2, vals = [], [], []
 
-msh_points = msh.vertices
+msh_points = msh.points
 for i in range(0, msh.npoints, 10):
     p = msh_points[i]
     pts = msh.closest_point(p, n=12)  # find the n-closest points to p

@@ -16,7 +16,7 @@ mesh.backcolor('violet').linecolor('tomato').linewidth(2)
 labs = mesh.labels2d('pointid')
 
 # Print the points and faces of the mesh as numpy arrays
-print('vertices:', mesh.vertices)
+print('vertices:', mesh.vertices) # same as mesh.points or mesh.coordinates
 print('faces   :', mesh.cells)
 
 # Show the mesh, vertex labels, and docstring

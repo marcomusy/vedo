@@ -5,7 +5,7 @@ from vedo import Plotter, Grid, Cylinder, merge
 from optics_base import Ray, Mirror, Detector  # see file ./optics_base.py
 
 grid = Grid(res=[3,4])  # pick a few points in space to place cylinders
-pts = grid.vertices.tolist() + grid.cell_centers.tolist()
+pts = grid.points.tolist() + grid.cell_centers().points.tolist()
 
 # Create the mirror by merging many (y-scaled) cylinders into a single mesh object
 cyls = [Cylinder(p, r=0.065, height=0.2, res=2000).scale([1,1.5,1]) for p in pts]

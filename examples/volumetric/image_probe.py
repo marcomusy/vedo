@@ -7,7 +7,7 @@ img = Image(dataurl+'images/spheroid.jpg')
 cpt = [580,600,0]
 circle = Circle(cpt, r=500, res=36).wireframe()
 
-pts = circle.vertices                 # 3d coords of the points of the circle
+pts = circle.points                   # 3d coords of the points of the circle
 centers = np.zeros_like(pts) + cpt    # create the same amount of center coords
 lines = Lines(centers, pts, res=50)   # create Lines with 50 pts of resolution each
 

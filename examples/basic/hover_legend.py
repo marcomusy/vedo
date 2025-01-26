@@ -5,8 +5,8 @@ from vedo import *
 mesh = Mesh(dataurl+"bunny.obj").color('k7')
 
 # Create multiple arrays associated to mesh vertices or cells
-mesh.pointdata['MYPOINTARRAY'] = mesh.vertices[:,0]
-mesh.celldata['MYCELLARRAY']   = mesh.cell_centers[:,1]
+mesh.pointdata['MYPOINTARRAY'] = mesh.coordinates[:,0]
+mesh.celldata['MYCELLARRAY']   = mesh.cell_centers().coordinates[:,1]
 
 # Create more objects
 sph = Sphere(pos=(-0.1,0.05,0.05), r=0.02)

@@ -44,11 +44,11 @@ class SOM:
             if i>500 and not i%20 or i==n_epoch-1:
                 x, y, z = [self.codebook[:,i].reshape(n,n) for i in range(3)]
                 grd.wireframe(False).lw(0.5).bc('blue9').flat()
-                grdpts = grd.vertices
+                grdpts = grd.points
                 for i in range(n):
                     for j in range(n):
                         grdpts[i*n+j] = (x[i,j], y[i,j], z[i,j])
-                grd.vertices = grdpts
+                grd.points = grdpts
                 if plt: plt.azimuth(1.0).render()
 
         if plt: plt.interactive().close()
@@ -71,5 +71,5 @@ if __name__ == "__main__":
     plt.show(__doc__, sphere, grd)
 
     som = SOM((len(P), 3), D)
-    som.samples = sphere.vertices.copy()
+    som.samples = sphere.points.copy()
     som.learn(n_epoch=4000, sigma=(1, 0.01), lrate=(1, 0.01))

@@ -103,13 +103,13 @@ for i in progressbar(nsteps, title="visualize the result", c='y'):
     y_eu = positions_eu[i]  # retrieve the list of y positions at step i
     y_rk = positions_rk[i]
 
-    pts = line_eu.vertices
+    pts = line_eu.points
     pts[:,1] = y_eu
-    line_eu.vertices = pts
+    line_eu.points = pts
 
-    pts = line_rk.vertices
+    pts = line_rk.points
     pts[:,1] = y_rk
-    line_rk.vertices = pts
+    line_rk.points = pts
     plt.render()
 
 plt.interactive().close()

@@ -15,12 +15,12 @@ import vedo
 amesh = vedo.Mesh(vedo.dataurl+'290.vtk')
 
 # repairing also closes the mesh in a nice way
-meshfix = pymeshfix.MeshFix(amesh.vertices, amesh.cells)
+meshfix = pymeshfix.MeshFix(amesh.points, amesh.cells)
 meshfix.repair()
 repaired = vedo.Mesh(meshfix.mesh).linewidth(1).alpha(0.5)
 
 # tetralize the closed surface
-tet = tetgen.TetGen(repaired.vertices, repaired.cells)
+tet = tetgen.TetGen(repaired.points, repaired.cells)
 tet.tetrahedralize(order=1, mindihedral=20, minratio=1.5)
 tmesh = vedo.TetMesh(tet.grid)
 

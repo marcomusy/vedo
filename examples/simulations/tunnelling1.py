@@ -42,7 +42,7 @@ for j in range(150):
     for i in range(500):
         Psi += d_dt(Psi) * dt                # integrate for a while
     amp = np.real(Psi * np.conj(Psi)) * 1.5  # psi squared, probability(x)
-    wpacket.vertices = np.c_[x, amp, zeros]  # update vertices
+    wpacket.points = np.c_[x, amp, zeros]    # update points
     plt.render()
 
 plt.interactive().close()

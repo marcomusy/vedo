@@ -26,7 +26,6 @@ Submodule to work with point clouds.
 __all__ = [
     "Points",
     "Point",
-    "CellCenters",
     "merge",
     "fit_line",
     "fit_circle",
@@ -929,7 +928,7 @@ class Points(PointsVisual, PointAlgorithms):
         if "point" in on:
             pts = self.coordinates
         elif "cell" in on:
-            pts = self.cell_centers
+            pts = self.cell_centers().coordinates
         else:
             raise ValueError(f"In compute_acoplanarity() set on to either 'cells' or 'points', not {on}")
 
@@ -3595,7 +3594,7 @@ class Points(PointsVisual, PointAlgorithms):
                 if flag and len(r) > 0:
                     regs.append(r)
 
-            m = vedo.Mesh([vor.coordinates, regs])
+            m = vedo.Mesh([vor.vertices, regs])
             m.celldata["VoronoiID"] = np.array(list(range(len(regs)))).astype(int)
 
         elif method == "vtk":
@@ -3729,23 +3728,3 @@ class Points(PointsVisual, PointAlgorithms):
         m = Points(svp.GetOutput())
         m.name = "VisiblePoints"
         return m
-
-####################################################
-class CellCenters(Points):
-    def __init__(self, pcloud):
-        """
-        Generate `Points` at the center of the cells of any type of object.
-
-        Check out also `cell_centers()`.
-        """
-        vcen = vtki.new("CellCenters")
-        vcen.CopyArraysOn()
-        vcen.VertexCellsOn()
-        # vcen.ConvertGhostCellsToGhostPointsOn()
-        try:
-            vcen.SetInputData(pcloud.dataset)
-        except AttributeError:
-            vcen.SetInputData(pcloud)
-        vcen.Update()
-        super().__init__(vcen.GetOutput())
-        self.name = "CellCenters"

@@ -22,7 +22,8 @@ plt.at(1).show(man2, "mesh.cmap()")
 
 ##################################### Cell coloring
 man3 = Mesh(dataurl+"man_low.vtk")
-scals = man3.cell_centers[:, 2] + 37  # pick z coordinates of cells
+cell_centers = man3.cell_centers().coordinates
+scals = cell_centers[:, 2] + 37  # pick z coordinates of cells
 man3.cmap("afmhot", scals, on='cells')
 
 # Add a fancier 3D scalar bar embedded in the 3d scene

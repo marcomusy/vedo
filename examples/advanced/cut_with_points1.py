@@ -11,7 +11,7 @@ s.pointdata['myscalars'] = s.coordinates[:,1]
 print(s)
 
 # Pick a few points on the sphere
-sv = s.vertices[[10, 15, 129, 165]]
+sv = s.points[[10, 15, 129, 165]]
 pts = Points(sv).ps(12)
 
 # Cut the loop region identified by the points

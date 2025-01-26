@@ -19,7 +19,7 @@ sptool.add_observer(
     "end of interaction", 
     lambda o, e: (
         print(f"Spline changed! CM = {sptool.spline().center_of_mass()}"),
-        print(f"\tNumber of points: {sptool.spline().vertices.size}"),
+        print(f"\tNumber of points: {sptool.spline().points.size}"),
     )
 )
 

@@ -11,7 +11,7 @@ noise3 = np.random.rand(N, 3) * f + np.array([0, 1, 1])
 noise4 = np.random.randn(N, 3) * f / 8 + np.array([1, 1, 1])
 
 # Create a Points object from the noisy point sets
-noise4 = Points(noise4).remove_outliers(radius=0.05).vertices
+noise4 = Points(noise4).remove_outliers(radius=0.05).coordinates
 pts = noise1.tolist() + noise2.tolist() + noise3.tolist() + noise4.tolist()
 pts = Points(pts)
 

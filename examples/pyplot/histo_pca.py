@@ -20,7 +20,7 @@ angle = np.arctan2(e1[1], e1[0]) * 180/np.pi
 mypts = pts.clone()  # rotate back to make the histo:
 mypts.shift(-ec).rotate_z(-angle)
 histo = histogram(         # a Histogram1D(Figure) object
-    mypts.vertices[:,1],   # grab the y-values (PCA2)
+    mypts.points[:,1],     # grab the y-values (PCA2)
     ytitle='', title=' ',  # no automatic title, no y-axis
     c='#1f77b4',           # color
     aspect=16/9,           # aspect ratio

@@ -13,7 +13,7 @@ pl = Line(p1, p2, res=100).lw(4)
 pl.probe(vol)
 
 # Get the probed values along the line
-xvals = pl.vertices[:, 0]
+xvals = pl.points[:, 0]
 yvals = pl.pointdata[0]
 
 # Plot the intensity values

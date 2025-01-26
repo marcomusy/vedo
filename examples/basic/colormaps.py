@@ -22,7 +22,7 @@ maps = [
 ]
 
 mug = Mesh(dataurl+"mug.ply")
-scalars = mug.vertices[:, 1]  # let y-coord be the scalar
+scalars = mug.coordinates[:, 1]  # let y-coord be the scalar
 
 plt = Plotter(N=len(maps))
 

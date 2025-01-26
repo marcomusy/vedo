@@ -62,10 +62,10 @@ def principal_stretches_directions(T):
 x, y = np.meshgrid(np.linspace(-1, 1, 8), np.linspace(-1, 1, 8))
 
 grid = vedo.Grid(s=(x[0], y.T[0]))
-grid_pts = grid.vertices
+grid_pts = grid.points
 grid_pts_defo = deform(grid_pts[:, 0], grid_pts[:, 1])
 grid_defo = grid.clone()
-grid_defo.vertices = grid_pts_defo.T
+grid_defo.points = grid_pts_defo.T
 
 # Initialize the vedo plotter
 plotter = vedo.Plotter()
@@ -106,14 +106,14 @@ for i in range(x.shape[0]):
         # tensor because it is not a symmetric tensor.
         # F = deformation_gradient(*pt)
         # circle = vedo.Circle(r=0.05).pos(*pt).color("black")
-        # cpts = circle.vertices
+        # cpts = circle.points
         # cpts_defo = F @ cpts.T[:2]
-        # circle.vertices = cpts_defo.T
+        # circle.points = cpts_defo.T
         # Same as:
         circle = vedo.Circle(r=0.06).pos(*pt).color("black")
-        cpts = circle.vertices
+        cpts = circle.points
         cpts_defo = deform(cpts[:,0], cpts[:,1])
-        circle.vertices = cpts_defo.T
+        circle.points = cpts_defo.T
 
         plotter += [ellipsoid_C, ellipsoid_E, circle]
 

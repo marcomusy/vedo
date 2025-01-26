@@ -64,8 +64,8 @@ p1 = plot(
 # Unpack the 0-element (the surface of the plot) to customize it
 msh = p1[0].lighting('glossy')
 
-pts = msh.vertices   # get the points
-zvals = pts[:,2]     # get the z values
+pts = msh.points   # get the points
+zvals = pts[:,2]   # get the z values
 θvals = [np.angle(f(*p[:2])) for p in pts]  # get the phases
 
 lut = custom_lut_surface("hsv", vmin=-np.pi, vmax=np.pi)

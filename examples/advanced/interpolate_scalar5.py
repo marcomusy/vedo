@@ -15,7 +15,7 @@ surf = Grid(res=[25,25])
 
 # Pick n random points on the surface
 ids = np.random.randint(0, surf.npoints, 10)
-pts = surf.vertices[ids]
+pts = surf.coordinates[ids]
 
 # Create a set of random scalars
 scals1 = np.random.randn(10) * 0.1 
@@ -32,7 +32,7 @@ pts2 = Points(ptss2).color("purple5").point_size(15)
 
 # Warp the surface to match the interpolated points
 ptsource, pttarget = [], []
-for pt in pts2.vertices:
+for pt in pts2.coordinates:
     pt_surf = surf.closest_point(pt)
     ptsource.append(pt_surf)
     pttarget.append(pt)

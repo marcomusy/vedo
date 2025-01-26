@@ -17,9 +17,9 @@ lmean = Line(mean).z(0.001) # z-shift it to make it visible
 lmean.linewidth(4).c('blue')
 
 # Color the aligned splines based on their distance from the mean spline
-for l in alignedsplines:
-    darr = mag(l.vertices - mean)  # distance array
-    l.cmap('hot_r', darr, vmin=0, vmax=0.007)
+for s in alignedsplines:
+    darr = mag(s.coordinates - mean)  # distance array
+    s.cmap('hot_r', darr, vmin=0, vmax=0.007)
 
 # Add the mean spline and script description to the list of aligned splines
 alignedsplines += [lmean, __doc__]

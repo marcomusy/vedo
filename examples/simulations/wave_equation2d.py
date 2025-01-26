@@ -53,9 +53,9 @@ for i in range(nframes):
     wave = Z1.ravel()
     txt.text(f"frame: {i}/{nframes}, height_max = {wave.max()}")
     grid.cmap("Blues", wave, vmin=-2, vmax=2)
-    newpts = grid.vertices
+    newpts = grid.points
     newpts[:,2] = wave
-    grid.vertices = newpts # update the z component
+    grid.points = newpts # update the z component
     plt.render()
 
 plt.interactive()

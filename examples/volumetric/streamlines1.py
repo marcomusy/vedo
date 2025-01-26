@@ -22,7 +22,7 @@ seeds = vpts.clone().subsample(0.2)
 
 # Compute stream lines with Runge-Kutta integration
 # vol.pointdata.select("Wind") # in case there are other vectors
-streamlines = vol.compute_streamlines(seeds.vertices)
+streamlines = vol.compute_streamlines(seeds.points)
 streamlines.pointdata["wind_intensity"] = mag(streamlines.pointdata["Wind"])
 streamlines.cmap("Reds").add_scalarbar()
 print(streamlines)

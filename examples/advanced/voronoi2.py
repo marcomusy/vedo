@@ -10,7 +10,7 @@ allpts = pts1.vertices.tolist() + grid.vertices.tolist()
 msh = Points(allpts).generate_voronoi(method='scipy')
 
 msh.lw(1).wireframe(False).cmap('terrain_r', 'VoronoiID', on='cells')
-centers = Points(msh.cell_centers).color("k")
+# centers = msh.cell_centers().color("k")
 
 show(msh, pts0, __doc__, axes=dict(digits=3), zoom=1.3)
 

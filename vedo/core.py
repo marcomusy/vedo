@@ -623,21 +623,22 @@ class CommonAlgorithms:
     #         self.transform = LinearTransform()
     #         return self
 
-    @property
-    def cell_centers(self):
+    def cell_centers(self, copy_arrays=False) -> "vedo.Points":
         """
-        Get the coordinates of the cell centers.
+        Get the coordinates of the cell centers as a `Points` object.
 
         Examples:
             - [delaunay2d.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/delaunay2d.py)
-        
-        See also: `CellCenters()`.
         """
         vcen = vtki.new("CellCenters")
-        vcen.CopyArraysOff()
+        vcen.SetCopyArrays(copy_arrays)
+        vcen.SetVertexCells(copy_arrays)
         vcen.SetInputData(self.dataset)
         vcen.Update()
-        return utils.vtk2numpy(vcen.GetOutput().GetPoints().GetData())
+        vpts = vedo.Points(vcen.GetOutput())
+        if copy_arrays:
+            vpts.copy_properties_from(self)
+        return vpts
 
     @property
     def lines(self):
@@ -998,8 +999,8 @@ class CommonAlgorithms:
         ```python
         from vedo import *
         m1 = Mesh(dataurl+'bunny.obj')#.add_gaussian_noise(0.1)
-        pts = m1.vertices
-        ces = m1.cell_centers
+        pts = m1.coordinates
+        ces = m1.cell_centers().coordinates
         m1.pointdata["xvalues"] = np.power(pts[:,0], 3)
         m1.celldata["yvalues"]  = np.power(ces[:,1], 3)
         m2 = Mesh(dataurl+'bunny.obj')

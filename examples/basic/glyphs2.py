@@ -6,9 +6,9 @@ from vedo import *
 s1 = Sphere(r=10, res=8).wireframe().c('white')
 s2 = Sphere(r=20, res=8).wireframe().c('white',0.1).pos(0,4,0)
 
-# Get the coordinates of the vertices of each sphere
-coords1 = s1.vertices 
-coords2 = s2.vertices
+# Get the coordinates of the coordinates of each sphere
+coords1 = s1.coordinates 
+coords2 = s2.coordinates
 
 # --- color can be a colormap which maps arrow sizes
 # Define a title for the first set of arrows,

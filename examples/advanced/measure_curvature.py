@@ -25,8 +25,7 @@ residues = np.zeros(msh2.npoints)
 
 # iterate over surface points and fit sphere
 for idx in range(msh2.npoints):
-
-    patch = msh2.closest_point(msh2.vertices[idx], radius=radius)
+    patch = msh2.closest_point(msh2.coordinates[idx], radius=radius)
     s = fit_sphere(patch)
     curvature[idx] = 1/(s.radius)**2
     residues[idx] = s.residue

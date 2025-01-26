@@ -13,7 +13,7 @@ plt = Plotter()
 # load mesh and increase by a lot subdivide(2) the nr of surface vertices
 cow = Mesh(dataurl+"cow.vtk").alpha(0.3).subdivide(2)
 
-for i, p in enumerate(cow.vertices):
+for i, p in enumerate(cow.points):
     if i % 1000:
         continue  # skip most points
     pts = cow.closest_point(p, n=16)   # find the n-closest points to p

@@ -8,7 +8,7 @@ cmaps = ("jet", "PuOr", "viridis")
 for i in range(3):
     s = shape.clone(deep=False).pos([0, i * 2.2, 0])
     # colorize mesh
-    scalars = s.vertices[:, 2]
+    scalars = s.points[:, 2]
     s.cmap(cmaps[i], scalars)
     ms.append(s)
 

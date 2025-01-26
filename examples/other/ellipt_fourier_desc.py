@@ -7,8 +7,8 @@ import pyefd
 shapes = vedo.Assembly(vedo.dataurl+'timecourse1d.npy')
 
 s = shapes[55].c('red5').lw(3)
-pts1 = s.vertices[:,(0,1)].copy()
-pts2 = s.vertices[:,(0,1)].copy()
+pts1 = s.points[:,(0,1)].copy()
+pts2 = s.points[:,(0,1)].copy()
 pts2[:,0] *= -1
 pts2 = np.flip(pts2, axis=0)
 pts = np.array(pts1.tolist() + pts2.tolist())

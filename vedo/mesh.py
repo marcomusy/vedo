@@ -438,7 +438,7 @@ class Mesh(MeshVisual, Points):
 
         points = self.coordinates
         faces = self.cells
-        centers = self.cell_centers
+        centers = self.cell_centers().coordinates
 
         copy = self.clone()
         copy.delete_cells(toremove).clean()
@@ -1515,7 +1515,7 @@ class Mesh(MeshVisual, Points):
             from vedo import *
             np.random.seed(2)
             grid1 = Grid().add_gaussian_noise(0.8).triangulate().lw(1)
-            grid1.celldata['scalar'] = grid1.cell_centers[:,1]
+            grid1.celldata['scalar'] = grid1.cell_centers().coordinates[:,1]
             grid2 = grid1.clone().collapse_edges(0.1)
             show(grid1, grid2, N=2, axes=1)
             ```
@@ -3009,7 +3009,7 @@ class Mesh(MeshVisual, Points):
             pts = (np.random.rand(n, 3) - 0.5) * np.array([x1 - x0, y1 - y0, z1 - z0]) + disp
 
         normals = surf.celldata["Normals"]
-        cc = surf.cell_centers
+        cc = surf.cell_centers().coordinates
         subpts = cc - normals * gap * 1.05
         pts = pts.tolist() + subpts.tolist()
 
@@ -3028,7 +3028,7 @@ class Mesh(MeshVisual, Points):
 
         merged_fs = vedo.merge(fillpts, surf)
         tmesh = merged_fs.generate_delaunay3d()
-        tcenters = tmesh.cell_centers
+        tcenters = tmesh.cell_centers().coordinates
 
         ids = surf.inside_points(tcenters, return_ids=True)
         ins = np.zeros(tmesh.ncells)

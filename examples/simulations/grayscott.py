@@ -58,11 +58,11 @@ def loop_func(event):
         v += Dv*Lv + uvv - (F+k)*v
 
     grd.cmap('ocean_r', V.ravel(), on='cells', name="escals")
-    grd.map_cells_to_points()                # interpolate cell data to point data
+    grd.map_cells_to_points()              # interpolate cell data to point data
     z = grd.pointdata['escals']*25 
-    newverts = grd.vertices.copy()           # get the original vertices
-    newverts[:,2] = z                        # assign z elevation
-    grd.vertices = newverts                  # update the mesh vertices
+    newverts = grd.points.copy()           # get the original points
+    newverts[:,2] = z                      # assign z elevation
+    grd.points = newverts                  # update the mesh points
     plt.render()
 
 plt = Plotter(bg='linen')

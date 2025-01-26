@@ -15,7 +15,7 @@
 - modify `legosurface(boundary=True)` default in #1166
 - make load functions compatible with pathlib #1176 by @Louis-Pujol
 - fixed broken link to example #1175 by @jo-mueller
-- add documentation to Mesh.boolean() #1173 by @jkunimune
+- add documentation to `Mesh.boolean()` #1173 by @jkunimune
 - raise an error when calling cell_normals before compute_normals() #1172 by @jkunimune
 - add documentation warning as computing normals can affect appearence of the mesh #1174 by @jkunimune
 - add documentation about `Cube` and `Box` having duplicated vertices to allow defining normals #1171
@@ -33,13 +33,15 @@
 - added `mesh.remove_all_lines()` method
 - added keyword `Plane(edge_direction=...)` by @smoothumut
 - added `isolines(..., n=list())` option to pass specific values.
-
+- in `file_io.screenshot()` add fourth channel representing trasparency @miek0tube
+- remove obsolete class `CellCenters` which is now function `object.cell_centers()`
 
 
 ## Soft-breaking Changes
 Changes that may break existing code whose fixing is trivial:
 
-- in `file_io.screenshot()` add fourth channel representing trasparency @miek0tube
+- change `object.points()` to `object.points` everywhere.
+- change `object.cell_centers` to `object.cell_centers().points` everywhere.
 
 
 ## Hard-breaking Changes

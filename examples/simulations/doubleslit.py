@@ -18,7 +18,7 @@ slit2 = list(slit1 + np.array([1e-5, 0, 0]))             # a shifted copy of sli
 slits = slit1 + slit2
 # slits += list(slit1 + array([-2e-5, 1e-5, 0]))  # add another copy of slit1
 # slits = [(cos(x)*4e-5, sin(x)*4e-5, 0) for x in arange(0,2*np.pi, .1)] # Arago spot
-# slits = Grid(s=[1e-4,1e-4], res=[9,9]).vertices # a square lattice
+# slits = Grid(s=[1e-4,1e-4], res=[9,9]).points # a square lattice
 
 screen = Grid(pos=[0, 0, -D], s=[0.1,0.1], lw=0, res=[200,50]).wireframe(False)
 
@@ -26,7 +26,7 @@ screen = Grid(pos=[0, 0, -D], s=[0.1,0.1], lw=0, res=[200,50]).wireframe(False)
 k = 0.0 + 1j * 2 * np.pi / lambda1  # complex wave number
 norm = len(slits) * 5e5
 amplitudes = []
-verts = screen.vertices
+verts = screen.points
 for i, x in enumerate(verts):
     psi = 0
     for s in slits:

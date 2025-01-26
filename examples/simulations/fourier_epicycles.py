@@ -51,7 +51,7 @@ shaper  = vedo.Assembly(vedo.dataurl+'timecourse1d.npy')[55]
 # shaper = shape.clone().mirror('x').reverse()
 shapel = vedo.Line(np.flip(shaper.clone().mirror('x').coordinates, axis=0))
 shape = vedo.merge(shaper, shapel)
-x, y, _ = shape.vertices.T
+x, y, _ = shape.points.T
 
 # Compute Fourier Discrete Transform in x and y separately:
 fourierX = DFT(x)

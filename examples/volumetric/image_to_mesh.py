@@ -12,7 +12,7 @@ intensityz = np.zeros_like(rgb)
 intensityz[:,2] = intensity / 10
 
 # set the new vertex points
-msh.vertices += intensityz
+msh.points += intensityz
 
 # more cosmetics
 msh.triangulate().smooth()
