@@ -10,6 +10,7 @@ export VEDOLOGFILE=$VEDODIR/output_vedo_test.txt
 cd $VEDODIR
 pip install -q -e .
 pip install treelib
+pip install colorcet
 pip install scikit-image
 pip install scikit-learn
 pip install nevergrad -U

@@ -79,6 +79,7 @@ Examples that are not fully functional and need some fixing:
 markpoint.py (misplaced leader indicator)
 cut_and_cap.py (incomplete capping)
 tests/issues/discussion_800.py (incomplete capping of tube)
+advanced/warp4b.py (probs with picker?)
 ```
 
 

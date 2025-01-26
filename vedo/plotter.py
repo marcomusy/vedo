@@ -2828,6 +2828,11 @@ class Plotter:
             ![](https://vedo.embl.es/images/advanced/timer_callback1.jpg)
         """
         if action in ("create", "start"):
+
+            if "Windows" in vedo.sys_platform:
+                # otherwise on windows it gets stuck
+                self.initialize_interactor()
+
             if timer_id is not None:
                 vedo.logger.warning("you set a timer_id but it will be ignored.")
             if one_shot:

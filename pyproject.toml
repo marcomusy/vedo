@@ -4,18 +4,25 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vedo"
+
 dynamic = ["version"]
+
 description = "A python module for scientific visualization, analysis of 3D objects and point clouds."
+
 authors = [
     {name = "Marco Musy", email = "marco.musy@embl.es"}
 ]
+
 maintainers = [
     {name = "Marco Musy", email = "marco.musy@embl.es"}
 ]
+
 readme = "README.md"
 requires-python = ">=3.7"
 license = {file = "LICENSE"}
+
 keywords = ["vtk", "3d", "visualization", "mesh", "volume", "point-cloud"]
+
 classifiers = [
     "Intended Audience :: Science/Research",
     "Development Status :: 5 - Production/Stable",
@@ -30,9 +37,10 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Physics",
     "Topic :: Scientific/Engineering :: Medical Science Apps."
 ]
+
 dependencies = [
-    "vtk>=9.0.0",
-    "pillow",
+    "vtk",
+    "numpy",
     "typing-extensions",
     "Pygments"
 ]

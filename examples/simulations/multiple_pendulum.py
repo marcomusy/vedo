@@ -1,6 +1,7 @@
 import numpy as np
 from vedo import Plotter, mag, versor, vector
-from vedo import Cylinder, Spring, Line, Box, Sphere
+from vedo import Cylinder, Line, Box, Sphere
+
 
 ############## Constants
 N = 5  # number of bobs
