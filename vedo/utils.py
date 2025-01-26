@@ -1466,7 +1466,7 @@ def get_uv(p, x, v):
         pic = Image(dataurl+"coloured_cube_faces.jpg")
         cb = Mesh(dataurl+"coloured_cube.obj").lighting("off").texture(pic)
 
-        cbpts = cb.vertices
+        cbpts = cb.points
         faces = cb.cells
         uv = cb.pointdata["Material"]
 
@@ -2463,7 +2463,7 @@ def vedo2trimesh(mesh):
     carr = mesh.celldata["CellIndividualColors"]
     ccols = carr
 
-    points = mesh.vertices
+    points = mesh.coordinates
     varr = mesh.pointdata["VertexColors"]
     vcols = varr
 

@@ -1937,7 +1937,7 @@ class Plotter:
 
         Arguments:
             points : (Mesh, Points, array)
-                the set of vertices forming the spline nodes.
+                the set of coordinates forming the spline nodes.
             pc : (str)
                 point color. The default is 'k'.
             ps : (str)
@@ -2949,7 +2949,7 @@ class Plotter:
             ```
         """
         try:
-            obj = obj.vertices
+            obj = obj.coordinates
         except AttributeError:
             pass
 

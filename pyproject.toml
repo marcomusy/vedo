@@ -48,6 +48,7 @@ Changelog = "https://github.com/marcomusy/vedo/blob/master/docs/changes.md"
 
 packages = [
     "vedo",
+    "vedo.fonts",
     "vedo.examples.basic",
     "vedo.examples.advanced",
     "vedo.examples.pyplot",

@@ -696,9 +696,9 @@ class Volume(VolumeAlgorithms, VolumeVisual):
                 fit/adapt the old bounding box to the warped geometry
         """
         if isinstance(source, vedo.Points):
-            source = source.vertices
+            source = source.coordinates
         if isinstance(target, vedo.Points):
-            target = target.vertices
+            target = target.coordinates
 
         NLT = transformations.NonLinearTransform()
         NLT.source_points = source

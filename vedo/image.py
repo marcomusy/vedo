@@ -992,10 +992,10 @@ class Image(vedo.visual.ImageVisual):
             parents = [self]
             if isinstance(source_pts, vedo.Points):
                 parents.append(source_pts)
-                source_pts = source_pts.vertices
+                source_pts = source_pts.coordinates
             if isinstance(target_pts, vedo.Points):
                 parents.append(target_pts)
-                target_pts = target_pts.vertices
+                target_pts = target_pts.coordinates
 
             ns = len(source_pts)
             nt = len(target_pts)

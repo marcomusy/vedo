@@ -436,7 +436,7 @@ class Mesh(MeshVisual, Points):
         if len(toremove) == 0: # type: ignore
             return self
 
-        points = self.vertices
+        points = self.coordinates
         faces = self.cells
         centers = self.cell_centers
 
@@ -533,7 +533,7 @@ class Mesh(MeshVisual, Points):
             from vedo import *
             mesh = Mesh("https://discourse.paraview.org/uploads/short-url/qVuZ1fiRjwhE1qYtgGE2HGXybgo.stl")
             mesh.rotate_x(10).rotate_y(15).alpha(0.5)
-            mesh.pointdata["scalars"] = mesh.vertices[:, 2]
+            mesh.pointdata["scalars"] = mesh.coordinates[:, 2]
 
             printc("is_closed  :", mesh.is_closed())
             printc("is_manifold:", mesh.is_manifold())
@@ -542,7 +542,7 @@ class Mesh(MeshVisual, Points):
 
             reeb = mesh.to_reeb_graph()
             ids = reeb[0].pointdata["Vertex Ids"]
-            pts = Points(mesh.vertices[ids], r=10)
+            pts = Points(mesh.coordinates[ids], r=10)
 
             show([[mesh, pts], reeb], N=2, sharecam=False)
             ```
@@ -721,7 +721,7 @@ class Mesh(MeshVisual, Points):
         for ipiece, outline in enumerate(self.split(must_share_edge=False)): # type: ignore
 
             outline.clean()
-            pts = outline.vertices
+            pts = outline.coordinates
             if len(pts) < 3:
                 continue
             avesize = outline.average_size()
@@ -1138,7 +1138,7 @@ class Mesh(MeshVisual, Points):
 
         self.compute_cell_size()
         areas = self.celldata["Area"]
-        points = self.vertices
+        points = self.coordinates
         cells = self.cells
         u0 = self.pointdata[array_name]
 
@@ -1560,7 +1560,7 @@ class Mesh(MeshVisual, Points):
         Returns: 
             a list with i-th entry being the set if indices of vertices connected by an edge to i-th vertex
         """
-        inc = [set()] * self.nvertices
+        inc = [set()] * self.npoints
         for cell in self.cells:
             nc = len(cell)
             if nc > 1:
@@ -1588,7 +1588,7 @@ class Mesh(MeshVisual, Points):
             al = self.adjacency_list()
             ball = {index}
             i = 0
-            while i < n and len(ball) < self.nvertices:
+            while i < n and len(ball) < self.npoints:
                 for v in ball:
                     ball = ball.union(al[v])
                 i += 1
@@ -1712,7 +1712,7 @@ class Mesh(MeshVisual, Points):
         """
         if isinstance(pts, Points):
             poly = pts.dataset
-            ptsa = pts.vertices
+            ptsa = pts.coordinates
         else:
             ptsa = np.asarray(pts)
             vpoints = vtki.vtkPoints()
@@ -2545,7 +2545,7 @@ class Mesh(MeshVisual, Points):
             ![](https://user-images.githubusercontent.com/32848391/55967065-eee08300-5c79-11e9-8933-265e1bab9f7e.png)
         """
         if isinstance(p0, Points):
-            p0, p1 = p0.vertices
+            p0, p1 = p0.coordinates
 
         if not self.line_locator:
             self.line_locator = vtki.new("OBBTree")
@@ -2755,7 +2755,7 @@ class Mesh(MeshVisual, Points):
                 ![](https://vedo.embl.es/images/advanced/geodesic.png)
         """
         if is_sequence(start):
-            cc = self.vertices
+            cc = self.coordinates
             pa = Points(cc)
             start = pa.closest_point(start, return_point_id=True)
             end = pa.closest_point(end, return_point_id=True)
@@ -3037,7 +3037,7 @@ class Mesh(MeshVisual, Points):
         if debug:
             # vedo.pyplot.histogram(fillpts.pointdata["Distance"], xtitle=f"gap={gap}").show().close()
             edges = self.edges
-            points = self.vertices
+            points = self.coordinates
             elen = mag(points[edges][:, 0, :] - points[edges][:, 1, :])
             histo = vedo.pyplot.histogram(elen, xtitle="edge length", xlim=(0, 3 * side * d))
             print(".. edges min, max", elen.min(), elen.max())

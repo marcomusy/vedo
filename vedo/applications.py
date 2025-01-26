@@ -1490,7 +1490,7 @@ class FreeHandCutPlotter(Plotter):
     def init(self, init_points):
         """Set an initial number of points to define a region"""
         if isinstance(init_points, Points):
-            self.cpoints = init_points.vertices
+            self.cpoints = init_points.coordinates
         else:
             self.cpoints = np.array(init_points)
         self.points = Points(self.cpoints, r=self.linewidth).c(self.pointcolor).pickable(0)
@@ -1552,7 +1552,7 @@ class FreeHandCutPlotter(Plotter):
             self.render()
             self.mesh_prev = self.mesh.clone()
             tol = self.mesh.diagonal_size() / 2  # size of ribbon (not shown)
-            pts = self.spline.vertices
+            pts = self.spline.coordinates
             n = fit_plane(pts, signed=True).normal  # compute normal vector to points
             rb = Ribbon(pts - tol * n, pts + tol * n, closed=True)
             self.mesh.cut_with_mesh(rb, invert=inv)  # CUT
@@ -2472,17 +2472,17 @@ class Clock(vedo.Assembly):
             gamma = s * 2 * np.pi / 60 + np.pi / 2
             x3, y3 = np.cos(gamma), np.sin(gamma)
 
-        pts2 = parts[2].vertices
+        pts2 = parts[2].coordinates
         pts2[1] = [-x1 * 0.5, y1 * 0.5, 0.001]
-        parts[2].vertices = pts2
+        parts[2].coordinates = pts2
 
-        pts3 = parts[3].vertices
+        pts3 = parts[3].coordinates
         pts3[1] = [-x2 * 0.75, y2 * 0.75, 0.002]
-        parts[3].vertices = pts3
+        parts[3].coordinates = pts3
 
         if s is not None:
-            pts4 = parts[4].vertices
+            pts4 = parts[4].coordinates
             pts4[1] = [-x3 * 0.95, y3 * 0.95, 0.003]
-            parts[4].vertices = pts4
+            parts[4].coordinates = pts4
 
         return self

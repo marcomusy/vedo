@@ -387,7 +387,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
                 name = self.dataset.GetCellData().GetScalars().GetName()
                 cdata = "<tr><td><b> cell data array </b></td><td>" + name + "</td></tr>"
 
-        pts = self.vertices
+        pts = self.coordinates
         cm = np.mean(pts, axis=0)
 
         all = [
@@ -1152,7 +1152,7 @@ class TetMesh(UnstructuredGrid):
                 name = self.dataset.GetCellData().GetScalars().GetName()
                 cdata = "<tr><td><b> cell data array </b></td><td>" + name + "</td></tr>"
 
-        pts = self.vertices
+        pts = self.coordinates
         cm = np.mean(pts, axis=0)
 
         allt = [
@@ -1305,7 +1305,7 @@ class TetMesh(UnstructuredGrid):
         """
         cmesh = self.compute_cell_size()
         tets = cmesh.cells
-        verts = cmesh.vertices
+        verts = cmesh.coordinates
         cumul = np.cumsum(np.abs(cmesh.celldata["Volume"]))
 
         out_pts = []
@@ -1643,7 +1643,7 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
                 name = self.dataset.GetCellData().GetScalars().GetName()
                 cdata = "<tr><td><b> cell data array </b></td><td>" + name + "</td></tr>"
 
-        pts = self.vertices
+        pts = self.coordinates
         cm = np.mean(pts, axis=0)
 
         all = [
@@ -1917,7 +1917,7 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
             x, y, z = np.meshgrid(cx, cy, cz)
 
             sgrid1 = StructuredGrid([x, y, z])
-            sgrid1.cmap("viridis", sgrid1.vertices[:, 0])
+            sgrid1.cmap("viridis", sgrid1.coordinates[:, 0])
             print(sgrid1)
 
             sgrid2 = sgrid1.clone().cut_with_plane(normal=(-1,1,1), origin=[14,34,44])
@@ -2144,7 +2144,7 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
                 name = self.dataset.GetCellData().GetScalars().GetName()
                 cdata = "<tr><td><b> cell data array </b></td><td>" + name + "</td></tr>"
 
-        pts = self.vertices
+        pts = self.coordinates
         cm = np.mean(pts, axis=0)
 
         all = [

@@ -584,44 +584,44 @@ class CommonAlgorithms:
         """Retrieve the number of cells."""
         return self.dataset.GetNumberOfCells()
 
-    def points(self, pts=None):
-        """Obsolete, use `self.vertices` or `self.coordinates` instead."""
-        if pts is None:  ### getter
+    # def points(self, pts=None):
+    #     """Obsolete, use `self.vertices` or `self.coordinates` instead."""
+    #     if pts is None:  ### getter
 
-            if warnings["points_getter"]:
-                colors.printc(warnings["points_getter"], c="y")
-                warnings["points_getter"] = ""
-            return self.vertices
+    #         if warnings["points_getter"]:
+    #             colors.printc(warnings["points_getter"], c="y")
+    #             warnings["points_getter"] = ""
+    #         return self.vertices
 
-        else:  ### setter
+    #     else:  ### setter
 
-            if warnings["points_setter"]:
-                colors.printc(warnings["points_setter"], c="y")
-                warnings["points_setter"] = ""
+    #         if warnings["points_setter"]:
+    #             colors.printc(warnings["points_setter"], c="y")
+    #             warnings["points_setter"] = ""
 
-            pts = np.asarray(pts, dtype=np.float32)
+    #         pts = np.asarray(pts, dtype=np.float32)
 
-            if pts.ndim == 1:
-                ### getter by point index ###################
-                indices = pts.astype(int)
-                vpts = self.dataset.GetPoints()
-                arr = utils.vtk2numpy(vpts.GetData())
-                return arr[indices]  ###########
+    #         if pts.ndim == 1:
+    #             ### getter by point index ###################
+    #             indices = pts.astype(int)
+    #             vpts = self.dataset.GetPoints()
+    #             arr = utils.vtk2numpy(vpts.GetData())
+    #             return arr[indices]  ###########
 
-            ### setter ####################################
-            if pts.shape[1] == 2:
-                pts = np.c_[pts, np.zeros(pts.shape[0], dtype=np.float32)]
-            arr = utils.numpy2vtk(pts, dtype=np.float32)
+    #         ### setter ####################################
+    #         if pts.shape[1] == 2:
+    #             pts = np.c_[pts, np.zeros(pts.shape[0], dtype=np.float32)]
+    #         arr = utils.numpy2vtk(pts, dtype=np.float32)
 
-            vpts = self.dataset.GetPoints()
-            vpts.SetData(arr)
-            vpts.Modified()
-            # reset mesh to identity matrix position/rotation:
-            self.point_locator = None
-            self.cell_locator = None
-            self.line_locator = None
-            self.transform = LinearTransform()
-            return self
+    #         vpts = self.dataset.GetPoints()
+    #         vpts.SetData(arr)
+    #         vpts.Modified()
+    #         # reset mesh to identity matrix position/rotation:
+    #         self.point_locator = None
+    #         self.cell_locator = None
+    #         self.line_locator = None
+    #         self.transform = LinearTransform()
+    #         return self
 
     @property
     def cell_centers(self):
@@ -850,6 +850,16 @@ class CommonAlgorithms:
         self.cell_locator = None
         self.line_locator = None
         self.transform = LinearTransform()
+
+    @property
+    def points(self):
+        """Return the vertices (points) coordinates. Same as `vertices`."""
+        return self.vertices
+
+    @points.setter
+    def points(self, pts):
+        """Set vertices (points) coordinates. Same as `vertices`."""
+        self.vertices = pts
 
     @property
     def coordinates(self):

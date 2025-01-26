@@ -478,16 +478,16 @@ def plot(*inputobj, **options):
         if warp_yfactor:
             scals = msh.pointdata[0]
             if len(scals) > 0:
-                pts_act = msh.vertices
+                pts_act = msh.coordinates
                 pts_act[:, 1] = scals * warp_yfactor * scale_mesh_factors[1]
         if warp_zfactor:
             scals = msh.pointdata[0]
             if len(scals) > 0:
-                pts_act = msh.vertices
+                pts_act = msh.coordinates
                 pts_act[:, 2] = scals * warp_zfactor * scale_mesh_factors[2]
         if warp_yfactor or warp_zfactor:
             # msh.points(pts_act)
-            msh.vertices = pts_act
+            msh.coordinates = pts_act
             if vmin is not None and vmax is not None:
                 msh.mapper.SetScalarRange(vmin, vmax)
 

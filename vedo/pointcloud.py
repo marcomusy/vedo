@@ -144,7 +144,7 @@ def fit_line(points: Union[np.ndarray, "vedo.Points"]) -> "vedo.shapes.Line":
             ![](https://vedo.embl.es/images/advanced/fitline.png)
     """
     if isinstance(points, Points):
-        points = points.vertices
+        points = points.coordinates
     data = np.asarray(points)
     datamean = data.mean(axis=0)
     _, dd, vv = np.linalg.svd(data - datamean)
@@ -178,7 +178,7 @@ def fit_circle(points: Union[np.ndarray, "vedo.Points"]) -> tuple:
         *J.F. Crawford, Nucl. Instr. Meth. 211, 1983, 223-225.*
     """
     if isinstance(points, Points):
-        points = points.vertices
+        points = points.coordinates
     data = np.asarray(points)
 
     offs = data.mean(axis=0)
@@ -242,7 +242,7 @@ def fit_plane(points: Union[np.ndarray, "vedo.Points"], signed=False) -> "vedo.s
             ![](https://vedo.embl.es/images/advanced/fitline.png)
     """
     if isinstance(points, Points):
-        points = points.vertices
+        points = points.coordinates
     data = np.asarray(points)
     datamean = data.mean(axis=0)
     pts = data - datamean
@@ -278,7 +278,7 @@ def fit_sphere(coords: Union[np.ndarray, "vedo.Points"]) -> "vedo.shapes.Sphere"
             ![](https://vedo.embl.es/images/advanced/fitspheres1.jpg)
     """
     if isinstance(coords, Points):
-        coords = coords.vertices
+        coords = coords.coordinates
     coords = np.array(coords)
     n = len(coords)
     A = np.zeros((n, 4))
@@ -334,7 +334,7 @@ def pca_ellipse(points: Union[np.ndarray, "vedo.Points"], pvalue=0.673, res=60) 
     from scipy.stats import f
 
     if isinstance(points, Points):
-        coords = points.vertices
+        coords = points.coordinates
     else:
         coords = points
     if len(coords) < 4:
@@ -398,7 +398,7 @@ def pca_ellipsoid(points: Union[np.ndarray, "vedo.Points"], pvalue=0.673, res=24
     from scipy.stats import f
 
     if isinstance(points, Points):
-        coords = points.vertices
+        coords = points.coordinates
     else:
         coords = points
     if len(coords) < 4:
@@ -927,7 +927,7 @@ class Points(PointsVisual, PointAlgorithms):
         """
         acoplanarities = []
         if "point" in on:
-            pts = self.vertices
+            pts = self.coordinates
         elif "cell" in on:
             pts = self.cell_centers
         else:
@@ -993,8 +993,8 @@ class Points(PointsVisual, PointAlgorithms):
                 pcloud.point_locator.BuildLocator()
 
             ids = []
-            ps1 = self.vertices
-            ps2 = pcloud.vertices
+            ps1 = self.coordinates
+            ps2 = pcloud.coordinates
             for p in ps1:
                 pid = pcloud.point_locator.FindClosestPoint(p)
                 ids.append(pid)
@@ -1290,7 +1290,7 @@ class Points(PointsVisual, PointAlgorithms):
         else:
             ss = source_landmarks.dataset.GetPoints()
             if least_squares:
-                source_landmarks = source_landmarks.vertices
+                source_landmarks = source_landmarks.coordinates
 
         if utils.is_sequence(target_landmarks):
             st = vtki.vtkPoints()
@@ -1299,7 +1299,7 @@ class Points(PointsVisual, PointAlgorithms):
         else:
             st = target_landmarks.GetPoints()
             if least_squares:
-                target_landmarks = target_landmarks.vertices
+                target_landmarks = target_landmarks.coordinates
 
         if ss.GetNumberOfPoints() != st.GetNumberOfPoints():
             n1 = ss.GetNumberOfPoints()
@@ -1348,7 +1348,7 @@ class Points(PointsVisual, PointAlgorithms):
 
     def normalize(self) -> Self:
         """Scale average size to unit. The scaling is performed around the center of mass."""
-        coords = self.vertices
+        coords = self.coordinates
         if not coords.shape[0]:
             return self
         cm = np.mean(coords, axis=0)
@@ -1418,7 +1418,7 @@ class Points(PointsVisual, PointAlgorithms):
             ```
         """
         sz = self.diagonal_size()
-        pts = self.vertices
+        pts = self.coordinates
         n = len(pts)
         ns = (np.random.randn(n, 3) * sigma) * (sz / 100)
         vpts = vtki.vtkPoints()
@@ -1538,7 +1538,7 @@ class Points(PointsVisual, PointAlgorithms):
         The output is stored in a new pointdata array called "AutoDistance",
         and it is also returned by the function.
         """
-        points = self.vertices
+        points = self.coordinates
         if not self.point_locator:
             self.point_locator = vtki.new("StaticPointLocator")
             self.point_locator.SetDataSet(self.dataset)
@@ -1612,8 +1612,8 @@ class Points(PointsVisual, PointAlgorithms):
             self.point_locator.SetDataSet(self.dataset)
             self.point_locator.BuildLocator()
 
-        ps1 = self.vertices
-        ps2 = pcloud.vertices
+        ps1 = self.coordinates
+        ps2 = pcloud.coordinates
 
         ids12 = []
         for p in ps1:
@@ -1786,7 +1786,7 @@ class Points(PointsVisual, PointAlgorithms):
 
             ![](https://vedo.embl.es/images/advanced/moving_least_squares1D.png)
         """
-        coords = self.vertices
+        coords = self.coordinates
         ncoords = len(coords)
 
         if n:
@@ -1813,7 +1813,7 @@ class Points(PointsVisual, PointAlgorithms):
             newline.append(newp)
 
         self.pointdata["Variances"] = np.array(variances).astype(np.float32)
-        self.vertices = newline
+        self.coordinates = newline
         self.pipeline = utils.OperationNode("smooth_mls_1d", parents=[self])
         return self
 
@@ -1841,7 +1841,7 @@ class Points(PointsVisual, PointAlgorithms):
 
                 ![](https://vedo.embl.es/images/advanced/recosurface.png)
         """
-        coords = self.vertices
+        coords = self.coordinates
         ncoords = len(coords)
 
         if n:
@@ -1891,7 +1891,7 @@ class Points(PointsVisual, PointAlgorithms):
             self.pointdata["MLSValidPoint"] = np.array(valid).astype(np.uint8)
         self.pointdata["MLSVariance"] = np.array(variances).astype(np.float32)
 
-        self.vertices = newpts
+        self.coordinates = newpts
 
         self.pipeline = utils.OperationNode("smooth_mls_2d", parents=[self])
         return self
@@ -2002,7 +2002,7 @@ class Points(PointsVisual, PointAlgorithms):
 
                 ![](https://vedo.embl.es/images/basic/silhouette2.png)
         """
-        coords = self.vertices
+        coords = self.coordinates
 
         if plane == "x":
             coords[:, 0] = self.transform.position[0]
@@ -2048,7 +2048,7 @@ class Points(PointsVisual, PointAlgorithms):
             raise RuntimeError()
 
         self.alpha(0.1)
-        self.vertices = coords
+        self.coordinates = coords
         return self
 
     def warp(self, source, target, sigma=1.0, mode="3d") -> Self:
@@ -2081,13 +2081,13 @@ class Points(PointsVisual, PointAlgorithms):
         parents = [self]
 
         try:
-            source = source.vertices
+            source = source.coordinates
             parents.append(source)
         except AttributeError:
             source = utils.make3d(source)
         
         try:
-            target = target.vertices
+            target = target.coordinates
             parents.append(target)
         except AttributeError:
             target = utils.make3d(target)
@@ -2283,7 +2283,7 @@ class Points(PointsVisual, PointAlgorithms):
         """
         pplane = vtki.new("PolyPlane")
         if isinstance(points, Points):
-            points = points.vertices.tolist()
+            points = points.coordinates.tolist()
 
         if closed:
             if isinstance(points, np.ndarray):
@@ -2597,7 +2597,7 @@ class Points(PointsVisual, PointAlgorithms):
         if isinstance(points, Points):
             parents = [points]
             vpts = points.dataset.GetPoints()
-            points = points.vertices
+            points = points.coordinates
         else:
             parents = [self]
             vpts = vtki.vtkPoints()
@@ -2647,7 +2647,7 @@ class Points(PointsVisual, PointAlgorithms):
             ```python
             from vedo import *
             s = Sphere().lw(1)
-            pts = s.vertices
+            pts = s.points
             scalars = np.sin(3*pts[:,2]) + pts[:,0]
             s.pointdata["somevalues"] = scalars
             s.cut_with_scalar(0.3)
@@ -2821,9 +2821,9 @@ class Points(PointsVisual, PointAlgorithms):
                 ![](https://vedo.embl.es/images/advanced/line2mesh_quads.png)
         """
         if line_resolution is None:
-            contour = vedo.shapes.Line(self.vertices)
+            contour = vedo.shapes.Line(self.coordinates)
         else:
-            contour = vedo.shapes.Spline(self.vertices, smooth=smooth, res=line_resolution)
+            contour = vedo.shapes.Spline(self.coordinates, smooth=smooth, res=line_resolution)
         contour.clean()
 
         length = contour.length()
@@ -2852,7 +2852,7 @@ class Points(PointsVisual, PointAlgorithms):
         else:
             grid = grid.clone()
 
-        cpts = contour.vertices
+        cpts = contour.coordinates
 
         # make sure it's closed
         p0, p1 = cpts[0], cpts[-1]
@@ -2872,7 +2872,7 @@ class Points(PointsVisual, PointAlgorithms):
             return cmesh
         #############################################
 
-        grid_tmp = grid.vertices.copy()
+        grid_tmp = grid.coordinates.copy()
 
         if jitter:
             np.random.seed(0)
@@ -2885,7 +2885,7 @@ class Points(PointsVisual, PointAlgorithms):
         density /= np.sqrt(3)
         vgrid_tmp = Points(grid_tmp)
 
-        for p in contour.vertices:
+        for p in contour.coordinates:
             out = vgrid_tmp.closest_point(p, radius=density, return_point_id=True)
             todel += out.tolist()
 
@@ -2893,7 +2893,7 @@ class Points(PointsVisual, PointAlgorithms):
         for index in sorted(list(set(todel)), reverse=True):
             del grid_tmp[index]
 
-        points = contour.vertices.tolist() + grid_tmp
+        points = contour.coordinates.tolist() + grid_tmp
         if invert:
             boundary = list(reversed(range(contour.npoints)))
         else:
@@ -3169,7 +3169,7 @@ class Points(PointsVisual, PointAlgorithms):
 
         """
         src = vtki.new("ProgrammableSource")
-        opts = self.vertices
+        opts = self.coordinates
         # zeros = np.zeros(3)
 
         def _read_points():
@@ -3408,7 +3408,7 @@ class Points(PointsVisual, PointAlgorithms):
         Examples:
             - [moving_least_squares1D.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/moving_least_squares1D.py)
         """
-        points = self.vertices
+        points = self.coordinates
         segments = []
         dists = []
         n = len(points)
@@ -3480,7 +3480,7 @@ class Points(PointsVisual, PointAlgorithms):
 
                 ![](https://vedo.embl.es/images/basic/delaunay2d.png)
         """
-        plist = self.vertices.copy()
+        plist = self.coordinates.copy()
 
         #########################################################
         if mode == "scipy":
@@ -3578,7 +3578,7 @@ class Points(PointsVisual, PointAlgorithms):
 
                 ![](https://vedo.embl.es/images/advanced/voronoi2.png)
         """
-        pts = self.vertices
+        pts = self.coordinates
 
         if method == "scipy":
             from scipy.spatial import Voronoi as scipy_voronoi
@@ -3595,7 +3595,7 @@ class Points(PointsVisual, PointAlgorithms):
                 if flag and len(r) > 0:
                     regs.append(r)
 
-            m = vedo.Mesh([vor.vertices, regs])
+            m = vedo.Mesh([vor.coordinates, regs])
             m.celldata["VoronoiID"] = np.array(list(range(len(regs)))).astype(int)
 
         elif method == "vtk":

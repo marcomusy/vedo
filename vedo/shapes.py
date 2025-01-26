@@ -534,7 +534,7 @@ class Line(Mesh):
         """
         distance1 = 0.0
         length = self.length()
-        pts = self.vertices
+        pts = self.coordinates
         for i in range(1, len(pts)):
             p0 = pts[i - 1]
             p1 = pts[i]
@@ -556,7 +556,7 @@ class Line(Mesh):
         """
         q = self.closest_point(p)
         a, b = sorted(self.closest_point(q, n=2, return_point_id=True))
-        pts = self.vertices
+        pts = self.coordinates
         d = np.linalg.norm(pts[a] - pts[b])
         t = a + np.linalg.norm(pts[a] - q) / d
         return t
@@ -620,7 +620,7 @@ class Line(Mesh):
     def length(self) -> float:
         """Calculate length of the line."""
         distance = 0.0
-        pts = self.vertices
+        pts = self.coordinates
         for i in range(1, len(pts)):
             distance += np.linalg.norm(pts[i] - pts[i - 1])
         return distance
@@ -633,14 +633,14 @@ class Line(Mesh):
             ```python
             from vedo import *
             shape = Assembly(dataurl+"timecourse1d.npy")[58]
-            pts = shape.rotate_x(30).vertices
+            pts = shape.rotate_x(30).coordinates
             tangents = Line(pts).tangents()
             arrs = Arrows(pts, pts+tangents, c='blue9')
             show(shape.c('red5').lw(5), arrs, bg='bb', axes=1).close()
             ```
             ![](https://vedo.embl.es/images/feats/line_tangents.png)
         """
-        v = np.gradient(self.vertices)[0]
+        v = np.gradient(self.coordinates)[0]
         ds_dt = np.linalg.norm(v, axis=1)
         tangent = np.array([1 / ds_dt] * 3).transpose() * v
         return tangent
@@ -655,7 +655,7 @@ class Line(Mesh):
             from vedo import *
             from vedo.pyplot import plot
             shape = Assembly(dataurl+"timecourse1d.npy")[55]
-            curvs = Line(shape.vertices).curvature()
+            curvs = Line(shape.coordinates).curvature()
             shape.cmap('coolwarm', curvs, vmin=-2,vmax=2).add_scalarbar3d(c='w')
             shape.render_lines_as_tubes().lw(12)
             pp = plot(curvs, ac='white', lc='yellow5')
@@ -663,7 +663,7 @@ class Line(Mesh):
             ```
             ![](https://vedo.embl.es/images/feats/line_curvature.png)
         """
-        v = np.gradient(self.vertices)[0]
+        v = np.gradient(self.coordinates)[0]
         a = np.gradient(v)[0]
         av = np.cross(a, v)
         mav = np.linalg.norm(av, axis=1)
@@ -714,7 +714,7 @@ class Line(Mesh):
             ```python
             from vedo import *
             circle = Circle(res=360).rotate_y(20)
-            pts = circle.vertices
+            pts = circle.coordinates
             bore = Line(pts).lw(5)
             values = np.arctan2(pts[:,1], pts[:,0])
             bore.pointdata["scalars"] = values + np.random.randn(360)/5
@@ -795,13 +795,13 @@ class Line(Mesh):
         asurface = Mesh(surface)
         asurface.copy_properties_from(self)
         asurface.lighting("default")
-        self.vertices = self.vertices + direction
+        self.coordinates = self.coordinates + direction
         return asurface
 
     def reverse(self):
         """Reverse the points sequence order."""
-        pts = np.flip(self.vertices, axis=0)
-        self.vertices = pts
+        pts = np.flip(self.coordinates, axis=0)
+        self.coordinates = pts
         return self
 
 
@@ -829,7 +829,7 @@ class DashedLine(Mesh):
             if isinstance(p0, vtki.vtkActor):
                 p0 = p0.GetPosition()
         if isinstance(p0, Points):
-            p0 = p0.vertices
+            p0 = p0.coordinates
 
         # detect if user is passing a 2D list of points as p0=xlist, p1=ylist:
         if len(p0) > 3:
@@ -1072,9 +1072,9 @@ class Lines(Mesh):
             return ########################################
 
         if isinstance(start_pts, Points):
-            start_pts = start_pts.vertices
+            start_pts = start_pts.coordinates
         if isinstance(end_pts, Points):
-            end_pts = end_pts.vertices
+            end_pts = end_pts.coordinates
 
         if end_pts is not None:
             start_pts = np.stack((start_pts, end_pts), axis=1)
@@ -1245,7 +1245,7 @@ class Spline(Line):
         from scipy.interpolate import splprep, splev
 
         if isinstance(points, Points):
-            points = points.vertices
+            points = points.coordinates
 
         points = utils.make3d(points)
 
@@ -1331,7 +1331,7 @@ class KSpline(Line):
         See also: `Spline` and `CSpline`.
         """
         if isinstance(points, Points):
-            points = points.vertices
+            points = points.coordinates
 
         if not res:
             res = len(points) * 20
@@ -1398,7 +1398,7 @@ class CSpline(Line):
         """
 
         if isinstance(points, Points):
-            points = points.vertices
+            points = points.coordinates
 
         if not res:
             res = len(points) * 20
@@ -1656,7 +1656,7 @@ def ThickTube(pts, r1, r2, res=12, c=None, alpha=1.0) -> Union["Mesh", None]:
     """
 
     def make_cap(t1, t2):
-        newpoints = t1.vertices.tolist() + t2.vertices.tolist()
+        newpoints = t1.coordinates.tolist() + t2.coordinates.tolist()
         newfaces = []
         for i in range(n - 1):
             newfaces.append([i, i + 1, i + n])
@@ -1803,10 +1803,10 @@ class Ribbon(Mesh):
         """
 
         if isinstance(line1, Points):
-            line1 = line1.vertices
+            line1 = line1.coordinates
 
         if isinstance(line2, Points):
-            line2 = line2.vertices
+            line2 = line2.coordinates
 
         elif line2 is None:
             #############################################
@@ -2045,9 +2045,9 @@ class Arrows(Glyph):
             ![](https://user-images.githubusercontent.com/32848391/55897850-a1a0da80-5bc1-11e9-81e0-004c8f396b43.jpg)
         """
         if isinstance(start_pts, Points):
-            start_pts = start_pts.vertices
+            start_pts = start_pts.coordinates
         if isinstance(end_pts, Points):
-            end_pts = end_pts.vertices
+            end_pts = end_pts.coordinates
 
         start_pts = np.asarray(start_pts)
         if end_pts is None:
@@ -2250,9 +2250,9 @@ class Arrows2D(Glyph):
                 if False only generate the outline
         """
         if isinstance(start_pts, Points):
-            start_pts = start_pts.vertices
+            start_pts = start_pts.coordinates
         if isinstance(end_pts, Points):
-            end_pts = end_pts.vertices
+            end_pts = end_pts.coordinates
 
         start_pts = np.asarray(start_pts, dtype=float)
         if end_pts is None:
@@ -2310,9 +2310,9 @@ class FlatArrow(Ribbon):
                 ![](https://vedo.embl.es/images/basic/flatarrow.png)
         """
         if isinstance(line1, Points):
-            line1 = line1.vertices
+            line1 = line1.coordinates
         if isinstance(line2, Points):
-            line2 = line2.vertices
+            line2 = line2.coordinates
 
         sm1, sm2 = np.array(line1[-1], dtype=float), np.array(line2[-1], dtype=float)
 
@@ -2426,7 +2426,7 @@ class GeoCircle(Polygon):
             coords.append([clng / np.pi + 1, clat * 2 / np.pi + 1, 0])
 
         super().__init__(nsides=res, c=c, alpha=alpha)
-        self.vertices = coords # warp polygon points to match geo projection
+        self.coordinates = coords # warp polygon points to match geo projection
         self.name = "Circle"
 
 
@@ -2581,8 +2581,8 @@ class IcoSphere(Mesh):
 
         for _ in range(subdivisions):
             self.subdivide(method=1)
-            pts = utils.versor(self.vertices) * r
-            self.vertices = pts
+            pts = utils.versor(self.coordinates) * r
+            self.coordinates = pts
 
         self.pos(pos)
         self.name = "IcoSphere"
@@ -2626,7 +2626,7 @@ class Sphere(Mesh):
             super().__init__(gf.GetOutput(), c, alpha)
             self.lw(0.1)
 
-            cgpts = self.vertices - (0.5, 0.5, 0.5)
+            cgpts = self.coordinates - (0.5, 0.5, 0.5)
 
             x, y, z = cgpts.T
             x = x * (1 + x * x) / 2
@@ -2635,7 +2635,7 @@ class Sphere(Mesh):
             _, theta, phi = cart2spher(x, y, z)
 
             pts = spher2cart(np.ones_like(phi) * r, theta, phi).T
-            self.vertices = pts
+            self.coordinates = pts
 
         else:
             if utils.is_sequence(res):
@@ -2674,7 +2674,7 @@ class Spheres(Mesh):
         """
 
         if isinstance(centers, Points):
-            centers = centers.vertices
+            centers = centers.coordinates
         centers = np.asarray(centers, dtype=float)
         base = centers[0]
 
@@ -3091,7 +3091,7 @@ class Plane(Mesh):
     
     @property
     def normal(self) -> np.ndarray:
-        pts = self.vertices
+        pts = self.coordinates
         # this is necessary because plane can have high resolution
         # p0, p1 = pts[0], pts[1]
         # AB = p1 - p0
@@ -3113,7 +3113,7 @@ class Plane(Mesh):
 
     @property
     def center(self) -> np.ndarray:
-        pts = self.vertices
+        pts = self.coordinates
         return np.mean(pts, axis=0)
 
     def contains(self, points, tol=0) -> np.ndarray:
@@ -3122,7 +3122,7 @@ class Plane(Mesh):
         `points` is an array of shape (n, 3).
         """
         points = np.array(points, dtype=float)
-        bounds = self.vertices
+        bounds = self.coordinates
 
         mask = np.isclose(np.dot(points - self.center, self.normal), 0, atol=tol)
 

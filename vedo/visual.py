@@ -2623,7 +2623,7 @@ class MeshVisual(PointsVisual):
         #     largegrad_ids = np.arange(len(grad))[gradm > seam_threshold * 4]
         #     uvmap = self.pointdata[tname]
         #     # collapse triangles that have large gradient
-        #     new_points = self.vertices.copy()
+        #     new_points = self.points.copy()
         #     for f in self.cells:
         #         if np.isin(f, largegrad_ids).all():
         #             id1, id2, id3 = f
@@ -2638,7 +2638,7 @@ class MeshVisual(PointsVisual):
         #             elif idm == 1:
         #                 new_points[id2] = new_points[id1]
         #                 new_points[id3] = new_points[id1]
-        #     self.vertices = new_points
+        #     self.points = new_points
 
         self.dataset.Modified()
         return self

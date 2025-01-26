@@ -1134,7 +1134,7 @@ def Goniometer(
     acts.append(lb)
 
     if alpha > 0:
-        pts = [p2] + arc.vertices.tolist() + [p2]
+        pts = [p2] + arc.coordinates.tolist() + [p2]
         msh = Mesh([pts, [list(range(arc.npoints + 2))]], c=lc, alpha=alpha)
         msh.lighting("off")
         msh.triangulate()

@@ -245,7 +245,7 @@ class LinearTransform:
         A = LinearTransform(M)
         print(A)
         pt = Point([1,1,0])
-        print(A(pt).vertices[0], "is the same as", A([1,1,0]))
+        print(A(pt).coordinates[0], "is the same as", A([1,1,0]))
 
         maxes = A.compute_main_axes()
 
@@ -254,7 +254,7 @@ class LinearTransform:
         arr3 = Arrow([0,0,0], maxes[2]).c('b')
 
         sphere1 = Sphere().wireframe().lighting('off')
-        sphere1.cmap('hot', sphere1.vertices[:,2])
+        sphere1.cmap('hot', sphere1.coordinates[:,2])
 
         sphere2 = sphere1.clone().apply_transform(A)
 
@@ -819,7 +819,7 @@ class NonLinearTransform:
         if _is_sequence(pts):
             pass
         else:
-            pts = pts.vertices
+            pts = pts.coordinates
         vpts = vtki.vtkPoints()
         for p in pts:
             if len(p) == 2:
@@ -842,7 +842,7 @@ class NonLinearTransform:
         if _is_sequence(pts):
             pass
         else:
-            pts = pts.vertices
+            pts = pts.coordinates
         vpts = vtki.vtkPoints()
         for p in pts:
             if len(p) == 2:
