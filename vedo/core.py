@@ -27,24 +27,27 @@ __all__ = [
     "VolumeAlgorithms",
 ]
 
-warnings = dict(
-    points_getter=(
-        "WARNING: points() is deprecated, use vertices instead. Change:\n"
-        "         mesh.points() -> mesh.vertices\n"
-        "         (silence this with vedo.core.warnings['points_getter']=False)"
-    ),
-    points_setter=(
-        "WARNING: points() is deprecated, use vertices instead. Change:\n"
-        "         mesh.points([[x,y,z], ...]) -> mesh.vertices = [[x,y,z], ...]\n"
-        "         (silence this with vedo.core.warnings['points_getter']=False)"
-    ),
-)
+
+###############################################################################
+# warnings = dict(
+#     func_name=(
+#         "WARNING: some message"
+#         " (silence this with vedo.core.warnings['func_name']=False)"
+#     ),
+# )
+# ### USAGE
+# def func_name(self):
+#     """Obsolete, use ... instead."""
+#         if warnings["func_name"]:
+#             colors.printc(warnings["func_name"], c="y")
+#             warnings["func_name"] = ""
+#         return
+
 
 ###############################################################################
 class DataArrayHelper:
     # Internal use only.
-    # Helper class to manage data associated to either
-    # points (or vertices) and cells (or faces).
+    # Helper class to manage data associated to either points (or vertices) and cells (or faces).
     def __init__(self, obj, association):
 
         self.obj = obj
@@ -583,45 +586,6 @@ class CommonAlgorithms:
     def ncells(self):
         """Retrieve the number of cells."""
         return self.dataset.GetNumberOfCells()
-
-    # def points(self, pts=None):
-    #     """Obsolete, use `self.vertices` or `self.coordinates` instead."""
-    #     if pts is None:  ### getter
-
-    #         if warnings["points_getter"]:
-    #             colors.printc(warnings["points_getter"], c="y")
-    #             warnings["points_getter"] = ""
-    #         return self.vertices
-
-    #     else:  ### setter
-
-    #         if warnings["points_setter"]:
-    #             colors.printc(warnings["points_setter"], c="y")
-    #             warnings["points_setter"] = ""
-
-    #         pts = np.asarray(pts, dtype=np.float32)
-
-    #         if pts.ndim == 1:
-    #             ### getter by point index ###################
-    #             indices = pts.astype(int)
-    #             vpts = self.dataset.GetPoints()
-    #             arr = utils.vtk2numpy(vpts.GetData())
-    #             return arr[indices]  ###########
-
-    #         ### setter ####################################
-    #         if pts.shape[1] == 2:
-    #             pts = np.c_[pts, np.zeros(pts.shape[0], dtype=np.float32)]
-    #         arr = utils.numpy2vtk(pts, dtype=np.float32)
-
-    #         vpts = self.dataset.GetPoints()
-    #         vpts.SetData(arr)
-    #         vpts.Modified()
-    #         # reset mesh to identity matrix position/rotation:
-    #         self.point_locator = None
-    #         self.cell_locator = None
-    #         self.line_locator = None
-    #         self.transform = LinearTransform()
-    #         return self
 
     def cell_centers(self, copy_arrays=False) -> "vedo.Points":
         """
