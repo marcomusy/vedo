@@ -214,7 +214,7 @@ if doshow:
 ######################################################
 print("Test 19")
 sph = Sphere(quads=True, res=4).compute_normals().wireframe()
-sph.celldata["zvals"] = sph.cell_centers[:,2]
+sph.celldata["zvals"] = sph.cell_centers().coordinates[:,2]
 l2d = sph.labels("zvals", on="cells", precision=2).backcolor('orange9')
 if doshow:
     show(sph, l2d, axes=1).close()

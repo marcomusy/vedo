@@ -27,9 +27,9 @@ print(tm.bounds())
 print(rg.bounds())
 
 print("\n -- TEST METHOD cell_centers() -------------------")
-print(vol.cell_centers)
-print(tm.cell_centers)
-print(rg.cell_centers)
+print(vol.cell_centers().coordinates)
+print(tm.cell_centers().coordinates)
+print(rg.cell_centers().coordinates)
 
 print("\n -- TEST METHOD cells() -------------------")
 print(vol.cells) # NORMALLY THIS GIVES WARNING

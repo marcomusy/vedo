@@ -11,13 +11,13 @@ print('---------------------------------')
 cone = Cone(res=48)
 sphere = Sphere(res=24)
 
-carr = cone.cell_centers[:, 2]
+carr = cone.cell_centers().coordinates[:, 2]
 parr = cone.vertices[:, 0]
 
 cone.pointdata["parr"] = parr
 cone.celldata["carr"] = carr
 
-carr = sphere.cell_centers[:, 2]
+carr = sphere.cell_centers().coordinates[:, 2]
 parr = sphere.vertices[:, 0]
 
 sphere.pointdata["parr"] = parr
