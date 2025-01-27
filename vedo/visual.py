@@ -1894,11 +1894,11 @@ class PointsVisual(CommonVisual):
             if content != "id" and content not in self.celldata.keys():
                 vedo.logger.error(f"In labels2d: cell array {content} does not exist.")
                 return None
-            cellcloud = self.cell_centers()
             arr = self.dataset.GetCellData().GetScalars()
-            poly = cellcloud.dataset
+            poly = self.cell_centers().dataset
             poly.GetPointData().SetScalars(arr)
         else:
+            arr = self.dataset.GetPointData().GetScalars()
             poly = self.dataset
             if content != "id" and content not in self.pointdata.keys():
                 vedo.logger.error(f"In labels2d: point array {content} does not exist.")
@@ -1911,7 +1911,9 @@ class PointsVisual(CommonVisual):
         else:
             mp.SetLabelModeToLabelScalars()
             if precision is not None:
-                mp.SetLabelFormat(f"%-#.{precision}g")
+                dtype = arr.GetDataType()
+                if dtype in (vtki.VTK_FLOAT, vtki.VTK_DOUBLE):
+                    mp.SetLabelFormat(f"%-#.{precision}g")
 
         pr = mp.GetLabelTextProperty()
         c = colors.get_color(c)
