@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file.
 
+
+
 # (Unreleased) Version 2024.5.3
 
 ## Changes and Fixes
@@ -47,7 +49,7 @@ Changes that may break existing code whose fixing is trivial:
 
 - change `object.points()` to `object.points` everywhere.
 - change `object.cell_centers` to `object.cell_centers().points` everywhere.
-
+- change `Picture()` to `Image()` everywhere.
 
 ## Hard-breaking Changes
 Changes that will break existing code and need active thinking and some work to adapt
@@ -72,15 +74,11 @@ tests/snippets/test_elastic_pendulum.py
 ```
 
 ## To Do
-- improve 4/5 keys to show a scalarbar
-- add interpolate_scalar5 to webpage
-- fix draw_spline1,2 in webpage
 - fix trasform in image.tomesh() is not transmitted to mesh
 
 
 ### Broken Examples
 Examples that are not fully functional and need some fixing:
-
 ```
 markpoint.py (misplaced leader indicator)
 cut_and_cap.py (incomplete capping)
@@ -88,14 +86,15 @@ tests/issues/discussion_800.py (incomplete capping of tube)
 advanced/warp4b.py (probs with picker?)
 ```
 
-
-#### Broken Projects and Known Issues
+#### (Internal) Known issues
 umap_viewer3d should be revised
 trackviewer (some problems with removing a track, and z spacing)
 pyplot.plot cannot plot constant line or single point
+numpy2volume0.py  (volume alphas look bad)
 
-
-#### Broken Exports to .npz:
+##### (Internal) Broken exports to .npz:
+Fails to export correctly to npz format
+```
 boolean.py
 cartoony.py
 mesh_lut.py
@@ -103,14 +102,11 @@ mesh_map2cell.py
 texturecubes.py
 meshquality.py
 streamlines1.py
+```
 
-#### volume alphas look bad
-erode_dilate.py
-euclidian_dist.py
-numpy2volume0.py
-numpy_imread.py
-slab_vol.py
-warp_scalars.py
+
+
+
 
 
 # Version 2024.5.2
@@ -171,6 +167,8 @@ examples/other/iminuit2.py
 examples/other/meshlib1.py
 tests/issues/issue_1077.py
 ```
+
+
 
 # Version 2024.5.1
 
@@ -297,6 +295,8 @@ tests/snippets/test_ellipsoid_main_axes.py
 tests/snippets/test_compare_fit1.py
 ```
 
+
+
 # Version 2023.5.0
 
 ## Main changes
@@ -379,6 +379,8 @@ examples/volumetric/tet_cut1.py
 examples/volumetric/tet_cut2.py
 examples/other/flag_labels1.py
 ```
+
+
 
 # Version 2023.4.5
 

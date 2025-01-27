@@ -135,7 +135,7 @@ cd ~/Projects/server/brainrender/examples
 ################
 cd ~/Projects/clonal_analysis
     python -m analysis_plots2d
-    python tc_morph4_2d.py
+    python tc_morph11_2d.py
 ################
 cd ~/Projects/server/gustaf
     git pull

@@ -38,7 +38,8 @@ if __name__ == "__main__":
     settings.default_font = "Roboto"
     cmap_slicer = "RdBu"
 
-    dataset = np.load("geo_dataset.npy")
+    datapath = download(dataurl+"geo_dataset.npy")
+    dataset = np.load(datapath)
     min_value = np.nanmin(dataset)
     max_value = np.nanmax(dataset)
 

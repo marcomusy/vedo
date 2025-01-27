@@ -21,7 +21,6 @@ Submodule to work with common format images.
 
 __all__ = [
     "Image",
-    "Picture",  # Deprecated, use Image instead
 ]
 
 
@@ -1484,11 +1483,3 @@ class Image(vedo.visual.ImageVisual):
             shape="cylinder",
         )
         return self
-
-#################################################
-class Picture(Image):
-    def __init__(self, obj=None, channels=3):
-        """Deprecated. Use `Image` instead."""
-        vedo.logger.warning("Picture() is deprecated, use Image() instead.")
-        super().__init__(obj=obj, channels=channels)
-

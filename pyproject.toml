@@ -45,6 +45,11 @@ dependencies = [
     "Pygments"
 ]
 
+[project.optional-dependencies]
+all = [
+    "scipy"
+]
+
 [project.urls]
 Homepage = "https://github.com/marcomusy/vedo"
 Documentation = "https://vedo.embl.es"
