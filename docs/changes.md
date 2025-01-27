@@ -61,7 +61,8 @@ tests/issues/discussion_1190.py
 tests/issues/test_sph_harm2.py
 tests/issues/issue_1218.py
 
-tests/snippets/test_interactive_plotxy.py
+tests/snippets/test_interactive_plotxy1.py
+tests/snippets/test_interactive_plotxy2.py
 tests/snippets/test_elastic_pendulum.py
 ```
 
