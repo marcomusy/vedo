@@ -178,7 +178,7 @@ cd $VEDODIR
 # check version and status
 code vedo/version.py
 git status
-git commit -am 'pre release'
+git commit -am 'release'
 git push
 
 # upload to pypi
