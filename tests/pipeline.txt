@@ -161,10 +161,14 @@ cd ~/Projects/4d-gene-reconstruction/useful_scripts
 cd ~/Projects/abm_playground/
     python cell_sim.py
 
+rm $VEDOLOGFILE
+
 
 # DOCUMENTATION ###############################################################
-mount_staging
-pip install pdoc
+# mount_staging
+# pip install pdoc
+cd $VEDODIR
+pip install -qe .
 cd $VEDODIR/docs/pdoc
 ./build_html.py 
 
@@ -193,14 +197,14 @@ git push
 rm -rf dist/
 python -m build
 python -m twine upload dist/*
-
+# View at:
+# https://pypi.org/project/vedo/
 
 # make github release
 cd $VEDODIR
 code CHANGELOG.md
 code vedo/version.py  # edit to add +dev0
 https://repology.org/project/vedo/badges
-rm $VEDOLOGFILE
 
 
 # SITES ######################################################################

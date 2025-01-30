@@ -53,9 +53,3 @@ show([h0, h1, h2, h3, h4, (p1,p2, axes, __doc__)],
       shape="1/5", # 1 spaces above and 5 below
       sharecam=0, axes=0, zoom=1.4, interactive=True,
 ).close()
-
-
-
-
-
-

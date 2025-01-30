@@ -249,8 +249,8 @@ def show(
     else:
         objects = utils.flatten(objects)
 
-    # If a plotter instance is already present, check if the offscreen argument
-    # is the same as the one requested by the user. If not, create a new
+    #  If a plotter instance is already present, check if the offscreen argument
+    #  is the same as the one requested by the user. If not, create a new
     # plotter instance (see https://github.com/marcomusy/vedo/issues/1026)
     if vedo.plotter_instance and vedo.plotter_instance.offscreen != offscreen:
         new = True
@@ -339,7 +339,7 @@ def show(
                     plt.renderer = None
                     plt.renderers = []
                     plt.camera = None
-                    
+
     else:
 
         _plt_to_return = plt.show(
@@ -531,7 +531,6 @@ class Plotter:
         self.window.SetPolygonSmoothing(vedo.settings.polygon_smoothing)
         self.window.SetLineSmoothing(vedo.settings.line_smoothing)
         self.window.SetPointSmoothing(vedo.settings.point_smoothing)
-
 
         #############################################################
         if N:  # N = number of renderers. Find out the best
@@ -796,7 +795,6 @@ class Plotter:
 
     ##################################################################### ..init ends here.
 
-
     def __str__(self):
         """Return Plotter info."""
         axtype = {
@@ -937,10 +935,7 @@ class Plotter:
             at : (int)
                 add the object at the specified renderer
         """
-        if at is not None:
-            ren = self.renderers[at]
-        else:
-            ren = self.renderer
+        ren = self.renderer if at is None else self.renderers[at]
 
         objs = utils.flatten(objs)
         for ob in objs:
@@ -967,7 +962,7 @@ class Plotter:
 
                 try:
                     ir = self.renderers.index(ren)
-                    a.rendered_at.add(ir) # might not have rendered_at
+                    a.rendered_at.add(ir)  # might not have rendered_at
                 except (AttributeError, ValueError):
                     pass
 
@@ -989,10 +984,8 @@ class Plotter:
                 remove the object at the specified renderer
         """
         # TODO and you can also use wildcards like `*` and `?`.
-        if at is not None:
-            ren = self.renderers[at]
-        else:
-            ren = self.renderer
+
+        ren = self.renderer if at is None else self.renderers[at]
 
         objs = [ob for ob in utils.flatten(objs) if ob]
 
@@ -1160,10 +1153,7 @@ class Plotter:
         Specify whether use depth peeling algorithm at this specific renderer
         Call this method before the first rendering.
         """
-        if at is None:
-            ren = self.renderer
-        else:
-            ren = self.renderers[at]
+        ren = self.renderer if at is None else self.renderers[at]
         ren.SetUseDepthPeeling(value)
         return self
 
@@ -1187,10 +1177,7 @@ class Plotter:
         """
         if not self.renderers:
             return self
-        if at is None:
-            r = self.renderer
-        else:
-            r = self.renderers[at]
+        r = self.renderer if at is None else self.renderers[at]
 
         if c1 is None and c2 is None:
             return np.array(r.GetBackground())
@@ -1278,11 +1265,7 @@ class Plotter:
             include_non_pickables : (bool)
                 include non-pickable objects
         """
-        if at is None:
-            renderer = self.renderer
-            at = self.renderers.index(renderer)
-        elif isinstance(at, int):
-            renderer = self.renderers[at]
+        renderer = self.renderer if at is None else self.renderers[at]
 
         vols = []
         acs = renderer.GetVolumes()
@@ -1306,13 +1289,9 @@ class Plotter:
             include_non_pickables : (bool)
                 include non-pickable objects
         """
-        if at is None:
-            renderer = self.renderer
-            if renderer is None:
-                return []
-            at = self.renderers.index(renderer)
-        elif isinstance(at, int):
-            renderer = self.renderers[at]
+        renderer = self.renderer if at is None else self.renderers[at]
+        if renderer is None:
+            return []
 
         acts = []
         acs = renderer.GetViewProps()
@@ -1322,7 +1301,7 @@ class Plotter:
             if include_non_pickables or a.GetPickable():
                 acts.append(a)
         return acts
-    
+
     def check_actors_trasform(self, at=None) -> Self:
         """
         Reset the transformation matrix of all actors at specified renderer.
@@ -1374,7 +1353,7 @@ class Plotter:
                 cam.SetParallelScale(ps * (1 + tight))
             self.renderer.ResetCameraClippingRange(x0, x1, y0, y1, z0, z1)
         return self
-    
+
     def reset_clipping_range(self, bounds=None) -> Self:
         """
         Reset the camera clipping range to include all visible actors.
@@ -1463,7 +1442,8 @@ class Plotter:
         self.render()
         return self
 
-    def move_camera(self, cameras, t=0, times=(), smooth=True, output_times=()) -> list:
+    @staticmethod
+    def move_camera(cameras, t=0, times=(), smooth=True, output_times=()) -> list:
         """
         Takes as input two cameras set camera at an interpolated position:
 
@@ -1640,10 +1620,8 @@ class Plotter:
         Object is seen from "infinite" distance, e.i. remove any perspective effects.
         An input value equal to -1 will toggle it on/off.
         """
-        if at is not None:
-            r = self.renderers[at]
-        else:
-            r = self.renderer
+        r = self.renderer if at is None else self.renderers[at]
+
         if value == -1:
             val = r.GetActiveCamera().GetParallelProjection()
             value = not val
@@ -1926,8 +1904,17 @@ class Plotter:
         return None
 
     def add_spline_tool(
-        self, points, pc="k", ps=8, lc="r4", ac="g5",
-        lw=2, alpha=1, closed=False, ontop=True, can_add_nodes=True,
+        self,
+        points,
+        pc="k",
+        ps=8,
+        lc="r4",
+        ac="g5",
+        lw=2,
+        alpha=1,
+        closed=False,
+        ontop=True,
+        can_add_nodes=True,
     ) -> "vedo.addons.SplineTool":
         """
         Add a spline tool to the current plotter.
@@ -2439,7 +2426,7 @@ class Plotter:
             if hoverlegend.mapper.GetInput() != t:
                 hoverlegend.mapper.SetInput(t)
                 self.interactor.Render()
-            
+
             # print("ABORT", idcall, hoverlegend.actor.GetCommand(idcall))
             # hoverlegend.actor.GetCommand(idcall).AbortFlagOn()
 
@@ -2902,10 +2889,7 @@ class Plotter:
 
             ![](https://vedo.embl.es/images/basic/mousehover3.jpg)
         """
-        if at is not None:
-            renderer = self.renderers[at]
-        else:
-            renderer = self.renderer
+        renderer = self.renderer if at is None else self.renderers[at]
 
         if not objs:
             pp = vtki.vtkFocalPlanePointPlacer()
@@ -2913,7 +2897,7 @@ class Plotter:
             pps = vtki.vtkPolygonalSurfacePointPlacer()
             for ob in objs:
                 pps.AddProp(ob.actor)
-            pp = pps # type: ignore
+            pp = pps  # type: ignore
 
         if len(bounds) == 6:
             pp.SetPointBounds(bounds)
@@ -3006,10 +2990,7 @@ class Plotter:
             plt.show(mesh, axes=1)
             ```
         """
-        if at is not None:
-            ren = self.renderers[at]
-        else:
-            ren = self.renderer
+        ren = self.renderer if at is None else self.renderers[at]
         area_picker = vtki.vtkAreaPicker()
         area_picker.AreaPick(pos1[0], pos1[1], pos2[0], pos2[1], ren)
         planes = area_picker.GetFrustum()
@@ -3389,7 +3370,7 @@ class Plotter:
 
         if len(viewup) > 0:
             b = self.renderer.ComputeVisiblePropBounds()
-            cm = np.array([(b[1] + b[0])/2, (b[3] + b[2])/2, (b[5] + b[4])/2])
+            cm = np.array([(b[1] + b[0]) / 2, (b[3] + b[2]) / 2, (b[5] + b[4]) / 2])
             sz = np.array([(b[1] - b[0]), (b[3] - b[2]), (b[5] - b[4])])
             if viewup == "x":
                 sz = np.linalg.norm(sz)
@@ -3481,8 +3462,9 @@ class Plotter:
 
         return self
 
-
-    def add_inset(self, *objects, **options) -> Union[vtki.vtkOrientationMarkerWidget, None]:
+    def add_inset(
+        self, *objects, **options
+    ) -> Union[vtki.vtkOrientationMarkerWidget, None]:
         """Add a draggable inset space into a renderer.
 
         Arguments:
@@ -3549,10 +3531,7 @@ class Plotter:
 
     def clear(self, at=None, deep=False) -> Self:
         """Clear the scene from all meshes and volumes."""
-        if at is not None:
-            renderer = self.renderers[at]
-        else:
-            renderer = self.renderer
+        renderer = self.renderer if at is None else self.renderers[at]
         if not renderer:
             return self
 
@@ -3608,7 +3587,7 @@ class Plotter:
         """
         if not self.interactor:
             return self
-        
+
         curr_style = self.interactor.GetInteractorStyle().GetClassName()
         # print("Current style:", curr_style)
         if curr_style.endswith("Actor"):
@@ -3649,7 +3628,7 @@ class Plotter:
             # set a custom interactor style
             if hasattr(mode, "interactor"):
                 mode.interactor = self.interactor
-                mode.renderer = self.renderer # type: ignore
+                mode.renderer = self.renderer  # type: ignore
             mode.SetInteractor(self.interactor)
             mode.SetDefaultRenderer(self.renderer)
             self.interactor.SetInteractorStyle(mode)
@@ -3673,7 +3652,7 @@ class Plotter:
 
         if vedo.settings.dry_run_mode >= 2:
             return self
-        
+
         if not hasattr(self, "window"):
             return self
         if not self.window:
@@ -3987,14 +3966,23 @@ class Plotter:
                         ap = a.properties
                         aal = min([ap.GetOpacity() * 1.25, 1.0])
                         ap.SetOpacity(aal)
-                        if aal == 1 and hasattr(a, "properties_backface") and a.properties_backface:
+                        if (
+                            aal == 1
+                            and hasattr(a, "properties_backface")
+                            and a.properties_backface
+                        ):
                             a.actor.SetBackfaceProperty(a.properties_backface)
 
         elif key == "Up":
             if self.clicked_object and self.clicked_object in self.get_meshes():
                 self.clicked_object.properties.SetOpacity(1)
-                if hasattr(self.clicked_object, "properties_backface") and self.clicked_object.properties_backface:
-                    self.clicked_object.actor.SetBackfaceProperty(self.clicked_object.properties_backface)
+                if (
+                    hasattr(self.clicked_object, "properties_backface")
+                    and self.clicked_object.properties_backface
+                ):
+                    self.clicked_object.actor.SetBackfaceProperty(
+                        self.clicked_object.properties_backface
+                    )
             else:
                 for a in self.get_meshes():
                     if a:
@@ -4184,7 +4172,7 @@ class Plotter:
             except AttributeError:
                 pass
 
-        elif key == "2": # dark colors
+        elif key == "2":  # dark colors
             try:
                 bsc = ["k1", "k2", "k3", "k4",
                     "b1", "b2", "b3", "b4",
@@ -4202,7 +4190,7 @@ class Plotter:
             except AttributeError:
                 pass
 
-        elif key == "3": # light colors
+        elif key == "3":  # light colors
             try:
                 bsc = ["k6", "k7", "k8", "k9",
                     "b6", "b7", "b8", "b9",
@@ -4229,14 +4217,24 @@ class Plotter:
             onwhat = ob.mapper.GetScalarModeAsString()  # UsePointData/UseCellData
 
             cmap_names = [
-                "Accent", "Paired",
-                "rainbow", "rainbow_r",
-                "Spectral", "Spectral_r",
-                "gist_ncar", "gist_ncar_r",
-                "viridis", "viridis_r",
-                "hot", "hot_r",
-                "terrain", "ocean",
-                "coolwarm", "seismic", "PuOr", "RdYlGn",
+                "Accent",
+                "Paired",
+                "rainbow",
+                "rainbow_r",
+                "Spectral",
+                "Spectral_r",
+                "gist_ncar",
+                "gist_ncar_r",
+                "viridis",
+                "viridis_r",
+                "hot",
+                "hot_r",
+                "terrain",
+                "ocean",
+                "coolwarm",
+                "seismic",
+                "PuOr",
+                "RdYlGn",
             ]
             try:
                 i = cmap_names.index(ob._cmap_name)
@@ -4319,7 +4317,8 @@ class Plotter:
                 vedo.printc(
                     f"Name:'{ob.name}'," if ob.name else "",
                     f"active pointdata array: '{arrnames[i]}'",
-                    c="g", bold=False,
+                    c="g",
+                    bold=False,
                 )
 
         elif key == "6":  # cycle celldata array
@@ -4548,8 +4547,8 @@ class Plotter:
         elif key == "x":
             if self.justremoved is None:
                 if self.clicked_object in self.get_meshes() or isinstance(
-                        self.clicked_object, vtki.vtkAssembly
-                    ):
+                    self.clicked_object, vtki.vtkAssembly
+                ):
                     self.justremoved = self.clicked_actor
                     self.renderer.RemoveActor(self.clicked_actor)
             else:

@@ -100,4 +100,3 @@ version = {attr = "vedo.version._version"}
 
 [project.scripts]
 vedo = "vedo.cli:main"
-

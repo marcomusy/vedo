@@ -10,10 +10,9 @@
 A python module for scientific analysis of 3D objects and
 point clouds based on [VTK](https://www.vtk.org/) and [Numpy](http://www.numpy.org/).
 
-Check out the [**GitHub repository**](https://github.com/marcomusy/vedo)
+Check out the [**GitHub Repository**](https://github.com/marcomusy/vedo)
 and the [**vedo main page here**](https://vedo.embl.es).
 
-Find at this [link](https://vedo.embl.es/autodocs/v2023.4.7/vedo.html) the documentation for the older version v2023.4.7.
 
 ## Install and Test
 ```bash
