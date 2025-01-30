@@ -1,4 +1,0 @@
-vtk
-Pygments
-typing-extensions
-
