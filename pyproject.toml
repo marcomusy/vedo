@@ -74,6 +74,9 @@ packages = [
 
 include-package-data = true
 
+license-files = ["LICENSE", "FONT.LICENSE"]
+
+
 [tool.setuptools.package-data]
 vedo = [
     "*",
