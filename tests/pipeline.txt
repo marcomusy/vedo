@@ -92,6 +92,9 @@ jupyter notebook > /dev/null 2>&1
 
 
 # VEDO PROJECTS ###############################################################
+cd $VEDODIR
+pip install .
+
 cd ~/Projects/server/trackviewer
     ./main_test.py
 ################
@@ -153,7 +156,7 @@ cd ~/Projects/server/tetgenpy/examples
     python plc_to_tets.py
 ################
 cd ~/Projects/4d-gene-reconstruction/useful_scripts
-    python interp_to_tetras.py
+    python plc_to_tets.py
 ################
 cd ~/Projects/abm_playground/
     python cell_sim.py
@@ -181,14 +184,21 @@ git status
 git commit -am 'release'
 git push
 
-# upload to pypi
-python setup.py sdist bdist_wheel
-twine upload dist/vedo-?.?.?.tar.gz -r pypi -r pypi -u __token__ -p pypi- ......
+# (optionally) python -m pip install -U packaging
+# upload to pypi (add in ~/.pypirc):
+# [pypi]
+# username = __token__
+# password = your-pypi-token
+
+rm -rf dist/
+python -m build
+python -m twine upload dist/*
+
 
 # make github release
 cd $VEDODIR
-code docs/changes.md
-code vedo/version.py  # edit to add .dev0
+code CHANGELOG.md
+code vedo/version.py  # edit to add +dev0
 https://repology.org/project/vedo/badges
 rm $VEDOLOGFILE
 

@@ -2,9 +2,66 @@
 
 All notable changes to this project will be documented in this file.
 
+# Development Version 
+
+## Changes and Fixes
 
 
-# (Unreleased) Version 2024.5.3
+
+## Soft-breaking Changes
+Changes that may break existing code whose fixing is trivial:
+
+
+## Hard-breaking Changes
+Changes that will break existing code and need active thinking and some work to adapt
+
+- None
+
+## New/Revised Examples
+```
+
+```
+
+## To Do
+- fix trasform in image.tomesh() is not transmitted to mesh
+
+
+### Broken Examples
+Examples that are not fully functional and need some fixing:
+```
+markpoint.py (misplaced leader indicator)
+cut_and_cap.py (incomplete capping)
+tests/issues/discussion_800.py (incomplete capping of tube)
+advanced/warp4b.py (probs with picker?)
+```
+
+#### (Internal) Known issues
+umap_viewer3d should be revised
+trackviewer (some problems with removing a track, and z spacing)
+pyplot.plot cannot plot constant line or single point
+numpy2volume0.py  (volume alphas look bad)
+
+##### (Internal) Broken exports to .npz:
+Fails to export correctly to npz format
+```
+boolean.py
+cartoony.py
+mesh_lut.py
+mesh_map2cell.py
+texturecubes.py
+meshquality.py
+streamlines1.py
+```
+
+
+
+
+
+
+
+
+
+# Version 2024.5.3
 
 ## Changes and Fixes
 
@@ -71,37 +128,6 @@ tests/issues/issue_1218.py
 tests/snippets/test_interactive_plotxy1.py
 tests/snippets/test_interactive_plotxy2.py
 tests/snippets/test_elastic_pendulum.py
-```
-
-## To Do
-- fix trasform in image.tomesh() is not transmitted to mesh
-
-
-### Broken Examples
-Examples that are not fully functional and need some fixing:
-```
-markpoint.py (misplaced leader indicator)
-cut_and_cap.py (incomplete capping)
-tests/issues/discussion_800.py (incomplete capping of tube)
-advanced/warp4b.py (probs with picker?)
-```
-
-#### (Internal) Known issues
-umap_viewer3d should be revised
-trackviewer (some problems with removing a track, and z spacing)
-pyplot.plot cannot plot constant line or single point
-numpy2volume0.py  (volume alphas look bad)
-
-##### (Internal) Broken exports to .npz:
-Fails to export correctly to npz format
-```
-boolean.py
-cartoony.py
-mesh_lut.py
-mesh_map2cell.py
-texturecubes.py
-meshquality.py
-streamlines1.py
 ```
 
 
