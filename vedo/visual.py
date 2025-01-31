@@ -2316,9 +2316,9 @@ class PointsVisual(CommonVisual):
 class MeshVisual(PointsVisual):
     """Class to manage the visual aspects of a ``Maesh`` object."""
 
-    # def __init__(self) -> None:
-    #     # print("INIT MeshVisual", super())
-    #     super().__init__()
+    def __init__(self) -> None:
+        # print("INIT MeshVisual", super())
+        super().__init__()
 
     def follow_camera(self, camera=None, origin=None) -> Self:
         """

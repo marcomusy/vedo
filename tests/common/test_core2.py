@@ -171,7 +171,8 @@ print("\n--- TEST METHOD extract_cells_by_type() -------------------")
 print(tm.extract_cells_by_type("tetra"))
 
 print("\n--- TEST METHOD isosurface() -------------------")
-print(vol.isosurface(flying_edges=False))
+print(vol.isosurface())
 print(tm.isosurface())
+rg.map_cells_to_points()
 print(rg.isosurface())
 

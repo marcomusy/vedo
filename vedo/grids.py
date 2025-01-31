@@ -1770,6 +1770,8 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         Set `value` as single float or list of values to draw the isosurface(s).
         """
         scrange = self.dataset.GetScalarRange()
+        # print(self.dataset)
+        # exit()
 
         cf = vtki.new("ContourFilter")
         cf.UseScalarTreeOn()
@@ -1790,6 +1792,8 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
 
         cf.Update()
         poly = cf.GetOutput()
+        # print(poly)
+        # exit()
 
         out = vedo.mesh.Mesh(poly, c=None).phong()
         out.mapper.SetScalarRange(scrange[0], scrange[1])
