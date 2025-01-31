@@ -40,13 +40,15 @@ from vedo import applications
 
 __all__ = []
 
+
+##############################################################################################
 def main():
     """Execute the command line interface and return the result."""
     return execute_cli()
 
 ##############################################################################################
 def execute_cli():
-
+    """Execute the command line interface and return the result."""
     parser = get_parser()
     args = parser.parse_args()
 
@@ -240,7 +242,7 @@ def exe_run(args):
             tform = Terminal256Formatter(style="zenburn")
         elif "monokai" in STYLE_MAP.keys():
             tform = Terminal256Formatter(style="monokai")
-        else:        
+        else:
             tform = Terminal256Formatter()
         result = highlight(code, Python3Lexer(), tform)
         print(result, end="")
@@ -807,8 +809,8 @@ def draw_scene(args):
             return
 
         sp = vol.spacing()
-        vol.spacing([sp[0] * args.x_spacing, 
-                     sp[1] * args.y_spacing, 
+        vol.spacing([sp[0] * args.x_spacing,
+                     sp[1] * args.y_spacing,
                      sp[2] * args.z_spacing])
         if not args.color:
             args.color = "gold"

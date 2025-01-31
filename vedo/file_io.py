@@ -203,7 +203,7 @@ def load(inputobj: Union[list, str, os.PathLike], unpack=True, force=False) -> A
         inputobj = [str(f) for f in inputobj]
     else:
         inputobj = str(inputobj)
-    
+
     acts = []
     if utils.is_sequence(inputobj):
         flist = inputobj
@@ -310,27 +310,12 @@ def _load_file(filename, unpack):
         objt = Assembly(wacts)
 
     ######################################################## volumetric:
-    elif (
-        fl.endswith(".tif")
-        or fl.endswith(".tiff")
-        or fl.endswith(".slc")
-        or fl.endswith(".vti")
-        or fl.endswith(".mhd")
-        or fl.endswith(".nrrd")
-        or fl.endswith(".nii")
-        or fl.endswith(".dem")
-    ):
+    elif fl.endswith((".tif", ".tiff", ".slc", ".vti", ".mhd", ".nrrd", ".nii", ".dem")):
         img = loadImageData(filename)
         objt = Volume(img)
 
     ######################################################### 2D images:
-    elif (
-        fl.endswith(".png")
-        or fl.endswith(".jpg")
-        or fl.endswith(".bmp")
-        or fl.endswith(".jpeg")
-        or fl.endswith(".gif")
-    ):
+    elif fl.endswith((".jpg", ".jpeg",".png", ".bmp")):
         if ".png" in fl:
             picr = vtki.new("PNGReader")
         elif ".jpg" in fl or ".jpeg" in fl:
@@ -354,10 +339,10 @@ def _load_file(filename, unpack):
 
     ######################################################### multiblock:
     elif fl.endswith(".vtm") or fl.endswith(".vtmb"):
-        read = vtki.new("XMLMultiBlockDataReader")
-        read.SetFileName(filename)
-        read.Update()
-        mb = read.GetOutput()
+        mbread = vtki.new("XMLMultiBlockDataReader")
+        mbread.SetFileName(filename)
+        mbread.Update()
+        mb = mbread.GetOutput()
         if unpack:
             acts = []
             for i in range(mb.GetNumberOfBlocks()):
@@ -377,7 +362,7 @@ def _load_file(filename, unpack):
                     acts.append(vedo.UnstructuredGrid(b))
             return acts
         return mb
-    
+
     ######################################################### assembly:
     elif fl.endswith(".npy"):
         data = np.load(filename, allow_pickle=True)
@@ -446,7 +431,7 @@ def _load_file(filename, unpack):
         routput = reader.GetOutput()
 
         if not routput:
-            vedo.logger.error(f"unable to load {filename}") 
+            vedo.logger.error(f"unable to load {filename}")
             return None
 
         if isinstance(routput, vtki.vtkUnstructuredGrid):
@@ -523,7 +508,7 @@ def download(url: str, force=False, verbose=True) -> str:
 #         url : (str)
 #             The URL to download the file from.
 #         to_local_file : (str)
-#             The local file name to save the file to. 
+#             The local file name to save the file to.
 #             If not specified, the file name will be the same as the remote file name
 #             in the directory specified by `settings.cache_directory + "/vedo"`.
 #         force : (bool)
@@ -629,7 +614,7 @@ def file_info(file_path: str) -> Tuple[str, str]:
 def loadStructuredPoints(filename: Union[str, os.PathLike], as_points=True):
     """
     Load and return a `vtkStructuredPoints` object from file.
-    
+
     If `as_points` is True, return a `Points` object
     instead of a `vtkStructuredPoints`.
     """
@@ -762,7 +747,7 @@ def loadDolfin(filename: Union[str, os.PathLike]) -> Union[Mesh, "vedo.TetMesh",
         f.read(m)
     else:
         m = dolfin.Mesh(filename)
-    
+
     cells = m.cells()
     verts = m.coordinates()
 
@@ -771,7 +756,7 @@ def loadDolfin(filename: Union[str, os.PathLike]) -> Union[Mesh, "vedo.TetMesh",
             return vedo.TetMesh([verts, cells])
         elif len(cells[0]) == 3:  # triangular mesh
             return Mesh([verts, cells])
-    
+
     return None
 
 
@@ -868,7 +853,7 @@ def loadGmesh(filename: Union[str, os.PathLike]) -> Mesh:
 def loadPCD(filename: Union[str, os.PathLike]) -> Points:
     """Return a `Mesh` made of only vertex points
     from the `PointCloud` library file format.
-    
+
     Returns an `Points` object.
     """
     filename = str(filename)
@@ -896,6 +881,7 @@ def loadPCD(filename: Union[str, os.PathLike]) -> Points:
 
 #########################################################################
 def from_numpy(d: dict) -> Mesh:
+    """Create a Mesh object from a dictionary."""
     # recreate a mesh from numpy arrays
     keys = d.keys()
 
@@ -930,7 +916,7 @@ def from_numpy(d: dict) -> Mesh:
     prp.SetPointSize(d['pointsize'])
     if d['color'] is not None:
         msh.color(d['color'])
-    if "lighting_is_on" in d.keys(): 
+    if "lighting_is_on" in d.keys():
         prp.SetLighting(d['lighting_is_on'])
     # Must check keys for backwards compatibility:
     if "linecolor" in d.keys() and d['linecolor'] is not None:
@@ -940,7 +926,7 @@ def from_numpy(d: dict) -> Mesh:
 
     if d['linewidth'] is not None:
         msh.linewidth(d['linewidth'])
-    if "edge_visibility" in d.keys(): 
+    if "edge_visibility" in d.keys():
         prp.SetEdgeVisibility(d['edge_visibility']) # new
 
     lut_list  = d["LUT"]
@@ -1124,11 +1110,10 @@ def _import_npy(fileinput: Union[str, os.PathLike]) -> "vedo.Plotter":
             obj.background(d["bgcol"], d["alpha"])
             if d["frame"]:
                 obj.frame(d["bgcol"])
-        
+
         else:
             obj = None
             # vedo.logger.warning(f"Cannot import object {d}")
-            pass
 
         if obj:
             keys = d.keys()
@@ -1181,7 +1166,7 @@ def write(objct: Any, fileoutput: Union[str, os.PathLike], binary=True) -> Any:
     Write object to file. Same as `save()`.
 
     Supported extensions are:
-    
+
     - `vtk, vti, ply, obj, stl, byu, vtp, vti, mhd, xyz, xml, tif, png, bmp`
     """
     fileoutput = str(fileoutput)
@@ -1192,7 +1177,7 @@ def write(objct: Any, fileoutput: Union[str, os.PathLike], binary=True) -> Any:
         sdict = {"objects": [dd]}
         np.save(fileoutput, sdict)
         return objct
-    
+
     ###############################
     obj = objct.dataset
 
@@ -1243,7 +1228,7 @@ def write(objct: Any, fileoutput: Union[str, os.PathLike], binary=True) -> Any:
             try:
                 g.AddInputData(ob)
             except TypeError:
-                vedo.logger.warning("cannot save object of type", type(ob))
+                vedo.logger.warning(f"cannot save object of type {type(ob)}")
         g.Update()
         mb = g.GetOutputDataObject(0)
         wri = vtki.new("vtkXMLMultiBlockDataWriter")
@@ -1505,7 +1490,7 @@ def to_numpy(act: Any) -> dict:
             if "normals" in iname.lower():
                 continue
             adict["celldata"][iname] = obj.celldata[iname]
-        
+
         adict["metadata"] = {}
         for iname in obj.metadata.keys():
             adict["metadata"][iname] = obj.metadata[iname]
@@ -1585,7 +1570,7 @@ def to_numpy(act: Any) -> dict:
         adict["array"] = obj.tonumpy()
         adict["mode"] = obj.mode()
         adict["spacing"] = obj.spacing()
-        adict["origin"] = obj.origin()        
+        adict["origin"] = obj.origin()
 
         prp = obj.properties
         ctf = prp.GetRGBTransferFunction()
@@ -1626,7 +1611,7 @@ def to_numpy(act: Any) -> dict:
         adict["bgcol"] = obj.properties.GetBackgroundColor()
         adict["alpha"] = obj.properties.GetBackgroundOpacity()
         adict["frame"] = obj.properties.GetFrame()
-    
+
     ######################################################## Assembly
     elif isinstance(obj, Assembly):
         adict["type"] = "Assembly"
@@ -1644,7 +1629,7 @@ def to_numpy(act: Any) -> dict:
 
 #########################################################################
 def _export_npy(plt, fileoutput="scene.npz") -> None:
-    
+
     fileoutput = str(fileoutput)
 
     sdict = {}
@@ -1735,7 +1720,7 @@ def import_window(fileinput: Union[str, os.PathLike]) -> Union["vedo.Plotter", N
 
     if fileinput.endswith(".npy") or fileinput.endswith(".npz"):
         return _import_npy(fileinput)
-    
+
     # elif ".obj" in fileinput.lower():
     #     meshes = load_obj(fileinput, mtl_file, texture_path)
     #     plt = vedo.Plotter()
@@ -1818,7 +1803,7 @@ def screenshot(filename="screenshot.png", scale=1, asarray=False) -> Union["vedo
     if not vedo.plotter_instance or not vedo.plotter_instance.window:
         # vedo.logger.error("in screenshot(), rendering window is not present, skip.")
         return vedo.plotter_instance  ##########
-    
+
     if vedo.plotter_instance.renderer:
         vedo.plotter_instance.renderer.ResetCameraClippingRange()
 
@@ -2148,7 +2133,7 @@ class Video:
         # finalize cleanup
         self.tmp_dir.cleanup()
 
-    def split_frames(self, output_dir="video_frames", prefix="frame_", format="png") -> None:
+    def split_frames(self, output_dir="video_frames", prefix="frame_", file_format="png") -> None:
         """Split an existing video file into frames."""
         try:
             import imageio
@@ -2166,7 +2151,7 @@ class Video:
         # Loop through each frame of the video and save it as image
         print()
         for i, frame in utils.progressbar(
-            enumerate(reader), title=f"writing {format} frames", c="m", width=20
+            enumerate(reader), title=f"writing {file_format} frames", c="m", width=20
         ):
             output_file = os.path.join(output_dir, f"{prefix}{str(i).zfill(5)}.{format}")
-            imageio.imwrite(output_file, frame, format=format)
+            imageio.imwrite(output_file, frame, format=file_format)

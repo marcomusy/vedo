@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 import os
 import time
-import numpy as np
 from typing import Union
+
+import numpy as np
 
 import vedo.vtkclasses as vtki
 
@@ -179,7 +180,7 @@ class Slicer3DPlotter(Plotter):
                 self.add(self.histogram)
 
         #################
-        def slider_function_x(widget, event):
+        def slider_function_x(_widget, _event):
             i = int(self.xslider.value)
             if i == self.current_i:
                 return
@@ -192,7 +193,7 @@ class Slicer3DPlotter(Plotter):
                 self.add(self.xslice)
             self.render()
 
-        def slider_function_y(widget, event):
+        def slider_function_y(_widget, _event):
             j = int(self.yslider.value)
             if j == self.current_j:
                 return
@@ -205,7 +206,7 @@ class Slicer3DPlotter(Plotter):
                 self.add(self.yslice)
             self.render()
 
-        def slider_function_z(widget, event):
+        def slider_function_z(_widget, _event):
             k = int(self.zslider.value)
             if k == self.current_k:
                 return
@@ -286,7 +287,7 @@ class Slicer3DPlotter(Plotter):
             )
 
         #################
-        def button_func(obj, ename):
+        def button_func(_obj, _evtname):
             bu.switch()
             self.cmap_slicer = bu.status()
             for m in self.objects:
@@ -344,10 +345,10 @@ class Slicer3DTwinPlotter(Plotter):
         vol2 = Volume(dataurl + "embryo.slc")
 
         plt = Slicer3DTwinPlotter(
-            vol1, vol2, 
-            shape=(1, 2), 
+            vol1, vol2,
+            shape=(1, 2),
             sharecam=True,
-            bg="white", 
+            bg="white",
             bg2="lightblue",
         )
 
@@ -388,7 +389,7 @@ class Slicer3DTwinPlotter(Plotter):
             rmax = min(rmax, meanlog + (meanlog - rmin) * 0.9)
             rmin = max(rmin, meanlog - (rmax - meanlog) * 0.9)
 
-        def slider_function_x(widget, event):
+        def slider_function_x(_widget, _event):
             i = int(self.xslider.value)
             msh1 = vol1.xslice(i).lighting("", ambient, diffuse, 0)
             msh1.cmap(cmap, vmin=rmin, vmax=rmax)
@@ -402,7 +403,7 @@ class Slicer3DTwinPlotter(Plotter):
                 self.at(0).add(msh1)
                 self.at(1).add(msh2)
 
-        def slider_function_y(widget, event):
+        def slider_function_y(_widget, _event):
             i = int(self.yslider.value)
             msh1 = vol1.yslice(i).lighting("", ambient, diffuse, 0)
             msh1.cmap(cmap, vmin=rmin, vmax=rmax)
@@ -416,7 +417,7 @@ class Slicer3DTwinPlotter(Plotter):
                 self.at(0).add(msh1)
                 self.at(1).add(msh2)
 
-        def slider_function_z(widget, event):
+        def slider_function_z(_widget, _event):
             i = int(self.zslider.value)
             msh1 = vol1.zslice(i).lighting("", ambient, diffuse, 0)
             msh1.cmap(cmap, vmin=rmin, vmax=rmax)
@@ -480,7 +481,7 @@ class MorphPlotter(Plotter):
 
             ![](https://vedo.embl.es/images/advanced/warp4b.jpg)
     """
-        
+
     def __init__(self, source, target, **kwargs):
 
         vedo.settings.enable_default_keyboard_callbacks = False
@@ -527,13 +528,14 @@ class MorphPlotter(Plotter):
         self.camera = cam1  # use the same camera of renderer1
 
         self.add_renderer_frame()
-    
+
         self.callid1 = self.add_callback("KeyPress", self.on_keypress)
         self.callid2 = self.add_callback("LeftButtonPress", self.on_click)
         self._interactive = True
 
     ################################################
     def update(self):
+        """Update the rendering window"""
         source_pts = Points(self.sources).color("purple5").ps(12)
         target_pts = Points(self.targets).color("purple5").ps(12)
         source_pts.name = "source_pts"
@@ -553,6 +555,7 @@ class MorphPlotter(Plotter):
             self.render()
 
     def on_click(self, evt):
+        """Handle mouse click events"""
         if evt.object == self.source:
             self.sources.append(evt.picked3d)
             self.source.pickable(False)
@@ -569,6 +572,7 @@ class MorphPlotter(Plotter):
             self.update()
 
     def on_keypress(self, evt):
+        """Handle keyboard events"""
         if evt.keypress == "c":
             self.sources.clear()
             self.targets.clear()
@@ -613,19 +617,19 @@ class MorphPlotter(Plotter):
                 self.targets.append(p)
             self.source.pickable(True)
             self.target.pickable(False)
-            self.update()            
+            self.update()
         if evt.keypress == "z" or evt.keypress == "a":
             dists = self.warped.distance_to(self.target, signed=True)
             v = np.std(dists) * 2
             self.warped.cmap(self.cmap_name, dists, vmin=-v, vmax=+v)
 
             h = vedo.pyplot.histogram(
-                dists, 
+                dists,
                 bins=self.nbins,
                 title=" ",
                 xtitle=f"STD = {v/2:.2f}",
                 ytitle="",
-                c=self.cmap_name, 
+                c=self.cmap_name,
                 xlim=(-v, v),
                 aspect=16/9,
                 axes=dict(
@@ -652,7 +656,7 @@ class MorphPlotter(Plotter):
             h.name = "warped"
             self.at(2).add(h)
             self.render()
-    
+
         if evt.keypress == "q":
             self.break_interaction()
 
@@ -786,6 +790,7 @@ class Slicer2DPlotter(Plotter):
 
     ####################################################################
     def on_key_press(self, evt):
+        """Handle keyboard events"""
         if evt.keypress == "q":
             self.break_interaction()
         elif evt.keypress.lower() == "h":
@@ -942,7 +947,7 @@ class RayCastPlotter(Plotter):
         if sum(get_color(self.background())) > 1.5:
             csl = "k1"
 
-        def slider_cmap(widget=None, event=""):
+        def slider_cmap(widget=None, _event=""):
             if widget:
                 k = int(widget.value)
                 volume.cmap(cmaps[k])
@@ -979,7 +984,7 @@ class RayCastPlotter(Plotter):
 
         setOTF()  ################
 
-        def sliderA0(widget, event):
+        def sliderA0(widget, _event):
             self.alphaslider0 = widget.value
             setOTF()
 
@@ -992,7 +997,7 @@ class RayCastPlotter(Plotter):
             show_value=0,
         )
 
-        def sliderA1(widget, event):
+        def sliderA1(widget, _event):
             self.alphaslider1 = widget.value
             setOTF()
 
@@ -1005,7 +1010,7 @@ class RayCastPlotter(Plotter):
             show_value=0,
         )
 
-        def sliderA2(widget, event):
+        def sliderA2(widget, _event):
             self.alphaslider2 = widget.value
             setOTF()
 
@@ -1140,7 +1145,7 @@ class IsosurfaceBrowser(Plotter):
                 isovalue = delta / 3.0 + scrange[0]
 
             ### isovalue slider callback
-            def slider_isovalue(widget, event):
+            def slider_isovalue(widget, _event):
                 value = widget.GetRepresentation().GetValue()
                 isovals.SetValue(0, value)
 
@@ -1192,7 +1197,7 @@ class IsosurfaceBrowser(Plotter):
                     bacts.update({value_name: mesh})  # store it
 
             ### isovalue slider callback
-            def slider_isovalue(widget, event):
+            def slider_isovalue(widget, _event):
 
                 prevact = self.vol_actors[0]
                 if isinstance(widget, float):
@@ -1306,7 +1311,7 @@ class Browser(Plotter):
 
         self += objects
 
-        if len(objects) and is_sequence(objects[0]):
+        if len(objects)>0 and is_sequence(objects[0]):
             nobs = len(objects[0])
             for ob in objects:
                 n = len(ob)
@@ -1322,7 +1327,7 @@ class Browser(Plotter):
         self._oldk = None
 
         # define the slider func ##########################
-        def slider_function(widget=None, event=None):
+        def slider_function(_widget=None, _event=None):
 
             k = int(self.slider.value)
 
@@ -1503,7 +1508,7 @@ class FreeHandCutPlotter(Plotter):
         self.add([self.points, self.spline, self.jline]).render()
         return self
 
-    def _on_right_click(self, evt):
+    def _on_right_click(self, _evt):
         self.drawmode = not self.drawmode  # toggle mode
         if self.drawmode:
             self.txt2d.background(self.linecolor, self.alpha)
@@ -1598,14 +1603,11 @@ class FreeHandCutPlotter(Plotter):
             self.top_pts, self.topline = [], None
 
         elif evt.keypress == "r":  # reset camera and axes
-            try:
-                self.remove(self.axes_instances[0])
-                self.axes_instances[0] = None
-                self.add_global_axes(axtype=1, c=None, bounds=self.mesh.bounds())
-                self.renderer.ResetCamera()
-                self.render()
-            except:
-                pass
+            self.remove(self.axes_instances[0])
+            self.axes_instances[0] = None
+            self.add_global_axes(axtype=1, c=None)
+            self.renderer.ResetCamera()
+            self.render()
 
         elif evt.keypress == "s":
             if self.mesh.filename:
@@ -1732,6 +1734,7 @@ class SplinePlotter(Plotter):
                 vedo.colors.printc("Deleted last point", c="r")
 
     def update(self):
+        """Update the plot with the new points"""
         self.remove(self.line, self.vpoints)  # remove old points and spline
         self.vpoints = Points(self.cpoints).ps(self.psize).c(self.pcolor)
         self.vpoints.name = "points"
@@ -2345,7 +2348,7 @@ class AnimationPlayer(vedo.Plotter):
         self.pause()
         self.set_frame(int(round(widget.value)))
 
-    def _handle_timer(self, evt=None) -> None:
+    def _handle_timer(self, _evt=None) -> None:
         self.set_frame(self.value + 1)
 
     def stop(self) -> "AnimationPlayer":
@@ -2371,6 +2374,8 @@ class AnimationPlayer(vedo.Plotter):
 
 ########################################################################
 class Clock(vedo.Assembly):
+    """Create a clock with current time or user provided time."""
+
     def __init__(self, h=None, m=None, s=None, font="Quikhand", title="", c="k"):
         """
         Create a clock with current time or user provided time.

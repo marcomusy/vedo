@@ -147,6 +147,7 @@ class OperationNode:
         self.counts = 0
 
     def add_parent(self, parent) -> None:
+        """Add a parent to the list."""
         self.parents.append(parent)
 
     def _build_tree(self, dot):
@@ -483,7 +484,7 @@ class Minimizer:
     a local minimum is found. The amoeba method is robust,
     reasonably efficient, but is not guaranteed to find
     the global minimum if several local minima exist.
-    
+
     Arguments:
         function : (callable)
             the function to minimize
@@ -499,7 +500,7 @@ class Minimizer:
             Values between 1.1 and 2.0 are valid.
         tol : (float)
             the tolerance for convergence
-    
+
     Example:
         - [nelder-mead.py](https://github.com/marcomusy/vedo/blob/master/examples/others/nelder-mead.py)
     """
@@ -530,7 +531,7 @@ class Minimizer:
         self.parameters_path.append(ain)
         self.function_path.append(r)
         return r
-    
+
     def eval(self, parameters=()) -> float:
         """
         Evaluate the function at the current or given parameters.
@@ -539,16 +540,16 @@ class Minimizer:
             return self.minimizer.EvaluateFunction()
         self.set_parameters(parameters)
         return self.function(parameters)
-    
+
     def set_parameter(self, name, value, scale=1.0) -> None:
         """
         Set the parameter value.
         The initial amount by which the parameter
-        will be modified during the search for the minimum. 
+        will be modified during the search for the minimum.
         """
         self.minimizer.SetParameterValue(name, value)
         self.minimizer.SetParameterScale(name, scale)
-    
+
     def set_parameters(self, parameters) -> None:
         """
         Set the parameters names and values from a dictionary.
@@ -558,13 +559,13 @@ class Minimizer:
                 self.set_parameter(name, value[0], value[1])
             else:
                 self.set_parameter(name, value)
-    
+
     def minimize(self) -> dict:
         """
         Minimize the input function.
 
         Returns:
-            dict : 
+            dict :
                 the minimization results
             init_parameters : (dict)
                 the initial parameters
@@ -715,16 +716,16 @@ def andrews_curves(M, res=100) -> np.ndarray:
 
     The input array is an array of shape (n,m) where n is the number of
     features and m is the number of observations.
-    
+
     Arguments:
         M : (ndarray)
             the data matrix (or data vector).
         res : (int)
             the resolution (n. of points) of the output curve.
-    
+
     Example:
         - [andrews_cluster.py](https://github.com/marcomusy/vedo/blob/master/examples/pyplot/andrews_cluster.py)
-    
+
         ![](https://vedo.embl.es/images/pyplot/andrews_cluster.png)
     """
     # Credits:
@@ -973,7 +974,7 @@ def buildPolyData(vertices, faces=None, lines=None, strips=None, index_offset=0)
                     source_polygons.InsertNextCell(ele)
 
         poly.SetPolys(source_polygons)
-    
+
     if strips is not None:
         tscells = vtki.vtkCellArray()
         for strip in strips:
@@ -2626,7 +2627,6 @@ def meshlab2vedo(mmesh, pointdata_keys=(), celldata_keys=()):
         carr = mmesh.face_scalar_array()
         carr_vtk = numpy_to_vtk(carr)
         carr_vtk.SetName("MeshLabScalars")
-        x0, x1 = carr_vtk.GetRange()
         polydata.GetCellData().AddArray(carr_vtk)
         polydata.GetCellData().SetActiveScalars("MeshLabScalars")
 

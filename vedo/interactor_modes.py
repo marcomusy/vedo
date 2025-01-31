@@ -104,31 +104,31 @@ class MousePan(vtki.vtkInteractorStyleUser):
         self.camera.Zoom(0.9)
         self.interactor.Render()
 
-    def _left_down(self, w, e):
+    def _left_down(self, _w, _e):
         self.left = True
 
-    def _left_up(self, w, e):
+    def _left_up(self, _w, _e):
         self.left = False
 
-    def _middle_down(self, w, e):
+    def _middle_down(self, _w, _e):
         self.middle = True
 
-    def _middle_up(self, w, e):
+    def _middle_up(self, _w, _e):
         self.middle = False
 
-    def _right_down(self, w, e):
+    def _right_down(self, _w, _e):
         self.right = True
 
-    def _right_up(self, w, e):
+    def _right_up(self, _w, _e):
         self.right = False
 
-    def _wheel_forward(self, w, e):
+    def _wheel_forward(self, _w, _e):
         self._mouse_wheel_forward()
 
-    def _wheel_backward(self, w, e):
+    def _wheel_backward(self, _w, _e):
         self._mouse_wheel_backward()
 
-    def _mouse_move(self, w, e):
+    def _mouse_move(self, _w, _e):
         if self.left:
             self._mouse_left_move()
         if self.middle:
@@ -150,7 +150,7 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
         - "y" and "Y" will reset the camera to the default position towards positive or negative y.
         - "." and "," will rotate azimuth to the right or left.
         - "r" will reset the camera to the default position.
-    
+
     Left button: Select a point on the surface to focus the camera on it.
     """
 
@@ -163,7 +163,7 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
                 The step size for moving the camera in the plane of the surface.
             angle_step: float, optional
                 The step size for rotating the camera.
-        
+
         Example:
             [interaction_modes3.py](https://github.com/marcomusy/vedo/blob/master/examples/basic/interaction_modes3.py)
         """
@@ -182,6 +182,8 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
         self.tright = vtki.vtkTransform()
         self.tright.RotateZ(-self.angle_step)
 
+        self.bounds = ()
+
         self.AddObserver("KeyPressEvent", self._key)
         self.AddObserver("RightButtonPressEvent", self._right_button_press)
         self.AddObserver("MouseWheelForwardEvent", self._mouse_wheel_forward)
@@ -190,33 +192,40 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
 
     @property
     def camera(self):
+        """Return the active camera."""
         return self.renderer.GetActiveCamera()
 
     @property
     def position(self):
+        """Return the camera position."""
         return np.array(self.camera.GetPosition())
 
     @position.setter
     def position(self, value):
+        """Set the camera position."""
         self.camera.SetPosition(value[:3])
         self.camera.SetViewUp(0.00001, 0, 1)
         self.renderer.ResetCameraClippingRange()
 
     @property
     def focal_point(self):
+        """Return the camera focal point."""
         return np.array(self.camera.GetFocalPoint())
 
     @focal_point.setter
     def focal_point(self, value):
+        """Set the camera focal point."""
         self.camera.SetFocalPoint(value[:3])
         self.camera.SetViewUp(0.00001, 0, 1)
         self.renderer.ResetCameraClippingRange()
 
-    def _right_button_press(self, obj, event):
+    def _right_button_press(self, _obj, event):
+        """Right button press."""
         # print("Right button", event)
         self._key("Down", event)
 
-    def _left_button_press(self, obj, event):
+    def _left_button_press(self, obj, _event):
+        """Left button press."""
         # print("Left button", event)
         newPickPoint = [0, 0, 0, 0]
         focalDepth = 0
@@ -225,16 +234,18 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
         self.focal_point = np.array(newPickPoint)
         self.interactor.Render()
 
-    def _mouse_wheel_backward(self, obj, event):
+    def _mouse_wheel_backward(self, _obj, event):
+        """Mouse wheel backward."""
         # print("mouse_wheel_backward ", event)
         self._key("Down", event)
 
-    def _mouse_wheel_forward(self, obj, event):
+    def _mouse_wheel_forward(self, _obj, event):
+        """Mouse wheel forward."""
         # print("mouse_wheel_forward ", event)
         self._key("Up", event)
 
     def _key(self, obj, event):
-
+        """Key press."""
         if "Mouse" in event or "Button" in event:
             k = obj
         else:
@@ -562,16 +573,16 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
         self.AddObserver("KeyPressEvent", self.key_press)
         self.AddObserver("KeyReleaseEvent", self.key_release)
 
-    def right_button_press(self, obj, event):
+    def right_button_press(self, _obj, _event):
         pass
 
-    def right_button_release(self, obj, event):
+    def right_button_release(self, _obj, _event):
         pass
 
-    def middle_button_press(self, obj, event):
+    def middle_button_press(self, _obj, _event):
         self._middle_button_down = True
 
-    def middle_button_release(self, obj, event):
+    def middle_button_release(self, _obj, _event):
         self._middle_button_down = False
 
         # perform middle button focus event if ALT is down
@@ -585,13 +596,13 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
             if props:
                 self.focus_on(props[0])
 
-    def mouse_wheel_backward(self, obj, event):
+    def mouse_wheel_backward(self, _obj, _event):
         self.move_mouse_wheel(-1)
 
-    def mouse_wheel_forward(self, obj, event):
+    def mouse_wheel_forward(self, _obj, _event):
         self.move_mouse_wheel(1)
 
-    def mouse_move(self, obj, event):
+    def mouse_move(self, _obj, _event):
         interactor = self.GetInteractor()
 
         # Find the renderer that is active below the current mouse position
@@ -690,7 +701,7 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
             self.dolly(pow(1.1, step))
             self.EndDolly()
 
-    def left_button_press(self, obj, event):
+    def left_button_press(self, _obj, _event):
         if self._is_box_zooming:
             return
         if self.draginfo:
@@ -713,7 +724,7 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
 
         self.initialize_screen_drawing()
 
-    def left_button_release(self, obj, event):
+    def left_button_release(self, _obj, _event):
         # print("LeftButtonRelease")
         if self._is_box_zooming:
             self._is_box_zooming = False
@@ -745,7 +756,7 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
         # remove the selection rubber band / line
         self.GetInteractor().Render()
 
-    def key_press(self, obj, event):
+    def key_press(self, obj, _event):
 
         key = obj.GetKeySym()
         KEY = key.upper()
@@ -818,7 +829,7 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
 
         self.InvokeEvent("InteractionEvent", None)
 
-    def key_release(self, obj, event):
+    def key_release(self, obj, _event):
         key = obj.GetKeySym()
         KEY = key.upper()
         # print(f"Key release: {key}")
@@ -996,6 +1007,7 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
 
     # ----------- actor dragging ------------
     def start_drag(self):
+        """Starts the drag operation"""
         if self.callback_start_drag:
             # print("Calling callback_start_drag")
             self.callback_start_drag()
@@ -1009,6 +1021,7 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
                 # nothing selected and callback_start_drag not assigned')
 
     def finish_drag(self):
+        """Finishes the drag operation"""
         # print('Finished drag')
         if self.callback_end_drag:
             # reset actor positions as actors positions will be controlled
@@ -1057,6 +1070,7 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
         self.draginfo = draginfo
 
     def execute_drag(self):
+        """Executes the drag operation"""
         rwi = self.GetInteractor()
         ren = self.GetCurrentRenderer()
 
@@ -1115,14 +1129,15 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
     # ----------- end dragging --------------
 
     def zoom(self):
+        """Zooms the camera"""
         rwi = self.GetInteractor()
-        x, y = rwi.GetEventPosition()
-        xp, yp = rwi.GetLastEventPosition()
+        _, y = rwi.GetEventPosition()
+        _, yp = rwi.GetLastEventPosition()
         direction = y - yp
         self.move_mouse_wheel(direction / 10)
 
     def pan(self):
-
+        """Pans the camera"""
         ren = self.GetCurrentRenderer()
 
         if ren:
@@ -1176,7 +1191,7 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
             self.GetInteractor().Render()
 
     def rotate(self):
-
+        """Rotates the camera"""
         ren = self.GetCurrentRenderer()
 
         if ren:
@@ -1195,7 +1210,7 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
             self.rotate_turtable_by(rxf, ryf)
 
     def rotate_turtable_by(self, rxf, ryf):
-
+        """Rotates the camera in turn-table mode"""
         ren = self.GetCurrentRenderer()
         rwi = self.GetInteractor()
 
@@ -1266,13 +1281,10 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
     def zoom_box(self, x1, y1, x2, y2):
         """Zooms to a box"""
         if x1 > x2:
-            _ = x1
-            x1 = x2
-            x2 = _
+            #swap x1 and x2
+            x1, x2 = x2, x1
         if y1 > y2:
-            _ = y1
-            y1 = y2
-            y2 = _
+            y1, y2 = y2, y1
 
         width = x2 - x1
         height = y2 - y1
@@ -1356,6 +1368,7 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
         self.GetInteractor().Render()
 
     def dolly(self, factor):
+        """Dolly the camera"""
         ren = self.GetCurrentRenderer()
 
         if ren:
@@ -1375,16 +1388,19 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
             #     # rwi.Render()
 
     def draw_measurement(self):
+        """Draws a measurement line"""
         rwi = self.GetInteractor()
         self.end_x, self.end_y = rwi.GetEventPosition()
         self.draw_line(self.start_x, self.end_x, self.start_y, self.end_y)
 
     def draw_dragged_selection(self):
+        """Draws the selection rubber band"""
         rwi = self.GetInteractor()
         self.end_x, self.end_y = rwi.GetEventPosition()
         self.draw_rubber_band(self.start_x, self.end_x, self.start_y, self.end_y)
 
     def initialize_screen_drawing(self):
+        """Initializes the screen drawing"""
         # make an image of the currently rendered image
 
         rwi = self.GetInteractor()
@@ -1400,6 +1416,7 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
         rwin.GetRGBACharPixelData(0, 0, size[0] - 1, size[1] - 1, front, self._pixel_array)
 
     def draw_rubber_band(self, x1, x2, y1, y2):
+        """Draws a rubber band"""
         rwi = self.GetInteractor()
         rwin = rwi.GetRenderWindow()
 

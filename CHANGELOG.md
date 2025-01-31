@@ -2,9 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+
+===================================================================================
 # Development Version 
 
 ## Changes and Fixes
+- general code cleanup with pylint.
 
 
 
@@ -19,14 +22,13 @@ Changes that will break existing code and need active thinking and some work to 
 
 ## New/Revised Examples
 ```
-
 ```
 
 ## To Do
 - fix trasform in image.tomesh() is not transmitted to mesh
 
 
-### Broken Examples
+#### (Internal) Broken Examples
 Examples that are not fully functional and need some fixing:
 ```
 markpoint.py (misplaced leader indicator)
@@ -59,7 +61,7 @@ streamlines1.py
 
 
 
-
+===================================================================================
 
 # Version 2024.5.3
 
@@ -131,10 +133,7 @@ tests/snippets/test_elastic_pendulum.py
 ```
 
 
-
-
-
-
+===================================================================================
 # Version 2024.5.2
 
 ## Changes and Fixes
@@ -195,7 +194,7 @@ tests/issues/issue_1077.py
 ```
 
 
-
+===================================================================================
 # Version 2024.5.1
 
 ## Changes and Fixes
@@ -322,7 +321,7 @@ tests/snippets/test_compare_fit1.py
 ```
 
 
-
+===================================================================================
 # Version 2023.5.0
 
 ## Main changes
@@ -407,7 +406,7 @@ examples/other/flag_labels1.py
 ```
 
 
-
+===================================================================================
 # Version 2023.4.5
 
 ## Main changes

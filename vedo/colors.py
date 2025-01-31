@@ -1076,7 +1076,7 @@ def build_lut(
             lut.SetTableValue(i, rgba)
     else:
         for i in range(ncols):
-            if len(colorlist[i]) > 2: 
+            if len(colorlist[i]) > 2:
                 alpha = colorlist[i][2]
             else:
                 alpha = 1.0
@@ -1273,7 +1273,6 @@ def printc(
             print(*strings, end=end)
         except UnicodeEncodeError as e:
             print(e, end=end)
-            pass
 
     if flush:
         sys.stdout.flush()

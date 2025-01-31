@@ -48,12 +48,13 @@ def get_notebook_backend(actors2show=()):
 
 #####################################################################################
 def start_2d():
+    """Start a 2D display in the notebook"""
     try:
         import PIL.Image
         # import IPython
     except ImportError:
         print("PIL or IPython not available")
-        return None
+        return
 
     plt = vedo.plotter_instance
 
@@ -61,8 +62,8 @@ def start_2d():
         try:
             nn = vedo.file_io.screenshot(asarray=True, scale=1)
             pil_img = PIL.Image.fromarray(nn)
-        except ValueError as e:
-            return None
+        except ValueError:
+            return
 
         # IPython.display.display(pil_img)
         vedo.notebook_plotter = pil_img
@@ -72,6 +73,7 @@ def start_2d():
 
 #####################################################################################
 def start_panel():
+    """Start a panel display in the notebook"""
     try:
         import panel as pn
         pn.extension('vtk', design='material', sizing_mode='stretch_width', template='material')
@@ -89,7 +91,7 @@ def start_panel():
     if hasattr(plt, "window") and plt.window:
         plt.renderer.ResetCamera()
         vtkpan = pn.pane.VTK(
-            plt.window, 
+            plt.window,
             margin=0, sizing_mode='stretch_both',
             min_height=600,
             orientation_widget=True,
@@ -100,7 +102,7 @@ def start_panel():
 
 ####################################################################################
 def start_k3d(actors2show):
-
+    """Start a k3d display in the notebook"""
     try:
         # https://github.com/K3D-tools/K3D-jupyter
         import k3d
@@ -368,14 +370,14 @@ def start_k3d(actors2show):
 
 #####################################################################################
 def start_trame():
-
+    """Start a trame display in the notebook"""
     try:
         from trame.app import get_server, jupyter
         from trame.ui.vuetify import VAppLayout
         from trame.widgets import vtk as t_vtk, vuetify
     except ImportError:
         print("trame is not installed, try:\n> pip install trame==2.5.2")
-        return None
+        return
 
     plt = vedo.plotter_instance
     if hasattr(plt, "window") and plt.window:
@@ -397,10 +399,10 @@ def start_trame():
                     ctrl.view_reset_camera = view.reset_camera
 
         ctrl.on_server_exited.add(lambda **_: print("trame server exited"))
-        vedo.notebook_plotter = jupyter.show(server)
-        return vedo.notebook_plotter
+        jupyter.show(server)
+        return
     vedo.logger.error("No window present for the trame backend.")
-    return None
+    return
 
 
 #####################################################################################

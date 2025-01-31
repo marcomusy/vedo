@@ -692,7 +692,7 @@ class Line(Mesh):
 
     def plot_scalar(
             self,
-            radius=0.0, 
+            radius=0.0,
             height=1.1,
             normal=(),
             camera=None,
@@ -707,9 +707,9 @@ class Line(Mesh):
                 height of the plot
             normal: (list)
                 normal vector to the plane of the plot
-            camera: (vtkCamera) 
+            camera: (vtkCamera)
                 camera object to use for the plot orientation
-        
+
         Example:
             ```python
             from vedo import *
@@ -1306,7 +1306,7 @@ class KSpline(Line):
     which runs exactly through all the input points.
     """
 
-    def __init__(self, points, 
+    def __init__(self, points,
                  continuity=0.0, tension=0.0, bias=0.0, closed=False, res=None) -> None:
         """
         Arguments:
@@ -1553,7 +1553,7 @@ class Tube(Mesh):
                 resolution, number of the sides of the tube
             c : (color)
                 constant color or list of colors for each point.
-            
+
         Example:
             Create a tube along a line, with data associated to each point:
 
@@ -1586,7 +1586,7 @@ class Tube(Mesh):
             lines.InsertNextCell(line)
             polyln = vtki.vtkPolyData()
             polyln.SetPoints(vpoints)
-            polyln.SetLines(lines)            
+            polyln.SetLines(lines)
             self.base = np.asarray(points[0], dtype=float)
             self.top = np.asarray(points[-1], dtype=float)
 
@@ -1731,7 +1731,7 @@ class Tubes(Mesh):
                 resolution, number of the sides of the tube
             c : (color)
                 constant color or list of colors for each point.
-        
+
         Examples:
             - [streamlines1.py](https://github.com/marcomusy/vedo/blob/master/examples/volumetric/streamlines1.py)
         """
@@ -1759,7 +1759,7 @@ class Tubes(Mesh):
 
         super().__init__(tuf.GetOutput())
         self.name = "Tubes"
-    
+
 
 class Ribbon(Mesh):
     """
@@ -1996,7 +1996,7 @@ class Arrow(Mesh):
         self.fill = True                    # used by pyplot.__iadd__()
         self.s = s if s is not None else 1  # used by pyplot.__iadd__()
         self.name = "Arrow"
-    
+
     def top_point(self):
         """Return the current coordinates of the tip of the Arrow."""
         return self.transform.transform_point(self.top)
@@ -2390,7 +2390,7 @@ class Circle(Polygon):
         self.pvalue = 0.0              # filled by pointcloud.pca_ellipse()
         self.alpha(alpha).c(c)
         self.name = "Circle"
-    
+
     def acircularity(self) -> float:
         """
         Return a measure of how different an ellipse is from a circle.
@@ -2806,7 +2806,7 @@ class Ellipsoid(Mesh):
                 Second axis. Length corresponds to semi-axis.
             axis3 : (list)
                 Third axis. Length corresponds to semi-axis.
-        """        
+        """
         self.center = utils.make3d(pos)
 
         self.axis1 = utils.make3d(axis1)
@@ -2944,14 +2944,14 @@ class Grid(Mesh):
         """
         resx, resy = res
         sx, sy = s
-        
+
         try:
             bb = pos.bounds()
             pos = [(bb[0] + bb[1])/2, (bb[2] + bb[3])/2, (bb[4] + bb[5])/2]
             sx = bb[1] - bb[0]
             sy = bb[3] - bb[2]
         except AttributeError:
-            pass        
+            pass
 
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
@@ -3088,7 +3088,7 @@ class Plane(Mesh):
         newplane.transform = self.transform.clone()
         newplane.variance = 0
         return newplane
-    
+
     @property
     def normal(self) -> np.ndarray:
         pts = self.coordinates
@@ -3236,7 +3236,7 @@ class Box(Mesh):
     """
 
     def __init__(
-            self, pos=(0, 0, 0), 
+            self, pos=(0, 0, 0),
             length=1.0, width=2.0, height=3.0, size=(), c="g4", alpha=1.0) -> None:
         """
         Build a box of dimensions `x=length, y=width and z=height`.
@@ -3313,7 +3313,7 @@ class Box(Mesh):
 class Cube(Box):
     """
     Build a cube shape.
-    
+
     Note that the shape polygonal data contains duplicated vertices. This is to allow
     each face to have its own normal, which is essential for some operations.
     Use the `clean()` method to remove duplicate points.
@@ -3354,7 +3354,7 @@ class TessellatedBox(Mesh):
             n -= 1
             tbs = vtki.new("TessellatedBoxSource")
             tbs.SetLevel(n)
-            if len(bounds):
+            if len(bounds)>0:
                 tbs.SetBounds(bounds)
             else:
                 tbs.SetBounds(0, n * spacing[0], 0, n * spacing[1], 0, n * spacing[2])
@@ -3421,7 +3421,7 @@ class Spring(Mesh):
         theta = np.arccos(diff[2])
         phi = np.arctan2(diff[1], diff[0])
         sp = Line(pts)
-        
+
         t = vtki.vtkTransform()
         t.Translate(start_pt)
         t.RotateZ(np.rad2deg(phi))
@@ -4239,8 +4239,8 @@ class Text3D(Mesh):
         self.txt = txt
         return self
 
+    @staticmethod
     def _get_text3d_poly(
-        self,
         txt,
         s=1,
         font="",
@@ -4364,7 +4364,7 @@ class Text3D(Mesh):
                         notfounds.add(t)
                         xmax += hspacing * scale * fscale
                         continue
-                    
+
                     if poly.GetNumberOfPoints() == 0:
                         continue
 

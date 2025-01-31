@@ -187,7 +187,7 @@ class Figure(Assembly):
             if self.axopts is True or self.axopts == 1:
                 axes_opts = {}
 
-            tp, ts = utils.make_ticks(y0lim / self.yscale, 
+            tp, ts = utils.make_ticks(y0lim / self.yscale,
                                       y1lim / self.yscale, number_of_divisions)
             labs = []
             for i in range(1, len(tp) - 1):
@@ -254,7 +254,7 @@ class Figure(Assembly):
                 dots = "..."
             help_text += f"<br/><code><i>({dots}{self.filename[-30:]})</i></code>"
 
-        all = [
+        _all = [
             "<table>",
             "<tr>",
             "<td>",
@@ -271,7 +271,7 @@ class Figure(Assembly):
             "</table>",
             "</table>",
         ]
-        return "\n".join(all)
+        return "\n".join(_all)
 
     def __add__(self, *obj):
         # just to avoid confusion, supersede Assembly.__add__
@@ -1292,7 +1292,7 @@ class PlotBars(Figure):
             cols = [c] * len(counts)
         else:
             m = "barplot error: data must be given as [counts, labels, colors, edges] not\n"
-            vedo.logger.error(m + f" {data}\n     bin edges and colors are optional.")
+            vedo.logger.error(f"{m}{data}\n     bin edges and colors are optional.")
             raise RuntimeError()
 
         # sanity checks
@@ -1604,7 +1604,7 @@ class PlotXY(Figure):
         self.entries = len(data)
         self.mean = data.mean()
         self.std = data.std()
-        
+
         self.ztolerance = 0
         
         ######### the PlotXY marker
@@ -1915,7 +1915,7 @@ def plot(*args, **kwargs):
         - [plot_fxy1.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot_fxy1.py)
 
             ![](https://vedo.embl.es/images/pyplot/plot_fxy.png)
-        
+
         - [plot_fxy2.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot_fxy2.py)
 
 

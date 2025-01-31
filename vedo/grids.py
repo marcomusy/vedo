@@ -46,7 +46,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
                 A list in the form `[points, cells, celltypes]`,
                 or a vtkUnstructuredGrid object, or a filename
 
-        Celltypes are identified by the following 
+        Celltypes are identified by the following
         [convention](https://vtk.org/doc/nightly/html/vtkCellType_8h_source.html).
         """
         super().__init__()
@@ -390,7 +390,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         pts = self.coordinates
         cm = np.mean(pts, axis=0)
 
-        all = [
+        _all = [
             "<table>",
             "<tr>",
             "<td>", image, "</td>",
@@ -406,7 +406,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
             "</table>",
             "</table>",
         ]
-        return "\n".join(all)
+        return "\n".join(_all)
 
     @property
     def actor(self):
@@ -430,7 +430,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
             self.cell_locator = None
             self.point_locator = None
         return self
-    
+
     def merge(self, *others) -> Self:
         """
         Merge multiple datasets into one single `UnstrcturedGrid`.
@@ -1414,7 +1414,7 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         Arguments:
             inputobj : (vtkRectilinearGrid, list, str)
                 list of points and tet indices, or filename
-        
+
         Example:
             ```python
             from vedo import RectilinearGrid, show
@@ -1477,7 +1477,7 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
             reader.SetFileName(inputobj)
             reader.Update()
             self.dataset = reader.GetOutput()
-        
+
         elif utils.is_sequence(inputobj):
             self.dataset = vtki.vtkRectilinearGrid()
             xcoords, ycoords, zcoords = inputobj
@@ -1646,7 +1646,7 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         pts = self.coordinates
         cm = np.mean(pts, axis=0)
 
-        all = [
+        _all = [
             "<table>",
             "<tr>",
             "<td>", image, "</td>",
@@ -1661,7 +1661,7 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
             "</table>",
             "</table>",
         ]
-        return "\n".join(all)
+        return "\n".join(_all)
 
     def dimensions(self) -> np.ndarray:
         """Return the number of points in the x, y and z directions."""
@@ -1670,57 +1670,57 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
     def x_coordinates(self) -> np.ndarray:
         """Return the x-coordinates of the grid."""
         return utils.vtk2numpy(self.dataset.GetXCoordinates())
-    
+
     def y_coordinates(self) -> np.ndarray:
         """Return the y-coordinates of the grid."""
         return utils.vtk2numpy(self.dataset.GetYCoordinates())
-    
+
     def z_coordinates(self) -> np.ndarray:
         """Return the z-coordinates of the grid."""
         return utils.vtk2numpy(self.dataset.GetZCoordinates())
-    
+
     def is_point_visible(self, pid: int) -> bool:
         """Return True if point `pid` is visible."""
         return self.dataset.IsPointVisible(pid)
-    
+
     def is_cell_visible(self, cid: int) -> bool:
         """Return True if cell `cid` is visible."""
         return self.dataset.IsCellVisible(cid)
-    
+
     def has_blank_points(self) -> bool:
         """Return True if the grid has blank points."""
         return self.dataset.HasAnyBlankPoints()
-    
+
     def has_blank_cells(self) -> bool:
         """Return True if the grid has blank cells."""
         return self.dataset.HasAnyBlankCells()
-    
+
     def compute_structured_coords(self, x: list) -> dict:
         """
         Convenience function computes the structured coordinates for a point `x`.
 
         This method returns a dictionary with keys `ijk`, `pcoords` and `inside`.
         The cell is specified by the array `ijk`.
-        and the parametric coordinates in the cell are specified with `pcoords`. 
+        and the parametric coordinates in the cell are specified with `pcoords`.
         Value of `inside` is False if the point x is outside of the grid.
         """
         ijk = [0, 0, 0]
         pcoords = [0., 0., 0.]
         inout = self.dataset.ComputeStructuredCoordinates(x, ijk, pcoords)
         return {"ijk": np.array(ijk), "pcoords": np.array(pcoords), "inside": bool(inout)}
-    
+
     def compute_pointid(self, ijk: int) -> int:
         """Given a location in structured coordinates (i-j-k), return the point id."""
         return self.dataset.ComputePointId(ijk)
-    
+
     def compute_cellid(self, ijk: int) -> int:
         """Given a location in structured coordinates (i-j-k), return the cell id."""
         return self.dataset.ComputeCellId(ijk)
-    
+
     def find_point(self, x: list) -> int:
         """Given a position `x`, return the id of the closest point."""
         return self.dataset.FindPoint(x)
-    
+
     def find_cell(self, x: list) -> dict:
         """Given a position `x`, return the id of the closest cell."""
         cell = vtki.vtkHexagonalPrism()
@@ -1888,7 +1888,7 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
 
     def __init__(self, inputobj=None):
         """
-        A StructuredGrid is a dataset where edges of the hexahedrons are 
+        A StructuredGrid is a dataset where edges of the hexahedrons are
         not necessarily parallel to the coordinate axes.
         It can be thought of as a tessellation of a block of 3D space,
         similar to a `RectilinearGrid`
@@ -1898,7 +1898,7 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
         Arguments:
             inputobj : (vtkStructuredGrid, list, str)
                 list of points and tet indices, or filename
-        
+
         Example:
             ```python
             from vedo import *
@@ -1972,7 +1972,7 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
             reader.SetFileName(inputobj)
             reader.Update()
             self.dataset = reader.GetOutput()
-        
+
         elif utils.is_sequence(inputobj):
             self.dataset = vtki.vtkStructuredGrid()
             x, y, z = inputobj
@@ -1982,7 +1982,7 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
                 z.flatten(order="F"))
             ).T
             dims = x.shape
-            self.dataset.SetDimensions(dims)      
+            self.dataset.SetDimensions(dims)
             # self.dataset.SetDimensions(dims[1], dims[0], dims[2])
             vpoints = vtki.vtkPoints()
             vpoints.SetData(utils.numpy2vtk(xyz))
@@ -2090,7 +2090,7 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
             out += "metadata".ljust(14) + ": " + f'"{key}" ({len(arr)} values)\n'
 
         return out.rstrip() + "\x1b[0m"
-    
+
     def _repr_html_(self):
         """
         HTML representation of the StructuredGrid object for Jupyter Notebooks.
@@ -2147,7 +2147,7 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
         pts = self.coordinates
         cm = np.mean(pts, axis=0)
 
-        all = [
+        _all = [
             "<table>",
             "<tr>",
             "<td>", image, "</td>",
@@ -2162,7 +2162,7 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
             "</table>",
             "</table>",
         ]
-        return "\n".join(all)
+        return "\n".join(_all)
 
     def dimensions(self) -> np.ndarray:
         """Return the number of points in the x, y and z directions."""
@@ -2188,7 +2188,7 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
     def find_point(self, x: list) -> int:
         """Given a position `x`, return the id of the closest point."""
         return self.dataset.FindPoint(x)
-    
+
     def find_cell(self, x: list) -> dict:
         """Given a position `x`, return the id of the closest cell."""
         cell = vtki.vtkHexagonalPrism()
@@ -2215,7 +2215,7 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
                 the cutting plane goes through this point
             normal : (list, str)
                 normal vector to the cutting plane
-        
+
         Returns an `UnstructuredGrid` object.
         """
         strn = str(normal)

@@ -909,7 +909,7 @@ def cell_type_names():
 def get_class(name, module_name=""):
     """
     Get a vtk class from its name.
-    
+
     Example:
     ```python
     from vedo import vtkclasses as vtki
@@ -936,7 +936,7 @@ def get_class(name, module_name=""):
 def new(cls_name, module_name=""):
     """
     Create a new vtk object instance from its name.
-    
+
     Example:
     ```python
     from vedo import vtkclasses as vtki

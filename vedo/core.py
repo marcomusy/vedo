@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import numpy as np
 from typing import List, Union, Any
 from typing_extensions import Self
+
+import numpy as np
 
 import vedo.vtkclasses as vtki
 
@@ -46,8 +47,11 @@ __all__ = [
 
 ###############################################################################
 class DataArrayHelper:
-    # Internal use only.
-    # Helper class to manage data associated to either points (or vertices) and cells (or faces).
+    """
+    Helper class to manage data associated to either points (or vertices) and cells (or faces).
+
+    Internal use only.
+    """
     def __init__(self, obj, association):
 
         self.obj = obj
@@ -300,13 +304,11 @@ class DataArrayHelper:
         """Select one specific array to be used as texture coordinates."""
         if self.association == 0:
             data = self.obj.dataset.GetPointData()
+            if isinstance(key, int):
+                key = data.GetArrayName(key)
+            data.SetTCoords(data.GetArray(key))
         else:
             vedo.logger.warning("texture coordinates are only available for point data")
-            return
-
-        if isinstance(key, int):
-            key = data.GetArrayName(key)
-        data.SetTCoords(data.GetArray(key))
         return self.obj
 
     def select_normals(self, key: Union[int,str]) -> Any:
@@ -378,6 +380,18 @@ class DataArrayHelper:
 ###############################################################################
 class CommonAlgorithms:
     """Common algorithms."""
+
+    def __init__(self):
+        # print("CommonAlgorithms init")
+
+        self.cell_locator = None
+        self.point_locator = None
+        self.line_locator = None
+
+        self.transform = None
+
+        self.pipeline = None
+
 
     @property
     def pointdata(self):
@@ -483,7 +497,7 @@ class CommonAlgorithms:
             pass
         bx.flat().lighting("off").wireframe(True)
         return bx
-    
+
     def update_dataset(self, dataset, **kwargs) -> Self:
         """Update the dataset of the object with the provided VTK dataset."""
         self._update(dataset, **kwargs)
@@ -809,7 +823,7 @@ class CommonAlgorithms:
             vpts.Modified()
         except (AttributeError, TypeError):
             vedo.logger.error(f"Cannot set vertices for {type(self)}")
-            return self
+            return
         # reset mesh to identity matrix position/rotation:
         self.point_locator = None
         self.cell_locator = None
@@ -881,7 +895,7 @@ class CommonAlgorithms:
                 if i >= n:
                     break
         return conn
-    
+
     def cell_edge_neighbors(self):
         """
         Get the cell neighbor indices of each cell.
@@ -1360,7 +1374,7 @@ class CommonAlgorithms:
         """
         Integrate point and cell data arrays while computing length,
         area or volume of the domain. It works for 1D, 2D or 3D cells.
-    
+
         For volumetric datasets, this filter ignores all but 3D cells.
         It will not compute the volume contained in a closed surface.
 
@@ -1506,11 +1520,11 @@ class CommonAlgorithms:
             c="#e9c46a:#0096c7",
         )
         return vol
-    
+
     def unsigned_distance(
             self, dims=(25,25,25), bounds=(), max_radius=0, cap_value=0) -> "vedo.Volume":
         """
-        Compute the `Volume` object whose voxels contains the unsigned distance. 
+        Compute the `Volume` object whose voxels contains the unsigned distance.
         """
         dist = vtki.new("UnsignedDistance")
         dist.SetInputData(self.dataset)
@@ -1528,7 +1542,7 @@ class CommonAlgorithms:
 
         if self.point_locator:
             dist.SetLocator(self.point_locator)
-        
+
         if cap_value is not None:
             dist.CappingOn()
             dist.SetCapValue(cap_value)
@@ -1540,7 +1554,7 @@ class CommonAlgorithms:
             "unsigned_distance", parents=[self], c="#e9c46a:#0096c7")
         return vol
 
-    def smooth_data(self, 
+    def smooth_data(self,
             niter=10, relaxation_factor=0.1, strategy=0, mask=None,
             mode="distance2",
             exclude=("Normals", "TextureCoordinates"),
@@ -1558,7 +1572,7 @@ class CommonAlgorithms:
         The relaxation factor (R) is also important as the smoothing process proceeds in an iterative fashion.
         The a(i+1) attributes are determined from the a(i) attributes as follows:
             a(i+1) = (1-R)*a(i) + R*sum(w(j)*a(j))
-    
+
         Convergence occurs faster for larger relaxation factors.
         Typically a small number of iterations is required for large relaxation factors,
         and in cases where only points adjacent to the boundary are being smoothed, a single iteration with R=1 may be
@@ -1579,7 +1593,7 @@ class CommonAlgorithms:
             While this filter will process any dataset type, if the input data is a 3D image volume, it's likely much faster to use
             an image-based algorithm to perform data smoothing.
             To determine boundary points in polygonal data, edges used by only one cell are considered boundary
-            (and hence the associated points defining the edge). 
+            (and hence the associated points defining the edge).
 
         Arguments:
             niter : (int)
@@ -1601,11 +1615,7 @@ class CommonAlgorithms:
             exclude : (list)
                 list of arrays to be excluded from smoothing
         """
-        try:
-            saf = vtki.new("AttributeSmoothingFilter")
-        except:
-            vedo.logger.error("smooth_data() only avaialble in VTK>=9.3.0")
-            return self
+        saf = vtki.new("AttributeSmoothingFilter")
         saf.SetInputData(self.dataset)
         saf.SetRelaxationFactor(relaxation_factor)
         saf.SetNumberOfIterations(niter)
@@ -1645,10 +1655,10 @@ class CommonAlgorithms:
             "smooth_data", comment=f"strategy {strategy}", parents=[self], c="#9e2a2b"
         )
         return self
-        
+
     def compute_streamlines(
-            self, 
-            seeds: Any, 
+            self,
+            seeds: Any,
             integrator="rk4",
             direction="forward",
             initial_step_size=None,
@@ -1768,7 +1778,7 @@ class PointAlgorithms(CommonAlgorithms):
             tr = LT.T
             if LT.is_identity():
                 return self
-        
+
         elif isinstance(LT, (vtki.vtkMatrix4x4, vtki.vtkLinearTransform)) or utils.is_sequence(LT):
             LT_is_linear = True
             LT = LinearTransform(LT)
@@ -2065,7 +2075,7 @@ class VolumeAlgorithms(CommonAlgorithms):
             c="#4cc9f0:#e9c46a",
         )
         return out
-    
+
     def isosurface_discrete(
             self, values, background_label=None, internal_boundaries=True, use_quads=False, nsmooth=0,
         ) -> "vedo.mesh.Mesh":
@@ -2077,9 +2087,9 @@ class VolumeAlgorithms(CommonAlgorithms):
         labeled regions / objects.
         (Note that on output each region [corresponding to a different segmented object] will share
         points/edges on a common boundary, i.e., two neighboring objects will share the boundary that separates them).
-        
+
         Besides output geometry defining the surface net, the filter outputs a two-component celldata array indicating
-        the labels on either side of the polygons composing the output Mesh. 
+        the labels on either side of the polygons composing the output Mesh.
         (This can be used for advanced operations like extracting shared/contacting boundaries between two objects.
         The name of this celldata array is "BoundaryLabels").
 
@@ -2138,7 +2148,7 @@ class VolumeAlgorithms(CommonAlgorithms):
 
         for i, val in enumerate(values):
             snets.SetValue(i, val)
-        
+
         if use_quads:
             snets.SetOutputMeshTypeToQuads()
         else:

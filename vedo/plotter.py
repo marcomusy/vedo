@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os.path
 import sys
@@ -16,13 +15,30 @@ from vedo import backends
 from vedo import addons
 
 
-__docformat__ = "google"
-
 __doc__ = """
-This module defines the main class Plotter to manage objects and 3D rendering.
+Module containing the Plotter class for managing objects and 3D rendering.
+
+The Plotter class is the main interface for creating visualization windows,
+rendering 3D scenes, handling interactions, managing renderers, cameras,
+and visualization settings. It provides methods for displaying meshes, creating
+screenshots, handling user events, and configuring the visualization pipeline.
+
+Key functionality:
+- Create and manage multiple render windows
+
+- Handle user interaction via mouse and keyboard events
+
+- Control camera position and settings
+
+- Configure lighting and shading
+
+- Add text labels, scalar bars and other annotations
+
+- Export visualizations to images and movies
 
 ![](https://vedo.embl.es/images/basic/multirenderers.png)
 """
+__docformat__ = "google"
 
 __all__ = ["Plotter", "show", "close"]
 
@@ -110,6 +126,7 @@ class Event:
         return out.rstrip()
 
     def keys(self):
+        """Return the list of keys."""
         return self.__slots__
 
 
@@ -1442,8 +1459,7 @@ class Plotter:
         self.render()
         return self
 
-    @staticmethod
-    def move_camera(cameras, t=0, times=(), smooth=True, output_times=()) -> list:
+    def move_camera(self, cameras, t=0, times=(), smooth=True, output_times=()) -> list:
         """
         Takes as input two cameras set camera at an interpolated position:
 
@@ -2717,7 +2733,7 @@ class Plotter:
 
             - ..and many others!
         """
-        from vtkmodules.util.misc import calldata_type
+        from vtkmodules.util.misc import calldata_type # noqa
 
         if not self.interactor:
             return 0

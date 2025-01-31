@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import numpy as np
 from weakref import ref as weak_ref_to
 from typing import Tuple, List, Union, Any
 from typing_extensions import Self
+
+import numpy as np
 
 import vedo.vtkclasses as vtki
 
@@ -232,7 +233,7 @@ class Image(vedo.visual.ImageVisual):
         sx, sy, _ = self.dataset.GetDimensions()
         shape = np.array([sx, sy])
         self.pipeline = utils.OperationNode("Image", comment=f"#shape {shape}", c="#f28482")
-    
+
     ######################################################################
 
     def __str__(self):
@@ -262,7 +263,7 @@ class Image(vedo.visual.ImageVisual):
         #     except:
         #         pass
         #     out += thumb
-        
+
         out += "\x1b[0m\x1b[33;1m"
         out += "dimensions".ljust(14) + f": {self.shape}\n"
         out += "memory size".ljust(14) + ": "
@@ -291,14 +292,14 @@ class Image(vedo.visual.ImageVisual):
         """
         import io
         import base64
-        from PIL import Image
+        from PIL import Image as PILImage
 
         library_name = "vedo.image.Image"
         help_url = "https://vedo.embl.es/docs/vedo/image.html"
 
         arr = self.thumbnail(zoom=1.1)
 
-        im = Image.fromarray(arr)
+        im = PILImage.fromarray(arr)
         buffered = io.BytesIO()
         im.save(buffered, format="PNG", quality=100)
         encoded = base64.b64encode(buffered.getvalue()).decode("utf-8")
@@ -364,7 +365,7 @@ class Image(vedo.visual.ImageVisual):
 
     def dimensions(self) -> np.ndarray:
         """
-        Return the image dimension as number of pixels in x and y. 
+        Return the image dimension as number of pixels in x and y.
         Alias of property `shape`.
         """
         nx, ny, _ = self.dataset.GetDimensions()
@@ -384,7 +385,7 @@ class Image(vedo.visual.ImageVisual):
     def extent(self) -> Tuple[int, int, int, int]:
         """Return the physical extent that the image spans."""
         return self.dataset.GetExtent()
-    
+
     @extent.setter
     def extent(self, ext: Tuple[int, int, int, int]):
         """Set the physical extent that the image spans."""
@@ -409,17 +410,17 @@ class Image(vedo.visual.ImageVisual):
         pic.actor.SetProperty(pic.properties)
         pic.pipeline = utils.OperationNode("clone", parents=[self], c="#f7dada", shape="diamond")
         return pic
-    
+
     def clone2d(self, pos=(0, 0), size=1, justify="") -> "vedo.visual.Actor2D":
         """
         Embed an image as a static 2D image in the canvas.
-        
+
         Return a 2D (an `Actor2D`) copy of the input Image.
-        
+
         Arguments:
             pos : (list, str)
                 2D (x,y) position in range [0,1],
-                [0,0] being the bottom-left corner  
+                [0,0] being the bottom-left corner
             size : (float)
                 apply a scaling factor to the image
             justify : (str)
@@ -430,7 +431,7 @@ class Image(vedo.visual.ImageVisual):
         pic.name = self.name
         pic.filename = self.filename
         pic.file_size = self.file_size
-        
+
         pic.dataset = self.dataset
 
         pic.properties = pic.GetProperty()

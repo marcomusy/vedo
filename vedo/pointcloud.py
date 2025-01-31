@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import time
+from weakref import ref as weak_ref_to
+
 from typing import Union, List
 from typing_extensions import Self
-from weakref import ref as weak_ref_to
+
 import numpy as np
 
 import vedo.vtkclasses as vtki
@@ -359,7 +361,7 @@ def pca_ellipse(points: Union[np.ndarray, "vedo.Points"], pvalue=0.673, res=60) 
     elli.nr_of_points = n
     elli.va = ua
     elli.vb = ub
-    
+
     # we subtract center because it's in t
     elli.axis1 = t.move([1, 0, 0]) - center
     elli.axis2 = t.move([0, 1, 0]) - center
@@ -385,12 +387,12 @@ def pca_ellipsoid(points: Union[np.ndarray, "vedo.Points"], pvalue=0.673, res=24
     Arguments:
         pvalue : (float)
             ellipsoid will include this fraction of points
-   
+
     Examples:
         [pca_ellipsoid.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/pca_ellipsoid.py)
 
             ![](https://vedo.embl.es/images/basic/pca.png)
-    
+
     See also:
         `pca_ellipse()` for a 2D ellipse.
     """
@@ -492,8 +494,9 @@ class Points(PointsVisual, PointAlgorithms):
 
         self.info = {}
         self.time = time.time()
-        
+
         self.transform = LinearTransform()
+
         self.point_locator = None
         self.cell_locator = None
         self.line_locator = None
@@ -503,7 +506,7 @@ class Points(PointsVisual, PointAlgorithms):
         self.properties_backface = self.actor.GetBackfaceProperty()
         self.mapper = vtki.new("PolyDataMapper")
         self.dataset = vtki.vtkPolyData()
-        
+
         # Create weakref so actor can access this object (eg to pick/remove):
         self.actor.retrieve_object = weak_ref_to(self)
 
@@ -611,19 +614,19 @@ class Points(PointsVisual, PointAlgorithms):
             if "legend" in self.info.keys() and self.info["legend"]:
                 out+= f", legend='{self.info['legend']}'"
             out += "\n"
- 
+
         if self.filename:
             out+= "file name".ljust(14) + ": " + self.filename + "\n"
 
         if not self.mapper.GetScalarVisibility():
             col = utils.precision(self.properties.GetColor(), 3)
             cname = vedo.colors.get_color_name(self.properties.GetColor())
-            out+= "color".ljust(14) + ": " + cname 
+            out+= "color".ljust(14) + ": " + cname
             out+= f", rgb={col}, alpha={self.properties.GetOpacity()}\n"
             if self.actor.GetBackfaceProperty():
                 bcol = self.actor.GetBackfaceProperty().GetDiffuseColor()
                 cname = vedo.colors.get_color_name(bcol)
-                out+= "backface color".ljust(14) + ": " 
+                out+= "backface color".ljust(14) + ": "
                 out+= f"{cname}, rgb={utils.precision(bcol,3)}\n"
 
         npt = self.dataset.GetNumberOfPoints()
@@ -671,7 +674,7 @@ class Points(PointsVisual, PointAlgorithms):
             elif a_tensors and a_tensors.GetName() == key:
                 mark_active += " ***"
             out += mark_active.ljust(14) + f': "{key}" ({arr.dtype}), dim={dim}'
-            if dim == 1 and len(arr):
+            if dim == 1 and len(arr)>0:
                 rng = utils.precision(arr.min(), 3) + ", " + utils.precision(arr.max(), 3)
                 out += f", range=({rng})\n"
             else:
@@ -691,7 +694,7 @@ class Points(PointsVisual, PointAlgorithms):
             elif a_tensors and a_tensors.GetName() == key:
                 mark_active += " ***"
             out += mark_active.ljust(14) + f': "{key}" ({arr.dtype}), dim={dim}'
-            if dim == 1 and len(arr):
+            if dim == 1 and len(arr)>0:
                 rng = utils.precision(arr.min(), 3) + ", " + utils.precision(arr.max(), 3)
                 out += f", range=({rng})\n"
             else:
@@ -805,7 +808,7 @@ class Points(PointsVisual, PointAlgorithms):
 
         return vedo.assembly.Assembly([self, meshs])
 
-    def polydata(self, **kwargs):
+    def polydata(self):
         """
         Obsolete. Use property `.dataset` instead.
         Returns the underlying `vtkPolyData` object.
@@ -820,7 +823,7 @@ class Points(PointsVisual, PointAlgorithms):
 
     def __deepcopy__(self, memo):
         return self.clone(deep=memo)
-    
+
     def copy(self, deep=True) -> Self:
         """Return a copy of the object. Alias of `clone()`."""
         return self.clone(deep=deep)
@@ -908,9 +911,9 @@ class Points(PointsVisual, PointAlgorithms):
         """
         Compute acoplanarity which is a measure of how much a local region of the mesh
         differs from a plane.
-        
+
         The information is stored in a `pointdata` or `celldata` array with name 'Acoplanarity'.
-        
+
         Either `n` (number of neighbour points) or `radius` (radius of local search) can be specified.
         If a radius value is given and not enough points fall inside it, then a -1 is stored.
 
@@ -1515,11 +1518,11 @@ class Points(PointsVisual, PointAlgorithms):
                 self.cell_locator.BuildLocator()
 
             if radius is not None:
-                vedo.printc("Warning: closest_point() with radius is not implemented for cells.", c='r')   
- 
+                vedo.printc("Warning: closest_point() with radius is not implemented for cells.", c='r')
+
             if n != 1:
-                vedo.printc("Warning: closest_point() with n>1 is not implemented for cells.", c='r')   
- 
+                vedo.printc("Warning: closest_point() with n>1 is not implemented for cells.", c='r')
+
             trgp = [0, 0, 0]
             cid = vtki.mutable(0)
             dist2 = vtki.mutable(0)
@@ -1663,7 +1666,7 @@ class Points(PointsVisual, PointAlgorithms):
         return self
 
     def relax_point_positions(
-            self, 
+            self,
             n=10,
             iters=10,
             sub_iters=10,
@@ -1672,26 +1675,26 @@ class Points(PointsVisual, PointAlgorithms):
             constraints=(),
         ) -> Self:
         """
-        Smooth mesh or points with a 
+        Smooth mesh or points with a
         [Laplacian algorithm](https://vtk.org/doc/nightly/html/classvtkPointSmoothingFilter.html)
         variant. This modifies the coordinates of the input points by adjusting their positions
         to create a smooth distribution (and thereby form a pleasing packing of the points).
         Smoothing is performed by considering the effects of neighboring points on one another
         it uses a cubic cutoff function to produce repulsive forces between close points
         and attractive forces that are a little further away.
-        
+
         In general, the larger the neighborhood size, the greater the reduction in high frequency
         information. The memory and computational requirements of the algorithm may also
         significantly increase.
 
         The algorithm incrementally adjusts the point positions through an iterative process.
-        Basically points are moved due to the influence of neighboring points. 
-        
+        Basically points are moved due to the influence of neighboring points.
+
         As points move, both the local connectivity and data attributes associated with each point
         must be updated. Rather than performing these expensive operations after every iteration,
         a number of sub-iterations can be specified. If so, then the neighborhood and attribute
         value updates occur only every sub iteration, which can improve performance significantly.
-        
+
         Arguments:
             n : (int)
                 neighborhood size to calculate the Laplacian.
@@ -1720,7 +1723,7 @@ class Points(PointsVisual, PointAlgorithms):
                 If all points in the neighborhood surrounding a point are in the cone defined by
                 `boundary_angle`, then the point is classified as lying on a plane.
                 Angles are expressed in degrees.
-        
+
         Example:
             ```py
             import numpy as np
@@ -1864,7 +1867,7 @@ class Points(PointsVisual, PointAlgorithms):
         for i, p in enumerate(coords):
             if pb:
                 pb.print("smooth_mls_2d working ...")
-            
+
             # if a radius was provided for each point
             if radius_is_sequence:
                 pts = self.closest_point(p, n=Ncp, radius=radius[i])
@@ -1898,7 +1901,7 @@ class Points(PointsVisual, PointAlgorithms):
     def smooth_lloyd_2d(self, iterations=2, bounds=None, options="Qbb Qc Qx") -> Self:
         """
         Lloyd relaxation of a 2D pointcloud.
-        
+
         Arguments:
             iterations : (int)
                 number of iterations.
@@ -2084,7 +2087,7 @@ class Points(PointsVisual, PointAlgorithms):
             parents.append(source)
         except AttributeError:
             source = utils.make3d(source)
-        
+
         try:
             target = target.coordinates
             parents.append(target)
@@ -2097,7 +2100,7 @@ class Points(PointsVisual, PointAlgorithms):
             vedo.logger.error(f"#source {ns} != {nt} #target points")
             raise RuntimeError()
 
-        NLT = NonLinearTransform()
+        NLT = NonLinearTransform(sigma=sigma, mode=mode)
         NLT.source_points = source
         NLT.target_points = target
         self.apply_transform(NLT)
@@ -2696,7 +2699,7 @@ class Points(PointsVisual, PointAlgorithms):
             ```
             ![](https://user-images.githubusercontent.com/32848391/57081955-0ef1e800-6cf6-11e9-99de-b45220939bc9.png)
         """
-        if not len(bounds):
+        if len(bounds) == 0:
             pos = np.array(self.pos())
             x0, x1, y0, y1, z0, z1 = self.bounds()
             x0, y0, z0 = [x0, y0, z0] - pos
@@ -2736,7 +2739,7 @@ class Points(PointsVisual, PointAlgorithms):
         return self
 
     def generate_surface_halo(
-            self, 
+            self,
             distance=0.05,
             res=(50, 50, 50),
             bounds=(),
@@ -2964,7 +2967,7 @@ class Points(PointsVisual, PointAlgorithms):
                 z0 - (z1 - z0) * padding,
                 z1 + (z1 - z0) * padding,
             )
-        
+
         bb = sdf.GetBounds()
         if bb[0]==bb[1]:
             vedo.logger.warning("reconstruct_surface(): zero x-range")
@@ -3014,7 +3017,7 @@ class Points(PointsVisual, PointAlgorithms):
     def compute_clustering(self, radius: float) -> Self:
         """
         Cluster points in space. The `radius` is the radius of local search.
-        
+
         An array named "ClusterId" is added to `pointdata`.
 
         Examples:
@@ -3120,7 +3123,7 @@ class Points(PointsVisual, PointAlgorithms):
     def compute_camera_distance(self) -> np.ndarray:
         """
         Calculate the distance from points to the camera.
-        
+
         A pointdata array is created with name 'DistanceToCamera' and returned.
         """
         if vedo.plotter_instance and vedo.plotter_instance.renderer:
@@ -3386,7 +3389,7 @@ class Points(PointsVisual, PointAlgorithms):
         )
         return vol
 
-    #################################################################################    
+    #################################################################################
     def generate_segments(self, istart=0, rmax=1e30, niter=3) -> "vedo.shapes.Lines":
         """
         Generate a line segments from a set of points.

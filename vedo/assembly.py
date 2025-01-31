@@ -84,14 +84,14 @@ class Group(vtki.vtkPropAssembly):
         super().__init__()
 
         self.objects = []
-        
+
         if isinstance(objects, dict):
             for name in objects:
                 objects[name].name = name
             objects = list(objects.values())
         elif vedo.utils.is_sequence(objects):
             self.objects = objects
-            
+
 
         self.actor = self
 
@@ -165,7 +165,7 @@ class Group(vtki.vtkPropAssembly):
         """Add an object to the group."""
         self.__iadd__(obj)
         return self
-    
+
     def remove(self, obj):
         """Remove an object to the group."""
         self.__isub__(obj)
@@ -213,20 +213,16 @@ class Group(vtki.vtkPropAssembly):
         """The pickability property of the Group."""
         self.SetPickable(value)
         return self
-    
+
     def use_bounds(self, value=True) -> "Group":
         """Set the use bounds property of the Group."""
         self.SetUseBounds(value)
         return self
-    
+
     def print(self) -> "Group":
         """Print info about the object."""
         print(self)
         return self
-
-    def objects(self) -> List["vedo.Mesh"]:
-        """Return the list of objects in the group."""
-        return self.objects
 
 
 #################################################
@@ -263,7 +259,7 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
 
         # Init by filename
         if len(meshs) == 1 and isinstance(meshs[0], str):
-            filename = vedo.file_io.download(meshs[0], verbose=False)            
+            filename = vedo.file_io.download(meshs[0], verbose=False)
             data = np.load(filename, allow_pickle=True)
             try:
                 # old format with a single object
@@ -334,7 +330,7 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
         n = len(self.unpack())
         out += "n. of objects".ljust(14) + ": " + str(n) + " "
         names = np.unique([a.name for a in self.unpack() if a.name])
-        if len(names):
+        if len(names)>0:
             out += str(names).replace("'","")[:56]
         out += "\n"
 
@@ -464,7 +460,7 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
         """
         self.__add__(obj)
         return self
-    
+
     def remove(self, obj):
         """
         Remove an object to the assembly.
@@ -535,23 +531,22 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
         """Flatten out an Assembly."""
 
         def _genflatten(lst):
-            if not lst:
-                return []
-            ##
-            if isinstance(lst[0], Assembly):
-                lst = lst[0].unpack()
-            ##
-            for elem in lst:
-                if isinstance(elem, Assembly):
-                    apos = elem.GetPosition()
-                    asum = np.sum(apos)
-                    for x in elem.unpack():
-                        if asum:
-                            yield x.clone().shift(apos)
-                        else:
-                            yield x
-                else:
-                    yield elem
+            if lst:
+                ##
+                if isinstance(lst[0], Assembly):
+                    lst = lst[0].unpack()
+                ##
+                for elem in lst:
+                    if isinstance(elem, Assembly):
+                        apos = elem.GetPosition()
+                        asum = np.sum(apos)
+                        for x in elem.unpack():
+                            if asum:
+                                yield x.clone().shift(apos)
+                            else:
+                                yield x
+                    else:
+                        yield elem
 
         return list(_genflatten([self]))
 
@@ -685,4 +680,3 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
     def copy(self) -> "Assembly":
         """Return a copy of the object. Alias of `clone()`."""
         return self.clone()
-

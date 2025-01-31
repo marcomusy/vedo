@@ -743,7 +743,8 @@ class Settings:
         print(" setup completed.")
 
     ############################################################
-    def start_xvfb(self) -> None:
+    @staticmethod
+    def start_xvfb() -> None:
         """
         Start xvfb.
 

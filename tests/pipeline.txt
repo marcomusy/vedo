@@ -86,6 +86,8 @@ vedo --convert data/290.vtk --to ply && vedo data/290.ply
 # NOTEBOOKS ###################################################################
 cd $VEDODIR/examples/notebooks/
 jupyter notebook > /dev/null 2>&1
+# test colab
+https://colab.research.google.com/drive/
 
 ##########################
 # Check on OSX and Windows

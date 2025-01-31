@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import numpy as np
 from typing import Union
 from typing_extensions import Self
+
+import numpy as np
 
 import vedo.vtkclasses as vtki  # a wrapper for lazy imports
 
@@ -161,32 +162,39 @@ class Flagpost(vtki.vtkFlagpoleLabel):
         self.SetUseBounds(False)
 
     def text(self, value: str) -> Self:
+        """Set the text of the flagpost."""
         self.SetInput(value)
         return self
 
     def on(self) -> Self:
+        """Show the flagpost."""
         self.VisibilityOn()
         return self
 
     def off(self) -> Self:
+        """Hide the flagpost."""
         self.VisibilityOff()
         return self
 
     def toggle(self) -> Self:
+        """Toggle the visibility of the flagpost."""
         self.SetVisibility(not self.GetVisibility())
         return self
 
     def use_bounds(self, value=True) -> Self:
+        """Set the flagpost to keep bounds into account."""
         self.SetUseBounds(value)
         return self
 
     def color(self, c) -> Self:
+        """Set the color of the flagpost."""
         c = get_color(c)
         self.GetTextProperty().SetColor(c)
         self.GetProperty().SetColor(c)
         return self
 
     def pos(self, p) -> Self:
+        """Set the position of the flagpost."""
         p = np.asarray(p)
         self.top = self.top - self.base + p
         self.base = p
@@ -194,18 +202,22 @@ class Flagpost(vtki.vtkFlagpoleLabel):
 
     @property
     def base(self) -> np.ndarray:
+        """Return the base position of the flagpost."""
         return np.array(self.GetBasePosition())
 
     @base.setter
     def base(self, value):
+        """Set the base position of the flagpost."""
         self.SetBasePosition(*value)
 
     @property
     def top(self) -> np.ndarray:
+        """Return the top position of the flagpost."""
         return np.array(self.GetTopPosition())
 
     @top.setter
     def top(self, value):
+        """Set the top position of the flagpost."""
         self.SetTopPosition(*value)
 
 
@@ -412,7 +424,7 @@ class ButtonWidget:
                 size of button font
             plotter : (Plotter)
                 the plotter object to which the widget is added
-        
+
         Example:
             ```py
             from vedo import *
@@ -420,7 +432,7 @@ class ButtonWidget:
             def button_func(widget, evtname):
                 print("button_func called")
                 cone.color(button.state)
-                
+
             def on_mouse_click(event):
                 if event.object:
                     print("on_mouse_click", event)
@@ -440,8 +452,8 @@ class ButtonWidget:
             img1 = Image("power-on.png")
 
             button = ButtonWidget(
-                button_func, 
-                # states=["State 0", "State 1"], 
+                button_func,
+                # states=["State 0", "State 1"],
                 states=[img0, img1],
                 c=["red4", "blue4"],
                 bc=("k9", "k5"),
@@ -530,9 +542,10 @@ class ButtonWidget:
         self.plotter = None
 
     def pos(self, pos):
+        """Set the position of the button widget."""
         assert len(pos) == 2, "pos must be a 2D position"
         if not self.plotter:
-            vedo.logger.warning("ButtonWidget: pos() can only be used if a Plotter is provided") 
+            vedo.logger.warning("ButtonWidget: pos() can only be used if a Plotter is provided")
             return self
         coords = vtki.vtkCoordinate()
         coords.SetCoordinateSystemToNormalizedDisplay()
@@ -550,29 +563,34 @@ class ButtonWidget:
         return self
 
     def enable(self):
+        """Enable the button widget."""
         self.widget.On()
         return self
 
     def disable(self):
+        """Disable the button widget."""
         self.widget.Off()
         return self
 
     def next_state(self):
+        """Change to the next state."""
         self.representation.NextState()
         return self
 
     @property
     def state(self):
+        """Return the current state."""
         return self.representation.GetState()
 
     @state.setter
     def state(self, i):
+        """Set the current state."""
         self.representation.SetState(i)
 
 
 class Button(vedo.shapes.Text2D):
     """
-    Build a Button object.
+    Build a Button object to be shown in the rendering window.
     """
 
     def __init__(
@@ -659,9 +677,7 @@ class Button(vedo.shapes.Text2D):
         self.PickableOn()
 
     def status(self, s=None) -> "Button":
-        """
-        Set/Get the status of the button.
-        """
+        """Set/Get the status of the button."""
         if s is None:
             return self.states[self.status_idx]
 
@@ -838,45 +854,46 @@ class SplineTool(vtki.vtkContourWidget):
 
 
 class DrawingWidget:
+    """
+    3D widget for tracing on planar props.
+    This is primarily designed for manually tracing over image data.
+
+    - Any object can be input rather than just 2D images
+    - The widget fires pick events at the input prop to decide where to move its handles
+    - The widget has 2D glyphs for handles instead of 3D spheres.
+
+    The button actions and key modifiers are as follows for controlling the widget:
+        1) left button click over the image, hold and drag draws a free hand line.
+        2) left button click and release erases the widget line, if it exists, and repositions the first handle.
+        3) middle button click starts a snap drawn line.
+            The line is terminated by clicking the middle button while ressing the ctrl key.
+        4) when tracing a continuous or snap drawn line, if the last cursor position is within a specified
+            tolerance to the first handle, the widget line will form a closed loop.
+        5) right button clicking and holding on any handle that is part of a snap drawn line allows handle dragging:
+            existing line segments are updated accordingly. If the path is open and closing_radius is set,
+            the path can be closed by repositioning the first and last points over one another.
+        6) Ctrl + right button down on any handle will erase it: existing snap drawn line segments are updated accordingly.
+            If the line was formed by continuous tracing, the line is deleted leaving one handle.
+        7) Shift + right button down on any snap drawn line segment will insert a handle at the cursor position.
+            The line segment is split accordingly.
+
+    Arguments:
+    obj : vtkProp
+        The prop to trace on.
+    c : str, optional
+        The color of the line. The default is "green5".
+    lw : int, optional
+        The line width. The default is 4.
+    closed : bool, optional
+        Whether to close the line. The default is False.
+    snap_to_image : bool, optional
+        Whether to snap to the image. The default is False.
+
+    Example:
+        - [spline_draw2.py](https://github.com/marcomusy/vedo/blob/master/examples/advanced/spline_draw2.py)
+    """
+
     def __init__(self, obj, c="green5", lw=4, closed=False, snap_to_image=False):
-        """
-        3D widget for tracing on planar props.
-        This is primarily designed for manually tracing over image data.
-        
-        - Any object can be input rather than just 2D images
-        - The widget fires pick events at the input prop to decide where to move its handles
-        - The widget has 2D glyphs for handles instead of 3D spheres. 
-
-        The button actions and key modifiers are as follows for controlling the widget: 
-            1) left button click over the image, hold and drag draws a free hand line.
-            2) left button click and release erases the widget line, if it exists, and repositions the first handle.
-            3) middle button click starts a snap drawn line. 
-                The line is terminated by clicking the middle button while ressing the ctrl key.
-            4) when tracing a continuous or snap drawn line, if the last cursor position is within a specified 
-                tolerance to the first handle, the widget line will form a closed loop.
-            5) right button clicking and holding on any handle that is part of a snap drawn line allows handle dragging:
-                existing line segments are updated accordingly. If the path is open and closing_radius is set,
-                the path can be closed by repositioning the first and last points over one another.
-            6) Ctrl + right button down on any handle will erase it: existing snap drawn line segments are updated accordingly.
-                If the line was formed by continuous tracing, the line is deleted leaving one handle.
-            7) Shift + right button down on any snap drawn line segment will insert a handle at the cursor position.
-                The line segment is split accordingly.
-        
-        Arguments:
-        obj : vtkProp
-            The prop to trace on.
-        c : str, optional
-            The color of the line. The default is "green5".
-        lw : int, optional
-            The line width. The default is 4.
-        closed : bool, optional
-            Whether to close the line. The default is False.
-        snap_to_image : bool, optional
-            Whether to snap to the image. The default is False.
-
-        Example:
-            - [spline_draw2.py](https://github.com/marcomusy/vedo/blob/master/examples/advanced/spline_draw2.py)
-        """
 
         self.widget = vtki.new("ImageTracerWidget")
 
@@ -907,7 +924,8 @@ class DrawingWidget:
         self.widget.SetProjectionPosition(0)
         self.widget.SetSnapToImage(snap_to_image)
 
-    def callback(self, widget, eventId) -> None:
+    def callback(self, widget, _event_name) -> None:
+        """Callback function for the widget."""
         path = vtki.vtkPolyData()
         widget.GetPath(path)
         self.line = vedo.shapes.Line(path, c=self.line_properties.GetColor())
@@ -921,35 +939,43 @@ class DrawingWidget:
 
     @property
     def interactor(self):
+        """Return the interactor for the widget."""
         return self.widget.GetInteractor()
 
     @interactor.setter
     def interactor(self, value):
+        """Set the interactor for the widget."""
         self.widget.SetInteractor(value)
 
     @property
     def renderer(self):
+        """Return the renderer for the widget."""
         return self.widget.GetDefaultRenderer()
 
     @renderer.setter
     def renderer(self, value):
+        """Set the renderer for the widget."""
         self.widget.SetDefaultRenderer(value)
 
     def on(self) -> Self:
+        """Activate/Enable the widget"""
         self.widget.On()
         ev_name = vedo.utils.get_vtk_name_event(self.event_name)
         self.callback_id = self.widget.AddObserver(ev_name, self.callback, 1000)
         return self
 
     def off(self) -> None:
+        """Disactivate/Disable the widget"""
         self.widget.Off()
         self.widget.RemoveObserver(self.callback_id)
 
     def freeze(self, value=True) -> Self:
+        """Freeze the widget by disabling interaction."""
         self.widget.SetInteraction(not value)
         return self
 
     def remove(self) -> None:
+        """Remove the widget."""
         self.widget.Off()
         self.widget.RemoveObserver(self.callback_id)
         self.widget.SetInteractor(None)
@@ -969,64 +995,78 @@ class SliderWidget(vtki.vtkSliderWidget):
 
     @property
     def interactor(self):
+        """Return the interactor for the slider."""
         return self.GetInteractor()
 
     @interactor.setter
     def interactor(self, iren):
+        """Set the interactor for the slider."""
         self.SetInteractor(iren)
 
     @property
     def representation(self):
+        """Return the representation of the slider."""
         return self.GetRepresentation()
 
     @property
     def value(self):
+        """Return the value of the slider."""
         val = self.GetRepresentation().GetValue()
         # self.previous_value = val
         return val
 
     @value.setter
     def value(self, val):
+        """Set the value of the slider."""
         self.GetRepresentation().SetValue(val)
 
     @property
     def renderer(self):
+        """Return the renderer for the slider."""
         return self.GetCurrentRenderer()
 
     @renderer.setter
     def renderer(self, ren):
+        """Set the renderer for the slider."""
         self.SetCurrentRenderer(ren)
 
     @property
     def title(self):
+        """Return the title of the slider."""
         self.GetRepresentation().GetTitleText()
 
     @title.setter
     def title(self, txt):
+        """Set the title of the slider."""
         self.GetRepresentation().SetTitleText(str(txt))
 
     @property
     def range(self):
+        """Return the range of the slider."""
         xmin = self.GetRepresentation().GetMinimumValue()
         xmax = self.GetRepresentation().GetMaximumValue()
         return [xmin, xmax]
 
     @range.setter
     def range(self, vals):
+        """Set the range of the slider."""
         if vals[0] is not None:
             self.GetRepresentation().SetMinimumValue(vals[0])
         if vals[1] is not None:
             self.GetRepresentation().SetMaximumValue(vals[1])
 
     def on(self) -> Self:
+        """Activate/Enable the widget"""
         self.EnabledOn()
         return self
 
     def off(self) -> Self:
+        """Disactivate/Disable the widget"""
         self.EnabledOff()
         return self
 
     def toggle(self) -> Self:
+        """Toggle the widget"""
         self.SetEnabled(not self.GetEnabled())
         return self
 
@@ -2166,7 +2206,7 @@ class PlaneCutter(vtki.vtkPlaneWidget, BaseCutter):
                 color of the box cutter widget
             alpha : (float)
                 transparency of the cut-off part of the input mesh
-        
+
         Examples:
             - [slice_plane3.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/slice_plane3.py)
         """
@@ -2252,10 +2292,10 @@ class PlaneCutter(vtki.vtkPlaneWidget, BaseCutter):
         """Set the normal of the plane."""
         self.widget.SetNormal(value)
 
-    def _select_polygons(self, vobj, event) -> None:
+    def _select_polygons(self, vobj, _event) -> None:
         vobj.GetPlane(self._implicit_func)
 
-    def _keypress(self, vobj, event):
+    def _keypress(self, vobj, _event):
         if vobj.GetKeySym() == "r":  # reset planes
             self.widget.GetPlane(self._implicit_func)
             self.widget.PlaceWidget()
@@ -2382,10 +2422,10 @@ class BoxCutter(vtki.vtkBoxWidget, BaseCutter):
         else:
             self.widget.AddObserver("InteractionEvent", self._select_polygons)
 
-    def _select_polygons(self, vobj, event):
+    def _select_polygons(self, vobj, _event):
         vobj.GetPlanes(self._implicit_func)
 
-    def _keypress(self, vobj, event):
+    def _keypress(self, vobj, _event):
         if vobj.GetKeySym() == "r":  # reset planes
             self._implicit_func.SetBounds(self._init_bounds)
             self.widget.GetPlanes(self._implicit_func)
@@ -2504,10 +2544,10 @@ class SphereCutter(vtki.vtkSphereWidget, BaseCutter):
         else:
             self.widget.AddObserver("InteractionEvent", self._select_polygons)
 
-    def _select_polygons(self, vobj, event):
+    def _select_polygons(self, vobj, _event):
         vobj.GetSphere(self._implicit_func)
 
-    def _keypress(self, vobj, event):
+    def _keypress(self, vobj, _event):
         if vobj.GetKeySym() == "r":  # reset planes
             self._implicit_func.SetBounds(self._init_bounds)
             self.widget.GetPlanes(self._implicit_func)
@@ -2567,7 +2607,7 @@ class RendererFrame(vtki.vtkActor2D):
         if lw is None:
             lw = settings.renderer_frame_width
         if lw == 0:
-            return None
+            return
 
         if alpha is None:
             alpha = settings.renderer_frame_alpha
@@ -2713,6 +2753,8 @@ class Icon(vtki.vtkOrientationMarkerWidget):
 
     def __init__(self, mesh, pos=3, size=0.08):
         """
+        Add an inset icon mesh into the renderer.
+
         Arguments:
             pos : (list, int)
                 icon position in the range [1-4] indicating one of the 4 corners,
@@ -3184,7 +3226,7 @@ class Ruler2D(vtki.vtkAxisActor2D):
         self._update_viz(0, 0)
         return self
 
-    def _update_viz(self, evt, name) -> None:
+    def _update_viz(self, _evt, _name) -> None:
         ren = self.renderer
         view_size = np.array(ren.GetSize())
 
@@ -3236,7 +3278,8 @@ class DistanceTool(Group):
         if plotter is None:
             plotter = vedo.plotter_instance
         self.plotter = plotter
-        self.callback = None
+        # define self.callback as callable function:
+        self.callback = lambda x: None
         self.cid = None
         self.color = c
         self.linewidth = lw

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import numpy as np
 from typing import List, Tuple, Union, MutableSequence, Any
 from typing_extensions import Self
+
+import numpy as np
 
 import vedo.vtkclasses as vtki  # a wrapper for lazy imports
 
@@ -246,11 +247,6 @@ class Mesh(MeshVisual, Points):
         ]
         return "\n".join(allt)
 
-    def faces(self, ids=()):
-        """DEPRECATED. Use property `mesh.cells` instead."""
-        vedo.printc("WARNING: use property mesh.cells instead of mesh.faces()",c='y')
-        return self.cells
-    
     @property
     def edges(self):
         """Return an array containing the edges connectivity."""
@@ -517,7 +513,7 @@ class Mesh(MeshVisual, Points):
         """
         nb = len(self.boundaries().split()) - 1
         return (2 - self.euler_characteristic() - nb ) / 2
-    
+
     def to_reeb_graph(self, field_id=0):
         """
         Convert the mesh into a Reeb graph.
@@ -527,7 +523,7 @@ class Mesh(MeshVisual, Points):
         Arguments:
             field_id : (int)
                 the id of the scalar field to use.
-        
+
         Example:
             ```python
             from vedo import *
@@ -718,7 +714,7 @@ class Mesh(MeshVisual, Points):
             ![](https://vedo.embl.es/images/feats/join_segments.jpg)
         """
         vlines = []
-        for ipiece, outline in enumerate(self.split(must_share_edge=False)): # type: ignore
+        for _ipiece, outline in enumerate(self.split(must_share_edge=False)):
 
             outline.clean()
             pts = outline.coordinates
@@ -726,7 +722,7 @@ class Mesh(MeshVisual, Points):
                 continue
             avesize = outline.average_size()
             lines = outline.lines
-            # print("---lines", lines, "in piece", ipiece)
+            # print("---lines", lines, "in piece", _ipiece)
             tol = avesize / pts.shape[0] * tol
 
             k = 0
@@ -747,7 +743,7 @@ class Mesh(MeshVisual, Points):
                         lines.pop(j)
                         break
 
-                    elif np.linalg.norm(p1 - pk) < tol:
+                    if np.linalg.norm(p1 - pk) < tol:
                         n = len(line)
                         for m in reversed(range(0, n - 1)):
                             joinedpts.append(pts[line[m]])
@@ -839,11 +835,11 @@ class Mesh(MeshVisual, Points):
         self._update(tf.GetOutput(), reset_locators=False)
         self.lw(0).lighting("default").pickable()
         self.pipeline = OperationNode(
-            "split_polylines", parents=[self], 
+            "split_polylines", parents=[self],
             comment=f"#lines {self.dataset.GetNumberOfLines()}"
         )
         return self
-    
+
     def remove_all_lines(self) -> Self:
         """Remove all line elements from the mesh."""
         self.dataset.GetLines().Reset()
@@ -936,7 +932,7 @@ class Mesh(MeshVisual, Points):
         """
         Calculate metrics of quality for the elements of a triangular mesh.
         This method adds to the mesh a cell array named "Quality".
-        See class 
+        See class
         [vtkMeshQuality](https://vtk.org/doc/nightly/html/classvtkMeshQuality.html).
 
         Arguments:
@@ -1095,7 +1091,7 @@ class Mesh(MeshVisual, Points):
         except ImportError:
             vedo.logger.error("scipy not found. Cannot run laplacian_diffusion()")
             return self
-        
+
         def build_laplacian():
             rows = []
             cols = []
@@ -1130,7 +1126,7 @@ class Mesh(MeshVisual, Points):
             # print("mean_area", mean_area)
             mean_area = 1
             I = scipy.sparse.eye(L.shape[0], format="csc")
-            A = I - (dt/mean_area) * L 
+            A = I - (dt/mean_area) * L
             u = u0
             for _ in range(int(num_steps)):
                 u = A.dot(u)
@@ -1225,7 +1221,7 @@ class Mesh(MeshVisual, Points):
             Internally the VTK class
             [vtkQuadricDecimation](https://vtk.org/doc/nightly/html/classvtkQuadricDecimation.html)
             is used for this operation.
-        
+
         See also: `decimate_binned()` and `decimate_pro()`.
         """
         poly = self.dataset
@@ -1260,7 +1256,7 @@ class Mesh(MeshVisual, Points):
             comment=f"#pts {self.dataset.GetNumberOfPoints()}",
         )
         return self
-    
+
     def decimate_pro(
             self,
             fraction=0.5,
@@ -1313,7 +1309,7 @@ class Mesh(MeshVisual, Points):
 
         Note:
             Setting `fraction=0.1` leaves 10% of the original number of vertices
-        
+
         See also:
             `decimate()` and `decimate_binned()`.
         """
@@ -1346,11 +1342,11 @@ class Mesh(MeshVisual, Points):
             comment=f"#pts {self.dataset.GetNumberOfPoints()}",
         )
         return self
-    
+
     def decimate_binned(self, divisions=(), use_clustering=False) -> Self:
         """
         Downsample the number of vertices in a mesh.
-        
+
         This filter preserves the `celldata` of the input dataset,
         if `use_clustering=True` also the `pointdata` will be preserved in the result.
 
@@ -1362,9 +1358,9 @@ class Mesh(MeshVisual, Points):
                 create more uniform cells.
             use_clustering : (bool)
                 use [vtkQuadricClustering](https://vtk.org/doc/nightly/html/classvtkQuadricClustering.html)
-                instead of 
+                instead of
                 [vtkBinnedDecimation](https://vtk.org/doc/nightly/html/classvtkBinnedDecimation.html).
-        
+
         See also: `decimate()` and `decimate_pro()`.
         """
         if use_clustering:
@@ -1509,7 +1505,7 @@ class Mesh(MeshVisual, Points):
     def collapse_edges(self, distance: float, iterations=1) -> Self:
         """
         Collapse mesh edges so that are all above `distance`.
-        
+
         Example:
             ```python
             from vedo import *
@@ -1529,7 +1525,7 @@ class Mesh(MeshVisual, Points):
                 if len(e) == 2:
                     id0, id1 = e
                     p0, p1 = pts[id0], pts[id1]
-                    if (np.linalg.norm(p1-p0) < distance 
+                    if (np.linalg.norm(p1-p0) < distance
                         and id0 not in moved
                         and id1 not in moved
                     ):
@@ -1557,7 +1553,7 @@ class Mesh(MeshVisual, Points):
         """
         Computes the adjacency list for mesh edge-graph.
 
-        Returns: 
+        Returns:
             a list with i-th entry being the set if indices of vertices connected by an edge to i-th vertex
         """
         inc = [set()] * self.npoints
@@ -1670,10 +1666,10 @@ class Mesh(MeshVisual, Points):
     def contains(self, point: tuple, tol=1e-05) -> bool:
         """
         Return True if point is inside a polydata closed surface.
-        
+
         Note:
             if you have many points to check use `inside_points()` instead.
-        
+
         Example:
             ```python
             from vedo import *
@@ -1681,7 +1677,7 @@ class Mesh(MeshVisual, Points):
             pt  = [0.1, 0.2, 0.3]
             print("Sphere contains", pt, s.contains(pt))
             show(s, Point(pt), axes=1).close()
-            ```      
+            ```
         """
         points = vtki.vtkPoints()
         points.InsertNextPoint(point)
@@ -2179,7 +2175,7 @@ class Mesh(MeshVisual, Points):
             zshift : (float)
                 shift along z axis.
             direction : (list)
-                extrusion direction in the xy plane. 
+                extrusion direction in the xy plane.
                 note that zshift is forced to be the 3rd component of direction,
                 which is therefore ignored.
             rotation : (float)
@@ -2231,7 +2227,7 @@ class Mesh(MeshVisual, Points):
 
         m.copy_properties_from(self).flat().lighting("default")
         m.pipeline = OperationNode(
-            "extrude", parents=[self], 
+            "extrude", parents=[self],
             comment=f"#pts {m.dataset.GetNumberOfPoints()}"
         )
         m.name = "ExtrudedMesh"
@@ -2273,7 +2269,7 @@ class Mesh(MeshVisual, Points):
         intersect, or partially intersects the trim surface.)
 
         Note that this method operates in two fundamentally different modes
-        based on the extrusion strategy. 
+        based on the extrusion strategy.
         If the strategy is "boundary_edges", then only the boundary edges of the input's
         2D primitives are extruded (verts and lines are extruded to generate lines and quads).
         However, if the extrusions strategy is "all_edges", then every edge of the 2D primitives
@@ -2289,14 +2285,14 @@ class Mesh(MeshVisual, Points):
             If all the extrusion lines emanating from an extruding primitive do not intersect the trim surface,
             then no output for that primitive will be generated. In extreme cases, it is possible that no output
             whatsoever will be generated.
-        
+
         Example:
             ```python
             from vedo import *
             sphere = Sphere([-1,0,4]).rotate_x(25).wireframe().color('red5')
             circle = Circle([0,0,0], r=2, res=100).color('b6')
             extruded_circle = circle.extrude_and_trim_with(
-                sphere, 
+                sphere,
                 direction=[0,-0.2,1],
                 strategy="bound",
                 cap=True,
@@ -2318,7 +2314,7 @@ class Mesh(MeshVisual, Points):
         else:
             vedo.logger.warning(f"extrude_and_trim(): unknown strategy {strategy}")
         # print (trimmer.GetExtrusionStrategy())
-        
+
         if "intersect" in cap_strategy:
             trimmer.SetCappingStrategyToIntersection()
         elif "min" in cap_strategy:
@@ -2608,7 +2604,7 @@ class Mesh(MeshVisual, Points):
         )
         msh.name = "PlaneIntersection"
         return msh
-    
+
     def cut_closed_surface(self, origins, normals, invert=False, return_assembly=False) -> Union[Self, "vedo.Assembly"]:
         """
         Cut/clip a closed surface mesh with a collection of planes.
@@ -2624,7 +2620,7 @@ class Mesh(MeshVisual, Points):
         Note that if a simple surface has its back faces pointing outwards,
         then that surface defines a hole in a potentially infinite solid.
 
-        Non-manifold surfaces should not be used with this method. 
+        Non-manifold surfaces should not be used with this method.
 
         Arguments:
             origins : (list)
@@ -2635,7 +2631,7 @@ class Mesh(MeshVisual, Points):
                 invert the clipping.
             return_assembly : (bool)
                 return the cap and the clipped surfaces as a `vedo.Assembly`.
-        
+
         Example:
             ```python
             from vedo import *
@@ -2645,7 +2641,7 @@ class Mesh(MeshVisual, Points):
             s.cut_closed_surface(origins, normals)
             show(s, axes=1).close()
             ```
-        """        
+        """
         planes = vtki.new("PlaneCollection")
         for p, s in zip(origins, normals):
             plane = vtki.vtkPlane()
@@ -2742,7 +2738,7 @@ class Mesh(MeshVisual, Points):
 
         The output mesh contains the array "VertexIDs" that contains the ordered list of vertices
         traversed to get from the start vertex to the end vertex.
-        
+
         Arguments:
             start : (int, list)
                 start vertex index or close point `[x,y,z]`
@@ -2848,7 +2844,7 @@ class Mesh(MeshVisual, Points):
                 dim[i] = int(np.ceil((bounds[i*2+1] - bounds[i*2]) / spacing[i]))
         else:
             dim = dims
-        
+
         white_img = vtki.vtkImageData()
         white_img.SetDimensions(dim)
         white_img.SetSpacing(spacing)
@@ -2897,7 +2893,7 @@ class Mesh(MeshVisual, Points):
 
     def signed_distance(self, bounds=None, dims=(20, 20, 20), invert=False, maxradius=None) -> "vedo.Volume":
         """
-        Compute the `Volume` object whose voxels contains 
+        Compute the `Volume` object whose voxels contains
         the signed distance from the mesh.
 
         Arguments:

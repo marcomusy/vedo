@@ -177,7 +177,7 @@ class LinearTransform:
         Same as `move()` except that a copy is returned.
         """
         return self.move(obj.copy())
-    
+
     def transform_point(self, p) -> np.ndarray:
         """
         Apply transformation to a single point.
@@ -225,11 +225,11 @@ class LinearTransform:
         """Reset transformation."""
         self.T.Identity()
         return self
-    
+
     def compute_main_axes(self) -> np.ndarray:
         """
         Compute main axes of the transformation matrix.
-        These are the axes of the ellipsoid that is the 
+        These are the axes of the ellipsoid that is the
         image of the unit sphere under the transformation.
 
         Example:
@@ -431,7 +431,7 @@ class LinearTransform:
             anglerad = angle
         else:
             anglerad = np.deg2rad(angle)
-        
+
         axis = np.asarray(axis) / np.linalg.norm(axis)
         a = np.cos(anglerad / 2)
         b, c, d = -axis * np.sin(anglerad / 2)
@@ -927,7 +927,7 @@ class NonLinearTransform:
     def compute_main_axes(self, pt=(0,0,0), ds=1) -> np.ndarray:
         """
         Compute main axes of the transformation.
-        These are the axes of the ellipsoid that is the 
+        These are the axes of the ellipsoid that is the
         image of the unit sphere under the transformation.
 
         Arguments:
@@ -998,7 +998,7 @@ class NonLinearTransform:
 class TransformInterpolator:
     """
     Interpolate between a set of linear transformations.
-    
+
     Position, scale and orientation (i.e., rotations) are interpolated separately,
     and can be interpolated linearly or with a spline function.
     Note that orientation is interpolated using quaternions via
@@ -1060,19 +1060,19 @@ class TransformInterpolator:
     #     self.TS.pop(t)
     #     self.vtk_interpolator.RemoveTransform(t)
     #     return self
-    
+
     def trange(self) -> np.ndarray:
         """Get interpolation range."""
         tmin = self.vtk_interpolator.GetMinimumT()
         tmax = self.vtk_interpolator.GetMaximumT()
         return np.array([tmin, tmax])
-    
+
     def clear(self) -> "TransformInterpolator":
         """Clear all intermediate transformations."""
         self.TS = []
         self.vtk_interpolator.Initialize()
         return self
-    
+
     def mode(self, m) -> "TransformInterpolator":
         """Set interpolation mode ('linear' or 'spline')."""
         if m == "linear":
@@ -1082,7 +1082,7 @@ class TransformInterpolator:
         else:
             print('In TransformInterpolator mode can be either "linear" or "spline"')
         return self
-    
+
     @property
     def ntransforms(self) -> int:
         """Get number of transformations."""

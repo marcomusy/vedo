@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
+from weakref import ref as weak_ref_to
+
 from typing import Union
 from typing_extensions import Self
-from weakref import ref as weak_ref_to
 import numpy as np
 
 import vedo.vtkclasses as vtki
@@ -39,7 +40,7 @@ class CommonVisual:
 
         self.properties = None
 
-        self.scalarbar = None       
+        self.scalarbar = None
         self.pipeline = None
 
         self.trail = None
@@ -57,6 +58,8 @@ class CommonVisual:
         self._ligthingnr = 0  # index of the lighting mode changed from CLI
         self._cmap_name = ""  # remember the cmap name for self._keypress
         self._caption = None
+
+        self.actor = None
 
 
     def print(self):
@@ -76,7 +79,7 @@ class CommonVisual:
             return np.array(values)
         except AttributeError:
             return np.array([], dtype=float)
-        
+
     @LUT.setter
     def LUT(self, arr):
         """
@@ -100,7 +103,7 @@ class CommonVisual:
             newlut.Build()
         self.mapper.SetLookupTable(newlut)
         self.mapper.ScalarVisibilityOn()
-    
+
     def scalar_range(self, vmin=None, vmax=None):
         """Set the range of the scalar value for visualization."""
         if vmin is None and vmax is None:
@@ -115,13 +118,13 @@ class CommonVisual:
         event_name = utils.get_vtk_name_event(event_name)
         idd = self.actor.AddObserver(event_name, func, priority)
         return idd
-    
+
     def invoke_event(self, event_name) -> Self:
         """Invoke an event."""
         event_name = utils.get_vtk_name_event(event_name)
         self.actor.InvokeEvent(event_name)
         return self
-    
+
     # def abort_event(self, obs_id):
     #     """Abort an event."""
     #     cmd = self.actor.GetCommand(obs_id) # vtkCommand
@@ -557,7 +560,7 @@ class Actor2D(vtki.vtkActor2D):
     def mapper(self):
         """Get the internal vtkMapper."""
         return self.GetMapper()
-    
+
     @mapper.setter
     def mapper(self, amapper):
         """Set the internal vtkMapper."""
@@ -618,8 +621,8 @@ class Actor2D(vtki.vtkActor2D):
         """Toggle object visibility."""
         self.SetVisibility(not self.GetVisibility())
         return self
-    
-    def visibility(value=None) -> bool:
+
+    def visibility(self, value=None) -> bool:
         """Get/Set object visibility."""
         if value is not None:
             self.SetVisibility(value)
@@ -649,12 +652,14 @@ class Actor2D(vtki.vtkActor2D):
         return self
 
     def ps(self, point_size=None) -> Union[int, Self]:
+        """Set/Get the point size of the object. Same as `point_size()`."""
         if point_size is None:
             return self.properties.GetPointSize()
         self.properties.SetPointSize(point_size)
         return self
 
     def lw(self, line_width=None) -> Union[int, Self]:
+        """Set/Get the line width of the object. Same as `line_width()`."""
         if line_width is None:
             return self.properties.GetLineWidth()
         self.properties.SetLineWidth(line_width)
@@ -676,6 +681,7 @@ class Actor2D(vtki.vtkActor2D):
 
 ########################################################################################
 class Actor3DHelper:
+    """Helper class for 3D actors."""
 
     def apply_transform(self, LT) -> Self:
         """Apply a linear transformation to the actor."""
@@ -808,7 +814,7 @@ class Actor3DHelper:
         if i == 1:
             return b[5]
         return (b[4], b[5])
-    
+
     def diagonal_size(self) -> float:
         """Get the diagonal size of the bounding box."""
         b = self.bounds()
@@ -827,7 +833,7 @@ class PointsVisual(CommonVisual):
         self.trail_offset = 0
         self.trail_points = []
         self._caption = None
-        
+
 
     def clone2d(self, size=None, offset=(), scale=None):
         """
@@ -915,7 +921,7 @@ class PointsVisual(CommonVisual):
             sp = source.GetProperty()
             mp = source.GetMapper()
             sa = source
-            
+
         if deep:
             pr.DeepCopy(sp)
         else:
@@ -1423,7 +1429,7 @@ class PointsVisual(CommonVisual):
                 lut.SetTableValue(i, r, g, b, alpha[i])
             lut.Build()
 
-        else:  
+        else:
             # assume string cmap name OR matplotlib.colors.LinearSegmentedColormap
             lut = vtki.vtkLookupTable()
             if logscale:
@@ -1629,7 +1635,7 @@ class PointsVisual(CommonVisual):
             # direction = sha.metadata["direction"]
             # if direction[0]==0 and direction[1]==0 and direction[2]==0:
             #     direction = None
-            # print("BBBB", sha.metadata["direction"], 
+            # print("BBBB", sha.metadata["direction"],
             #       sha.metadata["plane"], sha.metadata["point"])
             new_sha = self._compute_shadow(plane, point, direction)
             sha._update(new_sha.dataset)
@@ -1689,7 +1695,7 @@ class PointsVisual(CommonVisual):
 
                 ![](https://vedo.embl.es/images/basic/boundaries.png)
         """
-        
+
         cells = False
         if "cell" in on or "face" in on:
             cells = True
@@ -1717,7 +1723,7 @@ class PointsVisual(CommonVisual):
                 norms = self.vertex_normals
         except AttributeError:
             norms = []
-        
+
         if not justify:
             justify = "bottom-left"
 
@@ -1980,7 +1986,7 @@ class PointsVisual(CommonVisual):
 
         Use flagpole.follow_camera() to make it face the camera in the scene.
 
-        Consider using `settings.use_parallel_projection = True` 
+        Consider using `settings.use_parallel_projection = True`
         to avoid perspective distortions.
 
         See also `flagpost()`.
@@ -1989,9 +1995,9 @@ class PointsVisual(CommonVisual):
             txt : (str)
                 Text to display. The default is the filename or the object name.
             point : (list)
-                position of the flagpole pointer. 
+                position of the flagpole pointer.
             offset : (list)
-                text offset wrt the application point. 
+                text offset wrt the application point.
             s : (float)
                 size of the flagpole.
             font : (str)
@@ -2310,9 +2316,9 @@ class PointsVisual(CommonVisual):
 class MeshVisual(PointsVisual):
     """Class to manage the visual aspects of a ``Maesh`` object."""
 
-    def __init__(self) -> None:
-        # print("INIT MeshVisual", super())
-        super().__init__()
+    # def __init__(self) -> None:
+    #     # print("INIT MeshVisual", super())
+    #     super().__init__()
 
     def follow_camera(self, camera=None, origin=None) -> Self:
         """
@@ -2649,9 +2655,9 @@ class MeshVisual(PointsVisual):
 class VolumeVisual(CommonVisual):
     """Class to manage the visual aspects of a ``Volume`` object."""
 
-    def __init__(self) -> None:
-        # print("INIT VolumeVisual")
-        super().__init__()
+    # def __init__(self) -> None:
+    #     # print("INIT VolumeVisual")
+    #     super().__init__()
 
     def alpha_unit(self, u=None) -> Union[Self, float]:
         """
@@ -2885,21 +2891,18 @@ class VolumeVisual(CommonVisual):
 
 ########################################################################################
 class ImageVisual(CommonVisual, Actor3DHelper):
+    """Class to manage the visual aspects of a ``Image`` object."""
 
-    def __init__(self) -> None:
-        # print("init ImageVisual")
-        super().__init__()
+    # def __init__(self) -> None:
+    #     # print("init ImageVisual")
+    #     super().__init__()
 
     def memory_size(self) -> int:
-        """
-        Return the size in bytes of the object in memory.
-        """
+        """Return the size in bytes of the object in memory."""
         return self.dataset.GetActualMemorySize()
 
     def scalar_range(self) -> np.ndarray:
-        """
-        Return the scalar range of the image.
-        """
+        """Return the scalar range of the image."""
         return np.array(self.dataset.GetScalarRange())
 
     def alpha(self, a=None) -> Union[Self, float]:
@@ -2927,7 +2930,7 @@ class ImageVisual(CommonVisual, Actor3DHelper):
 class LightKit:
     """
     A LightKit consists of three lights, a 'key light', a 'fill light', and a 'head light'.
-    
+
     The main light is the key light. It is usually positioned so that it appears like
     an overhead light (like the sun, or a ceiling light).
     It is generally positioned to shine down on the scene from about a 45 degree angle vertically
@@ -2938,8 +2941,8 @@ class LightKit:
     are weaker sources that provide extra illumination to fill in the spots that the key light misses.
     The fill light is usually positioned across from or opposite from the key light
     (though still on the same side of the object as the camera) in order to simulate diffuse reflections
-    from other objects in the scene. 
-    
+    from other objects in the scene.
+
     The headlight, always located at the position of the camera, reduces the contrast between areas lit
     by the key and fill light. The two back lights, one on the left of the object as seen from the observer
     and one on the right, fill on the high-contrast areas behind the object.
@@ -3030,5 +3033,3 @@ class LightKit:
             self.lightkit.SetHeadLightAzimuth(self.head["azimuth"])
         if "azimuth" in self.back:
             self.lightkit.SetBackLightAzimuth(self.back["azimuth"])
-
-

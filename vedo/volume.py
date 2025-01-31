@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import glob
 import os
 import time
@@ -208,17 +210,17 @@ class Volume(VolumeAlgorithms, VolumeVisual):
     def mapper(self):
         """Return the underlying `vtkMapper` object."""
         return self.actor.GetMapper()
-    
+
     @mapper.setter
     def mapper(self, mapper):
         """
         Set the underlying `vtkMapper` object.
-        
+
         Arguments:
             mapper : (str, vtkMapper)
                 either 'gpu', 'opengl_gpu', 'fixed' or 'smart'
         """
-        if isinstance(mapper, 
+        if isinstance(mapper,
             (vtki.get_class("Mapper"), vtki.get_class("ImageResliceMapper"))
         ):
             pass
@@ -493,9 +495,9 @@ class Volume(VolumeAlgorithms, VolumeVisual):
             - [slice_plane1.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/slice_plane1.py)
 
                 ![](https://vedo.embl.es/images/volumetric/slicePlane1.gif)
-            
+
             - [slice_plane2.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/slice_plane2.py)
-                
+
                 ![](https://vedo.embl.es/images/volumetric/slicePlane2.png)
 
             - [slice_plane3.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/slice_plane3.py)
@@ -550,10 +552,10 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         msh.dataset.GetFieldData().AddArray(varr2)
         msh.pipeline = utils.OperationNode("slice_plane", parents=[self], c="#4cc9f0:#e9c46a")
         return msh
-    
+
     def slab(self, slice_range=(), axis='z', operation="mean") -> Mesh:
         """
-        Extract a slab from a `Volume` by combining 
+        Extract a slab from a `Volume` by combining
         all of the slices of an image to create a single slice.
 
         Returns a `Mesh` containing metadata which
@@ -577,7 +579,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
             operation : (str)
                 operation to perform on the slab,
                 allowed values are: "sum", "min", "max", "mean".
-        
+
         Example:
             - [slab.py](https://github.com/marcomusy/vedo/blob/master/examples/volumetric/slab_vol.py)
 
@@ -586,7 +588,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         if len(slice_range) != 2:
             vedo.logger.error("in slab(): slice_range is empty or invalid")
             raise ValueError()
-        
+
         islab = vtki.new("ImageSlab")
         islab.SetInputData(self.dataset)
 
@@ -624,7 +626,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         else:
             vedo.logger.error(f"Error in slab(): unknown axis {axis}")
             raise RuntimeError()
-        
+
         islab.SetSliceRange(slice_range)
         islab.Update()
 
@@ -668,7 +670,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
             ]
 
         msh.pipeline = utils.OperationNode(
-            f"slab{slice_range}", 
+            f"slab{slice_range}",
             comment=f"axis={axis}, operation={operation}",
             parents=[self],
             c="#4cc9f0:#e9c46a",
@@ -711,7 +713,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         return self
 
     def apply_transform(
-            self, 
+            self,
             T: Union[transformations.LinearTransform, transformations.NonLinearTransform],
             fit=True, interpolation="cubic",
         ) -> Self:
@@ -762,7 +764,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         """
         print("Volume.imagedata() is deprecated, use Volume.dataset instead")
         return self.dataset
-    
+
     def modified(self) -> Self:
         """
         Mark the object as modified.
@@ -831,15 +833,15 @@ class Volume(VolumeAlgorithms, VolumeVisual):
 
         The origin is the position in world coordinates of the point index (0,0,0).
         This point does not have to be part of the dataset, in other words,
-        the dataset extent does not have to start at (0,0,0) and the origin 
-        can be outside of the dataset bounding box. 
+        the dataset extent does not have to start at (0,0,0) and the origin
+        can be outside of the dataset bounding box.
         The origin plus spacing determine the position in space of the points.
         """
         if s is not None:
             self.dataset.SetOrigin(s)
             return self
         return np.array(self.dataset.GetOrigin())
-    
+
     def pos(self, p=None) -> Union[Self, Iterable[float]]:
         """Set/get the position of the volumetric dataset."""
         if p is not None:
@@ -851,7 +853,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         """Get the center of the volumetric dataset."""
         # note that this does not have the set method like origin and spacing
         return np.array(self.dataset.GetCenter())
-    
+
     def shift(self, s: list) -> Self:
         """Shift the volumetric dataset by a vector."""
         self.origin(self.origin() + np.array(s))
@@ -899,7 +901,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
                 the ijk coordinates of the voxel
         """
         return self.dataset.ComputeCellId(ijk)
-    
+
     def get_point_from_ijk(self, ijk: list) -> int:
         """
         Get the point id number at the given ijk coordinates.
@@ -1207,7 +1209,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         vol1 = Box(size=(35,10, 5)).binarize()
         vol2 = Box(size=( 5,10,35)).binarize()
         vol = vol1.operation("xor", vol2)
-        show([[vol1, vol2], 
+        show([[vol1, vol2],
             ["vol1 xor vol2", vol]],
             N=2, axes=1, viewup="z",
         ).close()
