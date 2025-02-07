@@ -265,6 +265,7 @@ class Image(vedo.visual.ImageVisual):
         #     out += thumb
 
         out += "\x1b[0m\x1b[33;1m"
+        out += "filename".ljust(14) + f": {self.filename}\n"
         out += "dimensions".ljust(14) + f": {self.shape}\n"
         out += "memory size".ljust(14) + ": "
         out += str(int(self.memory_size())) + " kB\n"

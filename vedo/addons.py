@@ -4333,7 +4333,7 @@ def Axes(
         )
         if xtitle_backface_color is None:
             xtitle_backface_color = 1 - np.array(get_color(xtitle_color))
-            xt.backcolor(xtitle_backface_color)
+        xt.backcolor(xtitle_backface_color)
 
         shift = 0
         if xlab:  # xlab is the last created numeric text label..
@@ -4399,7 +4399,7 @@ def Axes(
         )
         if ytitle_backface_color is None:
             ytitle_backface_color = 1 - np.array(get_color(ytitle_color))
-            yt.backcolor(ytitle_backface_color)
+        yt.backcolor(ytitle_backface_color)
 
         shift = 0
         if ylab:  # this is the last created num label..
@@ -4458,9 +4458,10 @@ def Axes(
             depth=title_depth,
             italic=ztitle_italic,
         )
+
         if ztitle_backface_color is None:
             ztitle_backface_color = 1 - np.array(get_color(ztitle_color))
-            zt.backcolor(ztitle_backface_color)
+        zt.backcolor(ztitle_backface_color)
 
         angle = np.arctan2(dy, dx) * 57.3
         shift = 0
