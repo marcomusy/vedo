@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
+from typing import Optional
 import numpy as np
 
 import vedo.vtkclasses as vtki
@@ -20,15 +21,26 @@ class MousePan(vtki.vtkInteractorStyleUser):
     - Right mouse button is rotate (left/right movement) and zoom in/out
       (up/down movement)
     - Mouse scroll wheel is zoom in/out
+
+    Arguments:
+        enable_pan: bool
+            Enable panning the scene.
+        enable_zoom: bool
+            Enable zooming the scene.
+        enable_rotate: bool
+            Enable rotating the scene.
+        speed: float
+            Speed factor of the interaction, e.i. how fast the scene must move.
     """
 
-    def __init__(self):
+    def __init__(self, enable_pan=True, enable_zoom=True, enable_rotate=True, speed=1.0):
 
         super().__init__()
 
         self.left = False
         self.middle = False
         self.right = False
+        self.speed = speed
 
         self.interactor = None
         self.renderer = None
@@ -47,13 +59,19 @@ class MousePan(vtki.vtkInteractorStyleUser):
         # print("MousePan: Left mouse button to pan the scene.")
         self.AddObserver("LeftButtonPressEvent", self._left_down)
         self.AddObserver("LeftButtonReleaseEvent", self._left_up)
-        self.AddObserver("MiddleButtonPressEvent", self._middle_down)
-        self.AddObserver("MiddleButtonReleaseEvent", self._middle_up)
-        self.AddObserver("RightButtonPressEvent", self._right_down)
-        self.AddObserver("RightButtonReleaseEvent", self._right_up)
-        self.AddObserver("MouseWheelForwardEvent", self._wheel_forward)
-        self.AddObserver("MouseWheelBackwardEvent", self._wheel_backward)
-        self.AddObserver("MouseMoveEvent", self._mouse_move)
+
+        if enable_rotate:
+            self.AddObserver("MiddleButtonPressEvent", self._middle_down)
+            self.AddObserver("MiddleButtonReleaseEvent", self._middle_up)
+
+        if enable_zoom:
+            self.AddObserver("RightButtonPressEvent", self._right_down)
+            self.AddObserver("RightButtonReleaseEvent", self._right_up)
+            self.AddObserver("MouseWheelForwardEvent", self._wheel_forward)
+            self.AddObserver("MouseWheelBackwardEvent", self._wheel_backward)
+
+        if enable_pan:
+            self.AddObserver("MouseMoveEvent", self._mouse_move)
 
     def _get_motion(self):
         self.oldpickD = np.array(self.interactor.GetLastEventPosition())
@@ -70,7 +88,7 @@ class MousePan(vtki.vtkInteractorStyleUser):
         self.ComputeDisplayToWorld(
             self.renderer, self.newpickD[0], self.newpickD[1], focaldepth, self.newpickW
         )
-        self.motionW[:3] = self.oldpickW[:3] - self.newpickW[:3]
+        self.motionW[:3] = (self.oldpickW[:3] - self.newpickW[:3]) * self.speed
 
     def _mouse_left_move(self):
         self._get_motion()
@@ -81,27 +99,27 @@ class MousePan(vtki.vtkInteractorStyleUser):
     def _mouse_middle_move(self):
         self._get_motion()
         if abs(self.motionD[0]) > abs(self.motionD[1]):
-            self.camera.Azimuth(-2 * self.motionD[0])
+            self.camera.Azimuth(-2 * self.speed * self.motionD[0])
         else:
-            self.camera.Elevation(-self.motionD[1])
+            self.camera.Elevation(-self.speed *self.motionD[1])
         self.interactor.Render()
 
     def _mouse_right_move(self):
         self._get_motion()
         if abs(self.motionD[0]) > abs(self.motionD[1]):
-            self.camera.Azimuth(-2.0 * self.motionD[0])
+            self.camera.Azimuth(-2.0 * self.speed * self.motionD[0])
         else:
             self.camera.Zoom(1 + self.motionD[1] / 100)
         self.interactor.Render()
 
     def _mouse_wheel_forward(self):
         self.camera = self.renderer.GetActiveCamera()
-        self.camera.Zoom(1.1)
+        self.camera.Zoom(1.1 * self.speed)
         self.interactor.Render()
 
     def _mouse_wheel_backward(self):
         self.camera = self.renderer.GetActiveCamera()
-        self.camera.Zoom(0.9)
+        self.camera.Zoom(0.9 * self.speed)
         self.interactor.Render()
 
     def _left_down(self, _w, _e):
@@ -529,7 +547,7 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
 
         # active drag
         # assigned to a _BlenderStyleDragInfo object when dragging is active
-        self.draginfo: _BlenderStyleDragInfo or None = None
+        self.draginfo: Optional[_BlenderStyleDragInfo] = None
 
         # picking
         self.picked_props = []  # will be filled by latest pick
