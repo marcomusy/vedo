@@ -8,6 +8,12 @@ All notable changes to this project will be documented in this file.
 
 ## Changes and Fixes
 - general code cleanup with pylint.
+- add `utils.compute_hessian()`
+
+
+
+
+
 
 
 

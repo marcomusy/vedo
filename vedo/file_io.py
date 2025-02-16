@@ -484,7 +484,7 @@ def download(url: str, force=False, verbose=True) -> str:
             colors.printc("reading", basename, "from", url.split("/")[2][:40], "...", end="")
 
     except ImportError:
-        import urllib2
+        import urllib2 # type: ignore
         import contextlib
         urlopen = lambda url_: contextlib.closing(urllib2.urlopen(url_))
         req = url
@@ -2075,7 +2075,7 @@ class Video:
         ########################################
         elif "cv" in self.backend:
             try:
-                import cv2
+                import cv2  # type: ignore
             except ImportError:
                 vedo.logger.error("opencv is not installed")
                 return

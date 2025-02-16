@@ -21,6 +21,7 @@ __all__ = [
     "ProgressBar",
     "progressbar",
     "Minimizer",
+    "compute_hessian",
     "geometry",
     "is_sequence",
     "lin_interpolate",
@@ -644,31 +645,35 @@ class Minimizer:
             epsilon = self.tolerance * 10
         n = self.minimizer.GetNumberOfParameters()
         x0 = [self.minimizer.GetParameterValue(i) for i in range(n)]
-        hessian = np.zeros((n, n))
-        for i in vedo.progressbar(n, title="Computing Hessian", delay=2):
-            for j in range(n):
-                xijp = np.copy(x0)
-                xijp[i] += epsilon
-                xijp[j] += epsilon
-                xijm = np.copy(x0)
-                xijm[i] += epsilon
-                xijm[j] -= epsilon
-                xjip = np.copy(x0)
-                xjip[i] -= epsilon
-                xjip[j] += epsilon
-                xjim = np.copy(x0)
-                xjim[i] -= epsilon
-                xjim[j] -= epsilon
-                # Second derivative approximation
-                fijp = self.function(xijp)
-                fijm = self.function(xijm)
-                fjip = self.function(xjip)
-                fjim = self.function(xjim)
-                hessian[i, j] = (fijp - fijm - fjip + fjim) / (2 * epsilon**2)
+        hessian = compute_hessian(self.function, x0, epsilon=epsilon)
+
+        # hessian = np.zeros((n, n))
+        # for i in vedo.progressbar(n, title="Computing Hessian", delay=2):
+        #     for j in range(n):
+        #         xijp = np.copy(x0)
+        #         xijp[i] += epsilon
+        #         xijp[j] += epsilon
+        #         xijm = np.copy(x0)
+        #         xijm[i] += epsilon
+        #         xijm[j] -= epsilon
+        #         xjip = np.copy(x0)
+        #         xjip[i] -= epsilon
+        #         xjip[j] += epsilon
+        #         xjim = np.copy(x0)
+        #         xjim[i] -= epsilon
+        #         xjim[j] -= epsilon
+        #         # Second derivative approximation
+        #         fijp = self.function(xijp)
+        #         fijm = self.function(xijm)
+        #         fjip = self.function(xjip)
+        #         fjim = self.function(xjim)
+        #         hessian[i, j] = (fijp - fijm - fjip + fjim) / (2 * epsilon**2)
+        
         self.results["hessian"] = hessian
         try:
-            ihess = np.linalg.inv(hessian)
+            ihess = np.linalg.inv(hessian)/2
             self.results["parameter_errors"] = np.sqrt(np.diag(ihess))
+            print(self.results["parameter_errors"])
         except:
             vedo.logger.warning("Cannot compute hessian for parameter errors")
             self.results["parameter_errors"] = np.zeros(n)
@@ -706,6 +711,126 @@ class Minimizer:
         except:
             out += "Hessian Matrix: (not available)"
         return out
+
+
+def compute_hessian(func, params, bounds=None, epsilon=1e-5) -> np.array:
+    """
+    Compute the Hessian matrix of a scalar function `func` at `params`, 
+    accounting for parameter boundaries.
+
+    Arguments:
+        func (callable): 
+            Function returning a scalar. Takes `params` as input.
+        params (np.ndarray):
+            Parameter vector at which to compute the Hessian.
+        bounds (list of tuples):
+            Optional bounds for parameters, e.g., [(lb1, ub1), ...].
+        epsilon (float):
+            Base step size for finite differences.
+
+    Returns:
+        np.ndarray: Hessian matrix of shape (n_params, n_params).
+    
+    Example:
+    ```python
+    # 1. Define the objective function to minimize
+    def cost_function(params):
+        a, b = params[0], params[1]
+        score = (a-5)**2 + (b-2)**2 #+a*b
+        #print(a, b, score)
+        return score  
+
+    # 2. Fit parameters (example result)
+    mle_params = np.array([4.97, 1.95])  # Assume obtained via optimization
+
+    # 3. Define bounds for parameters
+    bounds = [(-np.inf, np.inf), (1e-6, 2.1)]
+
+    # 4. Compute Hessian
+    hessian = compute_hessian(cost_function, mle_params, bounds=bounds)
+    cov_matrix = np.linalg.inv(hessian)
+    print("Covariance Matrix:\n", cov_matrix)
+    ```
+    """
+    n = len(params)
+    hessian = np.zeros((n, n))
+    f_0 = func(params)  # Central value
+
+    # Diagonal elements (second derivatives)
+    for i in range(n):
+        if bounds:
+            lb, ub = bounds[i]
+        else:
+            lb, ub = -np.inf, np.inf
+
+        # Adaptive step size to stay within bounds
+        h_plus = min(epsilon, ub - params[i])  # Max allowed step upward
+        h_minus = min(epsilon, params[i] - lb) # Max allowed step downward
+        h = min(h_plus, h_minus)  # Use symmetric step where possible
+
+        # Avoid zero step size (if parameter is at a boundary)
+        if h <= 0:
+            h = epsilon  # Fallback to one-sided derivative
+
+        # Compute f(x + h) and f(x - h)
+        params_plus = np.copy(params)
+        params_plus[i] = np.clip(params[i] + h, lb, ub)
+        f_plus = func(params_plus)
+
+        params_minus = np.copy(params)
+        params_minus[i] = np.clip(params[i] - h, lb, ub)
+        f_minus = func(params_minus)
+
+        # Central difference for diagonal
+        hessian[i, i] = (f_plus - 2*f_0 + f_minus) / (h**2)
+
+    # Off-diagonal elements (mixed partial derivatives)
+    for i in range(n):
+        for j in range(i + 1, n):
+            if bounds:
+                lb_i, ub_i = bounds[i]
+                lb_j, ub_j = bounds[j]
+            else:
+                lb_i, ub_i = -np.inf, np.inf
+                lb_j, ub_j = -np.inf, np.inf
+
+            # Step sizes for i and j
+            h_i_plus = min(epsilon, ub_i - params[i])
+            h_i_minus = min(epsilon, params[i] - lb_i)
+            h_i = min(h_i_plus, h_i_minus)
+            h_i = max(h_i, 1e-10)  # Prevent division by zero
+
+            h_j_plus = min(epsilon, ub_j - params[j])
+            h_j_minus = min(epsilon, params[j] - lb_j)
+            h_j = min(h_j_plus, h_j_minus)
+            h_j = max(h_j, 1e-10)
+
+            # Compute four perturbed points
+            params_pp = np.copy(params)
+            params_pp[i] = np.clip(params[i] + h_i, lb_i, ub_i)
+            params_pp[j] = np.clip(params[j] + h_j, lb_j, ub_j)
+            f_pp = func(params_pp)
+
+            params_pm = np.copy(params)
+            params_pm[i] = np.clip(params[i] + h_i, lb_i, ub_i)
+            params_pm[j] = np.clip(params[j] - h_j, lb_j, ub_j)
+            f_pm = func(params_pm)
+
+            params_mp = np.copy(params)
+            params_mp[i] = np.clip(params[i] - h_i, lb_i, ub_i)
+            params_mp[j] = np.clip(params[j] + h_j, lb_j, ub_j)
+            f_mp = func(params_mp)
+
+            params_mm = np.copy(params)
+            params_mm[i] = np.clip(params[i] - h_i, lb_i, ub_i)
+            params_mm[j] = np.clip(params[j] - h_j, lb_j, ub_j)
+            f_mm = func(params_mm)
+
+            # Central difference for off-diagonal
+            hessian[i, j] = (f_pp - f_pm - f_mp + f_mm) / (4 * h_i * h_j)
+            hessian[j, i] = hessian[i, j]  # Symmetric
+
+    return hessian
 
 
 ###########################################################
@@ -2531,7 +2656,7 @@ def trimesh2vedo(inputobj):
 def vedo2meshlab(vmesh):
     """Convert a `vedo.Mesh` to a Meshlab object."""
     try:
-        import pymeshlab as mlab
+        import pymeshlab as mlab # type: ignore
     except ModuleNotFoundError:
         vedo.logger.error("Need pymeshlab to run:\npip install pymeshlab")
 
@@ -2667,7 +2792,7 @@ def vedo2open3d(vedo_mesh):
     Return an `open3d.geometry.TriangleMesh` version of the current mesh.
     """
     try:
-        import open3d as o3d
+        import open3d as o3d  # type: ignore
     except RuntimeError:
         vedo.logger.error("Need open3d to run:\npip install open3d")
 
