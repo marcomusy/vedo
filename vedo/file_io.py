@@ -1774,6 +1774,7 @@ def load_obj(fileinput: Union[str, os.PathLike], mtl_file=None, texture_path=Non
         vactor = actors.GetNextActor()
         msh = Mesh(vactor)
         msh.name = "OBJMesh"
+        msh.copy_properties_from(vactor)
         tx = vactor.GetTexture()
         if tx:
             msh.texture(tx)
