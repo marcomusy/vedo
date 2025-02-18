@@ -647,28 +647,6 @@ class Minimizer:
         x0 = [self.minimizer.GetParameterValue(i) for i in range(n)]
         hessian = compute_hessian(self.function, x0, epsilon=epsilon)
 
-        # hessian = np.zeros((n, n))
-        # for i in vedo.progressbar(n, title="Computing Hessian", delay=2):
-        #     for j in range(n):
-        #         xijp = np.copy(x0)
-        #         xijp[i] += epsilon
-        #         xijp[j] += epsilon
-        #         xijm = np.copy(x0)
-        #         xijm[i] += epsilon
-        #         xijm[j] -= epsilon
-        #         xjip = np.copy(x0)
-        #         xjip[i] -= epsilon
-        #         xjip[j] += epsilon
-        #         xjim = np.copy(x0)
-        #         xjim[i] -= epsilon
-        #         xjim[j] -= epsilon
-        #         # Second derivative approximation
-        #         fijp = self.function(xijp)
-        #         fijm = self.function(xijm)
-        #         fjip = self.function(xjip)
-        #         fjim = self.function(xjim)
-        #         hessian[i, j] = (fijp - fijm - fjip + fjim) / (2 * epsilon**2)
-        
         self.results["hessian"] = hessian
         try:
             ihess = np.linalg.inv(hessian)/2
@@ -713,7 +691,7 @@ class Minimizer:
         return out
 
 
-def compute_hessian(func, params, bounds=None, epsilon=1e-5) -> np.array:
+def compute_hessian(func, params, bounds=None, epsilon=1e-5, verbose=True) -> np.array:
     """
     Compute the Hessian matrix of a scalar function `func` at `params`, 
     accounting for parameter boundaries.
@@ -727,6 +705,8 @@ def compute_hessian(func, params, bounds=None, epsilon=1e-5) -> np.array:
             Optional bounds for parameters, e.g., [(lb1, ub1), ...].
         epsilon (float):
             Base step size for finite differences.
+        verbose (bool):
+            Whether to print progress.
 
     Returns:
         np.ndarray: Hessian matrix of shape (n_params, n_params).
@@ -758,6 +738,8 @@ def compute_hessian(func, params, bounds=None, epsilon=1e-5) -> np.array:
 
     # Diagonal elements (second derivatives)
     for i in range(n):
+        if verbose:
+            vedo.printc(f"Computing Hessian: {i+1}/{n} for diagonal", delay=0)
         if bounds:
             lb, ub = bounds[i]
         else:
@@ -786,7 +768,11 @@ def compute_hessian(func, params, bounds=None, epsilon=1e-5) -> np.array:
 
     # Off-diagonal elements (mixed partial derivatives)
     for i in range(n):
+        if verbose:
+            print(f"Computing Hessian: {i+1}/{n} for off-diagonal ", end='')
         for j in range(i + 1, n):
+            if verbose:
+                print(f".", end='')
             if bounds:
                 lb_i, ub_i = bounds[i]
                 lb_j, ub_j = bounds[j]
@@ -829,7 +815,8 @@ def compute_hessian(func, params, bounds=None, epsilon=1e-5) -> np.array:
             # Central difference for off-diagonal
             hessian[i, j] = (f_pp - f_pm - f_mp + f_mm) / (4 * h_i * h_j)
             hessian[j, i] = hessian[i, j]  # Symmetric
-
+        if verbose:
+            print()
     return hessian
 
 

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
-import time
 from typing import Union
 
 import numpy as np
@@ -2409,6 +2408,8 @@ class Clock(vedo.Assembly):
             ```
             ![](https://vedo.embl.es/images/feats/clock.png)
         """
+        import time
+
         self.elapsed = 0
         self._start = time.time()
 
@@ -2454,6 +2455,7 @@ class Clock(vedo.Assembly):
 
     def update(self, h=None, m=None, s=None) -> "Clock":
         """Update clock with current or user time."""
+        import time
         parts = self.unpack()
         self.elapsed = time.time() - self._start
 
