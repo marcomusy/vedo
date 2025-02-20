@@ -290,8 +290,11 @@ class Slicer3DPlotter(Plotter):
             bu.switch()
             self.cmap_slicer = bu.status()
             for m in self.objects:
-                if "Slice" in m.name:
-                    m.cmap(self.cmap_slicer, vmin=rmin, vmax=rmax)
+                try:
+                    if "Slice" in m.name:
+                        m.cmap(self.cmap_slicer, vmin=rmin, vmax=rmax)
+                except AttributeError:
+                    pass
             self.remove(self.histogram)
             if show_histo:
                 self.histogram = histogram(
