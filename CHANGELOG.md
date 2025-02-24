@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
 - general code cleanup with pylint.
 - add `utils.compute_hessian()`
 - fix issue #1224 for cells coloring in jupyter notebook for k3d
-
+- fix nan case in scalarbar3d()
 
 
 
