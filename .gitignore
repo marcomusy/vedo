@@ -1,4 +1,4 @@
-*pyc
+*.pyc
 .DS_Store
 
 docs/pdoc/html
@@ -14,11 +14,10 @@ build
 *.ipynb
 .ipynb_checkpoints
 examples/notebooks/.ipynb_checkpoints
-*png
-*jpg
-*tiff
-*tif
-# *npz
+*.png
+*.jpg
+*.tiff
+*.tif
 
 untitled*.py
 bug_*.py
@@ -26,6 +25,8 @@ data
 www
 
 dev_*.py
-z?.py
-x?.py
-v?.py
+?.py
+??.py
+??.???
+*.npy
+*.npz

@@ -314,9 +314,9 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
     def __str__(self):
         """Print info about Assembly object."""
         module = self.__class__.__module__
-        name = self.__class__.__name__
+        cname = self.__class__.__name__
         out = vedo.printc(
-            f"{module}.{name} at ({hex(id(self))})".ljust(75),
+            f"{module}.{cname} at ({hex(id(self))})".ljust(75),
             bold=True, invert=True, return_string=True,
         )
         out += "\x1b[0m"
@@ -345,6 +345,23 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
         out += " x=(" + bx1 + ", " + bx2 + "),"
         out += " y=(" + by1 + ", " + by2 + "),"
         out += " z=(" + bz1 + ", " + bz2 + ")\n"
+
+        if "Histogram1D" in cname:
+            if self.title  != '': out += f"title".ljust(14) + ": " + f'{self.title}\n'
+            if self.xtitle and self.xtitle != ' ': out += f"xtitle".ljust(14) + ": " + f'{self.xtitle}\n'
+            if self.ytitle and self.ytitle != ' ': out += f"ytitle".ljust(14) + ": " + f'{self.ytitle}\n'
+            out += f"entries".ljust(14) + ": " + f"{self.entries}\n"
+            out += f"mean, mode".ljust(14) + ": " + f"{self.mean:.6f}, {self.mode:.6f}\n"
+            out += f"std".ljust(14) + ": " + f"{self.std:.6f}"
+        elif "Histogram2D" in cname:
+            if self.title  != '': out += f"title".ljust(14) + ": " + f'{self.title}\n'
+            if self.xtitle and self.xtitle != ' ': out += f"xtitle".ljust(14) + ": " + f'{self.xtitle}\n'
+            if self.ytitle and self.ytitle != ' ': out += f"ytitle".ljust(14) + ": " + f'{self.ytitle}\n'
+            out += f"entries".ljust(14) + ": " + f"{self.entries}\n"
+            out += f"mean".ljust(14) + ": " + f"{vedo.utils.precision(self.mean, 6)}\n"
+            out += f"std".ljust(14) + ": " + f"{vedo.utils.precision(self.std, 6)}"
+
+
         return out.rstrip() + "\x1b[0m"
 
     def _repr_html_(self):

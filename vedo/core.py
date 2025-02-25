@@ -237,10 +237,13 @@ class DataArrayHelper:
             data = self.obj.dataset.GetFieldData()
         for i in range(data.GetNumberOfArrays()):
             if self.association == 2:
-                name = data.GetAbstractArray(i).GetName()
+                if data.GetAbstractArray(i):
+                    name = data.GetAbstractArray(i).GetName()
+                    data.RemoveArray(name)
             else:
-                name = data.GetArray(i).GetName()
-            data.RemoveArray(name)
+                if data.GetArray(i):
+                    name = data.GetArray(i).GetName()
+                    data.RemoveArray(name)
 
     def select(self, key: Union[int, str]) -> Any:
         """Select one specific array by its name to make it the `active` one."""

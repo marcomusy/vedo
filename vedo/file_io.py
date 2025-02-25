@@ -292,6 +292,8 @@ def _load_file(filename, unpack):
         objt.properties.SetPointSize(2)
     elif fl.endswith(".off"):
         objt = loadOFF(filename)
+    elif fl.endswith(".step") or fl.endswith(".stp"):
+        objt = loadSTEP(filename)
     elif fl.endswith(".3ds"):  # 3ds format
         objt = load3DS(filename)
     elif fl.endswith(".wrl"):
@@ -714,6 +716,87 @@ def loadOFF(filename: Union[str, os.PathLike]) -> Mesh:
             faces.append(ids)
 
     return Mesh(utils.buildPolyData(vertices, faces))
+
+def loadSTEP(filename: Union[str, os.PathLike], deflection=1.0) -> Mesh:
+    """
+    Reads a 3D STEP file and returns its mesh representation as vertices and triangles.
+
+    Parameters:
+    - filename (str): Path to the STEP file.
+    - deflection (float): Linear deflection for meshing accuracy (smaller values yield finer meshes).
+
+    Returns:
+    - vertices (list of tuples): List of (x, y, z) coordinates of the mesh vertices.
+    - triangles (list of tuples): List of (i, j, k) indices representing the triangles.
+
+    Raises:
+    - Exception: If the STEP file cannot be read.
+    """
+    try:
+        from OCC.Core.STEPControl import STEPControl_Reader
+        from OCC.Core.BRepMesh import BRepMesh_IncrementalMesh
+        from OCC.Core.TopExp import TopExp_Explorer
+        from OCC.Core.TopoDS import topods
+        from OCC.Core.BRep import BRep_Tool
+        from OCC.Core.TopAbs import TopAbs_FACE
+        from OCC.Core.TopLoc import TopLoc_Location
+    except ImportError:
+        raise ImportError(
+            "OCC library not found.\n\nPlease install 'pythonocc-core'. "
+            "You can install it using the following command:\n"
+            "\t\tconda install -c conda-forge pythonocc-core"
+        )
+
+    # Initialize the STEP reader
+    reader = STEPControl_Reader()
+    status = reader.ReadFile(filename)
+    if status != 1:  # Check if reading was successful (IFSelect_RetDone = 1)
+        raise Exception("Error reading STEP file")
+
+    # Transfer the STEP data into a shape
+    reader.TransferRoots()
+    shape = reader.OneShape()
+
+    # Mesh the shape with the specified deflection
+    mesh = BRepMesh_IncrementalMesh(shape, deflection)
+    mesh.Perform()
+
+    # Extract vertices and triangles
+    explorer = TopExp_Explorer(shape, TopAbs_FACE)
+    vertices = []
+    triangles = []
+    vertex_index = 0
+
+    # Iterate over all faces in the shape
+    while explorer.More():
+        face = topods.Face(explorer.Current())
+        location = TopLoc_Location()
+        triangulation = BRep_Tool.Triangulation(face, location)
+
+        if triangulation:
+            # Extract vertices from the triangulation
+            for i in range(1, triangulation.NbNodes() + 1):
+                point = triangulation.Node(i).Transformed(location.Transformation())
+                vertices.append((point.X(), point.Y(), point.Z()))
+
+            # Extract triangles with adjusted indices
+            for i in range(1, triangulation.NbTriangles() + 1):
+                triangle = triangulation.Triangle(i)
+                n1, n2, n3 = triangle.Get()  # 1-based indices
+                triangles.append((
+                    n1 + vertex_index - 1,
+                    n2 + vertex_index - 1,
+                    n3 + vertex_index - 1
+                ))
+
+            # Update the vertex index offset for the next face
+            vertex_index += triangulation.NbNodes()
+
+        explorer.Next()
+
+    # Create a mesh object
+    mesh = Mesh([vertices, triangles])
+    return mesh
 
 ########################################################################
 def loadGeoJSON(filename: Union[str, os.PathLike]) -> Mesh:
