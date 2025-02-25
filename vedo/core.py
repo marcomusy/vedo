@@ -435,6 +435,14 @@ class CommonAlgorithms:
         """
         return DataArrayHelper(cls, 2)
 
+    def rename(cls, newname: str) -> Self:
+        """Rename the object"""
+        try:
+            cls.name = newname
+        except AttributeError:
+            vedo.logger.error(f"Cannot rename object {cls}")
+        return cls
+
     def memory_address(cls) -> int:
         """
         Return a unique memory address integer which may serve as the ID of the
@@ -501,8 +509,8 @@ class CommonAlgorithms:
         """
         try:  # this is very slow for large meshes
             pts = cls.vertices
-            xmin, ymin, zmin = np.min(pts, axis=0)
-            xmax, ymax, zmax = np.max(pts, axis=0)
+            xmin, ymin, zmin = np.nanmin(pts, axis=0)
+            xmax, ymax, zmax = np.nanmax(pts, axis=0)
             return np.array([xmin, xmax, ymin, ymax, zmin, zmax])
         except (AttributeError, ValueError):
             return np.array(cls.dataset.GetBounds())

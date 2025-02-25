@@ -4,7 +4,7 @@
 
 [![lics](https://img.shields.io/badge/license-MIT-blue.svg)](https://en.wikipedia.org/wiki/MIT_License)
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/vedo/badges/version.svg)](https://anaconda.org/conda-forge/vedo)
-[![Ubuntu 24.10 package](https://repology.org/badge/version-for-repo/ubuntu_24_10/vedo.svg)](https://repology.org/project/vedo/versions)
+[![Ubuntu 24.10 package](https://repology.org/badge/version-for-repo/ubuntu_25_04/vedo.svg)](https://repology.org/project/vedo/versions)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4587871.svg)](https://doi.org/10.5281/zenodo.4587871)
 [![Downloads](https://static.pepy.tech/badge/vedo)](https://pepy.tech/project/vedo)
 [![CircleCI](https://circleci.com/gh/marcomusy/vedo.svg?style=svg)](https://circleci.com/gh/marcomusy/vedo)
@@ -248,6 +248,8 @@ ACM Transactions on Graphics (TOG), vol 41, 6, 2022.
 [DOI](https://dl.acm.org/doi/abs/10.1145/3550454.3555470)
 - J. Cotterell *et al.*, *"Cell 3D Positioning by Optical encoding (C3PO) and its application to spatial transcriptomics"*, bioRxiv 2024.03.12.584578;
 [DOI](https://doi.org/10.1101/2024.03.12.584578)
+- L. Aviñó-Esteban *et al.*, *"Spatio-temporal reconstruction of gene expression patterns in
+developing mice"*, Development (2025) 152. [DOI](https://doi.org/10.1242/dev.204313)
 
 
 **Have you found this software useful for your research? Star ✨ the project and cite it as:**
