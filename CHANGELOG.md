@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - add `utils.compute_hessian()`
 - fix issue #1224 for cells coloring in jupyter notebook for k3d
 - fix nan case in scalarbar3d()
+- add `.rename()` method to set any object name.
 
 
 
@@ -28,6 +29,7 @@ Changes that will break existing code and need active thinking and some work to 
 
 ## New/Revised Examples
 ```
+examples/pyplot/plot_fxy0.py
 ```
 
 ## To Do

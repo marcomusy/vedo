@@ -432,6 +432,14 @@ class CommonAlgorithms:
         """
         return DataArrayHelper(cls, 2)
 
+    def rename(cls, newname: str) -> Self:
+        """Rename the object"""
+        try:
+            cls.name = newname
+        except AttributeError:
+            vedo.logger.error(f"Cannot rename object {cls}")
+        return cls
+
     def memory_address(cls) -> int:
         """
         Return a unique memory address integer which may serve as the ID of the
