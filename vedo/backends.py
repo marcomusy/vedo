@@ -107,17 +107,25 @@ def start_k3d(actors2show):
         # https://github.com/K3D-tools/K3D-jupyter
         import k3d
     except ModuleNotFoundError:
-        print("Cannot find k3d, install with:  pip install k3d")
+        print("\nCannot find k3d, install with:  pip install k3d")
         return None
 
     plt = vedo.plotter_instance
     if not plt:
         return None
 
+    already_has_axes = False
     actors2show2 = []
     for ia in actors2show:
         if not ia:
             continue
+
+        try:
+            if ia.name == "Axes":
+                already_has_axes = True
+        except AttributeError:
+            pass
+
         if isinstance(ia, vedo.Assembly):  # unpack assemblies
             actors2show2 += ia.recursive_unpack()
         else:
@@ -138,14 +146,16 @@ def start_k3d(actors2show):
 
     # set k3d camera
     vedo.notebook_plotter.camera_auto_fit = settings.k3d_camera_autofit
-    vedo.notebook_plotter.grid_auto_fit = settings.k3d_grid_autofit
     vedo.notebook_plotter.axes_helper = settings.k3d_axes_helper
+    vedo.notebook_plotter.grid_auto_fit = settings.k3d_grid_autofit
+
+    if already_has_axes:
+        vedo.notebook_plotter.grid_visible = False
+    if settings.k3d_grid_visible is not None: # override if set
+        vedo.notebook_plotter.grid_visible = settings.k3d_grid_visible
 
     if plt.camera:
         vedo.notebook_plotter.camera = utils.vtkCameraToK3D(plt.camera)
-
-    if not plt.axes:
-        vedo.notebook_plotter.grid_visible = False
 
     for ia in actors2show2:
 

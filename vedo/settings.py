@@ -158,6 +158,7 @@ class Settings:
     k3d_antialias     = True
     k3d_lighting      = 1.5
     k3d_camera_autofit= True
+    k3d_grid_visible  = None    # None (default behavior) or True, False
     k3d_grid_autofit  = True
     k3d_axes_color    = "gray4"
     k3d_axes_helper   = 1.0     # size of the small triad of axes on the bottom right
@@ -217,6 +218,7 @@ class Settings:
         "k3d_lighting",
         "k3d_camera_autofit",
         "k3d_grid_autofit",
+        "k3d_grid_visible",
         "k3d_axes_color",
         "k3d_axes_helper",
         "k3d_point_shader",
@@ -310,6 +312,7 @@ class Settings:
         self.k3d_antialias   = True
         self.k3d_lighting    = 1.5
         self.k3d_camera_autofit = True
+        self.k3d_grid_visible = None
         self.k3d_grid_autofit= True
         self.k3d_axes_color  = "k4"
         self.k3d_axes_helper = 1.0
