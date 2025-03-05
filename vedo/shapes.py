@@ -479,6 +479,7 @@ class Line(Mesh):
         self.error_lines: List[Any] = []
         self.error_band = None
         self.res = res
+        self.is_closed = closed
 
         self.lw(lw)
         self.properties.LightingOff()
@@ -535,6 +536,9 @@ class Line(Mesh):
         distance1 = 0.0
         length = self.length()
         pts = self.coordinates
+        if self.is_closed:
+            pts = np.append(pts, [pts[0]], axis=0)
+
         for i in range(1, len(pts)):
             p0 = pts[i - 1]
             p1 = pts[i]
@@ -551,12 +555,34 @@ class Line(Mesh):
     def find_index_at_position(self, p) -> float:
         """
         Find the index of the line vertex that is closest to the point `p`.
-        Note that the returned index can be fractional if `p` is not exactly
+        Note that the returned index is fractional as `p` may not be exactly
         one of the vertices of the line.
         """
-        q = self.closest_point(p)
-        a, b = sorted(self.closest_point(q, n=2, return_point_id=True))
+        tf = vtki.new("TriangleFilter")
+        tf.SetPassLines(True)
+        tf.SetPassVerts(False)
+        tf.SetInputData(self.dataset)
+        tf.Update()
+        polyline = tf.GetOutput()
+
+        if not self.cell_locator:
+            self.cell_locator = vtki.new("StaticCellLocator")
+            self.cell_locator.SetDataSet(polyline)
+            self.cell_locator.BuildLocator()
+        
+        q = [0, 0, 0]
+        cid = vtki.mutable(0)
+        dist2 = vtki.mutable(0)
+        subid = vtki.mutable(0)
+        self.cell_locator.FindClosestPoint(p, q, cid, subid, dist2)
+
+        # find the 2 points
+        a = polyline.GetCell(cid).GetPointId(0)
+        b = polyline.GetCell(cid).GetPointId(1)
+
         pts = self.coordinates
+        if self.is_closed:
+            pts = np.append(pts, [pts[0]], axis=0)
         d = np.linalg.norm(pts[a] - pts[b])
         t = a + np.linalg.norm(pts[a] - q) / d
         return t
@@ -619,8 +645,10 @@ class Line(Mesh):
 
     def length(self) -> float:
         """Calculate length of the line."""
-        distance = 0.0
         pts = self.coordinates
+        if self.is_closed:
+            pts = np.append(pts, [pts[0]], axis=0)
+        distance = 0.0
         for i in range(1, len(pts)):
             distance += np.linalg.norm(pts[i] - pts[i - 1])
         return distance
