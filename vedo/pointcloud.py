@@ -1155,7 +1155,7 @@ class Points(PointsVisual, PointAlgorithms):
     def vertex_normals(self) -> np.ndarray:
         """
         Retrieve vertex normals as a numpy array. Same as `point_normals`.
-        If need be normals are computed via `compute_normals_with_pca()`.
+        If needed, normals are computed via `compute_normals_with_pca()`.
         Check out also `compute_normals()` and `compute_normals_with_pca()`.
         """
         vtknormals = self.dataset.GetPointData().GetNormals()

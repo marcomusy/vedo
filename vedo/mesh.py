@@ -274,8 +274,8 @@ class Mesh(MeshVisual, Points):
     def vertex_normals(self) -> np.ndarray:
         """
         Retrieve vertex normals as a numpy array. 
-        If need be normals are computed via `compute_normals()`.
-        Check out also `compute_normals()` and `compute_normals_with_pca()`.
+        If needed, normals are automatically computed via `compute_normals()`.
+        Check out also `compute_normals_with_pca()`.
         """
         vtknormals = self.dataset.GetPointData().GetNormals()
         if vtknormals is None:
@@ -314,7 +314,7 @@ class Mesh(MeshVisual, Points):
 
         .. warning::
             If `feature_angle` is set then the Mesh can be modified, and it
-            can have a different nr. of vertices from the original.
+            can have a different number of vertices from the original.
 
             Note that the appearance of the mesh may change if the normals are computed,
             as shading is automatically enabled when such information is present.
