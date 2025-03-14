@@ -628,6 +628,16 @@ class Minimizer:
         self.results["hessian"] = np.zeros((n,n))
         self.results["parameter_errors"] = np.zeros(n)
         return self.results
+    
+    @property
+    def x(self):
+        """Return the final parameters."""
+        return self.results["parameters"]
+    
+    @property
+    def fun(self):
+        """Return the final score value."""
+        return self.results["min_value"]
 
     def compute_hessian(self, epsilon=0) -> np.array:
         """
@@ -649,8 +659,9 @@ class Minimizer:
 
         self.results["hessian"] = hessian
         try:
-            ihess = np.linalg.inv(hessian)/2
-            self.results["parameter_errors"] = np.sqrt(np.diag(ihess))
+            ihess = np.linalg.inv(hessian)
+            cov = ihess / 2
+            self.results["parameter_errors"] = np.sqrt(np.diag(cov))
             print(self.results["parameter_errors"])
         except:
             vedo.logger.warning("Cannot compute hessian for parameter errors")
@@ -713,6 +724,9 @@ def compute_hessian(func, params, bounds=None, epsilon=1e-5, verbose=True) -> np
     
     Example:
     ```python
+    from vedo import *
+    import numpy as np
+
     # 1. Define the objective function to minimize
     def cost_function(params):
         a, b = params[0], params[1]
@@ -728,8 +742,10 @@ def compute_hessian(func, params, bounds=None, epsilon=1e-5, verbose=True) -> np
 
     # 4. Compute Hessian
     hessian = compute_hessian(cost_function, mle_params, bounds=bounds)
-    cov_matrix = np.linalg.inv(hessian)
+    cov_matrix = np.linalg.inv(hessian) / 2
     print("Covariance Matrix:\n", cov_matrix)
+    std = np.sqrt(np.diag(cov_matrix))
+    print("Standard deviations:", std)
     ```
     """
     n = len(params)
