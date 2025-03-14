@@ -2314,7 +2314,7 @@ class PointsVisual(CommonVisual):
 
 #####################################################################
 class MeshVisual(PointsVisual):
-    """Class to manage the visual aspects of a ``Maesh`` object."""
+    """Class to manage the visual aspects of a `Mesh` object."""
 
     def __init__(self) -> None:
         # print("INIT MeshVisual", super())
