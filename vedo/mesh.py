@@ -270,21 +270,31 @@ class Mesh(MeshVisual, Points):
                 break
         return conn  # cannot always make a numpy array of it!
 
+    @property 
+    def vertex_normals(self) -> np.ndarray:
+        """
+        Retrieve vertex normals as a numpy array. 
+        If need be normals are computed via `compute_normals()`.
+        Check out also `compute_normals()` and `compute_normals_with_pca()`.
+        """
+        vtknormals = self.dataset.GetPointData().GetNormals()
+        if vtknormals is None:
+            self.compute_normals()
+            vtknormals = self.dataset.GetPointData().GetNormals()
+        return vtk2numpy(vtknormals)
+
     @property
-    def cell_normals(self):
+    def cell_normals(self) -> np.ndarray:
         """
         Retrieve face normals as a numpy array.
+        If need be normals are computed via `compute_normals()`.
         Check out also `compute_normals(cells=True)` and `compute_normals_with_pca()`.
         """
         vtknormals = self.dataset.GetCellData().GetNormals()
-        numpy_normals = vtk2numpy(vtknormals)
-        if len(numpy_normals) == 0 and len(self.cells) != 0:
-            vedo.logger.warning(
-                "failed to return normal vectors.\n"
-                "You may need to call `Mesh.compute_normals()` before accessing 'Mesh.cell_normals'."
-            )
-            numpy_normals = np.zeros((self.ncells, 3)) + [0,0,1]
-        return numpy_normals
+        if vtknormals is None:
+            self.compute_normals()
+            vtknormals = self.dataset.GetCellData().GetNormals()
+        return vtk2numpy(vtknormals)
 
     def compute_normals(self, points=True, cells=True, feature_angle=None, consistency=True) -> Self:
         """
