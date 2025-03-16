@@ -204,7 +204,8 @@ class OperationNode:
         try:
             from graphviz import Digraph
         except ImportError:
-            vedo.logger.error("please install graphviz with command\n pip install graphviz")
+            vedo.logger.error("please install graphviz with command\n  pip install graphviz")
+            vedo.logger.error("  sudo apt-get install graphviz -y")
             return
 
         # visualize the entire tree
