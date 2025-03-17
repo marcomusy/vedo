@@ -82,7 +82,7 @@ class Settings:
     renderer_frame_color = None
     renderer_frame_alpha = 0.5
     renderer_frame_width = 0.5
-    renderer_frame_padding = 0.0001
+    renderer_frame_padding = 0.001
 
     # In multirendering mode, set the position of the horizontal of vertical splitting [0,1]
     window_splitting_position = None

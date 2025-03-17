@@ -2274,7 +2274,9 @@ class Plotter:
         self.renderer.AddActor(self.skybox)
         return self
 
-    def add_renderer_frame(self, c=None, alpha=None, lw=None, padding=None) -> "vedo.addons.RendererFrame":
+    def add_renderer_frame(self, 
+            c=None, alpha=None, lw=None, 
+            padding=None, pattern="brtl") -> "vedo.addons.RendererFrame":
         """
         Add a frame to the renderer subwindow.
 
@@ -2287,13 +2289,16 @@ class Plotter:
                 line width in pixels.
             padding : (float)
                 padding space in pixels.
+            pattern : (str)
+                a string made of characters 'b', 'r', 't', 'l' 
+                to show the frame line at the bottom, right, top, left.
         """
         if c is None:  # automatic black or white
             c = (0.9, 0.9, 0.9)
             if self.renderer:
                 if np.sum(self.renderer.GetBackground()) > 1.5:
                     c = (0.1, 0.1, 0.1)
-        renf = addons.RendererFrame(c, alpha, lw, padding)
+        renf = addons.RendererFrame(c, alpha, lw, padding, pattern)
         if renf:
             self.renderer.AddActor(renf)
         return renf

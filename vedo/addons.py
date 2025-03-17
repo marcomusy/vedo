@@ -18,6 +18,7 @@ from vedo.mesh import Mesh
 from vedo.pointcloud import Points, Point, merge
 from vedo.grids import TetMesh
 from vedo.volume import Volume
+from vedo.visual import Actor2D
 
 __docformat__ = "google"
 
@@ -109,6 +110,8 @@ class Flagpost(vtki.vtkFlagpoleLabel):
         """
 
         super().__init__()
+
+        self.name = "Flagpost"
 
         base = utils.make3d(base)
         top = utils.make3d(top)
@@ -431,6 +434,7 @@ class ButtonWidget:
         """
 
         self.widget = vtki.new("ButtonWidget")
+        self.name = "ButtonWidget"
 
         self.function = function
         self.states = states
@@ -610,6 +614,7 @@ class Button(vedo.shapes.Text2D):
         """
         super().__init__()
 
+        self.name = "Button"
         self.status_idx = 0
 
         self.spacer = " "
@@ -713,6 +718,8 @@ class SplineTool(vtki.vtkContourWidget):
                 ![](https://vedo.embl.es/images/basic/spline_tool.png)
         """
         super().__init__()
+
+        self.name = "SplineTool"
 
         self.representation = self.GetRepresentation()
         self.representation.SetAlwaysOnTop(ontop)
@@ -860,6 +867,7 @@ class DrawingWidget:
     def __init__(self, obj, c="green5", lw=4, closed=False, snap_to_image=False):
 
         self.widget = vtki.new("ImageTracerWidget")
+        self.name = "DrawingWidget"
 
         self.line = None
         self.line_properties = self.widget.GetLineProperty()
@@ -956,6 +964,7 @@ class SliderWidget(vtki.vtkSliderWidget):
     def __init__(self):
         super().__init__()
         self.previous_value = None
+        self.name = "SliderWidget"
 
     @property
     def interactor(self):
@@ -1938,6 +1947,7 @@ class Slider2D(SliderWidget):
                     slider_rep.GetTitleProperty().SetOrientation(90)
 
         super().__init__()
+        self.name = "Slider2D"
 
         self.SetAnimationModeToJump()
         self.SetRepresentation(slider_rep)
@@ -2037,6 +2047,7 @@ class Slider3D(SliderWidget):
         slider_rep.GetTubeProperty().SetColor(c)
 
         super().__init__()
+        self.name = "Slider3D"
 
         self.SetRepresentation(slider_rep)
         self.SetAnimationModeToJump()
@@ -2175,6 +2186,7 @@ class PlaneCutter(vtki.vtkPlaneWidget, BaseCutter):
             - [slice_plane3.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/slice_plane3.py)
         """
         super().__init__()
+        self.name = "PlaneCutter"
 
         self.mesh = mesh
         self.remnant = Mesh()
@@ -2334,6 +2346,7 @@ class BoxCutter(vtki.vtkBoxWidget, BaseCutter):
                 transparency of the cut-off part of the input mesh
         """
         super().__init__()
+        self.name = "BoxCutter"
 
         self.mesh = mesh
         self.remnant = Mesh()
@@ -2450,6 +2463,7 @@ class SphereCutter(vtki.vtkSphereWidget, BaseCutter):
                 transparency of the cut-off part of the input mesh
         """
         super().__init__()
+        self.name = "SphereCutter"
 
         self.mesh = mesh
         self.remnant = Mesh()
@@ -2548,12 +2562,12 @@ class SphereCutter(vtki.vtkSphereWidget, BaseCutter):
 
 
 #####################################################################
-class RendererFrame(vtki.vtkActor2D):
+class RendererFrame(Actor2D):
     """
     Add a line around the renderer subwindow.
     """
 
-    def __init__(self, c="k", alpha=None, lw=None, padding=None):
+    def __init__(self, c="k", alpha=None, lw=None, padding=None, pattern="brtl"):
         """
         Add a line around the renderer subwindow.
 
@@ -2566,12 +2580,12 @@ class RendererFrame(vtki.vtkActor2D):
                 line width in pixels.
             padding : (int)
                 padding in pixel units.
+            pattern : (str)
+                combination of characters `b` for bottom, `r` for right,
+                `t` for top, `l` for left.
         """
-
         if lw is None:
             lw = settings.renderer_frame_width
-        if lw == 0:
-            return
 
         if alpha is None:
             alpha = settings.renderer_frame_alpha
@@ -2579,45 +2593,88 @@ class RendererFrame(vtki.vtkActor2D):
         if padding is None:
             padding = settings.renderer_frame_padding
 
+        if lw == 0 or alpha == 0:
+            return
         c = get_color(c)
 
+        a = padding
+        b = 1 - padding
+        p0 = [a, a]
+        p1 = [b, a]
+        p2 = [b, b]
+        p3 = [a, b]
+        disconnected = False
+        if "b" in pattern and "r" in pattern and "t" in pattern and "l" in pattern:
+            psqr = [p0, p1, p2, p3, p0]
+        elif "b" in pattern and "r" in pattern and "t" in pattern:
+            psqr = [p0, p1, p2, p3]
+        elif "b" in pattern and "r" in pattern and "l" in pattern:
+            psqr = [p3, p0, p1, p2]
+        elif "b" in pattern and "t" in pattern and "l" in pattern:
+            psqr = [p2, p3, p0, p1]
+        elif "b" in pattern and "r" in pattern:
+            psqr = [p0, p1, p2]
+        elif "b" in pattern and "l" in pattern:
+            psqr = [p3, p0, p1]
+        elif "r" in pattern and "t" in pattern:
+            psqr = [p1, p2, p3]
+        elif "t" in pattern and "l" in pattern:
+            psqr = [p3, p2, p1]
+        elif "b" in pattern and "t" in pattern:
+            psqr = [p0, p1, p3, p2]
+            disconnected = True
+        elif "r" in pattern and "l" in pattern:
+            psqr = [p0, p3, p1, p2]
+            disconnected = True
+        elif "b" in pattern:
+            psqr = [p0, p1]
+        elif "r" in pattern:
+            psqr = [p1, p2]
+        elif "t" in pattern:
+            psqr = [p3, p2]
+        elif "l" in pattern:
+            psqr = [p0, p3]
+        else:
+            vedo.printc("Error in RendererFrame: pattern not recognized", pattern, c='r')
+       
         ppoints = vtki.vtkPoints()  # Generate the polyline
-        xy = 1 - padding
-        psqr = [
-            [padding, padding],
-            [padding, xy],
-            [xy, xy],
-            [xy, padding],
-            [padding, padding],
-        ]
         for i, pt in enumerate(psqr):
             ppoints.InsertPoint(i, pt[0], pt[1], 0)
+
         lines = vtki.vtkCellArray()
-        lines.InsertNextCell(len(psqr))
-        for i in range(len(psqr)):
-            lines.InsertCellPoint(i)
-        pd = vtki.vtkPolyData()
-        pd.SetPoints(ppoints)
-        pd.SetLines(lines)
+        if disconnected:
+            lines.InsertNextCell(2)
+            lines.InsertCellPoint(0)
+            lines.InsertCellPoint(1)
+            lines.InsertNextCell(2)
+            lines.InsertCellPoint(2)
+            lines.InsertCellPoint(3)
+        else:
+            n = len(psqr)
+            lines.InsertNextCell(n)
+            for i in range(n):
+                lines.InsertCellPoint(i)
 
-        mapper = vtki.new("PolyDataMapper2D")
-        mapper.SetInputData(pd)
-        cs = vtki.new("Coordinate")
-        cs.SetCoordinateSystemToNormalizedViewport()
-        mapper.SetTransformCoordinate(cs)
+        polydata = vtki.vtkPolyData()
+        polydata.SetPoints(ppoints)
+        polydata.SetLines(lines)
 
-        super().__init__()
+        super().__init__(polydata)
+        self.name = "RendererFrame"
+        
+        self.coordinate = vtki.vtkCoordinate()
+        self.coordinate.SetCoordinateSystemToNormalizedViewport()
+        self.mapper.SetTransformCoordinate(self.coordinate)
 
-        self.GetPositionCoordinate().SetValue(0, 0)
-        self.GetPosition2Coordinate().SetValue(1, 1)
-        self.SetMapper(mapper)
-        self.GetProperty().SetColor(c)
-        self.GetProperty().SetOpacity(alpha)
-        self.GetProperty().SetLineWidth(lw)
+        self.set_position_coordinates([0, 1], [1, 1])
+        self.color(c)
+        self.alpha(alpha)
+        self.lw(lw)
+
 
 
 #####################################################################
-class ProgressBarWidget(vtki.vtkActor2D):
+class ProgressBarWidget(Actor2D):
     """
     Add a progress bar in the rendering window.
     """
@@ -2651,39 +2708,21 @@ class ProgressBarWidget(vtki.vtkActor2D):
         lines.InsertNextCell(len(psqr))
         for i in range(len(psqr)):
             lines.InsertCellPoint(i)
+
         pd = vtki.vtkPolyData()
         pd.SetPoints(ppoints)
         pd.SetLines(lines)
-        self.dataset = pd
 
-        mapper = vtki.new("PolyDataMapper2D")
-        mapper.SetInputData(pd)
-        cs = vtki.vtkCoordinate()
-        cs.SetCoordinateSystemToNormalizedViewport()
-        mapper.SetTransformCoordinate(cs)
+        super().__init__(pd)
+        self.name = "ProgressBarWidget"
 
-        super().__init__()
+        self.coordinate = vtki.vtkCoordinate()
+        self.coordinate.SetCoordinateSystemToNormalizedViewport()
+        self.mapper.SetTransformCoordinate(self.coordinate)
 
-        self.SetMapper(mapper)
-        self.GetProperty().SetOpacity(alpha)
-        self.GetProperty().SetColor(get_color(c))
-        self.GetProperty().SetLineWidth(lw * 2)
-
-    def lw(self, value: int) -> Self:
-        """Set width."""
-        self.GetProperty().SetLineWidth(value * 2)
-        return self
-
-    def c(self, color) -> Self:
-        """Set color."""
-        c = get_color(color)
-        self.GetProperty().SetColor(c)
-        return self
-
-    def alpha(self, value) -> Self:
-        """Set opacity."""
-        self.GetProperty().SetOpacity(value)
-        return self
+        self.alpha(alpha)
+        self.color(get_color(c))
+        self.lw(lw * 2)
 
     def update(self, fraction=None) -> Self:
         """Update progress bar to fraction of the window width."""
@@ -2730,6 +2769,7 @@ class Icon(vtki.vtkOrientationMarkerWidget):
             - [icon.py](https://github.com/marcomusy/vedo/tree/master/examples/other/icon.py)
         """
         super().__init__()
+        self.name = "Icon"
 
         try:
             self.SetOrientationMarker(mesh.actor)
@@ -3118,6 +3158,7 @@ class Ruler2D(vtki.vtkAxisActor2D):
             ![](https://vedo.embl.es/images/feats/dist_tool.png)
         """
         super().__init__()
+        self.name = "Ruler2D"
 
         plt = vedo.plotter_instance
         if not plt:
@@ -3235,6 +3276,7 @@ class DistanceTool(Group):
             ![](https://vedo.embl.es/images/feats/dist_tool.png)
         """
         super().__init__()
+        self.name = "DistanceTool"
 
         self.p0 = [0, 0, 0]
         self.p1 = [0, 0, 0]

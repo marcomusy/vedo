@@ -4469,7 +4469,7 @@ class TextBase:
         "Do not instantiate this base class."
 
         self.rendered_at = set()
-        self.properties = None
+        # self.properties = None
 
         self.name = "Text"
         self.filename = ""

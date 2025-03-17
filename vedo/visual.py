@@ -542,24 +542,44 @@ class CommonVisual:
 
 ########################################################################################
 class Actor2D(vtki.vtkActor2D):
-    """Wrapping of `vtkActor2D`."""
+    """Wrapping of `vtkActor2D` class."""
 
-    def __init__(self):
+    def __init__(self, dataset=None):
         """Manage 2D objects."""
         super().__init__()
 
         self.dataset = None
-        self.properties = self.GetProperty()
-        self.name = ""
+        self.name = "Actor2D"
         self.filename = ""
         self.file_size = 0
         self.pipeline = None
         self.shape = [] # for images
+        self.coordinate = None
+
+        if dataset is not None:
+            mapper = vtki.new("PolyDataMapper2D")
+            mapper.SetInputData(dataset)
+            self.SetMapper(mapper)
+
+        self.dataset = dataset
+        self.properties = self.GetProperty()
+
 
     @property
     def mapper(self):
         """Get the internal vtkMapper."""
         return self.GetMapper()
+    
+    # not usable
+    # @property
+    # def properties(self):
+    #     """Get the internal vtkProperty."""
+    #     return self.GetProperty()
+    
+    # @properties.setter
+    # def properties(self, prop):
+    #     """Set the internal vtkProperty."""
+    #     self.SetProperty(prop)
 
     @mapper.setter
     def mapper(self, amapper):
@@ -605,6 +625,12 @@ class Actor2D(vtki.vtkActor2D):
         if value is None:
             return coor.GetCoordinateSystem()
         coor.SetCoordinateSystem(value)
+        return self
+    
+    def set_position_coordinates(self, p1, p2):
+        """Set the position coordinates."""
+        self.GetPositionCoordinate().SetValue(*p1)
+        self.GetPosition2Coordinate().SetValue(*p2)
         return self
 
     def on(self) -> Self:
@@ -886,17 +912,13 @@ class PointsVisual(CommonVisual):
         vrange = self.mapper.GetScalarRange()
         sm = self.mapper.GetScalarMode()
 
-        act2d = Actor2D()
-        act2d.dataset = poly
-        mapper2d = vtki.new("PolyDataMapper2D")
-        mapper2d.SetInputData(poly)
-        mapper2d.SetColorMode(cm)
-        mapper2d.SetLookupTable(lut)
-        mapper2d.SetScalarVisibility(sv)
-        mapper2d.SetUseLookupTableScalarRange(use_lut)
-        mapper2d.SetScalarRange(vrange)
-        mapper2d.SetScalarMode(sm)
-        act2d.mapper = mapper2d
+        act2d = Actor2D(poly)
+        act2d.mapper.SetColorMode(cm)
+        act2d.mapper.SetLookupTable(lut)
+        act2d.mapper.SetScalarVisibility(sv)
+        act2d.mapper.SetUseLookupTableScalarRange(use_lut)
+        act2d.mapper.SetScalarRange(vrange)
+        act2d.mapper.SetScalarMode(sm)
 
         act2d.GetPositionCoordinate().SetCoordinateSystem(4)
         act2d.properties.SetColor(self.color())
