@@ -1523,7 +1523,8 @@ class CommonAlgorithms:
     def unsigned_distance(
             cls, dims=(25,25,25), bounds=(), max_radius=0, cap_value=0) -> "vedo.Volume":
         """
-        Compute the `Volume` object whose voxels contains the unsigned distance.
+        Compute the `Volume` object whose voxels contains the unsigned distance
+        from the input object.
         """
         dist = vtki.new("UnsignedDistance")
         dist.SetInputData(cls.dataset)
@@ -1531,8 +1532,6 @@ class CommonAlgorithms:
 
         if len(bounds) == 6:
             dist.SetBounds(bounds)
-        # elif bounds == "auto":
-        #     dist.AdjustBoundsOn()
         else:
             dist.SetBounds(cls.bounds())
         if not max_radius:
@@ -1601,16 +1600,24 @@ class CommonAlgorithms:
                 relaxation factor controlling the amount of Laplacian smoothing applied
             strategy : (int)
                 strategy to use for Laplacian smoothing
+
                     - 0: use all points, all point data attributes are smoothed
+
                     - 1: smooth all point attribute data except those on the boundary
+
                     - 2: only point data connected to a boundary point are smoothed
+
             mask : (str, np.ndarray)
                 array to be used as a mask (ignore then the strategy keyword)
             mode : (str)
                 smoothing mode, either "distance2", "distance" or "average"
+
                     - distance**2 weighted (i.e., 1/r**2 interpolation weights)
+
                     - distance weighted (i.e., 1/r) approach;
+
                     - simple average of all connected points in the stencil
+
             exclude : (list)
                 list of arrays to be excluded from smoothing
         """
