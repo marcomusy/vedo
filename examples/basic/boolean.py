@@ -1,4 +1,4 @@
-from vedo import *
+from vedo import settings, Sphere, Plotter
 
 # Enable depth peeling for rendering transparency
 settings.use_depth_peeling = True

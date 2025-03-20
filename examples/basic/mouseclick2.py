@@ -1,5 +1,6 @@
 """Add an observer to specific objects in a scene"""
-from vedo import *
+from vedo import printc, Mesh, dataurl, Text2D, Plotter
+import numpy as np
 
 # -----------------------
 def func(obj, name=None):

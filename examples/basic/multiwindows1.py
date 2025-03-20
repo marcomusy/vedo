@@ -5,7 +5,7 @@ We split the main window in many subwindows and draw
 somethingon specific windows numbers.
 Then open an independent window and draw a shape on it.
 """
-from vedo import *
+from vedo import Mesh, dataurl, show
 
 ##########################################################################
 # this is one instance of the class Plotter with 5 raws and 5 columns

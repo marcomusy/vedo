@@ -1,5 +1,5 @@
 """Scene interaction styles"""
-from vedo import *
+from vedo import Text2D, Cube, Paraboloid, Plotter, interactor_modes
 
 msg = Text2D(
     """TrackballCamera is the default mode\n(press q to proceed)""",

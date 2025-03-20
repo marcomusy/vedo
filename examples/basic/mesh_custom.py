@@ -1,6 +1,7 @@
 """Controlling the color and transparency
 of a Mesh with various color map definitions"""
-from vedo import *
+from vedo import Mesh, dataurl, printc, show
+import numpy as np
 
 man = Mesh(dataurl + "man.vtk")
 

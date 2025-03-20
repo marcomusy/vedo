@@ -1,5 +1,5 @@
 """Project a shadow of a mesh in a specified direction"""
-from vedo import *
+from vedo import settings, Mesh, dataurl, Plane, show
 
 settings.use_depth_peeling = False # depending on your system
 

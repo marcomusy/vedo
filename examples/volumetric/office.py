@@ -1,7 +1,7 @@
 """Stream tubes originating from a probing grid of points.
 Data is from CFD analysis of airflow in an office with
 ventilation and a burning cigarette."""
-from vedo import *
+from vedo import dataurl, download, loadStructuredGrid, UnstructuredGrid, Grid, show
 from off_furniture import furniture
 
 fpath = download(dataurl + 'office.binary.vtk')

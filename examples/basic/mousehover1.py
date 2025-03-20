@@ -1,7 +1,7 @@
 """Visualize scalar values interactively
 by hovering the mouse on a mesh
 Press c to clear the path"""
-from vedo import *
+from vedo import precision, Arrow, Text2D, ParametricShape, Plotter
 
 def func(evt):                       ### called every time mouse moves!
     msh = evt.object                 # get the mesh that triggered the event

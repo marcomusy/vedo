@@ -5,7 +5,7 @@
 - "y" and "Y" will reset the camera to the default position towards +/-y.
 - "." and "," will rotate azimuth to the right or left.
 - "r" will reset the camera to the default position."""
-from vedo import *
+from vedo import settings, ParametricShape, Text2D, Axes, Plotter
 from vedo.interactor_modes import FlyOverSurface
 
 settings.enable_default_keyboard_callbacks = False

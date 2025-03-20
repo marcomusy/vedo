@@ -1,5 +1,5 @@
 """Use 2 lines to define a flat arrow"""
-from vedo import *
+from vedo import sin, cos, FlatArrow, show
 from numpy import arange
 
 arrs = []

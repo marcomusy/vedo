@@ -1,7 +1,8 @@
 """Draw the ellipse (dark) and the ellipsoid (light) 
 that in both cases contain 50% of a point cloud,
 then check how many points are inside both objects"""
-from vedo import *
+from vedo import Points, pca_ellipse, pca_ellipsoid, printc, show
+import numpy as np
 
 pts = Points(np.random.randn(1000,3))
 pts.scale([2, 1.5, 0.01]).rotate_z(30).pos([50,60,0])

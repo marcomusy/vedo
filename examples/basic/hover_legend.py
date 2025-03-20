@@ -1,6 +1,6 @@
 """Hover mouse on mesh to
 visualize object details"""
-from vedo import *
+from vedo import Mesh, dataurl, Sphere, Cube, Points, Plotter
 
 mesh = Mesh(dataurl+"bunny.obj").color('k7')
 

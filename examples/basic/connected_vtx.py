@@ -1,6 +1,6 @@
 """Find the vertices that are connected
 to a specific vertex in a mesh"""
-from vedo import *
+from vedo import Sphere, Point, Points, show
 
 # create a wireframe sphere and color it yellow
 s = Sphere(res=12).wireframe().c("yellow")

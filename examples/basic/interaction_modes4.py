@@ -1,5 +1,5 @@
 """Press TAB to toggle active panel and freeze the other"""
-from vedo import *
+from vedo import settings, Cube, Image, dataurl, RendererFrame, Plotter
 from vedo.interactor_modes import MousePan
 
 settings.enable_default_keyboard_callbacks = False

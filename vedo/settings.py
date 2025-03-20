@@ -46,6 +46,9 @@ class Settings:
 
     # Use this local folder to store downloaded files (default is ~/.cache/vedo)
     cache_directory = ".cache"
+    # Alternatively set the environment variable VEDO_CACHE_DIR
+    # to change the cache directory for all vedo scripts. Note that
+    # "/vedo" is appended automatically to the path.
 
     # Palette number when using an integer to choose a color
     palette = 0
@@ -254,7 +257,11 @@ class Settings:
 
         self.force_single_precision_points = True
 
-        self.cache_directory = ".cache"  # "/vedo" is added automatically
+        # check if environment variable VEDO_CACHE_DIR is set
+        if "VEDO_CACHE_DIR" in os.environ:
+            self.cache_directory = os.environ["VEDO_CACHE_DIR"]
+        else:
+            self.cache_directory = ".cache"  # "/vedo" is appended automatically
 
         self.screenshot_transparent_background = False
         self.screeshot_large_image = False
@@ -767,3 +774,16 @@ class Settings:
         os.system("set +x")
         os.system('exec "$@"')
         print(" xvfb started.")
+
+    ############################################################
+    def clear_cache(self) -> None:
+        """Clear the cache directory."""
+        import shutil
+        try:
+            home_directory = os.path.expanduser("~")
+            cachedir = os.path.join(home_directory, self.cache_directory, "vedo")
+            shutil.rmtree(cachedir)
+            print(f"Cache directory '{cachedir}' cleared.")
+        except FileNotFoundError:
+            print(f"Cache directory '{cachedir}' not found.")
+            pass

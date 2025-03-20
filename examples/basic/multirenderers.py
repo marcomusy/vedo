@@ -1,6 +1,6 @@
 """Manually define the number, shape and position
 of the renderers inside the rendering window"""
-from vedo import *
+from vedo import settings, ParametricShape, Text2D, Plotter
 
 settings.immediate_rendering = False  # faster for multi-renderers
 
