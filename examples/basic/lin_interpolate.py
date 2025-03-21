@@ -2,7 +2,7 @@
 [(0, 0, 0), (2, 2, 0)] # at these positions,
 [(0.2,0,0), (0,0,0.2)] # these are the specified vectors
 """
-from vedo import *
+from vedo import lin_interpolate, Arrow, show
 
 positions  =  [(0, 0, 0), (2, 2, 0)] # at these positions,
 directions =  [(0.2,0,0), (0,0,0.2)] # these are the specified vectors

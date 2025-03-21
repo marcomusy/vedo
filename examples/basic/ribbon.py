@@ -1,5 +1,5 @@
 """Form a surface by joining two lines"""
-from vedo import *
+from vedo import sin, cos, Tube, Ribbon, Plotter
 import numpy as np
 
 l1 = [[sin(x), cos(x), x/3] for x in np.arange(0,9, 0.1)]

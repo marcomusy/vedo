@@ -1,6 +1,6 @@
 """Extract points on the boundary of a mesh.
 Add an ID label to all vertices."""
-from vedo import *
+from vedo import Mesh, dataurl, Points, show
 
 # Load a mesh from a URL, compute normals, and clean duplicate points
 b = Mesh(dataurl+'290.vtk')

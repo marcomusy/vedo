@@ -2,7 +2,7 @@
 Set a jpeg background image
 on a separate rendering layer
 """
-from vedo import *
+from vedo import Plotter, dataurl, Cube, VedoLogo
 
 # Create a plotter object with 4 subrenderers 
 # and individual camera for each one

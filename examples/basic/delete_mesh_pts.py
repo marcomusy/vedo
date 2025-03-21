@@ -1,6 +1,6 @@
 """Remove points and cells from a mesh
 which are closest to a specified point."""
-from vedo import *
+from vedo import settings, Mesh, dataurl, printc, Point, Sphere, show
 
 # Enable depth peeling for the scene
 settings.use_depth_peeling = True

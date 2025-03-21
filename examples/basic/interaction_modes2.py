@@ -1,6 +1,7 @@
 """Use the mouse to select objects and vertices in a mesh.
 Middle-click and drag to interact with the scene."""
-from vedo import *
+from vedo import settings, Mesh, dataurl, Plotter, interactor_modes
+import numpy as np
 
 settings.enable_default_mouse_callbacks = False
 

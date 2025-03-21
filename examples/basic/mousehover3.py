@@ -1,6 +1,7 @@
 """Compute 3D world coordinates from 2D screen pixel coordinates
 (hover mouse to place the points)"""
-from vedo import *
+from vedo import settings, Point, Text2D, TessellatedBox, ParametricShape, Plotter
+from vedo.utils import mag
 
 settings.default_font = "Ubuntu"
 settings.use_depth_peeling = True

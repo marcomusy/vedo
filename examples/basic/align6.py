@@ -1,6 +1,6 @@
 
 """Align to bounding boxes. Force the Mesh into the empty box."""
-from vedo import *
+from vedo import Mesh, dataurl, Axes, Cube, Plotter
 
 # Load a mesh and color it silver
 msh1 = Mesh(dataurl + "cessna.vtk").color("silver")

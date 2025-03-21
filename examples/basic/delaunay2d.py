@@ -1,5 +1,5 @@
 """Delaunay 2D meshing with point loops defining holes"""
-from vedo import *
+from vedo import Grid, show
 
 # Generate a grid and add gaussian noise to it
 # then extract the points from the grid and store them in the variable gp

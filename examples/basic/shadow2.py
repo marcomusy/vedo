@@ -1,4 +1,4 @@
-from vedo import *
+from vedo import Mesh, dataurl, Box, Cube, Arrow, Light, Plotter
 
 man = Mesh(dataurl+'man.vtk').c('k9').lighting('glossy')
 floor = Box(size=(9, 9, 0.1)).z(-1.6).c('white')

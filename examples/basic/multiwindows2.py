@@ -1,5 +1,5 @@
 """Multiple plotter sync-ed windows"""
-from vedo import *
+from vedo import Ellipsoid, Cone, Cylinder, show
 
 acts = [Ellipsoid().color('Bisque'),
         Cone().color('RosyBrown'),

@@ -3,7 +3,8 @@ then check how many points are inside the surface"""
 #
 # NB: check out pca_ellipse() method for 2D problems
 #
-from vedo import *
+from vedo import settings, Points, pca_ellipsoid, Arrow, Assembly, show
+import numpy as np
 
 settings.use_depth_peeling = True
 

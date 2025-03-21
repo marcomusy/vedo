@@ -1,5 +1,5 @@
 """Hover mouse to interactively fit a sphere to a region of the mesh"""
-from vedo import *
+from vedo import Points, fit_sphere, Text2D, Mesh, dataurl, Plotter
 
 def func(event):  # callback function
     p = event.picked3d

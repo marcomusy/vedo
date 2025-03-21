@@ -1,6 +1,6 @@
 """Align 2 shapes:
 the red line to the yellow surface"""
-from vedo import *
+from vedo import Mesh, dataurl, mag2, printc, show
 
 # Load two mesh objects, a limb and a rim, and color them gold and red
 limb = Mesh(dataurl + "270.vtk").c("gold")

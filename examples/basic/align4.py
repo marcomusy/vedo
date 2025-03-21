@@ -1,6 +1,6 @@
 """Align a set of curves in space
 with Procrustes method"""
-from vedo import *
+from vedo import Assembly, dataurl, procrustes_alignment, Line, mag, show
 
 # Load splines from a file (returns a group of vedo.Lines, like a list)
 splines = Assembly(dataurl+'splines.npy')

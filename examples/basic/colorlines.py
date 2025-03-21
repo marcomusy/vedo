@@ -1,6 +1,6 @@
 """Color lines by a scalar
 Click the lines to get their lengths"""
-from vedo import *
+from vedo import sin, cos, Line, Lines, mag, Plotter
 
 # Define the points for the first line
 pts1 = [(sin(x/8), cos(x/8), x/5) for x in range(25)]

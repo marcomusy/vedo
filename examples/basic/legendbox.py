@@ -1,5 +1,5 @@
 """Customizing a legend box"""
-from vedo import *
+from vedo import Sphere, Cube, Ellipsoid, Hyperboloid, LegendBox, show
 
 s = Sphere()
 c = Cube().x(2)

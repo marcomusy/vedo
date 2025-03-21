@@ -1,5 +1,5 @@
 """Find cells within specified bounds in x, y and/or z."""
-from vedo import *
+from vedo import Mesh, dataurl, printc, Plane, show
 
 # Load a mesh of a shark and normalize it
 mesh = Mesh(dataurl+'shark.ply').normalize().compute_normals()

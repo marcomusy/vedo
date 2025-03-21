@@ -1,7 +1,8 @@
 """Glyphs:
 at each vertex of a mesh, another mesh
 is shown with various orientation options"""
-from vedo import *
+from vedo import Sphere, Ellipsoid, Mesh, dataurl, Glyph, show
+import numpy as np
 
 # Create a sphere with resolution 12, set its color and show as wireframe
 sph = Sphere(res=12).c("white", 0.1).wireframe()

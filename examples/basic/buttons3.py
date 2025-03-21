@@ -1,5 +1,5 @@
 """Create a button using an Image icon to show its state"""
-from vedo import *
+from vedo import Cone, Image, dataurl, ButtonWidget, Plotter
 
 def button_func(widget, evtname):
     print("button_func called")

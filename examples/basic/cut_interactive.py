@@ -3,7 +3,7 @@ Use mouse buttons to zoom and pan.
 Press r to reset the cutting box
 Press i to toggle the cutting box on/off
 Press u to invert the selection"""
-from vedo import *
+from vedo import Mesh, dataurl, Plotter, PlaneCutter
 
 # settings.enable_default_keyboard_callbacks = False
 # settings.enable_default_mouse_callbacks = False

@@ -1,5 +1,5 @@
 """Set custom lights to a 3D scene"""
-from vedo import *
+from vedo import Mesh, dataurl, Point, Light, show
 
 man = Mesh(dataurl + 'man.vtk')
 man.c('white').lighting('glossy')
