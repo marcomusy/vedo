@@ -32,6 +32,7 @@ Changes that will break existing code and need active thinking and some work to 
 ## New/Revised Examples
 ```
 examples/pyplot/plot_fxy0.py
+examples/other/pysr_regression.py
 
 tests/issues/issue_1230.py
 ```

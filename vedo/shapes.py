@@ -3265,7 +3265,7 @@ class Box(Mesh):
 
     def __init__(
             self, pos=(0, 0, 0),
-            length=1.0, width=2.0, height=3.0, size=(), c="g4", alpha=1.0) -> None:
+            length=1.0, width=1.0, height=1.0, size=(), c="g4", alpha=1.0) -> None:
         """
         Build a box of dimensions `x=length, y=width and z=height`.
         Alternatively dimensions can be defined by setting `size` keyword with a tuple.

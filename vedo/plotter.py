@@ -2020,7 +2020,7 @@ class Plotter:
         Example:
             ```python
             from vedo import Box, show
-            b = Box(pos=(0, 0, 0), length=80, width=90, height=70).alpha(0.1)
+            b = Box(pos=(0, 0, 0), size=(80, 90, 70)).alpha(0.1)
             show(
                 b,
                 axes={

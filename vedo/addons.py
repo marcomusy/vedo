@@ -3479,7 +3479,7 @@ def Axes(
     Example:
         ```python
         from vedo import Axes, Box, show
-        box = Box(pos=(1,2,3), length=8, width=9, height=7).alpha(0.1)
+        box = Box(pos=(1,2,3), size=(8,9,7)).alpha(0.1)
         axs = Axes(box, c='k')  # returns an Assembly object
         for a in axs.unpack():
             print(a.name)
@@ -4561,7 +4561,7 @@ def add_global_axes(axtype=None, c=None, bounds=()) -> None:
         .. code-block:: python
 
             from vedo import Box, show
-            b = Box(pos=(0, 0, 0), length=80, width=90, height=70).alpha(0.1)
+            b = Box(pos=(0, 0, 0), size=(80, 90, 70).alpha(0.1)
             show(
                 b,
                 axes={

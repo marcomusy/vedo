@@ -1,7 +1,7 @@
 """Draw the shadows and trailing lines of 2 planes."""
 from vedo import *
 
-world = Box([0,0,0], 30, 16, 8).wireframe()
+world = Box([0,0,0], size=(30, 16, 8)).wireframe()
 
 plane1 = Mesh(dataurl+"cessna.vtk").c("green")
 plane1.add_trail(n=100)

@@ -32,8 +32,8 @@ gyro = shaft + rotor   # group meshes into a single one of type Assembly
 
 spring = Spring(top, gpos, r1=0.06, thickness=0.01).c("gray")
 plt += [gyro, spring]       # add it to Plotter.
-plt += Box(top, length=0.2, width=0.02, height=0.2).c("gray")
-plt += Box(pos=(0, 0.5, 0), length=2.6, width=3, height=2.6).wireframe().c("gray",0.2)
+plt += Box(top, size=(0.2, 0.02, 0.2)).c("gray")
+plt += Box(pos=(0, 0.5, 0), size=(2.6, 3, 2.6)).wireframe().c("gray",0.2)
 
 # ############################################################ the physics
 def loop_func(event):
