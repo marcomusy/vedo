@@ -75,7 +75,7 @@ def start_2d():
 def start_panel():
     """Start a panel display in the notebook"""
     try:
-        import panel as pn
+        import panel as pn # type: ignore
         pn.extension('vtk', design='material', sizing_mode='stretch_width', template='material')
         # pn.state.template.config.raw_css.append("""
         # #main {
@@ -392,9 +392,9 @@ def start_k3d(actors2show):
 def start_trame():
     """Start a trame display in the notebook"""
     try:
-        from trame.app import get_server, jupyter
-        from trame.ui.vuetify import VAppLayout
-        from trame.widgets import vtk as t_vtk, vuetify
+        from trame.app import get_server, jupyter # type: ignore
+        from trame.ui.vuetify import VAppLayout # type: ignore
+        from trame.widgets import vtk as t_vtk, vuetify # type: ignore
     except ImportError:
         print("trame is not installed, try:\n> pip install trame==2.5.2")
         return
@@ -428,7 +428,7 @@ def start_trame():
 #####################################################################################
 def start_ipyvtklink():
     try:
-        from ipyvtklink.viewer import ViewInteractiveWidget
+        from ipyvtklink.viewer import ViewInteractiveWidget # type: ignore
     except ImportError:
         print("ipyvtklink is not installed, try:\n> pip install ipyvtklink")
         return None

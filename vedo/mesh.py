@@ -108,7 +108,7 @@ class Mesh(MeshVisual, Points):
             self.dataset = vedo.utils.meshlab2vedo(inputobj).dataset
 
         elif "meshlib" in str(type(inputobj)):
-            import meshlib.mrmeshnumpy as mrmeshnumpy
+            import meshlib.mrmeshnumpy as mrmeshnumpy # type: ignore
             self.dataset = buildPolyData(
                 mrmeshnumpy.getNumpyVerts(inputobj),
                 mrmeshnumpy.getNumpyFaces(inputobj.topology),

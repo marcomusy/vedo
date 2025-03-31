@@ -733,13 +733,13 @@ def loadSTEP(filename: Union[str, os.PathLike], deflection=1.0) -> Mesh:
     - Exception: If the STEP file cannot be read.
     """
     try:
-        from OCC.Core.STEPControl import STEPControl_Reader
-        from OCC.Core.BRepMesh import BRepMesh_IncrementalMesh
-        from OCC.Core.TopExp import TopExp_Explorer
-        from OCC.Core.TopoDS import topods
-        from OCC.Core.BRep import BRep_Tool
-        from OCC.Core.TopAbs import TopAbs_FACE
-        from OCC.Core.TopLoc import TopLoc_Location
+        from OCC.Core.STEPControl import STEPControl_Reader  # type: ignore
+        from OCC.Core.BRepMesh import BRepMesh_IncrementalMesh  # type: ignore
+        from OCC.Core.TopExp import TopExp_Explorer  # type: ignore
+        from OCC.Core.TopoDS import topods  # type: ignore
+        from OCC.Core.BRep import BRep_Tool  # type: ignore
+        from OCC.Core.TopAbs import TopAbs_FACE  # type: ignore
+        from OCC.Core.TopLoc import TopLoc_Location  # type: ignore
     except ImportError:
         raise ImportError(
             "OCC library not found.\n\nPlease install 'pythonocc-core'. "

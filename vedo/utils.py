@@ -2584,8 +2584,8 @@ def vedo2trimesh(mesh):
         return tms
 
     try:
-        from trimesh import Trimesh
-    except ModuleNotFoundError:
+        from trimesh import Trimesh # type: ignore
+    except (ImportError, ModuleNotFoundError):
         vedo.logger.error("Need trimesh to run:\npip install trimesh")
         return None
 
@@ -2816,7 +2816,7 @@ def vedo2madcad(vedo_mesh):
     Convert a `vedo.Mesh` to a `madcad.Mesh`.
     """
     try:
-        import madcad
+        import madcad # type: ignore
         import numbers
     except ModuleNotFoundError:
         vedo.logger.error("Need madcad to run:\npip install pymadcad")

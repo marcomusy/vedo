@@ -242,7 +242,7 @@ class Settings:
         self.default_backend = "vtk"
         try:
             # adapted from: https://stackoverflow.com/a/39662359/2912349
-            shell = get_ipython().__class__.__name__
+            shell = get_ipython().__class__.__name__ # type: ignore
             if shell == 'ZMQInteractiveShell':
                 self.default_backend = "2d"
         except NameError:
@@ -729,13 +729,13 @@ class Settings:
 
         os.system("pip install pyvirtualdisplay")
 
-        from pyvirtualdisplay import Display
+        from pyvirtualdisplay import Display # type: ignore
         Display(visible=0).start()
 
         if enable_k3d:
             os.system("pip install k3d")
 
-        from google.colab import output
+        from google.colab import output # type: ignore
         output.enable_custom_widget_manager()
 
         if enable_k3d:
@@ -787,3 +787,15 @@ class Settings:
         except FileNotFoundError:
             print(f"Cache directory '{cachedir}' not found.")
             pass
+    
+    ############################################################
+    def set_vtk_verbosity(self, level: int) -> None:
+        """Set the verbosity level of VTK."""
+        from vtkmodules.vtkCommonCore import vtkLogger
+
+        levels = {
+            0: vtkLogger.VERBOSITY_ERROR,
+            1: vtkLogger.VERBOSITY_WARNING,
+            2: vtkLogger.VERBOSITY_INFO,
+        }
+        vtkLogger.SetStderrVerbosity(levels[level])
