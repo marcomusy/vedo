@@ -15,7 +15,7 @@ All notable changes to this project will be documented in this file.
 - add `.rename()` method to set any object name.
 - fix bug #1230 in `line.find_index_at_position()` by @natabma
 - Add lazy initialization for normals (#1231) by @CorpsSansOrganes
-
+- add chemistry module to represent molecules and proteins
 
 
 
@@ -33,6 +33,7 @@ Changes that will break existing code and need active thinking and some work to 
 ```
 examples/pyplot/plot_fxy0.py
 examples/other/pysr_regression.py
+examples/other/chemistry1.py
 
 tests/issues/issue_1230.py
 ```
