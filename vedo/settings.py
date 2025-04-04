@@ -47,8 +47,8 @@ class Settings:
     # Use this local folder to store downloaded files (default is ~/.cache/vedo)
     cache_directory = ".cache"
     # Alternatively set the environment variable VEDO_CACHE_DIR
-    # to change the cache directory for all vedo scripts. Note that
-    # "/vedo" is appended automatically to the path.
+    # to change the cache directory for all vedo scripts.
+    # Note that "/vedo" is appended automatically to the path.
 
     # Palette number when using an integer to choose a color
     palette = 0
