@@ -14,7 +14,7 @@ lines = Lines(centers, pts, res=50)   # create Lines with 50 pts of resolution e
 lines.interpolate_data_from(img, n=3) # interpolate all msh data onto the lines
 print(lines.pointdata)                # print all available arrays
 rgb = lines.pointdata['JPEGImage']    # extract the rgb intensities
-intensities = np.sum(rgb, axis=1)     # sum the rgb values into one single intensty
+intensities = np.sum(rgb, axis=1)     # sum the rgb values into one single intensity
 intensities_ray = np.split(intensities, 36)  # split array so we can index any radius
 mean_intensity = np.mean(intensities_ray, axis=0)  # compute the average intensity
 
