@@ -454,6 +454,7 @@ for name in [
     "vtkNIFTIImageReader",
     "vtkNIFTIImageWriter",
     "vtkNrrdReader",
+    "vtkOMETIFFReader",
     "vtkPNGReader",
     "vtkPNGWriter",
     "vtkSLCReader",

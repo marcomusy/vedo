@@ -1214,7 +1214,11 @@ def _import_npy(fileinput: Union[str, os.PathLike]) -> "vedo.Plotter":
 def loadImageData(filename: Union[str, os.PathLike]) -> Union[vtki.vtkImageData, None]:
     """Read and return a `vtkImageData` object from file."""
     filename = str(filename)
-    if ".tif" in filename.lower():
+    if ".ome.tif" in filename.lower():
+        reader = vtki.new("OMETIFFReader")
+        # print("GetOrientationType ", reader.GetOrientationType())
+        reader.SetOrientationType(vedo.settings.tiff_orientation_type)
+    elif ".tif" in filename.lower():
         reader = vtki.new("TIFFReader")
         # print("GetOrientationType ", reader.GetOrientationType())
         reader.SetOrientationType(vedo.settings.tiff_orientation_type)

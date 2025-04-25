@@ -2046,9 +2046,9 @@ class Plotter:
         """Add a legend to the top right.
 
         Examples:
-            - [legendbox.py](https://github.com/marcomusy/vedo/blob/master/examples/examples/basic/legendbox.py),
-            - [flag_labels1.py](https://github.com/marcomusy/vedo/blob/master/examples/examples/other/flag_labels1.py)
-            - [flag_labels2.py](https://github.com/marcomusy/vedo/blob/master/examples/examples/other/flag_labels2.py)
+            - [legendbox.py](https://github.com/marcomusy/vedo/blob/master/examples/basic/legendbox.py),
+            - [flag_labels1.py](https://github.com/marcomusy/vedo/blob/master/examples/other/flag_labels1.py)
+            - [flag_labels2.py](https://github.com/marcomusy/vedo/blob/master/examples/other/flag_labels2.py)
         """
         acts = self.get_meshes()
         lb = addons.LegendBox(acts, **kwargs)
