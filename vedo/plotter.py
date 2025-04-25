@@ -3129,7 +3129,7 @@ class Plotter:
                     scanned_acts.append(utils.meshlab2vedo(a))
 
             elif "dolfin" in str(type(a)):  # assume a dolfin.Mesh object
-                import vedo.dolfin as vdlf
+                import vedo.dolfin as vdlf # type: ignore[import]
 
                 scanned_acts.append(vdlf.IMesh(a).actor)
 

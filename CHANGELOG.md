@@ -35,6 +35,8 @@ examples/pyplot/plot_fxy0.py
 examples/other/pysr_regression.py
 examples/other/chemistry1.py
 
+examples/volumetric/image_editor.py
+
 tests/issues/issue_1230.py
 ```
 
