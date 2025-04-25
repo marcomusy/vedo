@@ -265,22 +265,22 @@ class Image(vedo.visual.ImageVisual):
         #     out += thumb
 
         out += "\x1b[0m\x1b[33;1m"
-        out += "filename".ljust(14) + f": {self.filename}\n"
-        out += "dimensions".ljust(14) + f": {self.shape}\n"
-        out += "memory size".ljust(14) + ": "
+        out += "filename".ljust(15) + f": {self.filename}\n"
+        out += "dimensions".ljust(15) + f": {self.shape}\n"
+        out += "memory size".ljust(15) + ": "
         out += str(int(self.memory_size())) + " kB\n"
 
         bnds = self.bounds()
         bx1, bx2 = utils.precision(bnds[0], 3), utils.precision(bnds[1], 3)
         by1, by2 = utils.precision(bnds[2], 3), utils.precision(bnds[3], 3)
         bz1, bz2 = utils.precision(bnds[4], 3), utils.precision(bnds[5], 3)
-        out += "position".ljust(14) + f": {self.pos()}\n"
-        out += "bounds".ljust(14) + ":"
+        out += "position".ljust(15) + f": {self.pos()}\n"
+        out += "bounds".ljust(15) + ":"
         out += " x=(" + bx1 + ", " + bx2 + "),"
         out += " y=(" + by1 + ", " + by2 + "),"
         out += " z=(" + bz1 + ", " + bz2 + ")\n"
-        out += "intensty range".ljust(14) + f": {self.scalar_range()}\n"
-        out += "level/window".ljust(14) + ": "
+        out += "intensity range".ljust(15) + f": {self.scalar_range()}\n"
+        out += "level/window".ljust(15) + ": "
         out += str(self.level()) + " / " + str(self.window()) + "\n"
         return out.rstrip() + "\x1b[0m"
 
