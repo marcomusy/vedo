@@ -32,10 +32,9 @@ Changes that will break existing code and need active thinking and some work to 
 ## New/Revised Examples
 ```
 examples/pyplot/plot_fxy0.py
+examples/volumetric/image_editor.py
 examples/other/pysr_regression.py
 examples/other/chemistry1.py
-
-examples/volumetric/image_editor.py
 
 tests/issues/issue_1230.py
 ```

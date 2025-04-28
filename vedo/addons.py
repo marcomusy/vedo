@@ -1042,6 +1042,10 @@ class SliderWidget(vtki.vtkSliderWidget):
         """Toggle the widget"""
         self.SetEnabled(not self.GetEnabled())
         return self
+    
+    def is_enabled(self) -> bool:
+        """Check if the widget is enabled."""
+        return bool(self.GetEnabled())
 
     def add_observer(self, event, func, priority=1) -> int:
         """Add an observer to the widget."""
