@@ -1088,6 +1088,23 @@ class CommonAlgorithms:
             kern.SetRadius(radius)
             kern.SetKernelFootprintToRadius()
 
+        # remove arrays that are already present in cls dataset
+        # this is because the interpolator will ignore them otherwise
+        clsnames = []
+        for i in range(cls.dataset.GetPointData().GetNumberOfArrays()):
+            name = cls.dataset.GetPointData().GetArrayName(i)
+            clsnames.append(name)
+        
+        pointsnames = []
+        for i in range(points.GetPointData().GetNumberOfArrays()):
+            name = points.GetPointData().GetArrayName(i)
+            pointsnames.append(name)
+
+        for cname in clsnames:
+            if cname in set(pointsnames) - set(exclude):
+                cls.dataset.GetPointData().RemoveArray(cname)
+                # print(f"Removed {cname} from cls dataset")
+
         interpolator = vtki.new("PointInterpolator")
         interpolator.SetInputData(cls.dataset)
         interpolator.SetSourceData(points)
