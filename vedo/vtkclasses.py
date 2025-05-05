@@ -360,6 +360,7 @@ for name in [
     "vtkBandedPolyDataContourFilter",
     "vtkButterflySubdivisionFilter",
     "vtkContourLoopExtraction",
+    "vtkCollisionDetectionFilter",
     "vtkCookieCutter",
     "vtkDijkstraGraphGeodesicPath",
     "vtkFillHolesFilter",
