@@ -100,7 +100,8 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         self.line_locator = None
 
         ###################
-        if isinstance(input_obj, str):
+        if isinstance(input_obj, str) or "PosixPath" in str(type(input_obj)):
+            input_obj = str(input_obj)
             if "https://" in input_obj:
                 input_obj = vedo.file_io.download(input_obj, verbose=False)  # fpath
             elif os.path.isfile(input_obj):
@@ -164,7 +165,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
             if "https://" in input_obj:
                 input_obj = vedo.file_io.download(input_obj, verbose=False)
             img = vedo.file_io.loadImageData(input_obj)
-            self.filename = input_obj
+            self.filename = str(input_obj)
 
         else:
             vedo.logger.error(f"cannot understand input type {inputtype}")

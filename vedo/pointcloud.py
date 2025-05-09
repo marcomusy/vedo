@@ -546,9 +546,9 @@ class Points(PointsVisual, PointAlgorithms):
         elif utils.is_sequence(inputobj):  # passing point coords
             self.dataset = utils.buildPolyData(utils.make3d(inputobj))
 
-        elif isinstance(inputobj, str):
+        elif isinstance(inputobj, str) or "PosixPath" in str(type(inputobj)):
             verts = vedo.file_io.load(inputobj)
-            self.filename = inputobj
+            self.filename = str(inputobj)
             self.dataset = verts.dataset
 
         elif "meshlib" in str(type(inputobj)):

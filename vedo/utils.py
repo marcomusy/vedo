@@ -1854,7 +1854,7 @@ def grep(filename: str, tag: str, column=None, first_occurrence_only=False) -> l
     """Greps the line in a file that starts with a specific `tag` string inside the file."""
     import re
 
-    with open(filename, "r", encoding="UTF-8") as afile:
+    with open(str(filename), "r", encoding="UTF-8") as afile:
         content = []
         for line in afile:
             if re.search(tag, line):

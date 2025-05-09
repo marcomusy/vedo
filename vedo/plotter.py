@@ -930,15 +930,16 @@ class Plotter:
                 nren, yren = nren
             else:
                 vedo.logger.error("at() argument must be a single number or a list of two numbers")
-                raise RuntimeError
+                raise TypeError
 
         if yren is not None:
             a, b = self.shape
             x, y = nren, yren
+            nren_orig = nren
             nren = x * b + y
             # print("at (", x, y, ")  -> ren", nren)
             if nren < 0 or nren > len(self.renderers) or x >= a or y >= b:
-                vedo.logger.error(f"at({nren, yren}) is malformed!")
+                vedo.logger.error(f"at({nren_orig, yren}) is malformed!")
                 raise RuntimeError
 
         self.renderer = self.renderers[nren]

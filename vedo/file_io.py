@@ -277,7 +277,7 @@ def load(inputobj: Union[list, str, os.PathLike], unpack=True, force=False) -> A
 
 ########################################################################
 def _load_file(filename, unpack):
-    fl = filename.lower()
+    fl = str(filename).lower()
 
     ########################################################## other formats:
     if fl.endswith(".xml") or fl.endswith(".xml.gz") or fl.endswith(".xdmf"):
@@ -749,7 +749,7 @@ def loadSTEP(filename: Union[str, os.PathLike], deflection=1.0) -> Mesh:
 
     # Initialize the STEP reader
     reader = STEPControl_Reader()
-    status = reader.ReadFile(filename)
+    status = reader.ReadFile(str(filename))
     if status != 1:  # Check if reading was successful (IFSelect_RetDone = 1)
         raise Exception("Error reading STEP file")
 

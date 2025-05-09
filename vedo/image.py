@@ -30,8 +30,9 @@ def _get_img(obj: Union[np.ndarray, str], flip=False, translate=()) -> vtki.vtkI
     # compute vtkImageData from numpy array or filename
     img = None
 
-    if isinstance(obj, str):
+    if isinstance(obj, str) or "PosixPath" in str(type(obj)):
         if "https://" in obj:
+            obj = str(obj)
             obj = vedo.file_io.download(obj, verbose=False)
 
         fname = obj.lower()
@@ -182,7 +183,8 @@ class Image(vedo.visual.ImageVisual):
         elif isinstance(obj, vtki.vtkImageData):
             img = obj
 
-        elif isinstance(obj, str):
+        elif isinstance(obj, str) or "PosixPath" in str(type(obj)):
+            obj = str(obj)
             img = _get_img(obj)
             self.filename = obj
 
@@ -1476,6 +1478,7 @@ class Image(vedo.visual.ImageVisual):
 
     def write(self, filename: str) -> Self:
         """Write image to file as png or jpg."""
+        filename = str(filename)
         vedo.file_io.write(self, filename)
         self.pipeline = utils.OperationNode(
             "write",

@@ -58,12 +58,7 @@ class Mesh(MeshVisual, Points):
             # self.dataset = vtki.vtkPolyData()
             pass
 
-        elif isinstance(inputobj, str):
-            self.dataset = vedo.file_io.load(inputobj).dataset
-            self.filename = inputobj
-
         elif isinstance(inputobj, vtki.vtkPolyData):
-            # self.dataset.DeepCopy(inputobj) # NO
             self.dataset = inputobj
             if self.dataset.GetNumberOfCells() == 0:
                 carr = vtki.vtkCellArray()
@@ -103,6 +98,11 @@ class Mesh(MeshVisual, Points):
             gf.SetInputData(inputobj)
             gf.Update()
             self.dataset = gf.GetOutput()
+
+        elif isinstance(inputobj, str) or "PosixPath" in str(type(inputobj)):
+            inputobj = str(inputobj)
+            self.dataset = vedo.file_io.load(inputobj).dataset
+            self.filename = inputobj
 
         elif "meshlab" in str(type(inputobj)):
             self.dataset = vedo.utils.meshlab2vedo(inputobj).dataset

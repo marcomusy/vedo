@@ -1345,13 +1345,6 @@ def ScalarBar(
             if not nlabels: sb.SetNumberOfLabels(3)
             sb.SetOrientationToHorizontal()
             sb.SetTextPositionToSucceedScalarBar()
-        sb.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
-        sb.GetPosition2Coordinate().SetCoordinateSystemToNormalizedViewport()
-
-        s = np.array(pos[1]) - np.array(pos[0])
-        sb.GetPositionCoordinate().SetValue(pos[0][0], pos[0][1])
-        sb.GetPosition2Coordinate().SetValue(s[0], s[1]) # size !!??
-
     else:
 
         if horizontal:
@@ -1368,6 +1361,13 @@ def ScalarBar(
         sb.SetWidth(1)
         if size[0] is not None: sb.SetMaximumWidthInPixels(size[0])
         if size[1] is not None: sb.SetMaximumHeightInPixels(size[1])
+
+    sb.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
+    sb.GetPosition2Coordinate().SetCoordinateSystemToNormalizedViewport()
+
+    s = np.array(pos[1]) - np.array(pos[0])
+    sb.GetPositionCoordinate().SetValue(pos[0][0], pos[0][1])
+    sb.GetPosition2Coordinate().SetValue(s[0], s[1]) # size !!??
 
     sctxt = sb.GetLabelTextProperty()
     sctxt.SetFontFamily(vtki.VTK_FONT_FILE)
