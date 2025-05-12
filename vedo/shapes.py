@@ -3288,8 +3288,12 @@ class Box(Mesh):
             pos = (pos[0], pos[1], 0)
 
         if len(pos) == 6:
-            src.SetBounds(pos)
+            length, width, height = (pos[1] - pos[0]), (pos[3] - pos[2]), (pos[5] - pos[4]) 
+            src.SetXLength(length)
+            src.SetYLength(width)
+            src.SetZLength(height)
             pos = [(pos[0] + pos[1]) / 2, (pos[2] + pos[3]) / 2, (pos[4] + pos[5]) / 2]
+            src.SetCenter(pos)
         elif len(size) == 3:
             length, width, height = size
             src.SetXLength(length)
