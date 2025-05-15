@@ -452,7 +452,7 @@ class CommonVisual:
 
         if col is None:
             return self
-
+        
         if vmin is None:
             vmin, _ = self.dataset.GetScalarRange()
         if vmax is None:
@@ -487,6 +487,14 @@ class CommonVisual:
             r, g, b = colors.get_color(col)
             ctf.AddRGBPoint(vmin, r, g, b)  # constant color
             ctf.AddRGBPoint(vmax, r, g, b)
+        elif isinstance(col, vtki.vtkLookupTable):
+            alpha=[]
+            nt = col.GetNumberOfTableValues()
+            for i in range(nt):
+                r, g, b, a = col.GetTableValue(i)
+                # print("LUT i =", i, "value =", col.GetTableValue(i))
+                ctf.AddRGBPoint(vmin + (vmax - vmin) * i / (nt - 1), r, g, b)
+                alpha.append(a)
         else:
             vedo.logger.warning(f"in color() unknown input type {type(col)}")
 

@@ -914,7 +914,7 @@ def build_lut(
         alpha_x.append(scalar)
         alpha_vals.append(alf)
 
-    ncols = 8 * len(colorlist)
+    ncols = max(256, len(colorlist))
     if not interpolate:
         ncols = len(colorlist)
 
