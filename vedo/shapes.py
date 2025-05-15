@@ -3264,7 +3264,8 @@ class Box(Mesh):
     """
 
     def __init__(
-            self, pos=(0, 0, 0),
+            self, 
+            pos=(0, 0, 0),
             length=1.0, width=1.0, height=1.0, size=(), c="g4", alpha=1.0) -> None:
         """
         Build a box of dimensions `x=length, y=width and z=height`.
@@ -3287,24 +3288,17 @@ class Box(Mesh):
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
 
+        #################
         if len(pos) == 6:
             length, width, height = (pos[1] - pos[0]), (pos[3] - pos[2]), (pos[5] - pos[4]) 
-            src.SetXLength(length)
-            src.SetYLength(width)
-            src.SetZLength(height)
             pos = [(pos[0] + pos[1]) / 2, (pos[2] + pos[3]) / 2, (pos[4] + pos[5]) / 2]
-            src.SetCenter(pos)
+        
         elif len(size) == 3:
             length, width, height = size
-            src.SetXLength(length)
-            src.SetYLength(width)
-            src.SetZLength(height)
-            src.SetCenter(pos)
-        else:
-            src.SetXLength(length)
-            src.SetYLength(width)
-            src.SetZLength(height)
-            src.SetCenter(pos)
+        
+        src.SetXLength(length)
+        src.SetYLength(width)
+        src.SetZLength(height)
 
         src.Update()
         pd = src.GetOutput()
@@ -3338,8 +3332,8 @@ class Box(Mesh):
         vtc = utils.numpy2vtk(tc)
         pd.GetPointData().SetTCoords(vtc)
         super().__init__(pd, c, alpha)
-        self.transform = LinearTransform().translate(pos)
         self.name = "Box"
+        self.pos(pos)
 
 
 class Cube(Box):

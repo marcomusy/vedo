@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 - fix bug #1230 in `line.find_index_at_position()` by @natabma
 - Add lazy initialization for normals (#1231) by @CorpsSansOrganes
 - add chemistry module to represent molecules and proteins
+- fix to Box class by @dbotwinick
 
 
 
