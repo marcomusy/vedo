@@ -492,8 +492,22 @@ class CommonVisual:
             nt = col.GetNumberOfTableValues()
             for i in range(nt):
                 r, g, b, a = col.GetTableValue(i)
-                # print("LUT i =", i, "value =", col.GetTableValue(i))
-                ctf.AddRGBPoint(vmin + (vmax - vmin) * i / (nt - 1), r, g, b)
+                x = vmin + (vmax - vmin) * i / (nt - 1)
+                ctf.AddRGBPoint(x, r, g, b)
+                alpha.append(a)
+        elif hasattr(col, "resampled"): # cover the case of LinearSegmentedColormap
+            N = col.N
+            cs = np.array([col(i/N) for i in range(N)])
+            alpha = cs[:,3].copy()
+            for i, v in enumerate(cs):
+                r, g, b, _ = v
+                x = vmin + (vmax - vmin) * i / (N - 1)
+                ctf.AddRGBPoint(x, r, g, b)
+        elif hasattr(col, "to_rgba"):   # col is a matplotlib colormap
+            for i in range(256):
+                r, g, b, a = col(i / 255)
+                x = vmin + (vmax - vmin) * i / 255
+                ctf.AddRGBPoint(x, r, g, b)
                 alpha.append(a)
         else:
             vedo.logger.warning(f"in color() unknown input type {type(col)}")
