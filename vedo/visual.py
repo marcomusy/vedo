@@ -2180,7 +2180,7 @@ class PointsVisual(CommonVisual):
                 vertical spacing between lines.
 
         Examples:
-            - [flag_labels2.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/other/flag_labels2.py)
+            - [flag_labels2.py](https://github.com/marcomusy/vedo/tree/master/examples/other/flag_labels2.py)
 
             ![](https://vedo.embl.es/images/other/flag_labels2.png)
         """
