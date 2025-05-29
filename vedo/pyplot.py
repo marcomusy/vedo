@@ -2256,7 +2256,7 @@ def histogram(*args, **kwargs):
             rescale the (already normalized) zaxis for visual convenience
 
     Examples:
-        - [histo_2d_b.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/histo_2d_b.py)
+        - [histo_2d_b.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/histo_2d_b.py)
 
 
     -------------------------------------------------------------------------
@@ -3415,7 +3415,7 @@ def violin(
             line color
 
     Examples:
-        - [histo_violin.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/histo_violin.py)
+        - [histo_violin.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/histo_violin.py)
 
             ![](https://vedo.embl.es/images/pyplot/histo_violin.png)
     """
@@ -3502,7 +3502,7 @@ def whisker(data, s=0.25, c="k", lw=2, bc="blue", alpha=0.25, r=5, jitter=True, 
             set horizontal layout
 
     Examples:
-        - [whiskers.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/whiskers.py)
+        - [whiskers.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/whiskers.py)
 
             ![](https://vedo.embl.es/images/pyplot/whiskers.png)
     """
@@ -3557,7 +3557,7 @@ def streamplot(
             line width in absolute units
 
     Examples:
-        - [plot_stream.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/plot_stream.py)
+        - [plot_stream.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot_stream.py)
 
             ![](https://vedo.embl.es/images/pyplot/plot_stream.png)
     """
@@ -3666,7 +3666,7 @@ def matrix(
             plot transparency
 
     Examples:
-        - [np_matrix.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/np_matrix.py)
+        - [np_matrix.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/np_matrix.py)
 
             ![](https://vedo.embl.es/images/pyplot/np_matrix.png)
     """
@@ -3963,11 +3963,11 @@ class DirectedGraph(Assembly):
                 use random positions within the graph bounds as initial points
 
         Examples:
-            - [lineage_graph.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/lineage_graph.py)
+            - [lineage_graph.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/graph_lineage.py)
 
                 ![](https://vedo.embl.es/images/pyplot/graph_lineage.png)
 
-            - [graph_network.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/graph_network.py)
+            - [graph_network.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/graph_network.py)
 
                 ![](https://vedo.embl.es/images/pyplot/graph_network.png)
         """
