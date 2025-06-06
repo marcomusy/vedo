@@ -3367,7 +3367,7 @@ class Plotter:
             return backends.get_notebook_backend()
         #########################################################################
 
-        if self.resetcam:
+        if self.resetcam and self.renderer:
             self.renderer.ResetCamera()
 
         if len(self.renderers) > 1:
