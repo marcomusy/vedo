@@ -1,7 +1,6 @@
 """Use two sliders to change
 color and transparency of a mesh"""
-from vedo import Sphere, Cube, Cylinder, Torus, SliderWidget, Plotter
-from vedo import Mesh, dataurl
+from vedo import Plotter, Mesh, dataurl
 
 
 def slider1(widget, event):

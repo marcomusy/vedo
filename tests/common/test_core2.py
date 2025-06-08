@@ -32,9 +32,9 @@ print(tm.cell_centers().coordinates)
 print(rg.cell_centers().coordinates)
 
 print("\n -- TEST METHOD cells() -------------------")
-print(vol.cells) # NORMALLY THIS GIVES WARNING
-print(tm.cells)
-print(rg.cells) # NORMALLY THIS GIVES WARNING
+print(len(vol.cells)) # NORMALLY THIS GIVES WARNING
+print(len(tm.cells))
+print(len(rg.cells)) # NORMALLY THIS GIVES WARNING
 
 print("\n -- TEST METHOD center_of_mass() -------------------")
 print(vol.center_of_mass())
