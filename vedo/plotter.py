@@ -3453,9 +3453,9 @@ class Plotter:
             if screenshot:
                 self.screenshot(screenshot)
 
-            if self._interactive:
+            if self._interactive and self.interactor:
                 self.interactor.Start()
-                if self._must_close_now:
+                if self._must_close_now and self.interactor:
                     self.interactor.GetRenderWindow().Finalize()
                     self.interactor.TerminateApp()
                     self.camera = None
@@ -3657,7 +3657,7 @@ class Plotter:
 
         return self
 
-    def close(self):
+    def close(self) -> Self:
         """Close the plotter."""
         # https://examples.vtk.org/site/Cxx/Visualization/CloseWindow/
         vedo.last_figure = None
@@ -3693,8 +3693,9 @@ class Plotter:
 
         self._must_close_now = True
 
-        if self.interactor and self._interactive:
-            self.break_interaction()
+        if self.interactor:
+            if self._interactive:
+                self.break_interaction()
             self.interactor.GetRenderWindow().Finalize()
             self.interactor.TerminateApp()
             self.camera = None
@@ -3705,7 +3706,8 @@ class Plotter:
 
         if vedo.plotter_instance == self:
             vedo.plotter_instance = None
-        return
+        return self # must return self for consistency
+
 
     @property
     def camera(self):
