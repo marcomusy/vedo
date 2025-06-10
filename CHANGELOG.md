@@ -47,6 +47,8 @@ tests/issues/issue_1230.py
 #### (Internal) Broken Examples
 Examples that are not fully functional and need some fixing:
 ```
+sliders3d.py crashes
+interpolate_scalar4.py misplaced scalarbar
 markpoint.py (misplaced leader indicator)
 cut_and_cap.py (incomplete capping)
 tests/issues/discussion_800.py (incomplete capping of tube)

@@ -6,7 +6,7 @@ g1 = Grid(res=(25,25)).wireframe(0).lw(1)
 scalars = g1.coordinates[:,1]
 g1.cmap("viridis", scalars, vmin=-1, vmax=1, name='gene')
 g1.map_points_to_cells()  # move the array to cells (faces)
-g1.add_scalarbar(horizontal=1, pos=(0.7,0.04))
+g1.add_scalarbar(horizontal=1)
 g1.rotate_z(20)  # let's rotate it a bit so it's visible
 
 # Interpolate first mesh onto a new triangular mesh
