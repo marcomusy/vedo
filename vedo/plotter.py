@@ -3685,11 +3685,6 @@ class Plotter:
             return self
 
         ###################################################
-        try:
-            if "Darwin" in vedo.sys_platform:
-                self.interactor.ProcessEvents()
-        except:
-            pass
 
         self._must_close_now = True
 
@@ -3697,6 +3692,11 @@ class Plotter:
             if self._interactive:
                 self.break_interaction()
             self.interactor.GetRenderWindow().Finalize()
+            try:
+                if "Darwin" in vedo.sys_platform:
+                    self.interactor.ProcessEvents()
+            except:
+                pass
             self.interactor.TerminateApp()
             self.camera = None
             self.renderer = None
