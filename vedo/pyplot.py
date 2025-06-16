@@ -457,7 +457,7 @@ class Figure(Assembly):
         vspace=1.75,
         padding=0.1,
         radius=0,
-        alpha=1,
+        alpha=0.8,
         bc="k7",
         lw=1,
         lc="k4",

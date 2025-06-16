@@ -160,6 +160,11 @@ class Group(vtki.vtkPropAssembly):
                     self.RemovePart(a.actor)
                     self.objects.append(a)
         return self
+    
+    def rename(self, name: str) -> "Group":
+        """Set a new name for the Group object."""
+        self.name = name
+        return self
 
     def add(self, obj):
         """Add an object to the group."""
@@ -469,6 +474,11 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
                 except TypeError:
                     self.RemovePart(a.actor)
                     self.objects.remove(a)
+        return self
+
+    def rename(self, name: str) -> "Assembly":
+        """Set a new name for the Assembly object."""
+        self.name = name
         return self
 
     def add(self, obj):

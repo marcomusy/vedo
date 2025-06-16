@@ -163,6 +163,7 @@ class Image(vedo.visual.ImageVisual):
             channels :  (int, list)
                 only select these specific rgba channels (useful to remove alpha)
         """
+        assert channels in [1, 3, 4], "in Image: channels must be 1, 3 or 4"
         self.name = "Image"
         self.filename = ""
         self.file_size = 0
@@ -199,10 +200,10 @@ class Image(vedo.visual.ImageVisual):
             # self.array = self.array.reshape(fig.canvas.get_width_height()[::-1] + (3,))
             width, height = fig.get_size_inches() * fig.get_dpi()
             self.array = np.frombuffer(
-                fig.canvas.buffer_rgba(), dtype=np.uint8
+                fig.canvas.buffer_rgba(),
+                dtype=np.uint8
             ).reshape((int(height), int(width), 4))
-            self.array = self.array[:, :, :3]
-
+            self.array = self.array[:, :, :channels]
             img = _get_img(self.array)
 
         else:
