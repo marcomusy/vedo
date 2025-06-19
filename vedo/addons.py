@@ -4858,7 +4858,7 @@ def add_global_axes(axtype=None, c=None, bounds=()) -> None:
         for i in range(3):
             ca.GetLabelTextProperty(i).SetColor(c)
             ca.GetTitleTextProperty(i).SetColor(c)
-        ca.SetTitleOffset(5)
+        # ca.SetTitleOffset(5)
         ca.SetFlyMode(3)
         ca.SetXTitle("x")
         ca.SetYTitle("y")
