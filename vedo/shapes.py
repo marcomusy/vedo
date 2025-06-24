@@ -4096,13 +4096,13 @@ def _load_font(font) -> np.ndarray:
         fontfile = os.path.join(vedo.fonts_path, font + ".npz")
 
         if font not in settings.font_parameters.keys():
-            font = "Normografo"
             vedo.logger.warning(
                 f"Unknown font: {font}\n"
                 f"Available 3D fonts are: "
                 f"{list(settings.font_parameters.keys())}\n"
-                f"Using font {font} instead."
+                f"Using font Normografo instead."
             )
+            font = "Normografo"
             fontfile = os.path.join(vedo.fonts_path, font + ".npz")
 
         if not settings.font_parameters[font]["islocal"]:

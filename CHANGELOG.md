@@ -1,44 +1,39 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
-
+All notable changes to the project will be documented in this file.
 
 ===================================================================================
 # Development Version 
 
+
 ## Changes and Fixes
-- general code cleanup with pylint.
-- add `utils.compute_hessian()`
-- fix issue #1224 for cells coloring in jupyter notebook for k3d
-- add support for STEP files format (needs opencascade lib) #1222
-- fix nan case in scalarbar3d()
-- add `.rename()` method to set any object name.
-- fix bug #1230 in `line.find_index_at_position()` by @natabma
-- Add lazy initialization for normals (#1231) by @CorpsSansOrganes
-- add chemistry module to represent molecules and proteins
-- fix to Box class by @dbotwinick
+- added example with embedding matplotlib figures in a scene
+- add `Line.eval2d()` useful for plotting
+- improvements to the `addons.BaseCutter` as per #1263 by @natabma
 
 
 
 
 ## Soft-breaking Changes
-Changes that may break existing code whose fixing is trivial:
+- small changes to the API of the `addons.BaseCutter` class
+- 
+
+
 
 
 ## Hard-breaking Changes
-Changes that will break existing code and need active thinking and some work to adapt
-
 - None
+
+
+
 
 ## New/Revised Examples
 ```
-examples/pyplot/plot_fxy0.py
-examples/volumetric/image_editor.py
-examples/other/pysr_regression.py
-examples/other/chemistry1.py
-
-tests/issues/issue_1230.py
+examples/pyplot/embed_matplotlib2.py
+examples/basic/cut_interactive.py
+examples/volumetric/slice_plane3.py
 ```
+
 
 ## To Do
 - fix trasform in image.tomesh() is not transmitted to mesh
@@ -47,12 +42,12 @@ tests/issues/issue_1230.py
 #### (Internal) Broken Examples
 Examples that are not fully functional and need some fixing:
 ```
-sliders3d.py crashes
+advanced/warp4b.py (problem with picker?)
+sliders3d.py crashes when moving the scene
 interpolate_scalar4.py misplaced scalarbar
 markpoint.py (misplaced leader indicator)
 cut_and_cap.py (incomplete capping)
 tests/issues/discussion_800.py (incomplete capping of tube)
-advanced/warp4b.py (probs with picker?)
 ```
 
 #### (Internal) Known issues
@@ -79,8 +74,58 @@ streamlines1.py
 
 
 
-===================================================================================
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+===================================================================================
+# Version 2024.5.4
+
+## Changes and Fixes
+- general code cleanup with pylint.
+- add `utils.compute_hessian()`
+- fix issue #1224 for cells coloring in jupyter notebook for k3d
+- add support for STEP files format (needs opencascade lib) #1222
+- fix nan case in scalarbar3d()
+- add `.rename()` method to set any object name.
+- fix bug #1230 in `line.find_index_at_position()` by @natabma
+- Add lazy initialization for normals (#1231) by @CorpsSansOrganes
+- add chemistry module to represent molecules and proteins
+- fix to Box class by @dbotwinick
+
+
+## Soft-breaking Changes
+Changes that may break existing code whose fixing is trivial:
+
+
+## Hard-breaking Changes
+Changes that will break existing code and need active thinking and some work to adapt
+
+- None
+
+## New/Revised Examples
+```
+examples/pyplot/plot_fxy0.py
+examples/volumetric/image_editor.py
+examples/other/pysr_regression.py
+examples/other/chemistry1.py
+tests/issues/issue_1230.py
+```
+
+
+===================================================================================
 # Version 2024.5.3
 
 ## Changes and Fixes

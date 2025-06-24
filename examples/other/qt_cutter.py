@@ -1,5 +1,4 @@
 import sys
-# from PySide2 import QtWidgets, QtCore
 from PyQt5 import Qt
 from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 from vedo import Plotter, Mesh, BoxCutter, dataurl
@@ -40,7 +39,7 @@ class MainWindow(Qt.QMainWindow):
     def ctool_stop(self):
         self.cutter.off()
 
-    def onClose(self):
+    def on_close(self):
         #Disable the interactor before closing to prevent it
         #from trying to act on already deleted items
         self.vtkWidget.close()
@@ -48,5 +47,5 @@ class MainWindow(Qt.QMainWindow):
 if __name__ == "__main__":
     app = Qt.QApplication(sys.argv)
     window = MainWindow()
-    app.aboutToQuit.connect(window.onClose) # <-- connect the onClose event
+    app.aboutToQuit.connect(window.on_close) # <-- connect the onClose event
     app.exec_()

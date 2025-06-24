@@ -2064,28 +2064,47 @@ class BaseCutter:
     """
 
     def __init__(self):
-        self._implicit_func = None
+        self.__implicit_func = None
         self.widget = None
         self.clipper = None
         self.cutter = None
         self.mesh = None
         self.remnant = None
         self._alpha = 0.5
-        self._keypress_id = None
+
+        self.can_translate = True
+        self.can_scale = True
+        self.can_rotate = True
+        self.is_inverted = False
+
+
+    @property
+    def transform(self) -> LinearTransform:
+        """Get the transformation matrix."""
+        t = vtki.vtkTransform()
+        self.widget.GetTransform(t)
+        return LinearTransform(t)
+
+    def get_cut_mesh(self, invert=False) -> Mesh:
+        """
+        Get the mesh resulting from the cut operation.
+        Returns the original mesh and the remnant mesh.
+        """
+        self.clipper.Update()
+        if invert:
+            poly = self.clipper.GetClippedOutput()
+        else:
+            poly = self.clipper.GetOutput()
+        out = Mesh(poly)
+        out.copy_properties_from(self.mesh)
+        return out
 
     def invert(self) -> Self:
         """Invert selection."""
         self.clipper.SetInsideOut(not self.clipper.GetInsideOut())
+        self.is_inverted = not self.clipper.GetInsideOut()
         return self
-
-    def bounds(self, value=None) -> Union[Self, np.ndarray]:
-        """Set or get the bounding box."""
-        if value is None:
-            return self.cutter.GetBounds()
-        else:
-            self._implicit_func.SetBounds(value)
-            return self
-
+    
     def on(self) -> Self:
         """Switch the widget on or off."""
         self.widget.On()
@@ -2094,6 +2113,14 @@ class BaseCutter:
     def off(self) -> Self:
         """Switch the widget on or off."""
         self.widget.Off()
+        return self
+
+    def toggle(self) -> Self:
+        """Toggle the widget on or off."""
+        if self.widget.GetEnabled():
+            self.off()
+        else:
+            self.on()
         return self
 
     def add_to(self, plt) -> Self:
@@ -2115,9 +2142,6 @@ class BaseCutter:
         else:
             plt.add(self.mesh)
 
-        self._keypress_id = plt.interactor.AddObserver(
-            "KeyPressEvent", self._keypress
-        )
         if plt.interactor and plt.interactor.GetInitialized():
             self.widget.On()
             self._select_polygons(self.widget, "InteractionEvent")
@@ -2127,12 +2151,9 @@ class BaseCutter:
     def remove_from(self, plt) -> Self:
         """Remove the widget to the provided `Plotter` instance."""
         self.widget.Off()
-        self.widget.RemoveAllObservers()  ### NOT SURE
         plt.remove(self.remnant)
         if self.widget in plt.widgets:
             plt.widgets.remove(self.widget)
-        if self._keypress_id:
-            plt.interactor.RemoveObserver(self._keypress_id)
         return self
 
     def add_observer(self, event, func, priority=1) -> int:
@@ -2141,8 +2162,28 @@ class BaseCutter:
         cid = self.widget.AddObserver(event, func, priority)
         return cid
 
+    def remove_observers(self, event="") -> Self:
+        """Remove all observers from the widget."""
+        if not event:
+            self.widget.RemoveAllObservers()
+        else:
+            event = utils.get_vtk_name_event(event)
+            self.widget.RemoveObservers(event)
+        return self
 
-class PlaneCutter(vtki.vtkPlaneWidget, BaseCutter):
+    def keypress_activation(self, value=True) -> Self:
+        """Enable or disable keypress activation of the widget."""
+        self.widget.SetKeyPressActivation(value)
+        return self
+    
+    def render(self) -> Self:
+        """Render the current state of the widget."""
+        if self.widget.GetInteractor() and self.widget.GetInteractor().GetInitialized():
+            self.widget.GetInteractor().Render()
+        return self
+
+
+class PlaneCutter(BaseCutter, vtki.vtkPlaneWidget):
     """
     Create a box widget to cut away parts of a Mesh.
     """
@@ -2151,8 +2192,6 @@ class PlaneCutter(vtki.vtkPlaneWidget, BaseCutter):
         self,
         mesh,
         invert=False,
-        can_translate=True,
-        can_scale=True,
         origin=(),
         normal=(),
         padding=0.05,
@@ -2168,10 +2207,6 @@ class PlaneCutter(vtki.vtkPlaneWidget, BaseCutter):
                 the input mesh
             invert : (bool)
                 invert the clipping plane
-            can_translate : (bool)
-                enable translation of the widget
-            can_scale : (bool)
-                enable scaling of the widget
             origin : (list)
                 origin of the plane
             normal : (list)
@@ -2198,27 +2233,19 @@ class PlaneCutter(vtki.vtkPlaneWidget, BaseCutter):
         self.remnant.pickable(False)
 
         self._alpha = alpha
-        self._keypress_id = None
 
-        self._implicit_func = vtki.new("Plane")
+        self.__implicit_func = vtki.new("Plane")
 
         poly = mesh.dataset
         self.clipper = vtki.new("ClipPolyData")
         self.clipper.GenerateClipScalarsOff()
         self.clipper.SetInputData(poly)
-        self.clipper.SetClipFunction(self._implicit_func)
+        self.clipper.SetClipFunction(self.__implicit_func)
         self.clipper.SetInsideOut(invert)
         self.clipper.GenerateClippedOutputOn()
         self.clipper.Update()
 
         self.widget = vtki.new("ImplicitPlaneWidget")
-
-        # self.widget.KeyPressActivationOff()
-        # self.widget.SetKeyPressActivationValue('i')
-
-        self.widget.SetOriginTranslation(can_translate)
-        self.widget.SetOutlineTranslation(can_translate)
-        self.widget.SetScaleEnabled(can_scale)
 
         self.widget.GetOutlineProperty().SetColor(get_color(c))
         self.widget.GetOutlineProperty().SetOpacity(0.25)
@@ -2273,39 +2300,33 @@ class PlaneCutter(vtki.vtkPlaneWidget, BaseCutter):
         self.widget.SetNormal(value)
 
     def _select_polygons(self, vobj, _event) -> None:
-        vobj.GetPlane(self._implicit_func)
+        vobj.GetPlane(self.__implicit_func)
 
-    def _keypress(self, vobj, _event):
-        if vobj.GetKeySym() == "r":  # reset planes
-            self.widget.GetPlane(self._implicit_func)
-            self.widget.PlaceWidget()
-            self.widget.GetInteractor().Render()
-        elif vobj.GetKeySym() == "u":  # invert cut
-            self.invert()
-            self.widget.GetInteractor().Render()
-        elif vobj.GetKeySym() == "x":  # set normal along x
-            self.widget.SetNormal((1, 0, 0))
-            self.widget.GetPlane(self._implicit_func)
-            self.widget.PlaceWidget()
-            self.widget.GetInteractor().Render()
-        elif vobj.GetKeySym() == "y":  # set normal along y
-            self.widget.SetNormal((0, 1, 0))
-            self.widget.GetPlane(self._implicit_func)
-            self.widget.PlaceWidget()
-            self.widget.GetInteractor().Render()
-        elif vobj.GetKeySym() == "z":  # set normal along z
-            self.widget.SetNormal((0, 0, 1))
-            self.widget.GetPlane(self._implicit_func)
-            self.widget.PlaceWidget()
-            self.widget.GetInteractor().Render()
-        elif vobj.GetKeySym() == "s":  # Ctrl+s to save mesh
-            if self.widget.GetInteractor():
-                if self.widget.GetInteractor().GetControlKey():
-                    self.mesh.write("vedo_clipped.vtk")
-                    printc(":save: saved mesh to vedo_clipped.vtk")
+    def enable_translation(self, value=True) -> Self:
+        """Enable or disable translation of the widget."""
+        self.widget.SetOutlineTranslation(value)
+        self.widget.SetOriginTranslation(value)
+        self.can_translate = bool(value)
+        return self
+    
+    def enable_origin_translation(self, value=True) -> Self:
+        """Enable or disable rotation of the widget."""
+        self.widget.SetOriginTranslation(value)
+        return self
+    
+    def enable_scaling(self, value=True) -> Self:
+        """Enable or disable scaling of the widget."""
+        self.widget.SetScaleEnabled(value)
+        self.can_scale = bool(value)
+        return self
+    
+    def enable_rotation(self, value=True) -> Self:
+        """Dummy."""
+        self.can_rotate = bool(value)
+        return self
 
 
-class BoxCutter(vtki.vtkBoxWidget, BaseCutter):
+class BoxCutter(BaseCutter, vtki.vtkBoxWidget):
     """
     Create a box widget to cut away parts of a Mesh.
     """
@@ -2314,9 +2335,6 @@ class BoxCutter(vtki.vtkBoxWidget, BaseCutter):
         self,
         mesh,
         invert=False,
-        can_rotate=True,
-        can_translate=True,
-        can_scale=True,
         initial_bounds=(),
         padding=0.025,
         delayed=False,
@@ -2331,12 +2349,6 @@ class BoxCutter(vtki.vtkBoxWidget, BaseCutter):
                 the input mesh
             invert : (bool)
                 invert the clipping plane
-            can_rotate : (bool)
-                enable rotation of the widget
-            can_translate : (bool)
-                enable translation of the widget
-            can_scale : (bool)
-                enable scaling of the widget
             initial_bounds : (list)
                 initial bounds of the box widget
             padding : (float)
@@ -2358,30 +2370,26 @@ class BoxCutter(vtki.vtkBoxWidget, BaseCutter):
         self.remnant.pickable(False)
 
         self._alpha = alpha
-        self._keypress_id = None
+
         self._init_bounds = initial_bounds
         if len(self._init_bounds) == 0:
             self._init_bounds = mesh.bounds()
         else:
             self._init_bounds = initial_bounds
 
-        self._implicit_func = vtki.new("Planes")
-        self._implicit_func.SetBounds(self._init_bounds)
+        self.__implicit_func = vtki.new("Planes")
+        self.__implicit_func.SetBounds(self._init_bounds)
 
         poly = mesh.dataset
         self.clipper = vtki.new("ClipPolyData")
         self.clipper.GenerateClipScalarsOff()
         self.clipper.SetInputData(poly)
-        self.clipper.SetClipFunction(self._implicit_func)
+        self.clipper.SetClipFunction(self.__implicit_func)
         self.clipper.SetInsideOut(not invert)
         self.clipper.GenerateClippedOutputOn()
         self.clipper.Update()
 
         self.widget = vtki.vtkBoxWidget()
-
-        self.widget.SetRotationEnabled(can_rotate)
-        self.widget.SetTranslationEnabled(can_translate)
-        self.widget.SetScalingEnabled(can_scale)
 
         self.widget.OutlineCursorWiresOn()
         self.widget.GetSelectedOutlineProperty().SetColor(get_color("red3"))
@@ -2404,25 +2412,32 @@ class BoxCutter(vtki.vtkBoxWidget, BaseCutter):
             self.widget.AddObserver("InteractionEvent", self._select_polygons)
 
     def _select_polygons(self, vobj, _event):
-        vobj.GetPlanes(self._implicit_func)
+        vobj.GetPlanes(self.__implicit_func)
 
-    def _keypress(self, vobj, _event):
-        if vobj.GetKeySym() == "r":  # reset planes
-            self._implicit_func.SetBounds(self._init_bounds)
-            self.widget.GetPlanes(self._implicit_func)
-            self.widget.PlaceWidget()
-            self.widget.GetInteractor().Render()
-        elif vobj.GetKeySym() == "u":
-            self.invert()
-            self.widget.GetInteractor().Render()
-        elif vobj.GetKeySym() == "s":  # Ctrl+s to save mesh
-            if self.widget.GetInteractor():
-                if self.widget.GetInteractor().GetControlKey():
-                    self.mesh.write("vedo_clipped.vtk")
-                    printc(":save: saved mesh to vedo_clipped.vtk")
+    def set_bounds(self, bb) -> Self:
+        """Set the bounding box as a list of 6 values."""
+        self.__implicit_func.SetBounds(bb)
+        return self
 
+    def enable_translation(self, value=True) -> Self:
+        """Enable or disable translation of the widget."""
+        self.widget.SetTranslationEnabled(value)
+        self.can_translate = bool(value)
+        return self
+    
+    def enable_scaling(self, value=True) -> Self:
+        """Enable or disable scaling of the widget."""
+        self.widget.SetScalingEnabled(value)
+        self.can_scale = bool(value)
+        return self
+    
+    def enable_rotation(self, value=True) -> Self:
+        """Enable or disable rotation of the widget."""
+        self.widget.SetRotationEnabled(value)
+        self.can_rotate = bool(value)
+        return self
 
-class SphereCutter(vtki.vtkSphereWidget, BaseCutter):
+class SphereCutter(BaseCutter, vtki.vtkSphereWidget):
     """
     Create a box widget to cut away parts of a Mesh.
     """
@@ -2431,8 +2446,6 @@ class SphereCutter(vtki.vtkSphereWidget, BaseCutter):
         self,
         mesh,
         invert=False,
-        can_translate=True,
-        can_scale=True,
         origin=(),
         radius=0,
         res=60,
@@ -2448,10 +2461,6 @@ class SphereCutter(vtki.vtkSphereWidget, BaseCutter):
                 the input mesh
             invert : bool
                 invert the clipping
-            can_translate : bool
-                enable translation of the widget
-            can_scale : bool
-                enable scaling of the widget
             origin : list
                 initial position of the sphere widget
             radius : float
@@ -2475,27 +2484,26 @@ class SphereCutter(vtki.vtkSphereWidget, BaseCutter):
         self.remnant.pickable(False)
 
         self._alpha = alpha
-        self._keypress_id = None
 
-        self._implicit_func = vtki.new("Sphere")
+        self.__implicit_func = vtki.new("Sphere")
 
         if len(origin) == 3:
-            self._implicit_func.SetCenter(origin)
+            self.__implicit_func.SetCenter(origin)
         else:
             origin = mesh.center_of_mass()
-            self._implicit_func.SetCenter(origin)
+            self.__implicit_func.SetCenter(origin)
 
         if radius > 0:
-            self._implicit_func.SetRadius(radius)
+            self.__implicit_func.SetRadius(radius)
         else:
             radius = mesh.average_size() * 2
-            self._implicit_func.SetRadius(radius)
+            self.__implicit_func.SetRadius(radius)
 
         poly = mesh.dataset
         self.clipper = vtki.new("ClipPolyData")
         self.clipper.GenerateClipScalarsOff()
         self.clipper.SetInputData(poly)
-        self.clipper.SetClipFunction(self._implicit_func)
+        self.clipper.SetClipFunction(self.__implicit_func)
         self.clipper.SetInsideOut(not invert)
         self.clipper.GenerateClippedOutputOn()
         self.clipper.Update()
@@ -2508,9 +2516,6 @@ class SphereCutter(vtki.vtkSphereWidget, BaseCutter):
         self.widget.SetCenter(origin)
         self.widget.SetRepresentation(2)
         self.widget.HandleVisibilityOff()
-
-        self.widget.SetTranslation(can_translate)
-        self.widget.SetScale(can_scale)
 
         self.widget.HandleVisibilityOff()
         self.widget.GetSphereProperty().SetColor(get_color(c))
@@ -2527,22 +2532,8 @@ class SphereCutter(vtki.vtkSphereWidget, BaseCutter):
             self.widget.AddObserver("InteractionEvent", self._select_polygons)
 
     def _select_polygons(self, vobj, _event):
-        vobj.GetSphere(self._implicit_func)
+        vobj.GetSphere(self.__implicit_func)
 
-    def _keypress(self, vobj, _event):
-        if vobj.GetKeySym() == "r":  # reset planes
-            self._implicit_func.SetBounds(self._init_bounds)
-            self.widget.GetPlanes(self._implicit_func)
-            self.widget.PlaceWidget()
-            self.widget.GetInteractor().Render()
-        elif vobj.GetKeySym() == "u":
-            self.invert()
-            self.widget.GetInteractor().Render()
-        elif vobj.GetKeySym() == "s":  # Ctrl+s to save mesh
-            if self.widget.GetInteractor():
-                if self.widget.GetInteractor().GetControlKey():
-                    self.mesh.write("vedo_clipped.vtk")
-                    printc(":save: saved mesh to vedo_clipped.vtk")
 
     @property
     def center(self):
@@ -2563,6 +2554,24 @@ class SphereCutter(vtki.vtkSphereWidget, BaseCutter):
     def radius(self, value):
         """Set the radius of the sphere."""
         self.widget.SetRadius(value)
+
+    def enable_translation(self, value=True) -> Self:
+        """Enable or disable translation of the widget."""
+        self.widget.SetTranslation(value)
+        self.can_translate = bool(value)
+        return self
+    
+    def enable_scaling(self, value=True) -> Self:
+        """Enable or disable scaling of the widget."""
+        self.widget.SetScale(value)
+        self.can_scale = bool(value)
+        return self
+    
+    def enable_rotation(self, value=True) -> Self:
+        """Enable or disable rotation of the widget."""
+        # This is dummy anyway
+        self.can_rotate = bool(value)
+        return self
 
 
 #####################################################################

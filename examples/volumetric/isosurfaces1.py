@@ -13,3 +13,6 @@ plt.add(cutter)
 plt.interactive()
 plt.close()
 
+cmesh = cutter.get_cut_mesh(invert=False).clean()
+print("Get the cut mesh:\n", cmesh)
+
