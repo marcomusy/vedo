@@ -552,6 +552,20 @@ class Line(Mesh):
         v = p0 + seg * (x - w0) / (w1 - w0)
         return v
 
+    def eval2d(self, x: float) -> np.ndarray:
+        """
+        Calculate the position of an intermediate point
+        at the specified value of x in absolute units.
+        Assume the line is in the xy-plane.
+        """
+        xcoords, ycoords, _ = self.coordinates.T
+        # find the segment where x is located
+        idx = np.where((xcoords[:-1] <= x) & (xcoords[1:] >= x))[0]
+        if len(idx) > 0:
+            i = idx[0]
+            return np.array([x, np.interp(x, xcoords[i:i+2], ycoords[i:i+2])])
+        return np.array([x, 0.0])
+
     def find_index_at_position(self, p) -> float:
         """
         Find the index of the line vertex that is closest to the point `p`.
