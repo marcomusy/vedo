@@ -834,31 +834,38 @@ class DrawingWidget:
     - The widget has 2D glyphs for handles instead of 3D spheres.
 
     The button actions and key modifiers are as follows for controlling the widget:
+
         1) left button click over the image, hold and drag draws a free hand line.
+
         2) left button click and release erases the widget line, if it exists, and repositions the first handle.
+
         3) middle button click starts a snap drawn line.
             The line is terminated by clicking the middle button while ressing the ctrl key.
+
         4) when tracing a continuous or snap drawn line, if the last cursor position is within a specified
             tolerance to the first handle, the widget line will form a closed loop.
+
         5) right button clicking and holding on any handle that is part of a snap drawn line allows handle dragging:
             existing line segments are updated accordingly. If the path is open and closing_radius is set,
             the path can be closed by repositioning the first and last points over one another.
+
         6) Ctrl + right button down on any handle will erase it: existing snap drawn line segments are updated accordingly.
             If the line was formed by continuous tracing, the line is deleted leaving one handle.
+
         7) Shift + right button down on any snap drawn line segment will insert a handle at the cursor position.
             The line segment is split accordingly.
 
     Arguments:
-    obj : vtkProp
-        The prop to trace on.
-    c : str, optional
-        The color of the line. The default is "green5".
-    lw : int, optional
-        The line width. The default is 4.
-    closed : bool, optional
-        Whether to close the line. The default is False.
-    snap_to_image : bool, optional
-        Whether to snap to the image. The default is False.
+        obj : vtkProp
+            The prop to trace on.
+        c : str, optional
+            The color of the line. The default is "green5".
+        lw : int, optional
+            The line width. The default is 4.
+        closed : bool, optional
+            Whether to close the line. The default is False.
+        snap_to_image : bool, optional
+            Whether to snap to the image. The default is False.
 
     Example:
         - [spline_draw2.py](https://github.com/marcomusy/vedo/blob/master/examples/advanced/spline_draw2.py)

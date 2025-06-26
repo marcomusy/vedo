@@ -171,6 +171,7 @@ def show(
             Can also accept a shape as string descriptor. E.g.:
             - shape="3|1" means 3 plots on the left and 1 on the right,
             - shape="4/2" means 4 plots on top of 2 at bottom.
+
         N : (int)
             number of desired sub-render windows arranged automatically in a grid
         pos : (list)
@@ -428,27 +429,25 @@ class Plotter:
                 background color of a gradient towards the top
             title : (str)
                 window title
-
             axes : (int)
-
-                Note that Axes type-1 can be fully customized by passing a dictionary `axes=dict()`.
-                Check out `vedo.addons.Axes()` for the available options.
-
-                    - 0,  no axes
-                    - 1,  draw three gray grid walls
-                    - 2,  show cartesian axes from (0,0,0)
-                    - 3,  show positive range of cartesian axes from (0,0,0)
-                    - 4,  show a triad at bottom left
-                    - 5,  show a cube at bottom left
-                    - 6,  mark the corners of the bounding box
-                    - 7,  draw a 3D ruler at each side of the cartesian axes
-                    - 8,  show the VTK CubeAxesActor object
-                    - 9,  show the bounding box outLine
-                    - 10, show three circles representing the maximum bounding box
-                    - 11, show a large grid on the x-y plane (use with zoom=8)
-                    - 12, show polar axes
-                    - 13, draw a simple ruler at the bottom of the window
-                    - 14: draw a camera orientation widget
+                axis type-1 can be fully customized by passing a dictionary.
+                Check `addons.Axes()` for the full list of options.
+                Set the type of axes to be shown:
+                - 0,  no axes
+                - 1,  draw three gray grid walls
+                - 2,  show cartesian axes from (0,0,0)
+                - 3,  show positive range of cartesian axes from (0,0,0)
+                - 4,  show a triad at bottom left
+                - 5,  show a cube at bottom left
+                - 6,  mark the corners of the bounding box
+                - 7,  draw a 3D ruler at each side of the cartesian axes
+                - 8,  show the `vtkCubeAxesActor` object
+                - 9,  show the bounding box outLine
+                - 10, show three circles representing the maximum bounding box
+                - 11, show a large grid on the x-y plane
+                - 12, show polar axes
+                - 13, draw a simple ruler at the bottom of the window
+                - 14: draw a camera orientation widget
 
             sharecam : (bool)
                 if False each renderer will have an independent camera

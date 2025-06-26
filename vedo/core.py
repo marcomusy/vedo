@@ -1594,19 +1594,21 @@ class CommonAlgorithms:
         adequate (i.e., just a distance weighted average is computed).
 
         Warning:
-            Certain data attributes cannot be correctly interpolated. For example, surface normals are expected to be |n|=1;
+            Certain data attributes cannot be correctly interpolated. 
+            For example, surface normals are expected to be |n|=1;
             after attribute smoothing this constraint is likely to be violated.
             Other vectors and tensors may suffer from similar issues.
-            In such a situation, specify `exclude=...` which will not be smoothed (and simply passed through to the output).
+            In such a situation, specify `exclude=...` which will not be smoothed
+            (and simply passed through to the output).
             Distance weighting function is based on averaging, 1/r, or 1/r**2 weights, where r is the distance
             between the point to be smoothed and an edge connected neighbor (defined by the smoothing stencil).
-            The weights are normalized so that sum(w(i))==1. When smoothing based on averaging, the weights are simply 1/n,
-            where n is the number of connected points in the stencil.
+            The weights are normalized so that sum(w(i))==1. When smoothing based on averaging,
+            the weights are simply 1/n, where n is the number of connected points in the stencil.
             The smoothing process reduces high frequency information in the data attributes.
-            With excessive smoothing (large numbers of iterations, and/or a large relaxation factor) important details may be lost,
-            and the attributes will move towards an "average" value.
-            While this filter will process any dataset type, if the input data is a 3D image volume, it's likely much faster to use
-            an image-based algorithm to perform data smoothing.
+            With excessive smoothing (large numbers of iterations, and/or a large relaxation factor)
+            important details may be lost, and the attributes will move towards an "average" value.
+            While this filter will process any dataset type, if the input data is a 3D image volume,
+            it's likely much faster to use an image-based algorithm to perform data smoothing.
             To determine boundary points in polygonal data, edges used by only one cell are considered boundary
             (and hence the associated points defining the edge).
 
@@ -1619,9 +1621,7 @@ class CommonAlgorithms:
                 strategy to use for Laplacian smoothing
 
                     - 0: use all points, all point data attributes are smoothed
-
                     - 1: smooth all point attribute data except those on the boundary
-
                     - 2: only point data connected to a boundary point are smoothed
 
             mask : (str, np.ndarray)
@@ -1630,9 +1630,7 @@ class CommonAlgorithms:
                 smoothing mode, either "distance2", "distance" or "average"
 
                     - distance**2 weighted (i.e., 1/r**2 interpolation weights)
-
                     - distance weighted (i.e., 1/r) approach;
-
                     - simple average of all connected points in the stencil
 
             exclude : (list)
@@ -1699,9 +1697,11 @@ class CommonAlgorithms:
                 starting points of the streamlines
             integrator : (str)
                 type of integration method to be used:
+
                     - "rk2" (Runge-Kutta 2)
                     - "rk4" (Runge-Kutta 4)
                     - "rk45" (Runge-Kutta 45)
+
             direction : (str)
                 direction of integration, either "forward", "backward" or "both"
             initial_step_size : (float)
@@ -1999,7 +1999,7 @@ class PointAlgorithms(CommonAlgorithms):
         LT.reorient(initaxis, newaxis, q, rotation, rad, xyplane)
         return cls.apply_transform(LT)
 
-    def scale(cls, s=None, reset=False, origin=True) -> Union[Self, np.array]:
+    def scale(cls, s=None, reset=False, origin=True) -> Union[Self, np.ndarray]:
         """
         Set/get object's scaling factor.
 

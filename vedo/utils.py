@@ -566,9 +566,13 @@ class Minimizer:
         """
         Minimize the input function.
 
-        Returns:
-            dict :
-                the minimization results
+        A dictionary with the minimization results
+        including the initial parameters, final parameters,
+        minimum value, number of iterations, maximum iterations,
+        tolerance, convergence flag, parameters path,
+        function path, Hessian matrix, and parameter errors.
+
+        Arguments:
             init_parameters : (dict)
                 the initial parameters
             parameters : (dict)
@@ -582,17 +586,13 @@ class Minimizer:
             tolerance : (float)
                 the tolerance for convergence
             convergence_flag : (int)
-                zero if the tolerance stopping
-                criterion has been met.
+                zero if the tolerance stopping criterion has been met.
             parameters_path : (np.array)
-                the path of the minimization
-                algorithm in parameter space
+                the path of the minimization algorithm in parameter space
             function_path : (np.array)
-                the path of the minimization
-                algorithm in function space
+                the path of the minimization algorithm in function space
             hessian : (np.array)
-                the Hessian matrix of the
-                function at the minimum
+                the Hessian matrix of the function at the minimum
             parameter_errors : (np.array)
                 the errors on the parameters
         """
@@ -640,7 +640,7 @@ class Minimizer:
         """Return the final score value."""
         return self.results["min_value"]
 
-    def compute_hessian(self, epsilon=0) -> np.array:
+    def compute_hessian(self, epsilon=0) -> np.ndarray:
         """
         Compute the Hessian matrix of `function` at the
         minimum numerically.
@@ -650,7 +650,7 @@ class Minimizer:
                 Step size used for numerical approximation.
 
         Returns:
-            array: Hessian matrix of `function` at minimum.
+            Hessian matrix of `function` at minimum.
         """
         if not epsilon:
             epsilon = self.tolerance * 10
@@ -703,25 +703,25 @@ class Minimizer:
         return out
 
 
-def compute_hessian(func, params, bounds=None, epsilon=1e-5, verbose=True) -> np.array:
+def compute_hessian(func, params, bounds=None, epsilon=1e-5, verbose=True) -> np.ndarray:
     """
     Compute the Hessian matrix of a scalar function `func` at `params`, 
     accounting for parameter boundaries.
 
     Arguments:
-        func (callable): 
+        func : (callable)
             Function returning a scalar. Takes `params` as input.
-        params (np.ndarray):
+        params : (np.ndarray)
             Parameter vector at which to compute the Hessian.
-        bounds (list of tuples):
+        bounds : (list of tuples)
             Optional bounds for parameters, e.g., [(lb1, ub1), ...].
-        epsilon (float):
+        epsilon : (float)
             Base step size for finite differences.
-        verbose (bool):
+        verbose : (bool)
             Whether to print progress.
 
     Returns:
-        np.ndarray: Hessian matrix of shape (n_params, n_params).
+        Hessian matrix of shape (n_params, n_params).
     
     Example:
     ```python
@@ -744,7 +744,7 @@ def compute_hessian(func, params, bounds=None, epsilon=1e-5, verbose=True) -> np
     # 4. Compute Hessian
     hessian = compute_hessian(cost_function, mle_params, bounds=bounds)
     cov_matrix = np.linalg.inv(hessian) / 2
-    print("Covariance Matrix:\n", cov_matrix)
+    print("Covariance Matrix:", cov_matrix)
     std = np.sqrt(np.diag(cov_matrix))
     print("Standard deviations:", std)
     ```

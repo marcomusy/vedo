@@ -59,7 +59,7 @@ class LabelData:
 class Figure(Assembly):
     """Format class for figures."""
 
-    def __init__(self, xlim, ylim, aspect=4 / 3, padding=(0.05, 0.05, 0.05, 0.05), **kwargs):
+    def __init__(self, xlim, ylim, aspect=1.333, padding=(0.05, 0.05, 0.05, 0.05), **kwargs):
         """
         Create an empty formatted figure for plotting.
 
@@ -658,7 +658,7 @@ class Histogram1D(Figure):
         like=None,
         xlim=None,
         ylim=(0, None),
-        aspect=4 / 3,
+        aspect=1.333,
         padding=(0.0, 0.0, 0.0, 0.05),
         title="",
         xtitle=" ",
@@ -1226,7 +1226,7 @@ class PlotBars(Figure):
         like=None,
         xlim=(None, None),
         ylim=(0, None),
-        aspect=4 / 3,
+        aspect=1.333,
         padding=(0.025, 0.025, 0, 0.05),
         #
         title="",
@@ -1452,7 +1452,7 @@ class PlotXY(Figure):
         like=None,
         xlim=None,
         ylim=(None, None),
-        aspect=4 / 3,
+        aspect=1.333,
         padding=0.05,
         #
         title="",

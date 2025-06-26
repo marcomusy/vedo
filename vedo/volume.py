@@ -412,7 +412,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         Arguments:
             dtype : (str)
                 the type of the scalars array in
-                ["int8", "uint8", "int16", "uint16", "int32", "uint32", "float32", "float64"]
+                `["int8", "uint8", "int16", "uint16", "int32", "uint32", "float32", "float64"]`
         """
         if dtype in ["int8", "uint8", "int16", "uint16", "int32", "uint32", "float32", "float64"]:
             caster = vtki.new("ImageCast")

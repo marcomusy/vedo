@@ -76,7 +76,7 @@ class Slicer3DPlotter(Plotter):
             at : (int)
                 subwindow number to plot to
             **kwargs : (dict)
-                keyword arguments to pass to Plotter.
+                keyword arguments to pass to a `vedo.plotter.Plotter` instance.
 
         Examples:
             - [slicer1.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/slicer1.py)
@@ -336,7 +336,7 @@ class Slicer3DTwinPlotter(Plotter):
         clamp : (bool)
             clamp scalar range to reduce the effect of tails in color mapping
         **kwargs : (dict)
-            keyword arguments to pass to Plotter.
+            keyword arguments to pass to a `vedo.plotter.Plotter` instance.
 
     Example:
         ```python
@@ -683,7 +683,7 @@ class Slicer2DPlotter(Plotter):
             histo_color : (color)
                 histogram color, use `None` to disable it
             **kwargs : (dict)
-                keyword arguments to pass to `Plotter`.
+                keyword arguments to pass to a `vedo.plotter.Plotter` instance.
 
         <img src="https://vedo.embl.es/images/volumetric/read_volume3.jpg" width="500">
         """
@@ -899,7 +899,7 @@ class RayCastPlotter(Plotter):
             volume : (Volume)
                 the Volume object to be isosurfaced.
             **kwargs : (dict)
-                keyword arguments to pass to Plotter.
+                keyword arguments to pass to a `vedo.plotter.Plotter` instance.
 
         Returns:
             `vedo.Plotter` object.
@@ -1120,7 +1120,7 @@ class IsosurfaceBrowser(Plotter):
             sliderpos : (int)
                 position of the slider.
             **kwargs : (dict)
-                keyword arguments to pass to Plotter.
+                keyword arguments to pass to a `vedo.plotter.Plotter` instance.
 
         Examples:
             - [app_isobrowser.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/app_isobrowser.py)
@@ -1288,7 +1288,7 @@ class Browser(Plotter):
             resetcam : (bool)
                 resetcam while using the slider.
             **kwargs : (dict)
-                keyword arguments to pass to Plotter.
+                keyword arguments to pass to a `vedo.plotter.Plotter` instance.
 
         Examples:
             ```python
@@ -1451,7 +1451,7 @@ class FreeHandCutPlotter(Plotter):
             tol : (int)
                 tolerance of the point proximity.
             **kwargs : (dict)
-                keyword arguments to pass to Plotter.
+                keyword arguments to pass to a `vedo.plotter.Plotter` instance.
 
         Examples:
             - [cut_freehand.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/cut_freehand.py)
@@ -1659,7 +1659,7 @@ class SplinePlotter(Plotter):
             mode : (str)
                 Set the mode of interaction.
             **kwargs : (dict)
-                keyword arguments to pass to Plotter.
+                keyword arguments to pass to a `vedo.plotter.Plotter` instance.
         """
         super().__init__(**kwargs)
 

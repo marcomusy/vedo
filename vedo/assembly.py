@@ -241,7 +241,8 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
         Group many objects and treat them as a single new object,
         keeping track of internal transformations.
 
-        File can be loaded by passing its name as a string. Format must be `npy`.
+        A file can be loaded by passing its name as a string.
+        Format must be `.npy`.
 
         Examples:
             - [gyroscope1.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/gyroscope1.py)

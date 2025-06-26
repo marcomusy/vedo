@@ -1180,15 +1180,14 @@ class TetMesh(UnstructuredGrid):
         Arguments:
             metric : (int)
                 type of estimators:
-                    - EDGE RATIO, 0
-                    - ASPECT RATIO, 1
-                    - RADIUS RATIO, 2
-                    - ASPECT FROBENIUS, 3
-                    - MIN_ANGLE, 4
-                    - COLLAPSE RATIO, 5
-                    - ASPECT GAMMA, 6
-                    - VOLUME, 7
-                    - ...
+                - EDGE RATIO, 0
+                - ASPECT RATIO, 1
+                - RADIUS RATIO, 2
+                - ASPECT FROBENIUS, 3
+                - MIN_ANGLE, 4
+                - COLLAPSE RATIO, 5
+                - ASPECT GAMMA, 6
+                - VOLUME, 7
 
         See class [vtkMeshQuality](https://vtk.org/doc/nightly/html/classvtkMeshQuality.html)
         for an explanation of the meaning of each metric..

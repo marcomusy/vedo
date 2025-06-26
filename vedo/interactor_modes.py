@@ -18,18 +18,17 @@ class MousePan(vtki.vtkInteractorStyleUser):
     Controls:
     - Left mouse button will pan the scene.
     - Mouse middle button up/down is elevation, and left and right is azimuth.
-    - Right mouse button is rotate (left/right movement) and zoom in/out
-      (up/down movement)
+    - Right mouse button is rotate (left/right movement) and zoom in/out (up/down movement)
     - Mouse scroll wheel is zoom in/out
 
     Arguments:
-        enable_pan: bool
+        enable_pan: (bool)
             Enable panning the scene.
-        enable_zoom: bool
+        enable_zoom: (bool)
             Enable zooming the scene.
-        enable_rotate: bool
+        enable_rotate: (bool)
             Enable rotating the scene.
-        speed: float
+        speed: (float)
             Speed factor of the interaction, e.i. how fast the scene must move.
     """
 
@@ -430,99 +429,67 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
     [here](https://gitlab.kitware.com/updega2/vtk/-/blob/d324b2e898b0da080edee76159c2f92e6f71abe2/Rendering/vtkInteractorStyleRubberBandZoom.cxx)
 
     Interaction:
+        - Left button: select
+        - Left button drag: rubber band select or line select, depends on the dragged distance
 
-    Left button: Sections
-    ----------------------
-    Left button: select
+        - Middle button         : rotate
+        - Middle button + shift : pan
+        - Middle button + ctrl  : zoom
+        - Middle button + alt   : center view on picked point
+        - Middle button + alt   : zoom rubber band
 
-    Left button drag: rubber band select or line select, depends on the dragged distance
+        - Mouse wheel : zoom
 
-    Middle button: Navigation
-    --------------------------
-    Middle button: rotate
-
-    Middle button + shift : pan
-
-    Middle button + ctrl  : zoom
-
-    Middle button + alt : center view on picked point
-
-    OR
-
-    Middle button + alt   : zoom rubber band
-
-    Mouse wheel : zoom
-
-    Right button : context
-    -----------------------
-    Right key click: reserved for context-menu
+        - Right key click: reserved for context-menu
 
 
-    Keys
-    ----
-
-    2 or 3 : toggle perspective view
-
-    a      : zoom all
-
-    x,y,z  : view direction (toggles positive and negative)
-
-    left/right arrows: rotate 45 deg clockwise/ccw about z-axis, snaps to nearest 45 deg
-    b      : box zoom
-
-    m      : mouse middle lock (toggles)
-
-    space  : same as middle mouse button
-
-    g      : grab (move actors)
-
-    enter  : accept drag
-
-    esc    : cancel drag, call callbackEscape
+    Keys:
+        - 2 or 3 : toggle perspective view
+        - a      : zoom all
+        - x,y,z  : view direction (toggles positive and negative)
+        - left/right arrows: rotate 45 deg clockwise/ccw about z-axis, snaps to nearest 45 deg
+        - b      : box zoom
+        - m      : mouse middle lock (toggles)
+        - space  : same as middle mouse button
+        - g      : grab (move actors)
+        - enter  : accept drag
+        - esc    : cancel drag, call callbackEscape
 
 
-    LAPTOP MODE
+    Laptop Mode
     -----------
-    Use space or `m` as replacement for middle button
-    (`m` is sticky, space is not)
-
-    callbacks / overriding keys:
-
+    Use space or `m` as replacement for middle button (`m` is sticky, space is not),
     if `callback_any_key` is assigned then this function is called on every key press.
     If this function returns True then further processing of events is stopped.
 
 
-    Moving actors
-    --------------
+    Moving Actors
+    -------------
     Actors can be moved interactively by the user.
     To support custom groups of actors to be moved as a whole the following system
     is implemented:
 
-    When 'g' is pressed (grab) then a `_BlenderStyleDragInfo` dataclass object is assigned
-    to style to `style.draginfo`.
-
-    `_BlenderStyleDragInfo` includes a list of all the actors that are being dragged.
+    When 'g' is pressed (grab) then a list of all the actors that are being dragged.
     By default this is the selection, but this may be altered.
     Drag is accepted using enter, click, or g. Drag is cancelled by esc
 
     Events
     ------
-    `callback_start_drag` is called when initializing the drag.
+    - `callback_start_drag` is called when initializing the drag.
     This is when to assign actors and other data to draginfo.
-
-    `callback_end_drag` is called when the drag is accepted.
+    - `callback_end_drag` is called when the drag is accepted.
 
     Responding to other events
     --------------------------
     `callback_camera_direction_changed` : executed when camera has rotated but before re-rendering
 
+    Example:
+        [interaction_modes2.py](https://github.com/marcomusy/vedo/blob/master/examples/basic/interaction_modes2.py)
+
     .. note::
         This class is based on R. de Bruin's
         [DAVE](https://github.com/RubendeBruin/DAVE/blob/master/src/DAVE/visual_helpers/vtkBlenderLikeInteractionStyle.py)
         implementation as discussed [in this issue](https://github.com/marcomusy/vedo/discussions/788).
-
-    Example:
-        [interaction_modes2.py](https://github.com/marcomusy/vedo/blob/master/examples/basic/interaction_modes2.py)
     """
 
     def __init__(self):

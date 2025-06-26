@@ -9,6 +9,13 @@ from vtkmodules.vtkDomainsChemistry import vtkProteinRibbonFilter
 from vtkmodules.vtkCommonCore import vtkIdList
 from vtkmodules.vtkCommonDataModel import vtkPolyData
 
+__doc__ = """
+This module provides a Vedo-compatible interface to the periodic table of elements,
+allowing access to element properties such as atomic numbers, names, symbols, and covalent radiii.
+It wraps the VTK's vtkPeriodicTable class to provide a more Pythonic interface.
+"""
+
+__docformat__ = "google"
 
 class PeriodicTable:
     """
@@ -32,7 +39,8 @@ class PeriodicTable:
         Get the name of the element with the given atomic number.
 
         Arguments:
-            atomic_number (int): The atomic number of the element.
+            atomic_number : (int)
+                The atomic number of the element.
 
         Returns:
             str: The name of the element.
@@ -44,10 +52,11 @@ class PeriodicTable:
         Get the symbol of the element with the given atomic number.
 
         Arguments:
-            atomic_number (int): The atomic number of the element.
+            atomic_number : (int)
+                The atomic number of the element.
 
         Returns:
-            str: The symbol of the element.
+            The symbol of the element.
         """
         return self.periodic_table.GetSymbol(atomic_number)
 
@@ -56,10 +65,11 @@ class PeriodicTable:
         Get the atomic number of the element with the given symbol.
 
         Arguments:
-            symbol (str): The symbol of the element.
+            symbol : (str)
+                The symbol of the element.
 
         Returns:
-            int: The atomic number of the element.
+            The atomic number of the element.
         """
         return self.periodic_table.GetAtomicNumber(symbol)
 
@@ -68,10 +78,11 @@ class PeriodicTable:
         Get the covalent radius of the element with the given atomic number.
 
         Arguments:
-            atomic_number (int): The atomic number of the element.
+            atomic_number : (int)
+                The atomic number of the element.
 
         Returns:
-            float: The covalent radius of the element.
+            The covalent radius of the element.
         """
         return self.periodic_table.GetCovalentRadius(atomic_number)
 
@@ -80,10 +91,11 @@ class PeriodicTable:
         Get the Van der Waals radius of the element with the given atomic number.
 
         Arguments:
-            atomic_number (int): The atomic number of the element.
+            atomic_number: (int)
+                The atomic number of the element.
 
         Returns:
-            float: The Van der Waals radius of the element.
+            The Van der Waals radius of the element.
         """
         return self.periodic_table.GetVDWRadius(atomic_number)
 
@@ -92,7 +104,7 @@ class PeriodicTable:
         Get the total number of elements in the periodic table.
 
         Returns:
-            int: The number of elements.
+            The number of elements.
         """
         return self.periodic_table.GetNumberOfElements()
 
@@ -101,10 +113,11 @@ class PeriodicTable:
         Get all data for the element with the given atomic number.
 
         Arguments:
-            atomic_number (int): The atomic number of the element.
+            atomic_number : (int)
+                The atomic number of the element.
 
         Returns:
-            dict: A dictionary containing the element's name, symbol, and radii.
+            A dictionary containing the element's name, symbol, and radii.
         """
         return {
             "name": self.get_element_name(atomic_number),
@@ -118,10 +131,11 @@ class PeriodicTable:
         Get element data by atomic number.
 
         Arguments:
-            atomic_number (int): The atomic number of the element.
+            atomic_number: (int)
+                The atomic number of the element.
 
         Returns:
-            dict: A dictionary containing the element's name, symbol, and radii.
+            A dictionary containing the element's name, symbol, and radii.
         """
         return self.get_element_data(atomic_number)
 
@@ -130,7 +144,7 @@ class PeriodicTable:
         Get the number of elements in the periodic table.
 
         Returns:
-            int: The number of elements.
+            The number of elements.
         """
         return self.get_number_of_elements()
 
@@ -149,7 +163,8 @@ class PeriodicTable:
         Check if an atomic number is in the periodic table.
 
         Arguments:
-            atomic_number (int): The atomic number to check.
+            atomic_number: (int)
+                The atomic number to check.
 
         Returns:
             bool: True if the atomic number exists, False otherwise.
@@ -187,7 +202,8 @@ def append_molecules(molecules):
     object that combines all atoms and bonds from the input molecules.
 
     Arguments:
-        molecules (list of Molecule): The molecules to append.
+        molecules : (list of Molecule) 
+            The molecules to append.
 
     Returns:
         Molecule: A new Molecule object containing all atoms and bonds from the input molecules.
@@ -246,8 +262,10 @@ class Atom:
         Initialize the Atom with a reference to the molecule and its ID.
 
         Arguments:
-            molecule (vtkMolecule): The molecule containing this atom.
-            atom_id (int): The ID of the atom in the molecule.
+            molecule : (vtkMolecule)
+                The molecule containing this atom.
+            atom_id : (int)
+                The ID of the atom in the molecule.
         """
         self.molecule = molecule
         self.atom_id = atom_id
@@ -257,7 +275,7 @@ class Atom:
         """Get the atomic number of the atom.
 
         Returns:
-            int: The atomic number.
+            The atomic number.
         """
         return self.vtk_atom.GetAtomicNumber()
 
@@ -265,7 +283,8 @@ class Atom:
         """Set the atomic number of the atom.
 
         Arguments:
-            atomic_number (int): The new atomic number.
+            atomic_number : (int)
+                The new atomic number.
         """
         self.vtk_atom.SetAtomicNumber(atomic_number)
 
@@ -273,7 +292,7 @@ class Atom:
         """Get the position of the atom as a NumPy array.
 
         Returns:
-            np.ndarray: Array of shape (3,) with [x, y, z] coordinates.
+            Array of shape (3,) with [x, y, z] coordinates.
         """
         pos = self.vtk_atom.GetPosition()
         return np.array([pos[0], pos[1], pos[2]])
@@ -282,7 +301,8 @@ class Atom:
         """Set the position of the atom.
 
         Arguments:
-            position (list or np.ndarray): The new [x, y, z] coordinates.
+            position : (list or np.ndarray)
+                The new [x, y, z] coordinates.
         """
         pos = np.asarray(position, dtype=float)
         self.vtk_atom.SetPosition(pos[0], pos[1], pos[2])
@@ -291,7 +311,7 @@ class Atom:
         """Get the ID of this atom.
 
         Returns:
-            int: The atom's ID within the molecule.
+            The atom's ID within the molecule.
         """
         return self.atom_id
 
@@ -299,7 +319,7 @@ class Atom:
         """Get the molecule this atom belongs to.
 
         Returns:
-            vtkMolecule: The parent molecule.
+            The parent molecule.
         """
         return self.molecule
 
@@ -380,11 +400,13 @@ class Molecule:
         """Add an atom to the molecule with optional position and atomic number.
 
         Arguments:
-            position (list or np.ndarray, optional): [x, y, z] coordinates. Defaults to [0, 0, 0].
-            atomic_number (int, optional): Atomic number (e.g., 6 for Carbon). Defaults to 6.
+            position: (list or np.ndarray)
+                [x, y, z] coordinates. Defaults to [0, 0, 0].
+            atomic_number : (int)
+                Atomic number (e.g., 6 for Carbon). Defaults to 6.
 
         Returns:
-            Atom: The added atom object.
+            The added atom object.
         """
         if position is None:
             position = [0, 0, 0]
@@ -399,10 +421,11 @@ class Molecule:
         """Retrieve an atom by its ID.
 
         Arguments:
-            atom_id (int): The ID of the atom.
+            atom_id : (int)
+                The ID of the atom.
 
         Returns:
-            Atom: The atom object.
+            The atom object.
         """
         if atom_id >= self.get_number_of_atoms():
             raise ValueError(f"Atom ID {atom_id} exceeds number of atoms.")
@@ -445,10 +468,11 @@ class Molecule:
         - radius: Radius of the atom.
 
         Arguments:
-            name (str): The name of the array.
+            name : (str)
+                The name of the array.
 
         Returns:
-            np.ndarray: The array data.
+            The array data.
         """
         if not self.molecule.GetPointData().HasArray(name):
             raise ValueError(f"Array '{name}' not found in molecule.")
@@ -458,9 +482,12 @@ class Molecule:
         """Add a bond between two atoms.
 
         Arguments:
-            atom1 (Atom or int): The first atom or its ID.
-            atom2 (Atom or int): The second atom or its ID.
-            order (int): Bond order (1=single, 2=double, 3=triple). Default is 1.
+            atom1 : (Atom or int) 
+                The first atom or its ID.
+            atom2 : (Atom or int)
+                The second atom or its ID.
+            order : (int)
+                Bond order (1=single, 2=double, 3=triple).
         """
         atom1_id = atom1.atom_id if isinstance(atom1, Atom) else atom1
         atom2_id = atom2.atom_id if isinstance(atom2, Atom) else atom2
@@ -470,7 +497,7 @@ class Molecule:
         """Get the number of atoms in the molecule.
 
         Returns:
-            int: Number of atoms.
+            Number of atoms.
         """
         return self.molecule.GetNumberOfAtoms()
 
@@ -478,7 +505,7 @@ class Molecule:
         """Get the number of bonds in the molecule.
 
         Returns:
-            int: Number of bonds.
+            Number of bonds.
         """
         return self.molecule.GetNumberOfBonds()
 
@@ -486,10 +513,11 @@ class Molecule:
         """Get bond information by ID (simplified as VTK bond access is limited).
 
         Arguments:
-            bond_id (int): The ID of the bond.
+            bond_id : (int)
+                The ID of the bond.
 
         Returns:
-            tuple: (atom1_id, atom2_id, order).
+            (atom1_id, atom2_id, order).
         """
         if bond_id >= self.get_number_of_bonds():
             raise ValueError(f"Bond ID {bond_id} exceeds number of bonds.")
@@ -500,7 +528,7 @@ class Molecule:
         """Get the positions of all atoms.
 
         Returns:
-            np.ndarray: Array of shape (n_atoms, 3) with [x, y, z] coordinates.
+            Array of shape (n_atoms, 3) with [x, y, z] coordinates.
         """
         n_atoms = self.get_number_of_atoms()
         positions = np.zeros((n_atoms, 3))
@@ -510,10 +538,12 @@ class Molecule:
         return positions
 
     def set_atom_positions(self, positions):
-        """Set the positions of all atoms.
+        """
+        Set the positions of all atoms.
 
         Arguments:
-            positions (np.ndarray): Array of shape (n_atoms, 3) with [x, y, z] coordinates.
+            positions : (np.ndarray)
+                Array of shape (n_atoms, 3) with [x, y, z] coordinates.
         """
         n_atoms = self.get_number_of_atoms()
         positions = np.asarray(positions, dtype=float)
@@ -525,10 +555,11 @@ class Molecule:
             self.molecule.GetAtom(i).SetPosition(positions[i])
 
     def get_atomic_numbers(self):
-        """Get the atomic numbers of all atoms.
+        """
+        Get the atomic numbers of all atoms.
 
         Returns:
-            list: List of atomic numbers.
+            List of atomic numbers.
         """
         return [
             self.molecule.GetAtom(i).GetAtomicNumber()
@@ -536,10 +567,12 @@ class Molecule:
         ]
 
     def set_atomic_numbers(self, atomic_numbers):
-        """Set the atomic numbers of all atoms.
+        """
+        Set the atomic numbers of all atoms.
 
         Arguments:
-            atomic_numbers (list): List of atomic numbers.
+            atomic_numbers : (list)
+                List of atomic numbers.
         """
         n_atoms = self.get_number_of_atoms()
         if len(atomic_numbers) != n_atoms:
@@ -564,7 +597,8 @@ class Molecule:
         """Set the scale factor for atom radii.
 
         Arguments:
-            scale (float): Scaling factor for atom spheres.
+            scale : (float)
+                Scaling factor for atom spheres.
         """
         self.mapper.SetAtomicRadiusScaleFactor(scale)
         return self
@@ -573,7 +607,8 @@ class Molecule:
         """Set the radius of bonds.
 
         Arguments:
-            radius (float): Bond radius in world units.
+            radius : (float)
+                Bond radius in world units.
         """
         self.mapper.SetBondRadius(radius)
         return self
@@ -597,13 +632,13 @@ class Protein:
         Initialize the ProteinRibbon with input data.
 
         Arguments:
-            input_data (str or vtkMolecule or vtkPolyData):
+            input_data : (str or vtkMolecule or vtkPolyData)
                 - Path to a PDB file (str)
                 - A vtkMolecule object
                 - A vtkPolyData object
 
         Raises:
-            ValueError: If the input_data type is not supported.
+            `ValueError` If the input_data type is not supported.
         """
 
         # Handle different input types
@@ -643,10 +678,8 @@ class Protein:
         Set the width of the coil regions in the ribbon.
 
         Arguments:
-            width (float): The width of the coil regions.
-
-        Returns:
-            self: For method chaining.
+            width : (float)
+                The width of the coil regions.
         """
         self.filter.SetCoilWidth(width)
         self.filter.Update()
@@ -657,10 +690,8 @@ class Protein:
         Set the width of the helix regions in the ribbon.
 
         Arguments:
-            width (float): The width of the helix regions.
-
-        Returns:
-            self: For method chaining.
+            width : (float)
+                The width of the helix regions.
         """
         self.filter.SetHelixWidth(width)
         self.filter.Update()
@@ -671,10 +702,8 @@ class Protein:
         Set the resolution of spheres used in the ribbon representation.
 
         Arguments:
-            resolution (int): The resolution of the spheres.
-
-        Returns:
-            self: For method chaining.
+            resolution : (int)
+                The resolution of the spheres.
         """
         self.filter.SetSphereResolution(resolution)
         self.filter.Update()
