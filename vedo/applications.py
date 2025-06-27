@@ -503,6 +503,7 @@ class MorphPlotter(Plotter):
         self.target_labels = None
         self.automatic_picking_distance = 0.075
         self.cmap_name = "coolwarm"
+        self.output_filename = "morphed.vtk"
         self.nbins = 25
         self.msg0 = Text2D("Pick a point on the surface",
                            pos="bottom-center", c='white', bg="blue4", alpha=1, font="Calco")
@@ -515,8 +516,10 @@ class MorphPlotter(Plotter):
             "Pick at least 4 point pairs. Press:\n"
             "- c to clear all landmarks\n"
             "- d to delete the last landmark pair\n"
+            "- f to add a pair of fixed landmarks\n"
             "- a to auto-pick additional landmarks\n"
             "- z to compute and show the residuals\n"
+            "- Ctrl+s to save the morphed mesh\n"
             "- q to quit and proceed"
         )
         self.at(0).add_renderer_frame()
@@ -586,10 +589,12 @@ class MorphPlotter(Plotter):
             self.source.pickable(True)
             self.target.pickable(False)
             self.update()
+
         if evt.keypress == "w":
             rep = (self.warped.properties.GetRepresentation() == 1)
             self.warped.wireframe(not rep)
             self.render()
+
         if evt.keypress == "d":
             n = min(len(self.sources), len(self.targets))
             self.sources = self.sources[:n-1]
@@ -599,6 +604,14 @@ class MorphPlotter(Plotter):
             self.source.pickable(True)
             self.target.pickable(False)
             self.update()
+
+        if evt.keypress == "f":
+            # add a pair of fixed landmarks, a point that does not change
+            if evt.object == self.source and len(self.sources) == len(self.targets):
+                self.sources.append(evt.picked3d)
+                self.targets.append(evt.picked3d)
+                self.update()
+
         if evt.keypress == "a":
             # auto-pick points on the target surface
             if not self.warped:
@@ -620,6 +633,7 @@ class MorphPlotter(Plotter):
             self.source.pickable(True)
             self.target.pickable(False)
             self.update()
+
         if evt.keypress == "z" or evt.keypress == "a":
             dists = self.warped.distance_to(self.target, signed=True)
             v = np.std(dists) * 2
@@ -658,6 +672,17 @@ class MorphPlotter(Plotter):
             h.name = "warped"
             self.at(2).add(h)
             self.render()
+        
+        if evt.keypress == "Ctrl+s":
+            # write the warped mesh to file along with the transformation
+            if self.warped:
+                m =  self.warped.clone()
+                m.pointdata.remove("Scalars")
+                m.pointdata.remove("Distance")
+                m.write(self.output_filename)
+                matfile = self.output_filename.split(".")[0] + ".mat"
+                m.transform.write(self.output_filename.split(".")[0] + ".mat")
+                print(f"Warped mesh saved to {self.output_filename}, transformation: {matfile}")
 
         if evt.keypress == "q":
             self.break_interaction()
