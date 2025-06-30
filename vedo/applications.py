@@ -596,6 +596,12 @@ class MorphPlotter(Plotter):
             self.render()
 
         if evt.keypress == "d":
+            if len(self.sources) == len(self.targets) + 1:
+                self.sources.pop()
+            elif len(self.targets) == len(self.sources) + 1:
+                self.targets.pop()
+            elif len(self.sources) == 0 or len(self.targets) == 0:
+                return
             n = min(len(self.sources), len(self.targets))
             self.sources = self.sources[:n-1]
             self.targets = self.targets[:n-1]

@@ -20,11 +20,13 @@ class Morpher:
         self.arrow_stops  = []
         self.dottedln = None
         self.toggle = False
-        self.instructions = ("Click to add arrows interactively on the left panel\n"
-                             "right-click to remove last arrow. Then press:\n"
-                             "- m to morph the plane\n"
-                             "- c to clear\n"
-                             "- g to generate interpolation")
+        self.instructions = (
+            "Click to add arrows interactively on the left panel\n"
+            "right-click to remove last arrow. Then press:\n"
+            "- m to morph the plane\n"
+            "- c to clear\n"
+            "- g to generate interpolation"
+        )
         self.msg1 = Text2D(self.instructions, pos='top-left', font="VictorMono", bg='g2', alpha=0.6)
         self.msg2 = Text2D('[output will show here]', pos='top-left', font="VictorMono")
 
