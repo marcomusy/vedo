@@ -495,6 +495,11 @@ class MorphPlotter(Plotter):
 
         self.source = source.pickable(True)
         self.target = target.pickable(False)
+        self.dottedln = None
+        self.n_intermediates = 10  # number of intermediate shapes to generate
+        self.intermediates = []
+        self.auto_warping = True   # automatically warp the source mesh on click
+
         self.clicked = []
         self.sources = []
         self.targets = []
@@ -505,12 +510,13 @@ class MorphPlotter(Plotter):
         self.cmap_name = "coolwarm"
         self.output_filename = "morphed.vtk"
         self.nbins = 25
-        self.msg0 = Text2D("Pick a point on the surface",
-                           pos="bottom-center", c='white', bg="blue4", alpha=1, font="Calco")
+        self.msg0 = Text2D(
+            "Pick a point on the surface",
+            pos="bottom-center", c='white', bg="blue4", alpha=1, font="Calco")
         self.msg1 = Text2D(pos="bottom-center", c='white', bg="blue4", alpha=1, font="Calco")
         self.instructions = Text2D(s=0.7, bg="blue4", alpha=0.1, font="Calco")
         self.instructions.text(
-            "  Morphological alignment of 3D surfaces\n\n"
+            "  Morphological alignment of 3D surfaces\n"
             "Pick a point on the source surface, then\n"
             "pick the corresponding point on the target \n"
             "Pick at least 4 point pairs. Press:\n"
@@ -519,9 +525,11 @@ class MorphPlotter(Plotter):
             "- f to add a pair of fixed landmarks\n"
             "- a to auto-pick additional landmarks\n"
             "- z to compute and show the residuals\n"
+            "- g to generate intermediate shapes\n"
             "- Ctrl+s to save the morphed mesh\n"
             "- q to quit and proceed"
         )
+        self.output_text = Text2D("Morphing Output", font="Calco")
         self.at(0).add_renderer_frame()
         self.add(source, self.msg0, self.instructions).reset_camera()
         self.at(1).add_renderer_frame()
@@ -529,7 +537,7 @@ class MorphPlotter(Plotter):
         self.add(self.msg1, target)
         cam1 = self.camera  # save camera at 1
         self.at(2).background("k9")
-        self.add(target, Text2D("Morphing Output", font="Calco"))
+        self.add(target, self.output_text)
         self.camera = cam1  # use the same camera of renderer1
 
         self.add_renderer_frame()
@@ -553,11 +561,12 @@ class MorphPlotter(Plotter):
         self.at(1).remove("target_pts").add(target_pts, self.target_labels)
         self.render()
 
-        if len(self.sources) == len(self.targets) and len(self.sources) > 3:
-            self.warped = self.source.clone().warp(self.sources, self.targets)
-            self.warped.name = "warped"
-            self.at(2).remove("warped").add(self.warped)
-            self.render()
+        if self.auto_warping:
+            if len(self.sources) == len(self.targets) and len(self.sources) > 3:
+                self.warped = self.source.clone().warp(self.sources, self.targets)
+                self.warped.name = "warped"
+                self.at(2).remove("warped").add(self.warped)
+                self.render()
 
     def on_click(self, evt):
         """Handle mouse click events"""
@@ -618,6 +627,41 @@ class MorphPlotter(Plotter):
                 self.targets.append(evt.picked3d)
                 self.update()
 
+        if evt.keypress == "m":
+            if len(self.sources) == len(self.targets) and len(self.sources) > 3:
+                self.warped = self.source.clone().warp(self.sources, self.targets)
+                self.warped.name = "warped"
+                self.output_text.text("Morphed output:")
+                self.at(2).remove("warped").add(self.warped).render()
+
+        if evt.keypress == 'g':  ##------- generate intermediate shapes
+            if not self.warped:
+                vedo.printc("Morph the source mesh first.", c="r")
+                return
+            if len(self.sources) != len(self.targets) or len(self.sources) < 4:
+                vedo.printc("Pick at least 4 pairs of points.", c="r")
+                return
+            self.output_text.text("Generating intermediate shapes...")
+            self.output_text.c("white").background("red4")
+            self.arrow_starts = np.array(self.sources)
+            self.arrow_stops = np.array(self.targets)
+            self.dottedln = vedo.Lines(self.arrow_starts, self.arrow_stops, res=self.n_intermediates)
+            self.dottedln.name = "warped"
+            self.dottedln.c("blue3").ps(5).alpha(0.5)
+            self.at(2).add(self.dottedln).render()
+            self.intermediates = []
+            allpts = self.dottedln.vertices
+            allpts = allpts.reshape(len(self.arrow_starts), self.n_intermediates + 1, 3)
+            for i in range(self.n_intermediates):
+                pi = allpts[:, i, :]
+                m_nterp = self.source.clone().warp(self.arrow_starts, pi)
+                m_nterp.name = f"morphed"
+                m_nterp.c("blue4", 0.05)
+                self.intermediates.append(m_nterp)
+            self.output_text.text(f"Morphed output + Interpolation ({self.n_intermediates} shapes):")
+            self.output_text.c("k").background(None)
+            self.at(2).add(self.intermediates).render()
+
         if evt.keypress == "a":
             # auto-pick points on the target surface
             if not self.warped:
@@ -658,7 +702,8 @@ class MorphPlotter(Plotter):
                     number_of_divisions=5,
                     text_scale=2,
                     xtitle_offset=0.075,
-                    xlabel_justify="top-center"),
+                    xlabel_justify="top-center",
+                ),
             )
 
             # try to fit a gaussian to the histogram
