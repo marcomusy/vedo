@@ -667,6 +667,107 @@ class Button(vedo.shapes.Text2D):
         self.status(self.status_idx)
         return self
 
+#####################################################################
+class PointCloudWidget:
+    """
+    Point cloud widget to interactively add or remove points in a point cloud.
+    """
+    def __init__(self, points):
+        """
+        Experimental.
+
+        Point cloud widget to interactively add or remove points in a point cloud.
+
+        Example:
+        ```python
+        from vedo import Plotter, Mesh, PointCloudWidget, dataurl
+
+        # Create a sample mesh to morph
+        msh = Mesh(dataurl+"290.vtk")
+        box = msh.box().clean().triangulate().subdivide(method=1)
+
+        plt = Plotter(bg="lightblue")
+
+        wid = PointCloudWidget(box.coordinates)
+        wid.add_to(plt)
+        wid.add_observer(
+            "pick event", 
+            lambda w, e: print("picked", wid.get_point_coordinates())
+        )
+        plt.add(msh)
+        plt.show().close()
+        ```
+        """
+        self.widget = vtki.new("PointCloudWidget")
+        self.name = "PointCloudWidget"
+        self.representation = self.widget.GetRepresentation()
+
+        if utils.is_sequence(points):
+            points = Points(points)
+        self.points = points
+        self.representation.PlacePointCloud(self.points.dataset)
+        self.representation.BuildRepresentation()
+
+    def add_to(self, plotter) -> "PointCloudWidget":
+        """
+        Add the point cloud widget to a Plotter instance.
+        """
+        if not isinstance(plotter, vedo.Plotter):
+            vedo.logger.error("PointCloudWidget: add_to() requires a Plotter instance")
+            return self
+        self.widget.SetInteractor(plotter.interactor)
+        self.representation.SetRenderer(plotter.renderer)
+        self.widget.On()
+        return self
+
+    def on(self) -> "PointCloudWidget":
+        """Activate/Enable the point cloud widget."""
+        self.widget.On()
+        self.widget.Render()
+        return self
+
+    def off(self) -> "PointCloudWidget":
+        """Disactivate/Disable the point cloud widget."""
+        self.widget.Off()
+        self.widget.Render()
+        return self
+
+    @property
+    def interactor(self):
+        """Return the current interactor."""
+        return self.GetInteractor()
+    
+    @interactor.setter
+    def interactor(self, iren):
+        """Set the current interactor."""
+        self.widget.SetInteractor(iren)
+        self.representation.SetInteractor(iren)
+    
+    @property
+    def renderer(self):
+        """Return the current renderer."""
+        return self.representation.GetRenderer()
+
+    @renderer.setter
+    def renderer(self, ren):
+        """Set the current renderer."""
+        self.widget.SetRenderer(ren)
+        self.widget.Render()
+    
+    def add_observer(self, event, func, priority=1) -> int:
+        """Add an observer to the widget."""
+        event = utils.get_vtk_name_event(event)
+        cid = self.widget.AddObserver(event, func, priority)
+        return cid
+    
+    def get_point_coordinates(self) -> np.ndarray:
+        """
+        Get the coordinates of a point by its index.
+        """
+        v = [0.,0.,0.]
+        self.representation.GetPointCoordinates(v)
+        return np.array(v)
+
 
 #####################################################################
 class SplineTool(vtki.vtkContourWidget):
@@ -797,10 +898,31 @@ class SplineTool(vtki.vtkContourWidget):
         """Render the spline"""
         self.Render()
         return self
+    
+    def lw(self, lw: int) -> "SplineTool":
+        """Set the line width of the spline."""
+        self.representation.GetLinesProperty().SetLineWidth(lw)
+        self.representation.GetActiveProperty().SetLineWidth(lw)
+        return self
 
-    # def bounds(self) -> np.ndarray:
-    #     """Retrieve the bounding box of the spline as [x0,x1, y0,y1, z0,z1]"""
-    #     return np.array(self.GetBounds())
+    def ps(self, ps: int) -> "SplineTool":
+        """Set the point size of the spline."""
+        self.representation.GetProperty().SetPointSize(ps)
+        return self
+    
+    def color(self, c: Union[str, tuple]) -> "SplineTool":
+        """Set the color of the spline."""
+        c = get_color(c)
+        self.representation.GetProperty().SetColor(c)
+        self.representation.GetLinesProperty().SetColor(c)
+        self.representation.GetActiveProperty().SetColor(c)
+        return self
+    
+    def closed_loop(self, value: bool) -> "SplineTool":
+        """Set whether the spline is a closed loop."""
+        self.closed = value
+        self.representation.SetClosedLoop(value)
+        return self
 
     def spline(self) -> vedo.Line:
         """Return the vedo.Spline object."""

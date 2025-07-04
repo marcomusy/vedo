@@ -613,6 +613,7 @@ for name in [
     "vtkButtonWidget",
     "vtkContourWidget",
     "vtkPlaneWidget",
+    "vtkPointCloudWidget",
     "vtkFocalPlanePointPlacer",
     "vtkImageTracerWidget",
     "vtkImplicitPlaneWidget",
