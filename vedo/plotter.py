@@ -2311,7 +2311,7 @@ class Plotter:
         font="Calco",
         s=0.75,
         bg="auto",
-        alpha=0.1,
+        alpha=0.33,
         maxlength=24,
         use_info=False,
     ) -> int:
