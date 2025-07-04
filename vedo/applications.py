@@ -34,6 +34,7 @@ __all__ = [
     "Slicer3DPlotter",
     "Slicer3DTwinPlotter",
     "MorphPlotter",
+    "MorphByLandmarkPlotter",
     "SplinePlotter",
     "AnimationPlayer",
 ]
@@ -686,6 +687,256 @@ class MorphPlotter(Plotter):
 
         if evt.keypress == "q":
             self.break_interaction()
+
+########################################################################################
+class MorphByLandmarkPlotter(Plotter):
+
+    def __init__(self, msh, init_pts=(), show_labels=True, **kwargs):
+        """
+        A Plotter to morph a mesh by moving points on it.
+        This application allows you to morph a mesh by moving points on it.
+        It is useful in shape analysis, morphometrics, and mesh deformation.
+        The initial points are used as source points, and the points are moved to the target positions.
+
+        Arguments:
+            msh : (Mesh)
+                the mesh to morph
+            init_pts : (list of tuples)
+                initial points to use for morphing
+            show_labels : (bool)
+                show point labels on the mesh
+            **kwargs : (dict)
+                keyword arguments to pass to a `vedo.plotter.Plotter` instance.
+        
+        Example:
+            ```python
+            from vedo import Mesh, MorphByLandmarkPlotter
+            msh = Mesh(dataurl + "bunny.ply")
+            pts = msh.clone().subsample(0.1) # subsample points
+            plt = MorphByLandmarkPlotter(msh, pts.coordinates, axes=1)
+            plt.morphing_on_change = True  # morph the mesh when points change
+            plt.show()
+            ```
+        """
+        vedo.settings.enable_default_keyboard_callbacks = False
+        vedo.settings.enable_default_mouse_callbacks = False
+
+        super().__init__(**kwargs)
+        self.parallel_projection(True)
+
+        self.step = 10
+        self.point_size = 20
+        self.morphing_mode = "2d"  # "2d", "3d"
+        self.morphing_on_change = True  # morph the mesh when points change
+        self.recompute_normals = False
+        self.move_keys = ["Left", "Right", "Up", "Down", "UP", "DOWN", "n", "N"]
+        self.output_filename = "morphed.vtk"
+
+        self.mesh = msh.clone().rename("morphable_mesh").pickable(1)
+        self.mesh.compute_normals(cells=False)
+        self.selected_pid = None
+        self.highlighted = None
+
+        self.sources = list(init_pts)
+        self.targets = list(init_pts)
+        self._sources = np.array(self.sources, dtype=float)
+        self.vhighlighted = vedo.Point(r=self.point_size + 5, c="red6", alpha=0.5)
+        self.vhighlighted.off().pickable(0)
+
+        self.current_pid = None
+        self.current_pt = None
+        self.id_callback1 = self.add_callback("key press", self._fkey)
+        self.id_callback2 = self.add_callback("mouse click", self._on_mouse_click)
+
+        self.vtargets = Points(self.targets, r=self.point_size, c="blue6", alpha=0.5)
+        self.vtargets.name = "vtargets"
+
+        self.vlines = vedo.Lines(self.sources, self.targets, c="k4")
+        self.vlines.name = "vlines"
+
+        self.vsources = Points(self.sources, r=self.point_size - 1)
+        self.vsources.c("red6", alpha=0.5).pickable(0)
+        self.vsources.name = "vsources"
+
+        self.instructions = Text2D(
+            "Click on a point to select it.\n"
+            "Use the arrow keys to move the selected point.\n"
+            "Press n or N to move the point along its normal.\n"
+            "Press o to add a new point pair.\n"
+            "Press +/- to change the step size.\n"
+            "Press m to morph the mesh.\n"
+            "Press r to reset the camera.\n"
+            "Press Ctrl+s to save the morphed mesh.\n"
+            "Press q to quit.",
+            pos="top-left",
+            bg="blue4",
+            alpha=0.1,
+            font="Calco",
+            s=0.7,
+        )
+
+        self.status = Text2D(
+            "No point selected.",
+            pos="bottom-left",
+            font="Calco",
+            bg="yellow5",
+            alpha=0.2,
+            s=0.8,
+        )
+
+        self.labels = None
+        if show_labels:
+            self.labels = self.vtargets.labels2d("id")
+            self.labels.name = "labels"
+        self.add(
+            self.mesh,
+            self.labels,
+            self.vsources,
+            self.vtargets,
+            self.vlines,
+            self.vhighlighted,
+            self.instructions,
+            self.status,
+        )
+
+    def do_morph(self):
+        """
+        Perform the morphing operation on the mesh.
+        This method morphs the mesh using the provided source and target points.
+        """
+        self.sources = list(self.vsources.coordinates)
+        self.targets = list(self.vtargets.coordinates)
+
+        self.mesh.warp(self.sources, self.targets, mode=self.morphing_mode)
+
+        self.sources = list(self.targets)
+
+        self.vsources = Points(self.sources, r=self.point_size - 1)
+        self.vsources.c("red6", alpha=0.5).pickable(0)
+        self.vsources.name = "vsources"
+
+        self.vtargets = Points(self.targets, r=self.point_size)
+        self.vtargets.c("blue6", alpha=0.5).pickable(0)
+        self.vtargets.name = "vtargets"
+
+        self.vlines = vedo.Lines(self.vsources, self.targets, c="k4").pickable(0)
+        self.vlines.name = "vlines"
+        self.remove("vtargets", "vlines")
+        self.add(self.vtargets, self.vlines).render()
+
+    def _on_mouse_click(self, evt):
+        if evt.picked3d is None:
+            return
+        self.current_pid = self.vtargets.closest_point(evt.picked3d, return_point_id=True)
+        self.current_pt = self.targets[self.current_pid]
+        self.status.text(
+            f"Selected point ID {self.current_pid}" 
+            f" coordinates: {precision(self.current_pt, 3)}"
+        )
+        self.vhighlighted.on()
+        self.vhighlighted.coordinates = [self.current_pt]
+        self.render()
+
+    def _fkey(self, evt):
+        k = evt.keypress
+        # print(f"Key pressed: {k}")
+
+        if k == "q":
+            self.break_interaction()
+
+        elif k == "r":
+            self.reset_camera().render()
+
+        elif k == "o":
+            if evt.object.name == "morphable_mesh":
+                self.sources.append(evt.picked3d)
+                self._sources = np.append(self._sources, [evt.picked3d], axis=0)
+                self.targets.append(evt.picked3d)
+                self.status.text(
+                    f"Added point {precision(evt.picked3d, 3)}. "
+                    f" Total number of points: {len(self._sources)}"
+                )
+
+                self.vsources = Points(self._sources, r=self.point_size - 1)
+                self.vsources.c("red6", alpha=0.5).pickable(0)
+                self.vsources.name = "vsources"
+
+                self.vtargets = Points(self.targets, r=self.point_size)
+                self.vtargets.c("blue6", alpha=0.5).pickable(0)
+                self.vtargets.name = "vtargets"
+
+                self.vlines = vedo.Lines(self._sources, self.targets, c="k5").pickable(0)
+                self.vlines.name = "vlines"
+
+                self.remove("vsources", "vtargets", "vlines")
+                self.add(self.vsources, self.vtargets, self.vlines).render()
+
+        elif k in self.move_keys:  # use arrows to move the picked point
+            if self.current_pid is None:
+                self.status.text("No point picked. Click to pick a point first.")
+                return
+
+            pid = self.current_pid
+
+            std_keys = ["Left", "Right", "Up", "Down", "UP", "DOWN", "n", "N"]
+            i = self.move_keys.index(k)
+            k = std_keys[i]  # normalize the key to the standard keys
+
+            if   k == "Left":  self.targets[pid] += [-self.step, 0, 0]
+            elif k == "Right": self.targets[pid] += [self.step, 0, 0]
+            elif k == "Up":    self.targets[pid] += [0, self.step, 0]
+            elif k == "Down":  self.targets[pid] += [0, -self.step, 0]
+            elif k == "UP":    self.targets[pid] += [0, 0, self.step]
+            elif k == "DOWN":  self.targets[pid] += [0, 0, -self.step]
+            elif k == "n" or k == "N":
+                # move along the normal of the picked point
+                if self.recompute_normals:
+                    self.mesh.compute_normals(cells=False)
+                mid = self.mesh.closest_point(self.current_pt, return_point_id=True)
+                normals = self.mesh.point_normals.copy()
+                if k == "n":
+                    self.targets[pid] += normals[mid] * self.step
+                else:
+                    self.targets[pid] -= normals[mid] * self.step
+
+            self.status.text(
+                f"Moved point ID {self.current_pid}" 
+                f" {precision(self.targets[pid], 3)} {k} by {self.step} units"
+            )
+            self.vtargets = Points(self.targets, r=self.point_size)
+            self.vtargets.c("blue6", alpha=0.5).pickable(0)
+            self.vtargets.name = "vtargets"
+            self.vlines = vedo.Lines(self._sources, self.targets, c="k4").pickable(0)
+            self.vlines.name = "vlines"
+            self.remove("vlines", "vtargets").add(self.vlines, self.vtargets)
+            if self.morphing_on_change:
+                self.do_morph()
+            else:
+                self.render()
+
+        elif k == "m":
+            self.do_morph()
+
+        elif k == "l" and evt.object:  # toggle lines visibility
+            ev = evt.object.properties.GetEdgeVisibility()
+            evt.object.properties.SetEdgeVisibility(not ev)
+            self.render()
+
+        elif k in ["plus", "equal", "minus", "underscore"]:  # change step size
+            if k in ["plus", "equal"]:
+                self.step += self.step / 10
+            elif k in ["minus", "underscore"]:
+                self.step -= self.step / 10
+            self.step = max(0, self.step)  # ensure step is at least 0
+            self.status.text(f"Step size changed to {self.step:.2f} units.")
+            self.render()
+
+        elif k == "Ctrl+s":  # write the morphed mesh to file
+            if self.mesh:
+                # self.mesh.compute_normals(cells=False)
+                self.mesh.write(self.output_filename)
+                self.status.text(f"Morphed mesh saved to {self.output_filename}")
+                self.render()
 
 
 ########################################################################################

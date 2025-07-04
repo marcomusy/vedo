@@ -10,7 +10,7 @@ All notable changes to the project will be documented in this file.
 - added example with embedding matplotlib figures in a scene
 - add `Line.eval2d()` useful for plotting
 - improvements to the `addons.BaseCutter` as per #1263 by @natabma
-
+- add `applications.MorphByLandmarkPlotter` class
 
 
 
