@@ -1143,7 +1143,7 @@ class CommonAlgorithms:
         """
         Generate point and cell ids arrays.
 
-        Two new arrays are added to the mesh: `PointID` and `CellID`.
+        Two new arrays are added to the mesh named `PointID` and `CellID`.
         """
         ids = vtki.new("IdFilter")
         ids.SetInputData(cls.dataset)
@@ -1153,7 +1153,13 @@ class CommonAlgorithms:
         ids.SetPointIdsArrayName("PointID")
         ids.SetCellIdsArrayName("CellID")
         ids.Update()
-        cls._update(ids.GetOutput(), reset_locators=False)
+        # cls._update(ids.GetOutput(), reset_locators=False) # bug #1267
+        point_arr = ids.GetOutput().GetPointData().GetArray("PointID")
+        cell_arr  = ids.GetOutput().GetCellData().GetArray("CellID")
+        if point_arr:
+            cls.dataset.GetPointData().AddArray(point_arr)
+        if cell_arr:
+            cls.dataset.GetCellData().AddArray(cell_arr)
         cls.pipeline = utils.OperationNode("add_ids", parents=[cls])
         return cls
 
@@ -1202,7 +1208,6 @@ class CommonAlgorithms:
         gra.ComputeVorticityOff()
         gra.ComputeGradientOn()
         gra.Update()
-        # cls._update(gra.GetOutput(), reset_locators=False)
         if on.startswith("p"):
             gvecs = utils.vtk2numpy(gra.GetOutput().GetPointData().GetArray("Gradient"))
         else:
@@ -1221,7 +1226,7 @@ class CommonAlgorithms:
                 compute either on 'points' or 'cells' data
             fast : (bool)
                 if True, will use a less accurate algorithm
-                that performs fewer derivative calculations (and is therefore faster).
+                that performs fewer derivative calculations and is therefore faster.
         """
         div = vtki.new("GradientFilter")
         if on.startswith("p"):
@@ -1249,7 +1254,6 @@ class CommonAlgorithms:
         div.SetDivergenceArrayName("Divergence")
         div.SetFasterApproximation(fast)
         div.Update()
-        # cls._update(div.GetOutput(), reset_locators=False)
         if on.startswith("p"):
             dvecs = utils.vtk2numpy(div.GetOutput().GetPointData().GetArray("Divergence"))
         else:

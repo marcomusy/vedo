@@ -675,7 +675,10 @@ class Points(PointsVisual, PointAlgorithms):
                 mark_active += " ***"
             out += mark_active.ljust(14) + f': "{key}" ({arr.dtype}), dim={dim}'
             if dim == 1 and len(arr)>0:
-                rng = utils.precision(arr.min(), 3) + ", " + utils.precision(arr.max(), 3)
+                if "int" in arr.dtype.name:
+                    rng = f"{arr.min()}, {arr.max()}"
+                else:
+                    rng = utils.precision(arr.min(), 3) + ", " + utils.precision(arr.max(), 3)
                 out += f", range=({rng})\n"
             else:
                 out += "\n"
@@ -695,7 +698,10 @@ class Points(PointsVisual, PointAlgorithms):
                 mark_active += " ***"
             out += mark_active.ljust(14) + f': "{key}" ({arr.dtype}), dim={dim}'
             if dim == 1 and len(arr)>0:
-                rng = utils.precision(arr.min(), 3) + ", " + utils.precision(arr.max(), 3)
+                if "int" in arr.dtype.name:
+                    rng = f"{arr.min()}, {arr.max()}"
+                else:
+                    rng = utils.precision(arr.min(), 3) + ", " + utils.precision(arr.max(), 3)
                 out += f", range=({rng})\n"
             else:
                 out += "\n"
