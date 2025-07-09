@@ -11,7 +11,7 @@ All notable changes to the project will be documented in this file.
 - add `Line.eval2d()` useful for plotting
 - improvements to the `addons.BaseCutter` as per #1263 by @natabma
 - add `applications.MorphByLandmarkPlotter` class
-
+- add `applications.MorphBySplinesPlotter` class
 
 
 ## Soft-breaking Changes

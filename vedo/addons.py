@@ -860,7 +860,7 @@ class SplineTool(vtki.vtkContourWidget):
         """Set the current interactor."""
         self.SetInteractor(iren)
 
-    def add(self, pt) -> "SplineTool":
+    def add_node(self, pt) -> "SplineTool":
         """
         Add one point at a specified position in space if 3D,
         or 2D screen-display position if 2D.
@@ -877,7 +877,7 @@ class SplineTool(vtki.vtkContourWidget):
         cid = self.AddObserver(event, func, priority)
         return cid
 
-    def remove(self, i: int) -> "SplineTool":
+    def remove_node(self, i: int) -> "SplineTool":
         """Remove specific node by its index"""
         self.representation.DeleteNthNode(i)
         return self
@@ -944,6 +944,36 @@ class SplineTool(vtki.vtkContourWidget):
                 self.representation.GetNthNodeWorldPosition(i, p)
             pts.append(p)
         return np.array(pts)
+    
+    def node_position(self, i, pt, onscreen=False) -> "SplineTool":
+        """
+        Set the position of a specific node by its index.
+        If `onscreen` is True, the position is set in 2D screen-display coordinates.
+        Otherwise, it is set in 3D world coordinates.
+        """
+        # check that i exists
+        n = self.representation.GetNumberOfNodes()
+        if i < 0 or i >= n:
+            vedo.logger.error(f"SplineTool: index {i} out of range [0-{n-1}]")
+            return self
+        if onscreen:
+            self.representation.SetNthNodeDisplayPosition(i, pt[0], pt[1])
+        else:
+            self.representation.SetNthNodeWorldPosition(i, pt)
+        return self
+    
+    def set_nodes(self, pts: Union[np.ndarray, list]) -> "SplineTool":
+        """
+        Set the positions of all nodes in the spline.
+        The input can be a list or a numpy array of points.
+        """
+        if isinstance(pts, list):
+            pts = np.array(pts)
+        if pts.ndim == 1:
+            pts = pts.reshape(-1, 3)
+        for i in range(len(pts)):
+            self.representation.SetNthNodeWorldPosition(i, pts[i])
+        return self
 
 
 class DrawingWidget:
