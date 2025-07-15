@@ -4145,11 +4145,15 @@ class Plotter:
                 i += 1
             for ss in self.sliders:
                 ss[0].off()
+            for bb in self.buttons:
+                bb.off()
             vedo.file_io.screenshot(fname)
             vedo.printc(rf":camera: Saved rendering window to {fname}", c="b")
             for ss in self.sliders:
                 ss[0].on()
                 ss[0].Render()
+            for bb in self.buttons:
+                bb.on()
             return
 
         elif key == "C":
