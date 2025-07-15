@@ -4338,7 +4338,7 @@ class Text3D(Mesh):
                     (r"\_", "┭"),  # trick to protect ~ _ and ^ chars
                     (r"\^", "┮"),  #
                     (r"\~", "┯"),  #
-                    ("**", "^"),  # order matters
+                    ("**", "^"),   # order matters
                     ("e+0", dotsep + "10^"),
                     ("e-0", dotsep + "10^-"),
                     ("E+0", dotsep + "10^"),
@@ -4383,7 +4383,7 @@ class Text3D(Mesh):
                     save_xmax = xmax
                     if t == " ":
                         continue
-                elif t == "~":
+                elif t == "~" and not literal:
                     if i < ntxt - 1 and txt[i + 1] == "_":
                         continue
                     xmax += hspacing * scale * fscale / 4
