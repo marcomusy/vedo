@@ -415,7 +415,7 @@ class Image(vedo.visual.ImageVisual):
         pic.pipeline = utils.OperationNode("clone", parents=[self], c="#f7dada", shape="diamond")
         return pic
 
-    def clone2d(self, pos=(0, 0), size=1, justify="") -> "vedo.visual.Actor2D":
+    def clone2d(self, pos=(0, 0), size=1, justify="", ontop=False) -> "vedo.visual.Actor2D":
         """
         Embed an image as a static 2D image in the canvas.
 
@@ -429,6 +429,8 @@ class Image(vedo.visual.ImageVisual):
                 apply a scaling factor to the image
             justify : (str)
                 define the anchor point ("top-left", "top-center", ...)
+            ontop : (bool)
+                if True, the image is rendered on top of the 3D scene
         """
         pic = vedo.visual.Actor2D()
 
@@ -464,6 +466,10 @@ class Image(vedo.visual.ImageVisual):
 
         pic.GetPositionCoordinate().SetCoordinateSystem(3)
         pic.SetPosition(pos)
+        if ontop:
+            pic.properties.SetDisplayLocationToForeground()
+        else:
+            pic.properties.SetDisplayLocationToBackground()
 
         pic.pipeline = utils.OperationNode("clone2d", parents=[self], c="#f7dada", shape="diamond")
         return pic

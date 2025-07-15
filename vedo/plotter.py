@@ -4143,8 +4143,13 @@ class Plotter:
             while os.path.isfile(fname):
                 fname = f"screenshot{i}.png"
                 i += 1
+            for ss in self.sliders:
+                ss[0].off()
             vedo.file_io.screenshot(fname)
             vedo.printc(rf":camera: Saved rendering window to {fname}", c="b")
+            for ss in self.sliders:
+                ss[0].on()
+                ss[0].Render()
             return
 
         elif key == "C":

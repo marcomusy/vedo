@@ -64,7 +64,10 @@ def merge(*meshs, flag=False) -> Union["vedo.Mesh", "vedo.Points", None]:
     idarr = []
     polyapp = vtki.new("AppendPolyData")
     for i, ob in enumerate(objs):
-        polyapp.AddInputData(ob.dataset)
+        try:
+            polyapp.AddInputData(ob.dataset)
+        except AttributeError:
+            polyapp.AddInputData(ob)
         if flag:
             idarr += [i] * ob.dataset.GetNumberOfPoints()
     polyapp.Update()
