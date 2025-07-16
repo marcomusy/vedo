@@ -1076,13 +1076,13 @@ class MorphBySplinesPlotter(Plotter):
         self.meshes = meshes
         self.instructions = Text2D(
             "     --- Morphing by Splines ---\n"
-            "Ctrl+f to fit the splines to the mesh.\n"
-            "Ctrl+a to add a new spline.\n"
-            "Ctrl+g to generate intermediate shapes.\n"
-            "Ctrl+s to save the splines.\n"
             "Ctrl+l to load the splines from file.\n"
+            "Ctrl+a to add a new spline.\n"
+            "Ctrl+f to fit the splines to the mesh.\n"
             "Ctrl+z to remove the last spline.\n"
             "Ctrl+c to clear all splines.\n"
+            "Ctrl+g to generate intermediate shapes.\n"
+            "Ctrl+s to save the splines.\n"
             "Ctrl+q to quit.",
             pos="top-left",
             bg="blue4",
@@ -1104,6 +1104,7 @@ class MorphBySplinesPlotter(Plotter):
         self.output_suffix = ".vtk"
         self.output_spline_filename = f"{self.output_prefix}splines.npy"
         self.output_offset = 0  # used to generate an offset for the output filenames
+        self.output_offset_factor = 1
         self.add(meshes, self.status, self.instructions)
 
 
@@ -1149,7 +1150,7 @@ class MorphBySplinesPlotter(Plotter):
             fname = f"{self.output_prefix}splines.npy"
             np.save(fname, all_nodes)
             for i, mi in enumerate(self.intermediates):
-                mi.write(f"{self.output_prefix}{self.output_offset+i}{self.output_suffix}")
+                mi.write(f"{self.output_prefix}{self.output_offset+i*int(self.output_offset_factor)}{self.output_suffix}")
             self.status.text(
                 f"Saved {len(self.splinetools)} splines to {fname}.\n"
                 f"Saved {len(self.intermediates)} intermediate meshes saved as {self.output_prefix}*{self.output_suffix}")

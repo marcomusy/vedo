@@ -1877,8 +1877,19 @@ class PointAlgorithms(CommonAlgorithms):
         """
         M = cls.actor.GetMatrix()
         cls.apply_transform(M)
+        LT = LinearTransform(M)
         iden = vtki.vtkMatrix4x4()
         cls.actor.PokeMatrix(iden)
+        return LT
+
+    def get_transform_from_actor(cls) -> LinearTransform:
+        """
+        Get the current transformation of the actor as a `LinearTransform` object.
+        This is useful to retrieve the transformation matrix without applying it to the data.
+        """
+        M = cls.actor.GetMatrix()
+        if M is None:
+            return LinearTransform()
         return LinearTransform(M)
 
     def pos(cls, x=None, y=None, z=None) -> Self:
