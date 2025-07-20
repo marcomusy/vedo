@@ -4609,7 +4609,7 @@ class TextBase:
         self.actor.SetVisibility(False)
         return self
 
-class Text2D(TextBase, vedo.visual.Actor2D):
+class Text2D(TextBase):
     """
     Create a 2D text object.
     """
@@ -4690,13 +4690,15 @@ class Text2D(TextBase, vedo.visual.Actor2D):
         self.name = "Text2D"
 
         self.mapper = vtki.new("TextMapper")
-        self.SetMapper(self.mapper)
 
         self.properties = self.mapper.GetTextProperty()
-        self.actor = self
+
+        self.actor = vtki.vtkActor2D()
+        self.actor.SetMapper(self.mapper)
+        
         self.actor.retrieve_object = weak_ref_to(self)
 
-        self.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
+        self.actor.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
 
         # automatic black or white
         if c is None:
@@ -4712,7 +4714,7 @@ class Text2D(TextBase, vedo.visual.Actor2D):
 
         self.font(font).color(c).background(bg, alpha).bold(bold).italic(italic)
         self.pos(pos, justify).size(s).text(txt).line_spacing(1.2).line_offset(5)
-        self.PickableOff()
+        self.actor.PickableOff()
 
     def pos(self, pos="top-left", justify=""):
         """
@@ -4768,7 +4770,7 @@ class Text2D(TextBase, vedo.visual.Actor2D):
         if "right" in justify:
             self.properties.SetJustificationToRight()
 
-        self.SetPosition(pos)
+        self.actor.SetPosition(pos)
         return self
 
     def text(self, txt=None):

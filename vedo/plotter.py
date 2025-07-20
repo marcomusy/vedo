@@ -3066,8 +3066,11 @@ class Plotter:
             if a is None:
                 pass
 
-            elif isinstance(a, (vtki.vtkActor, vtki.vtkActor2D)):
+            elif isinstance(a, (vtki.vtkActor, vtki.vtkActor2D, vtki.vtkAssembly)):
                 scanned_acts.append(a)
+
+            elif isinstance(a, (vedo.Assembly)):
+                scanned_acts.append(a.actor)
 
             elif isinstance(a, str):
                 # assume a 2D comment was given

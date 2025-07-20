@@ -420,7 +420,7 @@ class Figure(Assembly):
                     # print("insert(): cannot cut", [a])
                     pass
 
-            self.AddPart(a.actor)
+            self.actor.AddPart(a.actor)
             self.objects.append(a)
 
         return self
@@ -547,7 +547,7 @@ class Figure(Assembly):
         acts = texts + mks
 
         aleg = Assembly(acts)  # .show(axes=1).close()
-        x0, x1, y0, y1, _, _ = aleg.GetBounds()
+        x0, x1, y0, y1, _, _ = aleg.actor.GetBounds()
 
         if alpha:
             dx = x1 - x0
@@ -568,7 +568,7 @@ class Figure(Assembly):
             box.shift(0, 0, -dy / 100).pickable(False)
             if lc:
                 box.lc(lc).lw(lw)
-            aleg.AddPart(box.actor)
+            aleg.actor.AddPart(box.actor)
             aleg.objects.append(box)
 
         xlim = self.xlim
@@ -1187,13 +1187,13 @@ class Histogram2D(Figure):
             if scalarbar:
                 sc = g.add_scalarbar3d(ztitle, c=ac).scalarbar
 
-                # print(" g.GetBounds()[0]", g.bounds()[:2])
-                # print("sc.GetBounds()[0]",sc.GetBounds()[:2])
-                delta = sc.GetBounds()[0] - g.bounds()[1]
+                # print(" g.actor.GetBounds()[0]", g.actor.GetBounds()[:2])
+                # print("sc.actor.GetBounds()[0]",sc.actor.GetBounds()[:2])
+                delta = sc.actor.GetBounds()[0] - g.actor.GetBounds()[1]
 
-                sc_size = sc.GetBounds()[1] - sc.GetBounds()[0]
+                sc_size = sc.actor.GetBounds()[1] - sc.actor.GetBounds()[0]
 
-                sc.SetOrigin(sc.GetBounds()[0], 0, 0)
+                sc.actor.SetOrigin(sc.actor.GetBounds()[0], 0, 0)
                 sc.scale([self.yscale, 1, 1])  ## prescale trick
                 sc.shift(-delta + 0.25*sc_size*self.yscale)
 
@@ -2982,8 +2982,8 @@ def _histogram_quad_bin(x, y, **kwargs):
     msh.lw(1).lighting("ambient")
 
     histo.objects[2] = msh
-    histo.RemovePart(gr.actor)
-    histo.AddPart(msh.actor)
+    histo.actor.RemovePart(gr.actor)
+    histo.actor.AddPart(msh.actor)
     histo.objects.append(msh)
     return histo
 

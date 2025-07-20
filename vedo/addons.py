@@ -1876,15 +1876,15 @@ def ScalarBar3D(
 
     # asse.transform = LinearTransform().shift(pos)
 
-    bb = asse.GetBounds()
+    bb = asse.actor.GetBounds()
     # print("ScalarBar3D pos",pos, bb)
     # asse.SetOrigin(pos)
 
-    asse.SetOrigin(bb[0], bb[2], bb[4])
+    asse.actor.SetOrigin(bb[0], bb[2], bb[4])
     # asse.SetOrigin(bb[0],0,0) #in pyplot line 1312
 
-    asse.PickableOff()
-    asse.UseBoundsOff()
+    asse.actor.PickableOff()
+    asse.actor.UseBoundsOff()
     asse.name = "ScalarBar3D"
     return asse
 
@@ -4697,7 +4697,7 @@ def Axes(
         a.actor.PickableOff()
         a.properties.LightingOff()
     asse = Assembly(acts)
-    asse.PickableOff()
+    asse.actor.PickableOff()
     asse.name = "Axes"
     return asse
 
@@ -5087,8 +5087,12 @@ def add_global_axes(axtype=None, c=None, bounds=()) -> None:
         polaxes.SetPole(0, 0, vbb[4])
         rd = max(abs(vbb[0]), abs(vbb[2]), abs(vbb[1]), abs(vbb[3]))
         polaxes.SetMaximumRadius(rd)
-        polaxes.AutoSubdividePolarAxisOff()
-        polaxes.SetNumberOfPolarAxisTicks(10)
+        try: # fails in vtk 9.5
+            polaxes.AutoSubdividePolarAxisOff()
+            polaxes.SetNumberOfPolarAxisTicks(10)
+            polaxes.SetNumberOfPolarAxisTicks(5)
+        except Exception as e:
+            vedo.logger.warning("Failed to set polar axis properties")
         polaxes.SetCamera(plt.renderer.GetActiveCamera())
         polaxes.SetPolarLabelFormat("%6.1f")
         polaxes.PolarLabelVisibilityOff()  # due to bad overlap of labels
@@ -5104,7 +5108,6 @@ def add_global_axes(axtype=None, c=None, bounds=()) -> None:
 
         polaxes.SetMinimumAngle(0.0)
         polaxes.SetMaximumAngle(315.0)
-        polaxes.SetNumberOfPolarAxisTicks(5)
         polaxes.UseBoundsOn()
         polaxes.PickableOff()
         plt.axes_instances[r] = polaxes

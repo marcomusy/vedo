@@ -76,7 +76,7 @@ def procrustes_alignment(sources: List["vedo.Mesh"], rigid=False) -> "Assembly":
 
 
 #################################################
-class Group(vtki.vtkPropAssembly):
+class Group:
     """Form groups of generic objects (not necessarily meshes)."""
 
     def __init__(self, objects=()):
@@ -93,7 +93,7 @@ class Group(vtki.vtkPropAssembly):
             self.objects = objects
 
 
-        self.actor = self
+        self.actor = vtki.vtkPropAssembly()
 
         self.name = "Group"
         self.filename = ""
@@ -108,9 +108,9 @@ class Group(vtki.vtkPropAssembly):
 
         for a in vedo.utils.flatten(objects):
             if a:
-                self.AddPart(a.actor)
+                self.actor.AddPart(a.actor)
 
-        self.PickableOff()
+        self.actor.PickableOff()
 
 
     def __str__(self):
@@ -142,9 +142,9 @@ class Group(vtki.vtkPropAssembly):
         for a in obj:
             if a:
                 try:
-                    self.AddPart(a)
+                    self.actor.AddPart(a)
                 except TypeError:
-                    self.AddPart(a.actor)
+                    self.actor.AddPart(a.actor)
                     self.objects.append(a)
         return self
 
@@ -155,9 +155,9 @@ class Group(vtki.vtkPropAssembly):
         for a in obj:
             if a:
                 try:
-                    self.RemovePart(a)
+                    self.actor.RemovePart(a)
                 except TypeError:
-                    self.RemovePart(a.actor)
+                    self.actor.RemovePart(a.actor)
                     self.objects.append(a)
         return self
     
@@ -200,7 +200,7 @@ class Group(vtki.vtkPropAssembly):
     def clear(self) -> "Group":
         """Remove all parts"""
         for a in self._unpack():
-            self.RemovePart(a)
+            self.actor.RemovePart(a)
         self.objects = []
         return self
 
@@ -216,12 +216,12 @@ class Group(vtki.vtkPropAssembly):
 
     def pickable(self, value=True) -> "Group":
         """The pickability property of the Group."""
-        self.SetPickable(value)
+        self.actor.SetPickable(value)
         return self
 
     def use_bounds(self, value=True) -> "Group":
         """Set the use bounds property of the Group."""
-        self.SetUseBounds(value)
+        self.actor.SetUseBounds(value)
         return self
 
     def print(self) -> "Group":
@@ -231,7 +231,7 @@ class Group(vtki.vtkPropAssembly):
 
 
 #################################################
-class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
+class Assembly(CommonVisual, Actor3DHelper):
     """
     Group many objects and treat them as a single new object.
     """
@@ -251,7 +251,7 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
         """
         super().__init__()
 
-        self.actor = self
+        self.actor = vtki.vtkAssembly()
         self.actor.retrieve_object = weak_ref_to(self)
 
         self.name = "Assembly"
@@ -300,7 +300,7 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
         scalarbars = []
         for a in self.actors:
             if isinstance(a, vtki.get_class("Prop3D")): # and a.GetNumberOfPoints():
-                self.AddPart(a)
+                self.actor.AddPart(a)
             if hasattr(a, "scalarbar") and a.scalarbar is not None:
                 scalarbars.append(a.scalarbar)
 
@@ -340,10 +340,10 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
             out += str(names).replace("'","")[:56]
         out += "\n"
 
-        pos = self.GetPosition()
+        pos = self.actor.GetPosition()
         out += "position".ljust(14) + ": " + str(pos) + "\n"
 
-        bnds = self.GetBounds()
+        bnds = self.actor.GetBounds()
         bx1, bx2 = vedo.utils.precision(bnds[0], 3), vedo.utils.precision(bnds[1], 3)
         by1, by2 = vedo.utils.precision(bnds[2], 3), vedo.utils.precision(bnds[3], 3)
         bz1, bz2 = vedo.utils.precision(bnds[4], 3), vedo.utils.precision(bnds[5], 3)
@@ -421,9 +421,9 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
             help_text,
             "<table>",
             "<tr><td><b> nr. of objects </b></td><td>"
-            + str(self.GetNumberOfPaths())
+            + str(self.actor.GetNumberOfPaths())
             + "</td></tr>",
-            "<tr><td><b> position </b></td><td>" + str(self.GetPosition()) + "</td></tr>",
+            "<tr><td><b> position </b></td><td>" + str(self.actor.GetPosition()) + "</td></tr>",
             "<tr><td><b> diagonal size </b></td><td>"
             + vedo.utils.precision(self.diagonal_size(), 5)
             + "</td></tr>",
@@ -441,7 +441,7 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
 
             self.objects.append(obj)
             self.actors.append(obj.actor)
-            self.AddPart(obj.actor)
+            self.actor.AddPart(obj.actor)
 
             if hasattr(obj, "scalarbar") and obj.scalarbar is not None:
                 if self.scalarbar is None:
@@ -470,10 +470,10 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
         for a in obj:
             if a:
                 try:
-                    self.RemovePart(a)
+                    self.actor.RemovePart(a)
                     self.objects.remove(a)
                 except TypeError:
-                    self.RemovePart(a.actor)
+                    self.actor.RemovePart(a.actor)
                     self.objects.remove(a)
         return self
 
@@ -526,8 +526,8 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
     #     """Propagate the transformation to all parts."""
     #     # navigate the assembly and apply the transform to all parts
     #     # and reset position, orientation and scale of the assembly
-    #     for i in range(self.GetNumberOfPaths()):
-    #         path = self.GetPath(i)
+    #     for i in range(self.actor.GetNumberOfPaths()):
+    #         path = self.actor.GetPath(i)
     #         obj = path.GetLastNode().GetViewProp()
     #         obj.SetUserTransform(self.transform.T)
     #         obj.SetPosition(0, 0, 0)
@@ -566,7 +566,7 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
                 ##
                 for elem in lst:
                     if isinstance(elem, Assembly):
-                        apos = elem.GetPosition()
+                        apos = elem.actor.GetPosition()
                         asum = np.sum(apos)
                         for x in elem.unpack():
                             if asum:
@@ -580,7 +580,7 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
 
     def pickable(self, value=True) -> "Assembly":
         """Set/get the pickability property of an assembly and its elements"""
-        self.SetPickable(value)
+        self.actor.SetPickable(value)
         # set property to each element
         for elem in self.recursive_unpack():
             elem.pickable(value)
