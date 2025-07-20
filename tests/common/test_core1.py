@@ -1,5 +1,5 @@
 import numpy as np
-from vedo import Cone, Sphere, merge, Volume, dataurl, utils
+from vedo import Cone, Sphere, merge, Volume, dataurl, Assembly
 import vtk
 
 print('\n\n---------------------------------')
@@ -149,8 +149,8 @@ assert np.max(arr) > .99
 
 
 ######################################__add__
-print('__add__', [cone+sphere], [vtk.vtkAssembly])
-assert isinstance(cone+sphere, vtk.vtkAssembly)
+print('__add__', [cone+sphere])
+assert isinstance(cone+sphere, Assembly)
 
 
 ###################################### vertices
