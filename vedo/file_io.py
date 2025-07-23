@@ -310,6 +310,19 @@ def _load_file(filename, unpack):
             m.actor = act
             wacts.append(m)
         objt = Assembly(wacts)
+    elif fl.endswith(".glb") or fl.endswith(".gltf"):
+        importer = vtki.new("GLTFImporter")
+        importer.SetFileName(filename)
+        importer.Update()
+        actors = importer.GetRenderer().GetActors()  # vtkActorCollection
+        actors.InitTraversal()
+        wacts = []
+        for i in range(actors.GetNumberOfItems()):
+            act = actors.GetNextActor()
+            m = Mesh(act.GetMapper().GetInput())
+            m.actor = act
+            wacts.append(m)
+        objt = Assembly(wacts)
 
     ######################################################## volumetric:
     elif fl.endswith((".tif", ".tiff", ".slc", ".vti", ".mhd", ".nrrd", ".nii", ".dem")):

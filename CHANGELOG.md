@@ -12,6 +12,8 @@ All notable changes to the project will be documented in this file.
 - improvements to the `addons.BaseCutter` as per #1263 by @natabma
 - add `applications.MorphByLandmarkPlotter` class
 - add `applications.MorphBySplinesPlotter` class
+- fix memory leaks in Text2D and Allebly classes #1269 by @shBLOCK
+- add `volume.extract_components()`
 
 
 ## Soft-breaking Changes

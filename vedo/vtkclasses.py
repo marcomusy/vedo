@@ -463,9 +463,12 @@ for name in [
     "vtkTIFFWriter",
 ]: location[name] = "vtkIOImage"
 
-location["vtk3DSImporter"] = "vtkIOImport"
-location["vtkOBJImporter"] = "vtkIOImport"
-location["vtkVRMLImporter"] = "vtkIOImport"
+for name in [
+    "vtk3DSImporter",
+    "vtkOBJImporter",
+    "vtkVRMLImporter",
+    "vtkGLTFImporter",
+]: location[name] = "vtkIOImport"
 
 for name in [
     "vtkSimplePointsWriter",
