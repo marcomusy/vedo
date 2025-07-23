@@ -90,7 +90,7 @@ class Group:
                 objects[name].name = name
             objects = list(objects.values())
         elif vedo.utils.is_sequence(objects):
-            self.objects = objects
+            self.objects = list(objects)
 
 
         self.actor = vtki.vtkPropAssembly()

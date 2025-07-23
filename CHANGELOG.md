@@ -13,6 +13,7 @@ All notable changes to the project will be documented in this file.
 - add `applications.MorphByLandmarkPlotter` class
 - add `applications.MorphBySplinesPlotter` class
 - fix memory leaks in Text2D and Allebly classes #1269 by @shBLOCK
+- add `volume.extract_components()`
 
 
 ## Soft-breaking Changes

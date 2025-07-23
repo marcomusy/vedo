@@ -1465,6 +1465,37 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         self.pipeline = utils.OperationNode("frequency_pass_filter", parents=[self], c="#4cc9f0")
         return self
 
+    @property
+    def ncomponents(self) -> int:
+        """
+        Return the number of components in the volume.
+        This is the number of scalar values per voxel.
+        """
+        scals = self.dataset.GetPointData().GetScalars()
+        if scals:
+            return scals.GetNumberOfComponents()
+        return 1
+
+    def extract_components(self, components: list) -> Self:
+        """
+        Extract one or more components from a multi-component volume.
+
+        Arguments:
+            components : (int, list)
+                the component(s) to extract
+        """
+        if not utils.is_sequence(components):
+            components = [components]
+        ecomp = vtki.new("ImageExtractComponents")
+        ecomp.SetInputData(self.dataset)
+        ecomp.SetComponents(*components)
+        ecomp.Update()
+        v = Volume(ecomp.GetOutput())
+        self.pipeline = utils.OperationNode(
+            "extract_components", parents=[self], c="#4cc9f0", comment=f"components={components}"
+        )
+        return v
+
     def smooth_gaussian(self, sigma=(2, 2, 2), radius=None) -> Self:
         """
         Performs a convolution of the input Volume with a gaussian.
