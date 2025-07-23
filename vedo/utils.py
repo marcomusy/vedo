@@ -33,6 +33,7 @@ __all__ = [
     "round_to_digit",
     "point_in_triangle",
     "point_line_distance",
+    "otsu_threshold",
     "closest",
     "grep",
     "make_bands",
@@ -1542,6 +1543,38 @@ def closest(point, points, n=1, return_ids=False, use_tree=False):
         return dists, closest_idx
     else:
         return dists, points[closest_idx]
+
+
+#############################################################################
+def otsu_threshold(image):
+    """
+    Compute Otsu optimal threshold. Assumes image is a NumPy array (grayscale).
+    """
+    image = image.ravel()
+
+    # Compute histogram
+    min_val, max_val = image.min(), image.max()
+    hist, bin_edges = np.histogram(image, bins=256, range=(min_val, max_val))
+    hist = hist.astype(np.float64)
+    total = hist.sum()
+
+    # Probabilities and bin centers
+    prob = hist / total
+    bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
+
+    # Cumulative sums
+    omega = np.cumsum(prob)
+    mu = np.cumsum(prob * bin_centers)
+    mu_total = mu[-1]
+
+    numerator = (mu_total * omega - mu) ** 2
+    denominator = omega * (1 - omega)
+
+    with np.errstate(divide='ignore', invalid='ignore'):
+        sigma_b_squared = np.divide(numerator, denominator, where=denominator > 0)
+
+    idx = np.argmax(sigma_b_squared)
+    return bin_centers[idx]
 
 
 #############################################################################

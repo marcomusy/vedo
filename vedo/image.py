@@ -755,6 +755,28 @@ class Image(vedo.visual.ImageVisual):
         self._update(medf.GetOutput())
         self.pipeline = utils.OperationNode("median", parents=[self], c="#f28482")
         return self
+    
+    def adjust(self, window=255, level=127.5) -> Self:
+        """
+        Adjust the brightness and contrast of the image.
+
+        Arguments:
+            window : (float)
+                the width of the range of values to be mapped to the output range
+            level : (float)
+                the center of the range of values to be mapped to the output range
+        """
+        adjust = vtki.new("ImageMapToWindowLevelColors")
+        adjust.SetInputData(self.dataset)
+        if window: adjust.SetWindow(window)
+        if level: adjust.SetLevel(level)
+        adjust.Update()
+        self._update(adjust.GetOutput())
+        self.pipeline = utils.OperationNode(
+            "adjust", comment=f"window={window}, level={level}",
+            parents=[self], c="#f28482"
+        )
+        return self
 
     def enhance(self) -> Self:
         """
