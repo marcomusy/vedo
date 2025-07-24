@@ -1269,14 +1269,21 @@ class Image(vedo.visual.ImageVisual):
         gr.pipeline = utils.OperationNode("tomesh", parents=[self], c="#f28482:#e9c46a")
         return gr
 
-    def tonumpy(self) -> np.ndarray:
+    def tonumpy(self, raw=False) -> np.ndarray:
         """
         Get read-write access to pixels of a Image object as a numpy array.
         Note that the shape is (nrofchannels, nx, ny).
 
         When you set values in the output image, you don't want numpy to reallocate the array
-        but instead set values in the existing array, so use the [:] operator.
-        Example: arr[:] = arr - 15
+        but instead set values in the existing array, so use `raw=True` with the [:] operator.
+        Example:
+        ```python
+        arr = pic.tonumpy(raw=True)
+        # now arr is a numpy array with shape (ny*nx, nchan)
+        # and you can modify it in place, e.g.:
+        arr[:] = arr - 15
+        pic.modified()
+        ```
 
         If the array is modified call:
         `image.modified()`
@@ -1284,7 +1291,12 @@ class Image(vedo.visual.ImageVisual):
         """
         nx, ny, _ = self.dataset.GetDimensions()
         nchan = self.dataset.GetPointData().GetScalars().GetNumberOfComponents()
-        narray = utils.vtk2numpy(self.dataset.GetPointData().GetScalars()).reshape(ny, nx, nchan)
+        if raw:
+            narray = utils.vtk2numpy(self.dataset.GetPointData().GetScalars())
+            return narray
+        else:
+            narray = utils.vtk2numpy(self.dataset.GetPointData().GetScalars()).reshape(ny, nx, nchan)
+
         narray = np.flip(narray, axis=0).astype(np.uint8)
         return narray.squeeze()
 
