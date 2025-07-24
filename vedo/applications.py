@@ -36,6 +36,7 @@ __all__ = [
     "MorphPlotter",
     "MorphByLandmarkPlotter",
     "SplinePlotter",
+    "ImageEditor",
     "AnimationPlayer",
 ]
 
@@ -2322,6 +2323,181 @@ class SplinePlotter(Plotter):
         self.show(self.object, self.instructions, mode=self.mode)
         return self
 
+########################################################################
+class ImageEditor(Plotter):
+    """A simple image editor for applying various filters to images."""
+
+    def __init__(self, filename, **kwargs):
+        """Initialize the Image Editor with a given image file."""
+
+        if "shape" not in kwargs:
+            kwargs["shape"] = (1, 3)
+        if "size" not in kwargs:
+            kwargs["size"] = (1800, 600)
+        if "title" not in kwargs:
+            kwargs["title"] = "vedo - Image Editor"
+
+        vedo.settings.enable_default_keyboard_callbacks = False
+
+        super().__init__(**kwargs)
+
+        self.cutfilter = 0.035  # value for the high cutoff frequency in the filter
+
+        self.filename = filename
+        self.image0 = vedo.Image(filename)
+        self.image2 = self.image0.clone()
+        self.image0.pickable(False)
+
+        self.header = Text2D(
+            f"File name:\n {filename[-35:]}\nSize: {self.image2.shape}",
+            c="w",
+            bg="k2",
+            alpha=1,
+            font="Calco",
+            s=1.2,
+        )
+        self.instructions = Text2D(
+            "Press -----------------------\n"
+            "Ctrl+e to enhance\n"
+            "Ctrl+m to median\n"
+            "Ctrl+f to flip horizontally\n"
+            "Ctrl+v to flip vertically\n"
+            "Ctrl+t to rotate\n"
+            "Ctrl+b to binarize\n"
+            "Ctrl+i to invert\n"
+            "Ctrl+g to smooth\n"
+            "Ctrl+h to print info\n"
+            "Ctrl+o to increase luminosity\n"
+            "Ctrl+l to decrease luminosity\n"
+            "Shift+O to increase contrast\n"
+            "Shift+L to decrease contrast\n"
+            "Ctrl+d to denoise\n"
+            "Ctrl+r to reset\n"
+            "Ctrl+s to save image\n"
+            "Ctrl+c to open color picker\n"
+            "q to quit\n"
+            "-----------------------------",
+            pos=(0.01, 0.8),
+            c="w",
+            bg="b4",
+            alpha=1,
+            font="Calco",
+            s=0.8,
+        )
+        self.status = Text2D(
+            pos="bottom-center", c="w", bg="r6", alpha=0.8, font="Calco"
+        )
+
+        self.pan = vedo.interactor_modes.MousePan(enable_rotate=False)
+
+        self.add_callback("key", self.key_func)
+
+        self.at(0).add(self.header, self.instructions, self.status)
+        self.at(1).add(vedo.Text2D("Input",  font="Calco", c="k5", bg="y5"), self.image0)
+        self.at(2).add(vedo.Text2D("Output", font="Calco", c="k5", bg="y5"), self.image2)
+        self.user_mode(self.pan).show()
+        self.interactor.RemoveObservers("CharEvent")
+
+    def key_func(self, evt):
+        """Handle key events for image editing."""
+        if evt.keypress in ["q", "Ctrl+q", "Ctrl+w"]:
+            self.close()
+            return
+
+        elif evt.keypress == "Ctrl+e":
+            self.image2.enhance()
+            self.status.text("Image enhanced")
+
+        elif evt.keypress == "Ctrl+m":
+            self.image2.median()
+            self.status.text("Image median filtered")
+
+        elif evt.keypress == "Ctrl+f":
+            self.image2.mirror()
+            self.status.text("Image flipped horizontally")
+
+        elif evt.keypress == "Ctrl+v":
+            self.image2.flip()
+            self.status.text("Image flipped vertically")
+
+        elif evt.keypress == "Ctrl+t":
+            self.image2.rotate(90)
+            self.status.text("Image rotated by 90 degrees")
+
+        elif evt.keypress == "Ctrl+b":
+            self.image2.binarize()
+            self.status.text("Image binarized")
+
+        elif evt.keypress == "Ctrl+i":
+            self.image2.invert()
+            self.status.text("Image inverted")
+
+        elif evt.keypress == "Ctrl+g":
+            self.image2.smooth(sigma=1)
+            self.status.text("Image smoothed")
+
+        elif evt.keypress == "Ctrl+h":
+            print(self.image2)
+            return
+
+        elif evt.keypress == "Ctrl+o":  # change luminosity
+            narray = self.image2.tonumpy(raw=True)
+            narray[:] = (narray*1.1).clip(0, 255).astype(np.uint8)
+            self.image2.modified()
+            self.status.text("Increased luminosity")
+        elif evt.keypress == "Ctrl+l":  # change luminosity
+            narray = self.image2.tonumpy(raw=True)
+            narray[:] = (narray*0.9).clip(0, 255).astype(np.uint8)
+            self.image2.modified()
+            self.status.text("Decreased luminosity")
+
+        elif evt.keypress == "O":  # change contrast
+            narray = self.image2.tonumpy(raw=True)
+            m = np.median(narray)
+            narray[:] = ((narray - m) * 1.1 + m).clip(0, 255).astype(np.uint8)
+            self.image2.modified()
+            self.status.text("Increased contrast")
+        elif evt.keypress == "L":
+            narray = self.image2.tonumpy(raw=True)
+            m = np.median(narray)
+            narray[:] = ((narray - m) * 0.9 + m).clip(0, 255).astype(np.uint8)
+            self.image2.modified()
+            self.status.text("Decreased contrast")
+
+        elif evt.keypress == "Ctrl+d":  # denoise
+            self.image2.filterpass(highcutoff=self.cutfilter)
+            self.status.text("Denoised image")
+
+        elif evt.keypress == "Ctrl+r":
+            self.image2 = self.image0.clone()
+            self.status.text("Image reset to original")
+
+        elif evt.keypress == "Ctrl+s":  # save image
+            basename = os.path.basename(self.filename)
+            sp = basename.split(".")
+            name = f"{sp[0]}_edited.{sp[-1]}"
+            self.image2.filename = name
+            self.image2.write(name)
+            self.status.text(f"Image saved as:\n{name}")
+            self.render()
+            return
+
+        elif evt.keypress == "Ctrl+c":  # open color picker
+            self.color_picker(evt.picked2d, verbose=True)
+            return
+
+        else:
+            self.status.text("")
+            self.render()
+            return
+
+        self.at(2).remove("Image").add(self.image2).render()
+
+    def start(self):
+        """Start the interactive image editor."""
+        self.at(1).reset_camera(0.01).interactive()
+        return self
+    
 
 ########################################################################
 class Animation(Plotter):

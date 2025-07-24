@@ -14,6 +14,7 @@ All notable changes to the project will be documented in this file.
 - add `applications.MorphBySplinesPlotter` class
 - fix memory leaks in Text2D and Allebly classes #1269 by @shBLOCK
 - add `volume.extract_components()`
+- add `applications.ImageEditor` Plotter-derived class 
 
 
 ## Soft-breaking Changes
@@ -34,6 +35,7 @@ All notable changes to the project will be documented in this file.
 examples/pyplot/embed_matplotlib2.py
 examples/basic/cut_interactive.py
 examples/volumetric/slice_plane3.py
+examples/volumetric/image_editor.py
 ```
 
 
