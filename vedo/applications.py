@@ -492,25 +492,27 @@ class MorphPlotter(Plotter):
 
         kwargs.update({"N": 3})
         kwargs.update({"sharecam": 0})
+
         super().__init__(**kwargs)
+
+        self.n_intermediates = 10  # number of intermediate shapes to generate
+        self.intermediates = []
+        self.auto_warping = True   # automatically warp the source mesh on click
+        self.automatic_picking_distance = 0.075
+        self.automatic_picking_use_source = False # use source mesh to pick points
+        self.cmap_name = "coolwarm"
+        self.output_filename = "morphed.vtk"
+        self.nbins = 25
 
         self.source = source.pickable(True)
         self.target = target.pickable(False)
         self.dottedln = None
-        self.n_intermediates = 10  # number of intermediate shapes to generate
-        self.intermediates = []
-        self.auto_warping = True   # automatically warp the source mesh on click
-
         self.clicked = []
         self.sources = []
         self.targets = []
         self.warped = None
         self.source_labels = None
         self.target_labels = None
-        self.automatic_picking_distance = 0.075
-        self.cmap_name = "coolwarm"
-        self.output_filename = "morphed.vtk"
-        self.nbins = 25
         self.msg0 = Text2D(
             "Pick a point on the surface",
             pos="bottom-center", c='white', bg="blue4", alpha=1, font="Calco")
@@ -521,8 +523,8 @@ class MorphPlotter(Plotter):
             "Pick a point on the source surface, then\n"
             "pick the corresponding point on the target \n"
             "Pick at least 4 point pairs. Press:\n"
-            "- c to clear all landmarks\n"
             "- d to delete the last landmark pair\n"
+            "- C to clear all landmarks\n"
             "- f to add a pair of fixed landmarks\n"
             "- a to auto-pick additional landmarks\n"
             "- z to compute and show the residuals\n"
@@ -538,9 +540,9 @@ class MorphPlotter(Plotter):
         self.add(self.msg1, target)
         cam1 = self.camera  # save camera at 1
         self.at(2).background("k9")
-        self.add(target, self.output_text)
         self.camera = cam1  # use the same camera of renderer1
 
+        self.add(target, self.output_text)
         self.add_renderer_frame()
 
         self.callid1 = self.add_callback("KeyPress", self.on_keypress)
@@ -588,7 +590,7 @@ class MorphPlotter(Plotter):
 
     def on_keypress(self, evt):
         """Handle keyboard events"""
-        if evt.keypress == "c":
+        if evt.keypress == "C":
             self.sources.clear()
             self.targets.clear()
             self.at(0).remove("source_pts")
@@ -668,19 +670,34 @@ class MorphPlotter(Plotter):
             if not self.warped:
                 vedo.printc("At least 4 points are needed.", c="r")
                 return
-            pts = self.target.clone().subsample(self.automatic_picking_distance)
             if len(self.sources) > len(self.targets):
                 self.sources.pop()
-            d = self.target.diagonal_size()
-            r = d * self.automatic_picking_distance
-            TI = self.warped.transform.compute_inverse()
-            for p in pts.coordinates:
-                pp = vedo.utils.closest(p, self.targets)[1]
-                if vedo.mag(pp - p) < r:
-                    continue
-                q = self.warped.closest_point(p)
-                self.sources.append(TI(q))
-                self.targets.append(p)
+
+            if self.automatic_picking_use_source:
+                pts = self.warped.clone().subsample(self.automatic_picking_distance)
+                TI = self.warped.transform.compute_inverse()
+                # d = self.target.diagonal_size()
+                # r = d * self.automatic_picking_distance
+                for p in pts.coordinates:
+                    # pp = vedo.utils.closest(p, self.targets)[1]
+                    # if vedo.mag(pp - p) < r:
+                    #     continue
+                    q = self.target.closest_point(p)
+                    self.sources.append(TI(p))
+                    self.targets.append(q)
+            else:
+                pts = self.target.clone().subsample(self.automatic_picking_distance)
+                d = self.target.diagonal_size()
+                r = d * self.automatic_picking_distance
+                TI = self.warped.transform.compute_inverse()
+                for p in pts.coordinates:
+                    pp = vedo.utils.closest(p, self.targets)[1]
+                    if vedo.mag(pp - p) < r:
+                        continue
+                    q = self.warped.closest_point(p)
+                    self.sources.append(TI(q))
+                    self.targets.append(p)
+
             self.source.pickable(True)
             self.target.pickable(False)
             self.update()
@@ -731,10 +748,10 @@ class MorphPlotter(Plotter):
                 m =  self.warped.clone()
                 m.pointdata.remove("Scalars")
                 m.pointdata.remove("Distance")
-                m.write(self.output_filename)
-                matfile = self.output_filename.split(".")[0] + ".mat"
-                m.transform.write(self.output_filename.split(".")[0] + ".mat")
-                print(f"Warped mesh saved to {self.output_filename}, transformation: {matfile}")
+                m.write(str(self.output_filename))
+                matfile = str(self.output_filename).split(".")[0] + ".mat"
+                m.transform.write(matfile)
+                print(f"Warped mesh saved to: {self.output_filename}\n with transformation: {matfile}")
 
         if evt.keypress == "q":
             self.break_interaction()

@@ -35,6 +35,7 @@ __all__ = [
     "fit_sphere",
     "pca_ellipse",
     "pca_ellipsoid",
+    "project_point_on_variety",
 ]
 
 
@@ -268,6 +269,133 @@ def fit_plane(points: Union[np.ndarray, "vedo.Points"], signed=False) -> "vedo.s
     pla.variance = dd[2]
     pla.name = "FitPlane"
     return pla
+
+
+def project_point_on_variety(pt, points, degree=3, compute_surface=False):
+    """
+    Project a point in 3D space onto a polynomial surface defined by a set of points
+    around it. The polynomial degree can be adjusted.
+
+    Arguments:
+        pt : (list or np.ndarray)
+            The point to smooth (3D coordinates).
+        points: (np.ndarray)
+            A set of points (Nx3 array) to fit the polynomial surface.
+        degree: (int)
+            The degree of the polynomial to fit.
+        compute_surface: (bool)
+            If True, returns a surface mesh of the fitted polynomial.
+
+    Returns:
+        transformed_pt : (np.ndarray)
+            The projected point on the polynomial surface.
+        surface_data : (tuple)
+            Contains the fitted polynomial coefficients, rotation matrix, and centroid.
+            If compute_surface is True, also includes a vedo.Grid object representing the surface.
+
+    Example:
+        ```python
+        import vedo
+        from vedo.pointcloud import project_point_on_variety
+
+        mesh = vedo.Mesh(vedo.dataurl+"bunny.obj").subdivide().scale(100)
+        mesh.wireframe().alpha(0.1)
+
+        pt = mesh.coordinates[30]
+        points = mesh.closest_point(pt, n=200)
+
+        pt_trans, res = project_point_on_variety(pt, points, degree=3, compute_surface=True)
+        vpoints = vedo.Points(points, r=6, c="yellow2")
+
+        plotter = vedo.Plotter(size=(1200, 800))
+        plotter += mesh, vedo.Point(pt), vpoints, res[0], f"Residue: {pt - pt_trans}"
+        plotter.show(axes=1).close()
+        ```
+    
+    Check out also the `fit_plane()` function for a simpler case of plane fitting.
+    """
+
+    def _fit_polynomial_3d(points, degree):
+        x, y, z = points.T
+        # Create a Vandermonde matrix for polynomial fitting
+        terms = []
+        for i in range(degree + 1):
+            for j in range(degree + 1 - i):
+                terms.append(x**i * y**j)
+        V = np.vstack(terms).T
+        coeffs = np.linalg.lstsq(V, z, rcond=None)[0]
+        return coeffs
+
+    def _predict_polynomial_3d(x, y, coeffs, degree):
+        idx = 0
+        z_pred = 0
+        for i in range(degree + 1):
+            for j in range(degree + 1 - i):
+                z_pred += coeffs[idx] * x**i * y**j
+                idx += 1
+        return z_pred
+
+    # Fit the plane: compute centroid and normal
+    points = np.asarray(points)
+    centroid = np.mean(points, axis=0)
+    centered = points - centroid
+
+    # SVD to find the normal vector
+    U, S, Vt = np.linalg.svd(centered)
+    normal = Vt[-1, :]
+    normal /= np.linalg.norm(normal)
+
+    # Find an orthogonal basis: v1 perpendicular to normal
+    axes = np.eye(3)
+    crosses = np.cross(normal, axes)
+    norms = np.linalg.norm(crosses, axis=1)
+    max_idx = np.argmax(norms)
+    v1 = crosses[max_idx]
+    v1 /= np.linalg.norm(v1)
+    v2 = np.cross(normal, v1)
+    v2 /= np.linalg.norm(v2)
+
+    # Old basis matrix with columns v1, v2, normal
+    old_basis = np.column_stack((v1, v2, normal))
+
+    # Ensure positive determinant for proper rotation
+    if np.linalg.det(old_basis) < 0:
+        v2 = -v2
+        old_basis = np.column_stack((v1, v2, normal))
+
+    # Rotation matrix R such that new_coords = centered @ R.T
+    R = old_basis.T
+
+    # Transform points to new coordinate system (plane aligns with XY)
+    transformed = np.dot(centered, R.T)
+
+    tpt = (pt - centroid) @ R.T  # Transform point to new coordinate system
+
+    # Fit polynomial of arbitrary degree
+    coeffs = _fit_polynomial_3d(transformed, degree)
+
+    # Predict z for a new point
+    x_new, y_new = tpt[0], tpt[1]
+    z_pred = _predict_polynomial_3d(x_new, y_new, coeffs, degree)
+
+    # Transform back to original
+    transformed_pt = np.array([x_new, y_new, z_pred])
+    back_transformed = np.dot(transformed_pt, R) + centroid
+    grid = None
+    if compute_surface:
+        # Create a surface mesh from the polynomial fit
+        x_min, x_max = transformed[:, 0].min(), transformed[:, 0].max()
+        y_min, y_max = transformed[:, 1].min(), transformed[:, 1].max()
+        grid = vedo.Grid([x_min, x_max, y_min, y_max], res=(20, 20))
+        grid.flat().use_bounds(False)
+        gpts = grid.points
+        for g in gpts:
+            zg = _predict_polynomial_3d(g[0], g[1], coeffs, degree)
+            tzg = np.array([g[0], g[1], zg])
+            g[:] = np.dot(tzg, R)
+        grid.shift(centroid).compute_normals()
+        grid.lw(0).c("lightblue").alpha(0.5).lighting("glossy")
+    return back_transformed, (grid, coeffs, R, centroid)
 
 
 def fit_sphere(coords: Union[np.ndarray, "vedo.Points"]) -> "vedo.shapes.Sphere":
