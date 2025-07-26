@@ -271,7 +271,9 @@ def fit_plane(points: Union[np.ndarray, "vedo.Points"], signed=False) -> "vedo.s
     return pla
 
 
-def project_point_on_variety(pt, points, degree=3, compute_surface=False):
+def project_point_on_variety(
+        pt, points, degree=3, compute_surface=False, compute_curvature=False
+    ) -> tuple:
     """
     Project a point in 3D space onto a polynomial surface defined by a set of points
     around it. The polynomial degree can be adjusted.
@@ -290,8 +292,9 @@ def project_point_on_variety(pt, points, degree=3, compute_surface=False):
         transformed_pt : (np.ndarray)
             The projected point on the polynomial surface.
         surface_data : (tuple)
+            If compute_surface is True, the first element is a vedo.Grid object representing the surface.
+            If compute_curvature is True, the second element contains curvature information.
             Contains the fitted polynomial coefficients, rotation matrix, and centroid.
-            If compute_surface is True, also includes a vedo.Grid object representing the surface.
 
     Example:
         ```python
@@ -335,6 +338,31 @@ def project_point_on_variety(pt, points, degree=3, compute_surface=False):
                 idx += 1
         return z_pred
 
+    def _compute_curvature(coeffs, terms, degree):
+        if compute_curvature==False or degree < 2:
+            return 0, 0 
+        terms = [f"x^{i}y^{j}" for i in range(degree + 1) for j in range(degree + 1 - i)]
+        # Print coefficients
+        # for term, coeff in zip(terms, coeffs):
+        #     print(f"Coefficient for {term}: {coeff}")
+        # Find indices of curvature-related terms
+        a_20 = a_02 = a_11 = 0
+        for idx, term in enumerate(terms):
+            if term == "x^2y^0":
+                a_20 = coeffs[idx]
+            elif term == "x^0y^2":
+                a_02 = coeffs[idx]
+            elif term == "x^1y^1":
+                a_11 = coeffs[idx]
+        # Second derivatives
+        f_xx = 2 * a_20
+        f_yy = 2 * a_02
+        f_xy = a_11
+        # Gaussian and mean curvature
+        gaussian = f_xx * f_yy - f_xy**2
+        mean = (f_xx**2 + f_yy**2) / 2
+        return float(gaussian), float(mean)
+
     # Fit the plane: compute centroid and normal
     points = np.asarray(points)
     centroid = np.mean(points, axis=0)
@@ -373,6 +401,7 @@ def project_point_on_variety(pt, points, degree=3, compute_surface=False):
 
     # Fit polynomial of arbitrary degree
     coeffs = _fit_polynomial_3d(transformed, degree)
+    gauss_curv, mean_curv = _compute_curvature(coeffs, transformed, degree)
 
     # Predict z for a new point
     x_new, y_new = tpt[0], tpt[1]
@@ -395,7 +424,7 @@ def project_point_on_variety(pt, points, degree=3, compute_surface=False):
             g[:] = np.dot(tzg, R)
         grid.shift(centroid).compute_normals()
         grid.lw(0).c("lightblue").alpha(0.5).lighting("glossy")
-    return back_transformed, (grid, coeffs, R, centroid)
+    return back_transformed, (grid, coeffs, R, centroid, gauss_curv, mean_curv)
 
 
 def fit_sphere(coords: Union[np.ndarray, "vedo.Points"]) -> "vedo.shapes.Sphere":

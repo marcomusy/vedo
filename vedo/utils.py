@@ -1962,6 +1962,7 @@ def print_histogram(
     height=10,
     logscale=False,
     minbin=0,
+    vrange=(),
     horizontal=True,
     char="\U00002589",
     c=None,
@@ -1984,6 +1985,9 @@ def print_histogram(
             use logscale for frequencies
         minbin : (int)
             ignore bins before minbin
+        vrange : (tuple)
+            range of values to consider, e.g. (0, 1) or (None, 1) or (0, None).
+            If empty, all values are considered.
         horizontal : (bool)
             show histogram horizontally
         char : (str)
@@ -2017,6 +2021,15 @@ def print_histogram(
     except AttributeError:
         # already an array
         data = np.asarray(data)
+
+    # remove out of range values
+    if len(vrange):
+            if vrange[0] is None:
+                data = data[data <= vrange[1]]
+            elif vrange[1] is None:
+                data = data[data >= vrange[0]]
+            else:
+                data = data[(data >= vrange[0]) & (data <= vrange[1])]
 
     if isinstance(data, vtki.vtkImageData):
         dims = data.GetDimensions()

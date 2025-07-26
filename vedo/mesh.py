@@ -1559,12 +1559,13 @@ class Mesh(MeshVisual, Points):
         )
         return self
 
-    def adjacency_list(self) -> List[set]:
+    def compute_adjacency(self) -> List[set]:
         """
         Computes the adjacency list for mesh edge-graph.
 
         Returns:
-            a list with i-th entry being the set if indices of vertices connected by an edge to i-th vertex
+            a list with i-th entry being the set
+            of indices of vertices connected by an edge to i-th vertex
         """
         inc = [set()] * self.npoints
         for cell in self.cells:
@@ -1575,30 +1576,34 @@ class Mesh(MeshVisual, Points):
                     inc[ci] = inc[ci].union({cell[i-1], cell[i+1]})
         return inc
 
-    def graph_ball(self, index, n: int) -> set:
+    def find_adjacent_vertices(self, index, depth=1, adjacency_list=None) -> set:
         """
-        Computes the ball of radius `n` in the mesh' edge-graph metric centred in vertex `index`.
+        Computes the ball of radius `n` in the mesh' edge-graph metric
+        centered at vertex `index`.
 
         Arguments:
             index : (int)
                 index of the vertex
-            n : (int)
-                radius in the graph metric
+            depth : (int)
+                depth of the search in the edge-graph metric.
 
         Returns:
-            the set of indices of the vertices which are at most `n` edges from vertex `index`.
+            the set of indices of the vertices which are at most `depth` edges from vertex `index`.
         """
-        if n == 0:
-            return {index}
-        else:
-            al = self.adjacency_list()
-            ball = {index}
-            i = 0
-            while i < n and len(ball) < self.npoints:
-                for v in ball:
-                    ball = ball.union(al[v])
-                i += 1
-            return ball
+        if adjacency_list is None:
+            adjacency_list = self.compute_adjacency()
+        k = self.npoints
+        assert 0 <= index < k, f"index {index} out of range [0, {k})"
+        assert len(adjacency_list) == k, (
+            f"adjacency_list must have {k} entries, got {len(adjacency_list)}"
+        )
+        ball = {index}
+        i = 0
+        while i < depth and len(ball) < k:
+            for v in ball:
+                ball = ball.union(adjacency_list[v])
+            i += 1
+        return np.array(list(ball), dtype=int)
 
     def smooth(self, niter=15, pass_band=0.1, edge_angle=15, feature_angle=60, boundary=False) -> Self:
         """
