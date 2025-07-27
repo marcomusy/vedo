@@ -1567,13 +1567,15 @@ class Mesh(MeshVisual, Points):
             a list with i-th entry being the set
             of indices of vertices connected by an edge to i-th vertex
         """
-        inc = [set()] * self.npoints
+        inc = [set() for _ in range(self.npoints)]
         for cell in self.cells:
             nc = len(cell)
-            if nc > 1:
-                for i in range(nc-1):
-                    ci = cell[i]
-                    inc[ci] = inc[ci].union({cell[i-1], cell[i+1]})
+            if nc < 2:
+                continue
+            for i in range(nc):
+                prev = cell[(i - 1) % nc]
+                next_ = cell[(i + 1) % nc]
+                inc[cell[i]].update({prev, next_})
         return inc
 
     def find_adjacent_vertices(self, index, depth=1, adjacency_list=None) -> set:

@@ -36,11 +36,12 @@ examples/pyplot/embed_matplotlib2.py
 examples/basic/cut_interactive.py
 examples/volumetric/slice_plane3.py
 examples/volumetric/image_editor.py
+examples/advanced/measure_curvature2.py
 ```
 
 
 ## To Do
-- fix trasform in image.tomesh() is not transmitted to mesh
+- fix trasform in `image.tomesh()` is not transmitted to mesh
 
 
 #### (Internal) Broken Examples

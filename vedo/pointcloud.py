@@ -1524,8 +1524,8 @@ class Points(PointsVisual, PointAlgorithms):
             return self
         cm = np.mean(coords, axis=0)
         pts = coords - cm
-        xyz2 = np.sum(pts * pts, axis=0)
-        scale = 1 / np.sqrt(np.sum(xyz2) / len(pts))
+        xyz2 = np.sum(pts * pts, axis=0) / len(pts)
+        scale = 1 / np.sqrt(np.sum(xyz2))
         self.scale(scale, origin=cm)
         self.pipeline = utils.OperationNode("normalize", parents=[self])
         return self
