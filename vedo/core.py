@@ -788,32 +788,37 @@ class CommonAlgorithms:
 
     @property
     def vertices(cls):
-        """Return the vertices (points) coordinates."""
+        """
+        Return the vertices (points) coordinates.
+        This is equivalent to `points` and `coordinates`.
+        """
         try:
             # for polydata and unstructured grid
-            varr = cls.dataset.GetPoints().GetData()
-        except (AttributeError, TypeError):
-            try:
-                # for RectilinearGrid, StructuredGrid
-                vpts = vtki.vtkPoints()
-                cls.dataset.GetPoints(vpts)
-                varr = vpts.GetData()
-            except (AttributeError, TypeError):
-                try:
-                    # for ImageData
-                    v2p = vtki.new("ImageToPoints")
-                    v2p.SetInputData(cls.dataset)
-                    v2p.Update()
-                    varr = v2p.GetOutput().GetPoints().GetData()
-                except AttributeError:
-                    return np.array([])
+            vpts = cls.dataset.GetPoints()
+            if vpts is None:
+                return np.array([], dtype=float)
+            varr = vpts.GetData()
+        except AttributeError:
+            # 'vtkImageData' object has no attribute 'GetPoints'
+            v2p = vtki.new("ImageToPoints")
+            v2p.SetInputData(cls.dataset)
+            v2p.Update()
+            varr = v2p.GetOutput().GetPoints().GetData()
+        except TypeError:
+            # for RectilinearGrid, StructuredGrid
+            vpts = vtki.vtkPoints()
+            cls.dataset.GetPoints(vpts)
+            varr = vpts.GetData()
+        except Exception as e:
+            vedo.logger.error(f"Cannot get point coords for {type(cls)}: {e}")
+            return np.array([], dtype=float)
 
         return utils.vtk2numpy(varr)
 
     # setter
     @vertices.setter
     def vertices(cls, pts):
-        """Set vertices (points) coordinates."""
+        """Set vertex coordinates. Same as `points` and `coordinates`."""
         pts = utils.make3d(pts)
         arr = utils.numpy2vtk(pts, dtype=np.float32)
         try:
@@ -831,22 +836,24 @@ class CommonAlgorithms:
 
     @property
     def points(cls):
-        """Return the vertices (points) coordinates. Same as `vertices`."""
+        """
+        Return the points coordinates. Same as `vertices` and `coordinates`.
+        """
         return cls.vertices
 
     @points.setter
     def points(cls, pts):
-        """Set vertices (points) coordinates. Same as `vertices`."""
+        """Set points coordinates. Same as `vertices` and `coordinates`."""
         cls.vertices = pts
 
     @property
     def coordinates(cls):
-        """Return the vertices (points) coordinates. Same as `vertices`."""
+        """Return the points coordinates. Same as `vertices` and `points`."""
         return cls.vertices
 
     @coordinates.setter
     def coordinates(cls, pts):
-        """Set vertices (points) coordinates. Same as `vertices`."""
+        """Set points coordinates. Same as `vertices` and `points`."""
         cls.vertices = pts
 
     @property

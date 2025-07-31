@@ -2136,6 +2136,8 @@ class Arrows(Glyph):
             alpha=alpha,
         )
         self.lighting("off")
+        self.actor.PickableOff()
+        self.actor.DragableOff()
         if color_by_vector_size:
             vals = np.linalg.norm(orients, axis=1)
             self.mapper.SetScalarRange(vals.min(), vals.max())
@@ -2331,7 +2333,9 @@ class Arrows2D(Glyph):
             c=c,
             alpha=alpha,
         )
-        self.flat().lighting("off").pickable(False)
+        self.flat().lighting("off")
+        self.actor.PickableOff()
+        self.actor.DragableOff()
         if c is not None:
             self.color(c)
         self.name = "Arrows2D"
