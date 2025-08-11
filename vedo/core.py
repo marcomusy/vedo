@@ -1458,7 +1458,8 @@ class CommonAlgorithms:
         """Write object to file."""
         out = vedo.file_io.write(cls, filename, binary)
         out.pipeline = utils.OperationNode(
-            "write", parents=[cls], comment=filename[:15], shape="folder", c="#8a817c"
+            "write", parents=[cls], comment=str(filename)[:15], 
+            shape="folder", c="#8a817c"
         )
 
     def tomesh(cls, bounds=(), shrink=0) -> "vedo.Mesh":
