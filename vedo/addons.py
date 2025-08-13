@@ -894,6 +894,11 @@ class SplineTool(vtki.vtkContourWidget):
         self.Render()
         return self
 
+    def toggle(self) -> "SplineTool":
+        """Toggle the visibility of the tool"""
+        self.SetEnabled(not self.GetEnabled())
+        return self
+
     def render(self) -> "SplineTool":
         """Render the spline"""
         self.Render()
@@ -1212,6 +1217,10 @@ class SliderWidget(vtki.vtkSliderWidget):
         cid = self.AddObserver(event, func, priority)
         return cid
 
+    def render(self):
+        """Render the widget."""
+        self.Render()
+        return self
 
 #####################################################################
 def Goniometer(
