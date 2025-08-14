@@ -2128,6 +2128,14 @@ class Slider2D(SliderWidget):
         else:
             self.AddObserver("InteractionEvent", sliderfunc)
 
+    def color(self, c):
+        c = get_color(c)
+        self.GetRepresentation().GetTubeProperty().SetColor(c)
+        self.GetRepresentation().GetSliderProperty().SetColor(c)
+        self.GetRepresentation().GetCapProperty().SetColor(c)
+        self.GetRepresentation().GetLabelProperty().SetColor(c)
+        self.GetRepresentation().GetTitleProperty().SetColor(c)
+
 
 #####################################################################
 class Slider3D(SliderWidget):

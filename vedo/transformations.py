@@ -766,8 +766,8 @@ class NonLinearTransform:
         s += f"sigma".ljust(9) + f": {self.sigma}\n"
         p = self.source_points
         q = self.target_points
-        s += f"sources".ljust(9) + f": {p.size}, bounds {np.min(p, axis=0)}, {np.max(p, axis=0)}\n"
-        s += f"targets".ljust(9) + f": {q.size}, bounds {np.min(q, axis=0)}, {np.max(q, axis=0)}"
+        s += f"sources".ljust(9) + f": {len(p)}, bounds {np.min(p, axis=0)}, {np.max(p, axis=0)}\n"
+        s += f"targets".ljust(9) + f": {len(q)}, bounds {np.min(q, axis=0)}, {np.max(q, axis=0)}"
         return s
 
     def __repr__(self):
