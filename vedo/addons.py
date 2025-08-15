@@ -914,7 +914,13 @@ class SplineTool(vtki.vtkContourWidget):
         """Set the point size of the spline."""
         self.representation.GetProperty().SetPointSize(ps)
         return self
-    
+
+    def point_color(self, c: Union[str, tuple]) -> "SplineTool":
+        """Set the color of the spline points."""
+        c = get_color(c)
+        self.representation.GetProperty().SetColor(c)
+        return self
+
     def color(self, c: Union[str, tuple]) -> "SplineTool":
         """Set the color of the spline."""
         c = get_color(c)
