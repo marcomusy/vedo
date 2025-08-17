@@ -4961,7 +4961,9 @@ def add_global_axes(axtype=None, c=None, bounds=()) -> None:
         axact.SetYMinusFaceText(settings.annotated_cube_texts[3])  # YMinus
         axact.SetZPlusFaceText(settings.annotated_cube_texts[4])  # ZPlus
         axact.SetZMinusFaceText(settings.annotated_cube_texts[5])  # ZMinus
-        axact.SetZFaceTextRotation(90)
+        axact.SetXFaceTextRotation(settings.annotated_cube_text_rotations[0])
+        axact.SetYFaceTextRotation(settings.annotated_cube_text_rotations[1])
+        axact.SetZFaceTextRotation(settings.annotated_cube_text_rotations[2])
 
         if settings.annotated_cube_text_color is None:  # use default
             axact.GetXPlusFaceProperty().SetColor(get_color("r"))
@@ -5087,7 +5089,7 @@ def add_global_axes(axtype=None, c=None, bounds=()) -> None:
         yc.pickable(0).lighting("off")
         zc.pickable(0).lighting("off")
         ca = xc + yc + zc
-        ca.PickableOff()
+        ca.pickable(False)
         ca.UseBoundsOff()
         plt.axes_instances[r] = ca
         plt.add(ca)

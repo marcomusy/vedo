@@ -146,6 +146,7 @@ class Settings:
     annotated_cube_text_color = None # use default, otherwise specify a single color
     annotated_cube_text_scale = 0.2
     annotated_cube_texts      = ["right","left ", "front","back ", " top ", "bttom"]
+    annotated_cube_text_rotations  = [0, 0, 90]
 
     # Set the default backend for plotting in jupyter notebooks.
     # If a jupyter environment is detected, the default is automatically switched to "2d"
@@ -213,6 +214,7 @@ class Settings:
         "annotated_cube_text_color",
         "annotated_cube_text_scale",
         "annotated_cube_texts",
+        "annotated_cube_text_rotations",
         "enable_print_color",
         "backend_autoclose",
         "k3d_menu_visibility",
@@ -309,6 +311,7 @@ class Settings:
         self.annotated_cube_text_color = None
         self.annotated_cube_text_scale = 0.2
         self.annotated_cube_texts = ["right", "left ", "front", "back ", " top ", "bttom"]
+        self.annotated_cube_text_rotations = [0, 0, 90]
 
         self.enable_print_color = True
 
