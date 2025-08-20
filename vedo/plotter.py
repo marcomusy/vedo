@@ -3069,7 +3069,7 @@ class Plotter:
             elif isinstance(a, (vtki.vtkActor, vtki.vtkActor2D, vtki.vtkAssembly)):
                 scanned_acts.append(a)
 
-            elif isinstance(a, (vedo.Assembly)):
+            elif isinstance(a, (vedo.Assembly, vedo.Group)):
                 scanned_acts.append(a.actor)
 
             elif isinstance(a, str):

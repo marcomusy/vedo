@@ -532,6 +532,14 @@ class CommonVisual:
         Then all cells below -5 will be completely transparent, cells with a scalar value of 35
         will get an opacity of 40% and above 123 alpha is set to 90%.
         """
+        if isinstance(self, (vedo.Assembly, vedo.Group)):
+            for actor in self:
+                try:
+                    actor.alpha(alpha)
+                except Exception:
+                    continue
+            return self
+
         if vmin is None:
             vmin, _ = self.dataset.GetScalarRange()
         if vmax is None:
