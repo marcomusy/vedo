@@ -1072,7 +1072,10 @@ class Plotter:
                     ob.rendered_at.discard(ir)
 
                 if hasattr(ob, "scalarbar") and ob.scalarbar:
-                    ren.RemoveActor(ob.scalarbar)
+                    try:
+                        ren.RemoveActor(ob.scalarbar)
+                    except TypeError:
+                        ren.RemoveActor(ob.actor)
                 if hasattr(ob, "_caption") and ob._caption:
                     ren.RemoveActor(ob._caption)
                 if hasattr(ob, "shadows") and ob.shadows:

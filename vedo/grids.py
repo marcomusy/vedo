@@ -957,9 +957,15 @@ class TetMesh(UnstructuredGrid):
             r2t.Update()
             self.dataset = r2t.GetOutput()
 
-        elif isinstance(inputobj, vtki.vtkDataSet):
+        elif isinstance(inputobj, vtki.vtkDataSet) or (
+            hasattr(inputobj, "dataset") and inputobj.dataset
+        ):
             r2t = vtki.new("DataSetTriangleFilter")
-            r2t.SetInputData(inputobj)
+            try:
+                r2t.SetInputData(inputobj)
+            except TypeError:
+                r2t.SetInputData(inputobj.dataset)
+
             r2t.TetrahedraOnlyOn()
             r2t.Update()
             self.dataset = r2t.GetOutput()

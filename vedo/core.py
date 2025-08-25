@@ -1847,13 +1847,11 @@ class PointAlgorithms(CommonAlgorithms):
         ################
         if isinstance(cls.dataset, vtki.vtkPolyData):
             tp = vtki.new("TransformPolyDataFilter")
-        elif isinstance(cls.dataset, vtki.vtkUnstructuredGrid):
+        elif isinstance(
+            cls.dataset, (vtki.vtkStructuredGrid, vtki.vtkUnstructuredGrid)
+        ):
             tp = vtki.new("TransformFilter")
             tp.TransformAllInputVectorsOn()
-        # elif isinstance(cls.dataset, vtki.vtkImageData):
-        #     tp = vtki.new("ImageReslice")
-        #     tp.SetInterpolationModeToCubic()
-        #     tp.SetResliceTransform(tr)
         else:
             vedo.logger.error(f"apply_transform(), unknown input type: {[cls.dataset]}")
             return cls
