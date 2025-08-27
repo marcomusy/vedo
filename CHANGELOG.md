@@ -17,9 +17,13 @@ All notable changes to the project will be documented in this file.
 - add `applications.ImageEditor` Plotter-derived class 
 - add `pointcloud.project_point_on_variety()` function
 
+
+
 ## Soft-breaking Changes
 - small changes to the API of the `addons.BaseCutter` class
-- 
+- `CornerAnnotation` class removed (substituted by Text2D)
+- changes in `Button` class (check examples/basic/buttons2.py)
+
 
 
 

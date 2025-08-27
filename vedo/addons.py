@@ -643,7 +643,7 @@ class Button(vedo.shapes.Text2D):
         self.alpha(alpha).angle(angle)
         self.size(size / 20)
         self.pos(pos, "center")
-        self.PickableOn()
+        self.pickable(1)
 
     def status(self, s=None) -> "Button":
         """Set/Get the status of the button."""

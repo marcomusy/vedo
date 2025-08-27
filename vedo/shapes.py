@@ -74,9 +74,8 @@ __all__ = [
     "Paraboloid",
     "Hyperboloid",
     "TextBase",
-    "Text3D",
     "Text2D",
-    "CornerAnnotation",
+    "Text3D",
     "Latex",
     "Glyph",
     "Tensors",
@@ -4484,10 +4483,87 @@ class TextBase:
     def __init__(self):
         "Do not instantiate this base class."
 
-        self.rendered_at = set()
-        # self.properties = None
 
-        self.name = "Text"
+class Text2D:
+    """
+    Create a 2D text object.
+    """
+    def __init__(
+        self,
+        txt="",
+        pos="top-left",
+        s=1.0,
+        bg=None,
+        font="",
+        justify="",
+        bold=False,
+        italic=False,
+        c=None,
+        alpha=0.5,
+    ) -> None:
+        """
+        Create a 2D text object.
+
+        All properties of the text, and the text itself, can be changed after creation
+        (which is especially useful in loops).
+
+        Arguments:
+            pos : (str)
+                text is placed in one of the 8 positions:
+                - bottom-left
+                - bottom-right
+                - top-left
+                - top-right
+                - bottom-middle
+                - middle-right
+                - middle-left
+                - top-middle
+
+                If a pair (x,y) is passed as input the 2D text is place at that
+                position in the coordinate system of the 2D screen (with the
+                origin sitting at the bottom left).
+
+            s : (float)
+                size of text
+            bg : (color)
+                background color
+            alpha : (float)
+                background opacity
+            justify : (str)
+                text justification
+
+            font : (str)
+                built-in available fonts are:
+                - Antares
+                - Arial
+                - Bongas
+                - Calco
+                - Comae
+                - ComicMono
+                - Courier
+                - Glasgo
+                - Kanopus
+                - LogoType
+                - Normografo
+                - Quikhand
+                - SmartCouric
+                - Theemim
+                - Times
+                - VictorMono
+                - More fonts at: https://vedo.embl.es/fonts/
+
+                A path to a `.otf` or `.ttf` font-file can also be supplied as input.
+
+        Examples:
+            - [fonts.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/fonts.py)
+            - [caption.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/caption.py)
+            - [colorcubes.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/colorcubes.py)
+
+                ![](https://vedo.embl.es/images/basic/colorcubes.png)
+        """
+        self.name = "Text2D"
+        self.rendered_at = set()
+
         self.filename = ""
         self.time = 0
         self.info = {}
@@ -4498,6 +4574,109 @@ class TextBase:
             self.fontname = lfonts[font]
         else:
             self.fontname = settings.default_font
+        
+        self.mapper = vtki.new("TextMapper")
+
+        self.properties = self.mapper.GetTextProperty()
+
+        self.actor = vtki.vtkActor2D()
+        self.actor.SetMapper(self.mapper)
+        
+        self.actor.retrieve_object = weak_ref_to(self)
+
+        self.actor.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
+
+        # automatic black or white
+        if c is None:
+            c = (0.1, 0.1, 0.1)
+            if vedo.plotter_instance and vedo.plotter_instance.renderer:
+                if vedo.plotter_instance.renderer.GetGradientBackground():
+                    bgcol = vedo.plotter_instance.renderer.GetBackground2()
+                else:
+                    bgcol = vedo.plotter_instance.renderer.GetBackground()
+                c = (0.9, 0.9, 0.9)
+                if np.sum(bgcol) > 1.5:
+                    c = (0.1, 0.1, 0.1)
+
+        self.font(font).color(c).background(bg, alpha).bold(bold).italic(italic)
+        self.pos(pos, justify).size(s).text(txt).line_spacing(1.2).line_offset(5)
+        self.actor.PickableOff()
+
+    def pos(self, pos="top-left", justify=""):
+        """
+        Set position of the text to draw. Keyword `pos` can be a string
+        or 2D coordinates in the range [0,1], being (0,0) the bottom left corner.
+        """
+        ajustify = "top-left"  # autojustify
+        if isinstance(pos, str):  # corners
+            ajustify = pos
+            if "top" in pos:
+                if "left" in pos:
+                    pos = (0.008, 0.994)
+                elif "right" in pos:
+                    pos = (0.994, 0.994)
+                elif "mid" in pos or "cent" in pos:
+                    pos = (0.5, 0.994)
+            elif "bottom" in pos:
+                if "left" in pos:
+                    pos = (0.008, 0.008)
+                elif "right" in pos:
+                    pos = (0.994, 0.008)
+                elif "mid" in pos or "cent" in pos:
+                    pos = (0.5, 0.008)
+            elif "mid" in pos or "cent" in pos:
+                if "left" in pos:
+                    pos = (0.008, 0.5)
+                elif "right" in pos:
+                    pos = (0.994, 0.5)
+                else:
+                    pos = (0.5, 0.5)
+
+            else:
+                vedo.logger.warning(f"cannot understand text position {pos}")
+                pos = (0.008, 0.994)
+                ajustify = "top-left"
+
+        elif len(pos) != 2:
+            vedo.logger.error("pos must be of length 2 or integer value or string")
+            raise RuntimeError()
+
+        if not justify:
+            justify = ajustify
+
+        self.properties.SetJustificationToLeft()
+        if "top" in justify:
+            self.properties.SetVerticalJustificationToTop()
+        if "bottom" in justify:
+            self.properties.SetVerticalJustificationToBottom()
+        if "cent" in justify or "mid" in justify:
+            self.properties.SetJustificationToCentered()
+        if "left" in justify:
+            self.properties.SetJustificationToLeft()
+        if "right" in justify:
+            self.properties.SetJustificationToRight()
+
+        self.actor.SetPosition(pos)
+        return self
+
+    def text(self, txt=None):
+        """Set/get the input text string."""
+        if txt is None:
+            return self.mapper.GetInput()
+
+        if ":" in txt:
+            for r in _reps:
+                txt = txt.replace(r[0], r[1])
+        else:
+            txt = str(txt)
+
+        self.mapper.SetInput(txt)
+        return self
+
+    def size(self, s):
+        """Set the font size."""
+        self.properties.SetFontSize(int(s * 22.5))
+        return self
 
     def angle(self, value: float):
         """Orientation angle in degrees"""
@@ -4613,273 +4792,14 @@ class TextBase:
         self.actor.SetVisibility(False)
         return self
 
-class Text2D(TextBase):
-    """
-    Create a 2D text object.
-    """
-    def __init__(
-        self,
-        txt="",
-        pos="top-left",
-        s=1.0,
-        bg=None,
-        font="",
-        justify="",
-        bold=False,
-        italic=False,
-        c=None,
-        alpha=0.5,
-    ) -> None:
-        """
-        Create a 2D text object.
-
-        All properties of the text, and the text itself, can be changed after creation
-        (which is especially useful in loops).
-
-        Arguments:
-            pos : (str)
-                text is placed in one of the 8 positions:
-                - bottom-left
-                - bottom-right
-                - top-left
-                - top-right
-                - bottom-middle
-                - middle-right
-                - middle-left
-                - top-middle
-
-                If a pair (x,y) is passed as input the 2D text is place at that
-                position in the coordinate system of the 2D screen (with the
-                origin sitting at the bottom left).
-
-            s : (float)
-                size of text
-            bg : (color)
-                background color
-            alpha : (float)
-                background opacity
-            justify : (str)
-                text justification
-
-            font : (str)
-                built-in available fonts are:
-                - Antares
-                - Arial
-                - Bongas
-                - Calco
-                - Comae
-                - ComicMono
-                - Courier
-                - Glasgo
-                - Kanopus
-                - LogoType
-                - Normografo
-                - Quikhand
-                - SmartCouric
-                - Theemim
-                - Times
-                - VictorMono
-                - More fonts at: https://vedo.embl.es/fonts/
-
-                A path to a `.otf` or `.ttf` font-file can also be supplied as input.
-
-        Examples:
-            - [fonts.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/fonts.py)
-            - [caption.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/caption.py)
-            - [colorcubes.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/colorcubes.py)
-
-                ![](https://vedo.embl.es/images/basic/colorcubes.png)
-        """
-        super().__init__()
-        self.name = "Text2D"
-
-        self.mapper = vtki.new("TextMapper")
-
-        self.properties = self.mapper.GetTextProperty()
-
-        self.actor = vtki.vtkActor2D()
-        self.actor.SetMapper(self.mapper)
-        
-        self.actor.retrieve_object = weak_ref_to(self)
-
-        self.actor.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
-
-        # automatic black or white
-        if c is None:
-            c = (0.1, 0.1, 0.1)
-            if vedo.plotter_instance and vedo.plotter_instance.renderer:
-                if vedo.plotter_instance.renderer.GetGradientBackground():
-                    bgcol = vedo.plotter_instance.renderer.GetBackground2()
-                else:
-                    bgcol = vedo.plotter_instance.renderer.GetBackground()
-                c = (0.9, 0.9, 0.9)
-                if np.sum(bgcol) > 1.5:
-                    c = (0.1, 0.1, 0.1)
-
-        self.font(font).color(c).background(bg, alpha).bold(bold).italic(italic)
-        self.pos(pos, justify).size(s).text(txt).line_spacing(1.2).line_offset(5)
-        self.actor.PickableOff()
-
-    def pos(self, pos="top-left", justify=""):
-        """
-        Set position of the text to draw. Keyword `pos` can be a string
-        or 2D coordinates in the range [0,1], being (0,0) the bottom left corner.
-        """
-        ajustify = "top-left"  # autojustify
-        if isinstance(pos, str):  # corners
-            ajustify = pos
-            if "top" in pos:
-                if "left" in pos:
-                    pos = (0.008, 0.994)
-                elif "right" in pos:
-                    pos = (0.994, 0.994)
-                elif "mid" in pos or "cent" in pos:
-                    pos = (0.5, 0.994)
-            elif "bottom" in pos:
-                if "left" in pos:
-                    pos = (0.008, 0.008)
-                elif "right" in pos:
-                    pos = (0.994, 0.008)
-                elif "mid" in pos or "cent" in pos:
-                    pos = (0.5, 0.008)
-            elif "mid" in pos or "cent" in pos:
-                if "left" in pos:
-                    pos = (0.008, 0.5)
-                elif "right" in pos:
-                    pos = (0.994, 0.5)
-                else:
-                    pos = (0.5, 0.5)
-
-            else:
-                vedo.logger.warning(f"cannot understand text position {pos}")
-                pos = (0.008, 0.994)
-                ajustify = "top-left"
-
-        elif len(pos) != 2:
-            vedo.logger.error("pos must be of length 2 or integer value or string")
-            raise RuntimeError()
-
-        if not justify:
-            justify = ajustify
-
-        self.properties.SetJustificationToLeft()
-        if "top" in justify:
-            self.properties.SetVerticalJustificationToTop()
-        if "bottom" in justify:
-            self.properties.SetVerticalJustificationToBottom()
-        if "cent" in justify or "mid" in justify:
-            self.properties.SetJustificationToCentered()
-        if "left" in justify:
-            self.properties.SetJustificationToLeft()
-        if "right" in justify:
-            self.properties.SetJustificationToRight()
-
-        self.actor.SetPosition(pos)
+    def toggle(self):
+        """Toggle text visibility"""
+        self.actor.SetVisibility(not self.actor.GetVisibility())
         return self
 
-    def text(self, txt=None):
-        """Set/get the input text string."""
-        if txt is None:
-            return self.mapper.GetInput()
-
-        if ":" in txt:
-            for r in _reps:
-                txt = txt.replace(r[0], r[1])
-        else:
-            txt = str(txt)
-
-        self.mapper.SetInput(txt)
-        return self
-
-    def size(self, s):
-        """Set the font size."""
-        self.properties.SetFontSize(int(s * 22.5))
-        return self
-
-
-class CornerAnnotation(TextBase, vtki.vtkCornerAnnotation):
-    # PROBABLY USELESS given that Text2D does pretty much the same ...
-    """
-    Annotate the window corner with 2D text.
-
-    See `Text2D` description as the basic functionality is very similar.
-
-    The added value of this class is the possibility to manage with one single
-    object the all corner annotations (instead of creating 4 `Text2D` instances).
-
-    Examples:
-        - [timer_callback2.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/timer_callback2.py)
-    """
-
-    def __init__(self, c=None) -> None:
-
-        super().__init__()
-
-        self.properties = self.GetTextProperty()
-
-        # automatic black or white
-        if c is None:
-            if vedo.plotter_instance and vedo.plotter_instance.renderer:
-                c = (0.9, 0.9, 0.9)
-                if vedo.plotter_instance.renderer.GetGradientBackground():
-                    bgcol = vedo.plotter_instance.renderer.GetBackground2()
-                else:
-                    bgcol = vedo.plotter_instance.renderer.GetBackground()
-                if np.sum(bgcol) > 1.5:
-                    c = (0.1, 0.1, 0.1)
-            else:
-                c = (0.5, 0.5, 0.5)
-
-        self.SetNonlinearFontScaleFactor(1 / 2.75)
-        self.PickableOff()
-        self.properties.SetColor(get_color(c))
-        self.properties.SetBold(False)
-        self.properties.SetItalic(False)
-
-    def size(self, s:float, linear=False) -> "CornerAnnotation":
-        """
-        The font size is calculated as the largest possible value such that the annotations
-        for the given viewport do not overlap.
-
-        This font size can be scaled non-linearly with the viewport size, to maintain an
-        acceptable readable size at larger viewport sizes, without being too big.
-        `f' = linearScale * pow(f,nonlinearScale)`
-        """
-        if linear:
-            self.SetLinearFontScaleFactor(s * 5.5)
-        else:
-            self.SetNonlinearFontScaleFactor(s / 2.75)
-        return self
-
-    def text(self, txt: str, pos=2) -> "CornerAnnotation":
-        """Set text at the assigned position"""
-
-        if isinstance(pos, str):  # corners
-            if "top" in pos:
-                if "left" in pos: pos = 2
-                elif "right" in pos: pos = 3
-                elif "mid" in pos or "cent" in pos: pos = 7
-            elif "bottom" in pos:
-                if "left" in pos: pos = 0
-                elif "right" in pos: pos = 1
-                elif "mid" in pos or "cent" in pos: pos = 4
-            else:
-                if "left" in pos: pos = 6
-                elif "right" in pos: pos = 5
-                else: pos = 2
-
-        if "\\" in repr(txt):
-            for r in _reps:
-                txt = txt.replace(r[0], r[1])
-        else:
-            txt = str(txt)
-
-        self.SetText(pos, txt)
-        return self
-
-    def clear(self) -> "CornerAnnotation":
-        """Remove all text from all corners"""
-        self.ClearAllTexts()
+    def pickable(self, value=True):
+        """Set the pickable state of the text"""
+        self.actor.SetPickable(value)
         return self
 
 

@@ -1,6 +1,5 @@
 # Create a class which wraps the vedo.Plotter class and adds a timer callback
 # Credits: Nicolas Antille, https://github.com/nantille
-# Check out the simpler example: timer_callback1.py
 import vedo
 
 
@@ -46,9 +45,8 @@ class Viewer:
         moon.color(self.counter)    # change color to the Moon
         earth.rotate_z(2)           # rotate the Earth
         moon.rotate_z(1)
-        txt2d.text("Moon color is:").color(self.counter).background(self.counter,0.1)
-        txt2d.text(vedo.get_color_name(self.counter), "top-center")
-        txt2d.text("..press q to quit", "bottom-right")
+        txt2d.text("Moon color is: " + vedo.get_color_name(self.counter))
+        txt2d.color(self.counter).background(self.counter, 0.1)
         self.plotter.render()
         self.counter += 1
 
@@ -57,6 +55,6 @@ viewer = Viewer(axes=1, dt=150).initialize()
 
 earth  = vedo.Earth()
 moon   = vedo.Sphere(r=0.1).x(1.5).color('k7')
-txt2d  = vedo.CornerAnnotation().font("Kanopus")
+txt2d  = vedo.Text2D().font("Kanopus")
 
 viewer.show(earth, moon, txt2d, viewup='z').close()

@@ -578,7 +578,6 @@ class Actor2D(vtki.vtkActor2D):
         """Manage 2D objects."""
         super().__init__()
 
-        self.dataset = None
         self.name = "Actor2D"
         self.filename = ""
         self.file_size = 0

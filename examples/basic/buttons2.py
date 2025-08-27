@@ -8,15 +8,15 @@ s3 = Mesh(dataurl+"mug.ply").normalize().x(6).color("r5")
 
 def func1(b, evt):
     s1.toggle()  # toggle visibility
-    b.switch()
+    b.retrieve_object().switch()
 
 def func2(b, evt):
     s2.toggle()
-    b.switch()
+    b.retrieve_object().switch()
 
 def func3(b, evt):
     s3.toggle()
-    b.switch()
+    b.retrieve_object().switch()
 
 def func4(_, evt):
     [s.toggle() for s in (s1,s2,s3)]
