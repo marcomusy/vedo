@@ -990,111 +990,84 @@ class Plotter:
 
         return self
 
+    ############################################################################
     def remove(self, *objs, at=None) -> Self:
         """
         Remove input object to the internal list of objects to be shown.
 
         Objects to be removed can be referenced by their assigned name,
+        or by passing the object instance itself.
+
+        Wildcards are supported in the names.
+        E.g. `Eleph*nt` or `Eleph?nt` or `Eleph[aio]nt` will match `Elephant`.
 
         Arguments:
             at : (int)
                 remove the object at the specified renderer
         """
-        # TODO and you can also use wildcards like `*` and `?`.
-
         ren = self.renderer if at is None else self.renderers[at]
-
-        objs = [ob for ob in utils.flatten(objs) if ob]
-
-        has_str = False
-        for ob in objs:
-            if isinstance(ob, str):
-                has_str = True
-                break
-
-        has_actor = False
-        for ob in objs:
-            if hasattr(ob, "actor") and ob.actor:
-                has_actor = True
-                break
-
-        if has_str or has_actor:
-            # need to get the actors to search for
-            for a in self.get_actors(include_non_pickables=True):
-                # print("PARSING", [a])
-                try:
-                    if (a.name and a.name in objs) or a in objs:
-                        objs.append(a)
-                    # if a.name:
-                    #     bools = [utils.parse_pattern(ob, a.name)[0] for ob in objs]
-                    #     if any(bools) or a in objs:
-                    #         objs.append(a)
-                    #     print('a.name',a.name, objs,any(bools))
-                except AttributeError:  # no .name
-                    # passing the actor so get back the object with .retrieve_object()
-                    try:
-                        vobj = a.retrieve_object()
-                        if (vobj.name and vobj.name in objs) or vobj in objs:
-                            # print('vobj.name', vobj.name)
-                            objs.append(vobj)
-                    except AttributeError:
-                        pass
-
-        if ren is None:
+        if not ren:
             return self
         ir = self.renderers.index(ren)
 
-        ids = []
-        for ob in set(objs):
+        on_scene_actors = self.get_actors(include_non_pickables=True)
+        # print("remove() called", [objs])
+        # print("on_scene_actors", (on_scene_actors))
 
-            # will remove it from internal list if possible
-            try:
-                idx = self.objects.index(ob)
-                ids.append(idx)
-            except ValueError:
-                pass
-
-            if ren:  ### remove it from the renderer
-
-                if isinstance(ob, vedo.addons.BaseCutter):
-                    ob.remove_from(self)  # from cutters
-                    continue
-
-                try:
-                    ren.RemoveActor(ob)
-                except TypeError:
+        # add to objs_to_remove the ones with string name and remove the rest
+        objs_to_remove = []
+        for ob in utils.flatten(objs):
+            if not ob:
+                continue
+            if isinstance(ob, str):
+                name = ob
+                for a in on_scene_actors:
+                    # print("->> checking", [a])
                     try:
-                        ren.RemoveActor(ob.actor)
+                        vobj = a.retrieve_object()
+                        # print(" ->> found", [vobj], vobj.name)
+                        if utils.string_match(name, vobj.name):
+                            objs_to_remove.append(a)
                     except AttributeError:
                         pass
+            
+            elif isinstance(ob, vedo.addons.BaseCutter):
+                ob.remove_from(self)  # from cutters
+                continue
 
-                if hasattr(ob, "rendered_at"):
-                    ob.rendered_at.discard(ir)
+            elif isinstance(ob, vedo.visual.LightKit):
+                ob.lightkit.RemoveLightsFromRenderer(ren)
 
-                if hasattr(ob, "scalarbar") and ob.scalarbar:
-                    try:
+            else:
+                objs_to_remove.append(ob)
+
+        # remove objs_to_remove actors from the scene
+        for ob in objs_to_remove:
+            # print("->> removing", [ob])
+
+            if hasattr(ob, "rendered_at"):
+                ob.rendered_at.discard(ir)
+
+            try: # vtk actor
+                ren.RemoveActor(ob)
+            except TypeError:
+                try: # vedo object
+                    ren.RemoveActor(ob.actor)
+                    if hasattr(ob, "scalarbar") and ob.scalarbar:
                         ren.RemoveActor(ob.scalarbar)
-                    except TypeError:
-                        ren.RemoveActor(ob.actor)
-                if hasattr(ob, "_caption") and ob._caption:
-                    ren.RemoveActor(ob._caption)
-                if hasattr(ob, "shadows") and ob.shadows:
-                    for sha in ob.shadows:
-                        ren.RemoveActor(sha.actor)
-                if hasattr(ob, "trail") and ob.trail:
-                    ren.RemoveActor(ob.trail.actor)
-                    ob.trail_points = []
-                    if hasattr(ob.trail, "shadows") and ob.trail.shadows:
-                        for sha in ob.trail.shadows:
-                            ren.RemoveActor(sha.actor)
+                    if hasattr(ob, "_caption") and ob._caption:
+                        ren.RemoveActor(ob._caption)
+                    if hasattr(ob, "shadows") and ob.shadows:
+                        for sha in ob.shadows: ren.RemoveActor(sha.actor)
+                    if hasattr(ob, "trail") and ob.trail:
+                        ren.RemoveActor(ob.trail.actor)
+                        ob.trail_points = []
+                        if hasattr(ob.trail, "shadows") and ob.trail.shadows:
+                            for sha in ob.trail.shadows: ren.RemoveActor(sha.actor)
+                except AttributeError:
+                    pass
 
-                elif isinstance(ob, vedo.visual.LightKit):
-                    ob.lightkit.RemoveLightsFromRenderer(ren)
-
-        # for i in ids: # WRONG way of doing it!
-        #     del self.objects[i]
-        # instead we do:
-        self.objects = [ele for i, ele in enumerate(self.objects) if i not in ids]
+        self.objects = [ele for ele in self.objects if ele not in objs_to_remove]
         return self
 
     @property

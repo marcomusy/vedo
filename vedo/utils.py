@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 import os
 import time
+import re
+
 from typing import Union, Tuple, MutableSequence, List
 import numpy as np
 
@@ -1900,61 +1902,31 @@ def grep(filename: str, tag: str, column=None, first_occurrence_only=False) -> l
                     break
     return content
 
-def parse_pattern(query, strings_to_parse) -> list:
+def string_match(pattern: str, text: str) -> bool:
     """
-    Parse a pattern query to a list of strings.
-    The query string can contain wildcards like * and ?.
+    Check if the text matches the provided pattern with wildcards.
 
-    Arguments:
-        query : (str)
-            the query to parse
-        strings_to_parse : (str/list)
-            the string or list of strings to parse
-
-    Returns:
-        a list of booleans, one for each string in strings_to_parse
-
-    Example:
-        >>> query = r'*Sphere 1?3*'
-        >>> strings = ["Sphere 143 red", "Sphere 13 red", "Sphere 123", "ASphere 173"]
-        >>> parse_pattern(query, strings)
-        [True, True, False, False]
+    Examples:
+        string_match("Elephant?", "Elephant2")      # True
+        string_match("Elephant",  "Elephant2")      # False
+        string_match("Eleph*nt*", "Elephao_nt25")   # True
+        string_match("Eleph[aeiou]nt", "Elephant")  # True
+        string_match("Eleph[aeiou]nt", "Elephynt")  # False
     """
-    from re import findall as re_findall
-    if not isinstance(query, str):
-        return [False]
-
-    if not is_sequence(strings_to_parse):
-        strings_to_parse = [strings_to_parse]
-
-    outs = []
-    for sp in strings_to_parse:
-        if not isinstance(sp, str):
-            outs.append(False)
-            continue
-
-        s = query
-        if s.startswith("*"):
-            s = s[1:]
-        else:
-            s = "^" + s
-
-        t = ""
-        if not s.endswith("*"):
-            t = "$"
-        else:
-            s = s[:-1]
-
-        pattern = s.replace('?', r'\w').replace(' ', r'\s').replace("*", r"\w+") + t
-
-        # Search for the pattern in the input string
-        match = re_findall(pattern, sp)
-        out = bool(match)
-        outs.append(out)
-        # Print the matches for debugging
-        print("pattern", pattern, "in:", strings_to_parse)
-        print("matches", match, "result:", out)
-    return outs
+    # Characters we DON'T want to escape: *, ?, [, ]
+    # Step 1: Temporarily replace wildcards with placeholders
+    pattern = pattern.replace("*", "__STAR__").replace("?", "__QMARK__")
+    
+    # Step 2: Escape everything else
+    pattern = re.escape(pattern)
+    
+    # Step 3: Restore wildcards (and allow [] to be unescaped)
+    pattern = pattern.replace("__STAR__", ".*").replace("__QMARK__", ".")
+    pattern = pattern.replace(r"\[", "[").replace(r"\]", "]")
+    
+    # Step 4: Anchor for full match
+    pattern = "^" + pattern + "$"
+    return bool(re.match(pattern, text))
 
 def print_histogram(
     data,

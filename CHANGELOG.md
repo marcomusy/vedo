@@ -16,7 +16,7 @@ All notable changes to the project will be documented in this file.
 - add `volume.extract_components()`
 - add `applications.ImageEditor` Plotter-derived class 
 - add `pointcloud.project_point_on_variety()` function
-
+- objects can now be removed also by substring e.g. `plt.remove("*_mesh")` will remove "some_mesh"
 
 
 ## Soft-breaking Changes

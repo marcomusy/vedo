@@ -81,7 +81,6 @@ class Group:
 
     def __init__(self, objects=()):
         """Form groups of generic objects (not necessarily meshes)."""
-        super().__init__()
 
         self.objects = []
 
@@ -94,6 +93,7 @@ class Group:
 
 
         self.actor = vtki.vtkPropAssembly()
+        self.actor.retrieve_object = weak_ref_to(self)
 
         self.name = "Group"
         self.filename = ""
