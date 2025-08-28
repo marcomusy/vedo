@@ -593,14 +593,14 @@ class Assembly(CommonVisual, Actor3DHelper):
             newlist.append(a.clone())
         return Assembly(newlist)
 
-    def clone2d(self, pos="bottom-left", size=1, rotation=0, ontop=False, scale=None) -> Group:
+    def clone2d(self, pos="bottom-left", size=1, rotation=0, ontop=False, justify="bottom-left") -> Group:
         """
         Convert the `Assembly` into a `Group` of 2D objects.
 
         Arguments:
             pos : (list, str)
                 Position in 2D, as a string or list (x,y).
-                The center of the renderer is [0,0] while top-right is [1,1].
+                The center of the renderer is [-1,-1] while top-right is [1,1].
                 Any combination of "center", "top", "bottom", "left" and "right" will work.
             size : (float)
                 global scaling factor for the 2D object.
@@ -611,14 +611,12 @@ class Assembly(CommonVisual, Actor3DHelper):
                 if `True` the now 2D object is rendered on top of the 3D scene.
             scale : (float)
                 deprecated, use `size` instead.
+            justify : (str)
+                justification for the 2D object.
 
         Returns:
             `Group` object.
         """
-        if scale is not None:
-            vedo.logger.warning("clone2d(scale=...) is deprecated, use clone2d(size=...) instead")
-            size = scale
-
         padding = 0.05
         x0, x1 = self.xbounds()
         y0, y1 = self.ybounds()
@@ -628,7 +626,34 @@ class Assembly(CommonVisual, Actor3DHelper):
         y0 -= pp[1]
         y1 -= pp[1]
 
+        # choose offset based on justification
         offset = [x0, y0]
+        if "cent" in justify:
+            offset = [(x0 + x1) / 2, (y0 + y1) / 2]
+            if "right" in justify:
+                offset[0] = x1
+            if "left" in justify:
+                offset[0] = x0
+            if "top" in justify:
+                offset[1] = y1
+            if "bottom" in justify:
+                offset[1] = y0
+        elif "top" in justify:
+            if "right" in justify:
+                offset = [x1, y1]
+            elif "left" in justify:
+                offset = [x0, y1]
+            else:
+                raise ValueError(f"incomplete justify='{justify}'")
+        elif "bottom" in justify:
+            if "right" in justify:
+                offset = [x1, y0]
+            elif "left" in justify:
+                offset = [x0, y0]
+            else:
+                raise ValueError(f"incomplete justify='{justify}'")
+
+        # choose position
         if "cent" in pos:
             offset = [(x0 + x1) / 2, (y0 + y1) / 2]
             position = [0., 0.]
@@ -665,11 +690,12 @@ class Assembly(CommonVisual, Actor3DHelper):
         else:
             position = pos
 
-        scanned : List[Any] = []
         group = Group()
+
+        bnds = self.bounds()
+        cm = [(bnds[0] + bnds[1]) / 2, (bnds[2] + bnds[3]) / 2, 0]
+
         for a in self.recursive_unpack():
-            if a in scanned:
-                continue
             if not isinstance(a, vedo.Points):
                 continue
             if a.npoints == 0:
@@ -680,12 +706,11 @@ class Assembly(CommonVisual, Actor3DHelper):
                 # wireframe is not rendered correctly in 2d
                 b = a.boundaries().lw(1).c(a.color(), a.alpha())
                 if rotation:
-                    b.rotate_z(rotation, around=self.origin())
+                    b.rotate_z(rotation, around=cm)
                 a2d = b.clone2d(size=s, offset=offset)
             else:
                 if rotation:
-                    # around=self.actor.GetCenter()
-                    a.rotate_z(rotation, around=self.origin())
+                    a.rotate_z(rotation, around=cm)
                 a2d = a.clone2d(size=s, offset=offset)
             a2d.pos(position).ontop(ontop)
             group += a2d
