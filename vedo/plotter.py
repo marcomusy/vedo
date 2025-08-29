@@ -9,9 +9,7 @@ import numpy as np
 import vedo.vtkclasses as vtki  # a wrapper for lazy imports
 
 import vedo
-from vedo import transformations
 from vedo import utils
-from vedo import backends
 from vedo import addons
 
 
@@ -3314,7 +3312,7 @@ class Plotter:
 
         # Backend ###############################################################
         if vedo.settings.default_backend in ["k3d", "panel"]:
-            return backends.get_notebook_backend(self.objects)
+            return vedo.backends.get_notebook_backend(self.objects)
         #########################################################################
 
         for ia in utils.flatten(objects):
@@ -3341,7 +3339,7 @@ class Plotter:
 
         # Backend ###############################################################
         if vedo.settings.default_backend in ["ipyvtk", "trame"]:
-            return backends.get_notebook_backend()
+            return vedo.backends.get_notebook_backend()
         #########################################################################
 
         if self.resetcam and self.renderer:
@@ -3456,7 +3454,7 @@ class Plotter:
 
         # 2d ####################################################################
         if vedo.settings.default_backend in ["2d"]:
-            return backends.get_notebook_backend()
+            return vedo.backends.get_notebook_backend()
         #########################################################################
 
         return self
@@ -4492,12 +4490,12 @@ class Plotter:
             else:
                 cpos = utils.vector(self._extralight.GetPosition())
                 x, y, z = self._extralight.GetPosition() - cm
-                r, th, ph = transformations.cart2spher(x, y, z)
+                r, th, ph = vedo.transformations.cart2spher(x, y, z)
                 th += 0.2
                 if th > np.pi:
                     th = np.random.random() * np.pi / 2
                 ph += 0.3
-                cpos = transformations.spher2cart(r, th, ph).T + cm
+                cpos = vedo.transformations.spher2cart(r, th, ph).T + cm
                 self._extralight.SetPosition(cpos)
 
         elif key == "l":

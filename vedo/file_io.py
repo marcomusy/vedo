@@ -1704,7 +1704,7 @@ def to_numpy(act: Any) -> dict:
         adict["type"] = "Text2D"
         adict["rendered_at"] = obj.rendered_at
         adict["text"] = obj.text()
-        adict["position"] = obj.GetPosition()
+        adict["position"] = obj.actor.GetPosition()
         adict["color"] = obj.properties.GetColor()
         adict["font"] = obj.fontname
         adict["size"] = obj.properties.GetFontSize() / 22.5

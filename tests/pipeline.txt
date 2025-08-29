@@ -25,7 +25,7 @@ pip install pymadcad -U
 pip install pyshtools -U
 pip install rtree
 pip install trimesh -U
-pip install -q trame==2.5.2
+pip install -q trame
 pip install qtpy
 pip install magic-class -U
 pip install tetgenpy -U
@@ -111,7 +111,7 @@ cd ~/Projects/server/cell_density
    analyse_density.py test_image.png test_image_gfp.png
    edu_histogram.py test_image.png
 ################
-cd ~/Projects/new_yalla/limb_opti_here
+cd ~/Projects/server/new_yalla/limb_opti_here
    python result_viz3.py
 ################
 cd ~/Projects/server/welsh_embryo_stager
@@ -120,10 +120,10 @@ cd ~/Projects/server/welsh_embryo_stager
 cd ~/Projects/oocytes
    python step5.py
 ################
-cd ~/Projects/umap_viewer3d
+cd ~/Projects/server/umap_viewer3d
    python main6.py
 ################
-cd ~/Projects/napari-vedo-bridge
+cd ~/Projects/server/napari-vedo-bridge
     # conda create -y -n napari-env -c conda-forge python=3.9
     # conda activate napari-env
     # python -m pip install "napari[all]"
@@ -133,34 +133,29 @@ cd ~/Projects/napari-vedo-bridge
     python $VEDODIR/examples/other/napari1.py # then open plugins ...
     conda deactivate
 ################
-cd ~/Projects/server/brainrender/examples
-    python cell_density.py
-    python streamlines.py
-    python volumetric_data.py
-################
 cd ~/Projects/clonal_analysis
     python -m analysis_plots2d
-    python tc_morph11_2d.py
+    python main3d_v4.py
 ################
-cd ~/Projects/server/gustaf
+cd ~/Projects/gustaf
     git pull
     pip install -e .
     cd examples
     python run_all_examples.py
 ################
-cd ~/Projects/server/splinepy
+cd ~/Projects/splinepy
     git pull
     pip install -e .
     cd examples
     python run_all_examples.py
 ################
-cd ~/Projects/server/tetgenpy/examples
+cd ~/Projects/tetgenpy/examples
     python plc_to_tets.py
 ################
-cd ~/Projects/4d-gene-reconstruction/useful_scripts
+cd ~/Projects/server/4d-gene-reconstruction/useful_scripts
     python plc_to_tets.py
 ################
-cd ~/Projects/abm_playground/
+cd ~/Projects/server/abm_playground/
     python cell_sim.py
 
 rm $VEDOLOGFILE
