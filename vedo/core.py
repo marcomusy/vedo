@@ -1805,7 +1805,7 @@ class PointAlgorithms(CommonAlgorithms):
 
         ![](https://vedo.embl.es/images/feats/apply_transform.png)
         """
-        if cls.dataset.GetNumberOfPoints() == 0:
+        if cls.dataset.GetNumberOfPoints() == 0 or not LT:
             return cls
 
         if isinstance(LT, LinearTransform):
