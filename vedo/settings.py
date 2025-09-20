@@ -282,6 +282,8 @@ class Settings:
         self.line_smoothing = False
         self.polygon_smoothing = False
 
+        self.enable_rendering_points_as_spheres = True
+
         self.light_follows_camera = False
         self.two_sided_lighting = True
 

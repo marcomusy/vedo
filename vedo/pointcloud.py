@@ -671,7 +671,8 @@ class Points(PointsVisual, PointAlgorithms):
         self.actor.retrieve_object = weak_ref_to(self)
 
         try:
-            self.properties.RenderPointsAsSpheresOn()
+            if vedo.settings.enable_rendering_points_as_spheres:
+                self.properties.RenderPointsAsSpheresOn()
         except AttributeError:
             pass
 
