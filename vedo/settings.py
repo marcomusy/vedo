@@ -182,6 +182,7 @@ class Settings:
         "screeshot_large_image",
         "enable_default_mouse_callbacks",
         "enable_default_keyboard_callbacks",
+        "enable_rendering_points_as_spheres",
         "enable_pipeline",
         "progressbar_delay",
         "immediate_rendering",
