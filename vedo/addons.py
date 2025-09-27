@@ -5090,7 +5090,7 @@ def add_global_axes(axtype=None, c=None, bounds=()) -> None:
         zc.pickable(0).lighting("off")
         ca = xc + yc + zc
         ca.pickable(False)
-        ca.UseBoundsOff()
+        ca.actor.UseBoundsOff()
         plt.axes_instances[r] = ca
         plt.add(ca)
 
