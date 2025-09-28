@@ -26,12 +26,8 @@ All notable changes to the project will be documented in this file.
 
 
 
-
-
 ## Hard-breaking Changes
 - None
-
-
 
 
 ## New/Revised Examples
@@ -57,6 +53,11 @@ interpolate_scalar4.py misplaced scalarbar
 markpoint.py (misplaced leader indicator)
 cut_and_cap.py (incomplete capping)
 tests/issues/discussion_800.py (incomplete capping of tube)
+
+lightings.py
+mousehighlight.py
+tensors.py
+examples/other/flag_labels2.py
 ```
 
 #### (Internal) Known issues

@@ -73,7 +73,6 @@ __all__ = [
     "Torus",
     "Paraboloid",
     "Hyperboloid",
-    "TextBase",
     "Text2D",
     "Text3D",
     "Latex",
@@ -4475,13 +4474,6 @@ class Text3D(Mesh):
                 tpoly = extrude.GetOutput()
 
         return tpoly
-
-
-class TextBase:
-    "Base class."
-
-    def __init__(self):
-        "Do not instantiate this base class."
 
 
 class Text2D:

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import os
 from typing import Union
 from typing_extensions import Self
 
@@ -225,7 +226,7 @@ class Flagpost(vtki.vtkFlagpoleLabel):
 
 
 ###########################################################################################
-class LegendBox(shapes.TextBase, vtki.vtkLegendBoxActor):
+class LegendBox(vtki.vtkLegendBoxActor):
     """
     Create a 2D legend box.
     """
@@ -309,7 +310,6 @@ class LegendBox(shapes.TextBase, vtki.vtkLegendBoxActor):
 
         if not font:
             font = settings.default_font
-
         self.font(font)
 
         n = 0
@@ -362,6 +362,34 @@ class LegendBox(shapes.TextBase, vtki.vtkLegendBoxActor):
         """Return the height of the legend box."""
         return self.GetHeight()
 
+    def font(self, font: str):
+        """Text font face"""
+        if isinstance(font, int):
+            lfonts = list(settings.font_parameters.keys())
+            n = font % len(lfonts)
+            font = lfonts[n]
+            self.fontname = font
+
+        if not font:  # use default font
+            font = self.fontname
+            fpath = os.path.join(vedo.fonts_path, font + ".ttf")
+        elif font.startswith("https"):  # user passed URL link, make it a path
+            fpath = vedo.file_io.download(font, verbose=False, force=False)
+        elif font.endswith(".ttf"):  # user passing a local path to font file
+            fpath = font
+        else:  # user passing name of preset font
+            fpath = os.path.join(vedo.fonts_path, font + ".ttf")
+
+        if   font == "Courier": self.properties.SetFontFamilyToCourier()
+        elif font == "Times":   self.properties.SetFontFamilyToTimes()
+        elif font == "Arial":   self.properties.SetFontFamilyToArial()
+        else:
+            fpath = utils.get_font_path(font)
+            self.properties.SetFontFamily(vtki.VTK_FONT_FILE)
+            self.properties.SetFontFile(fpath)
+        self.fontname = font  # io.tonumpy() uses it
+
+        return self
     def pos(self, pos):
         """Set the position of the legend box."""
         sx, sy = 1 - self.GetWidth(), 1 - self.GetHeight()

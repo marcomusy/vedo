@@ -3502,7 +3502,7 @@ class Plotter:
         if len(objects) == 1:
             widget.SetOrientationMarker(objects[0].actor)
         else:
-            widget.SetOrientationMarker(vedo.Assembly(objects))
+            widget.SetOrientationMarker(vedo.Assembly(objects).actor)
 
         widget.SetInteractor(self.interactor)
 

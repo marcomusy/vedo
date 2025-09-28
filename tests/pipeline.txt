@@ -58,9 +58,9 @@ code $VEDOLOGFILE  #### inspect logfile
 
 
 # TUTORIALS ##################################################################
-cd ~/Projects/server/vedo-embo-course/scripts && ./run_all.sh 
-cd ~/Projects/server/vedo-bias-course/scripts && ./run_all.sh 
-cd ~/Projects/server/vedo-epug-tutorial/scripts && ./run_all.sh 
+cd ~/Projects/vedo-embo-course/scripts && ./run_all.sh 
+cd ~/Projects/vedo-bias-course/scripts && ./run_all.sh 
+cd ~/Projects/vedo-epug-tutorial/scripts && ./run_all.sh 
 
 
 # TRIMESH #####################################################################
@@ -97,33 +97,30 @@ https://colab.research.google.com/drive/
 cd $VEDODIR
 pip install .
 
-cd ~/Projects/server/trackviewer
+cd ~/Projects/trackviewer
     ./main_test.py
 ################
 cd ~/Projects/clonal_analysis/clone_viewer3
     ./clone_viewer_gio3d.py
 ################
-cd ~/Projects/server/rio_organoid
+cd ~/Projects/rio_organoid
     python main4.py
     python piv_read_fw2_C3.py
 ################
-cd ~/Projects/server/cell_density
+cd ~/Projects/cell_density
    analyse_density.py test_image.png test_image_gfp.png
    edu_histogram.py test_image.png
 ################
-cd ~/Projects/server/new_yalla/limb_opti_here
-   python result_viz3.py
-################
-cd ~/Projects/server/welsh_embryo_stager
+cd ~/Projects/welsh_embryo_stager
    python stager.py pics/E14.5_L3-03_HL2.5X.jpg
 ################
 cd ~/Projects/oocytes
    python step5.py
 ################
-cd ~/Projects/server/umap_viewer3d
+cd ~/Projects/umap_viewer3d
    python main6.py
 ################
-cd ~/Projects/server/napari-vedo-bridge
+cd ~/Projects/napari-vedo-bridge
     # conda create -y -n napari-env -c conda-forge python=3.9
     # conda activate napari-env
     # python -m pip install "napari[all]"
@@ -152,10 +149,10 @@ cd ~/Projects/splinepy
 cd ~/Projects/tetgenpy/examples
     python plc_to_tets.py
 ################
-cd ~/Projects/server/4d-gene-reconstruction/useful_scripts
+cd ~/Projects/4d-gene-reconstruction/useful_scripts
     python plc_to_tets.py
 ################
-cd ~/Projects/server/abm_playground/
+cd ~/Projects/abm_playground/
     python cell_sim.py
 
 rm $VEDOLOGFILE

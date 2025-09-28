@@ -2041,7 +2041,7 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
         if self.filename:
             out += "filename".ljust(14) + ": " + str(self.filename) + "\n"
 
-        out += "dimensions".ljust(14) + ": " + str(self.dataset.GetDimensions()) + "\n"
+        out += "dimensions".ljust(14) + ": " + str(self.dimensions()) + "\n"
 
         out += "center".ljust(14) + ": "
         out += utils.precision(self.dataset.GetCenter(), 6) + "\n"
@@ -2171,7 +2171,13 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
 
     def dimensions(self) -> np.ndarray:
         """Return the number of points in the x, y and z directions."""
-        return np.array(self.dataset.GetDimensions())
+        try:
+            dims = self.dataset.GetDimensions()
+        except Exception:
+            dims = [0,0,0]
+            self.dataset.GetDimensions(dims)
+            return np.array(dims)
+        return np.array(dims)
 
     def clone(self, deep=True) -> "StructuredGrid":
         """Return a clone copy of the StructuredGrid. Alias of `copy()`."""
