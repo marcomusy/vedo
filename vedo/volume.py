@@ -1146,12 +1146,21 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         )
         return self
 
-    def resize(self, newdims: List[int]) -> Self:
-        """Increase or reduce the number of voxels of a Volume with interpolation."""
+    def resize(self, newdims: List[int]=(), newspacing: List[float]=()) -> Self:
+        """
+        Increase or reduce the number of voxels of a Volume with interpolation.
+        User must specify either the new desired dimensions or the new spacing in x, y and z.
+        """
         rsz = vtki.new("ImageResize")
-        rsz.SetResizeMethodToOutputDimensions()
         rsz.SetInputData(self.dataset)
-        rsz.SetOutputDimensions(newdims)
+        if len(newdims):
+            rsz.SetResizeMethodToOutputDimensions()
+            rsz.SetOutputDimensions(newdims)
+        elif len(newspacing) and len(newdims)==0:
+            rsz.SetResizeMethodToOutputSpacing()
+            rsz.SetOutputSpacing(newspacing)
+        else:
+            raise TypeError
         rsz.Update()
         self.dataset = rsz.GetOutput()
         self._update(self.dataset)
