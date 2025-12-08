@@ -47,7 +47,7 @@ cd $VEDODIR/tests/issues && ./run_all.sh
 cd $VEDODIR/tests/snippets && ./run_all.sh 
 
 # EXAMPLES ##########################################################################
-cd $VEDODIR/examples && time ./run_all.sh 2>&1 | tee $VEDOLOGFILE && alert "scan done."
+cd $VEDODIR/examples && time ./run_all.sh 2>&1 | tee $VEDOLOGFILE && notify-send "scan done."
 
 grep -aA 1 "Error" $VEDOLOGFILE
 grep -aA 3 "Trace" $VEDOLOGFILE
@@ -58,8 +58,7 @@ code $VEDOLOGFILE  #### inspect logfile
 
 
 # TUTORIALS ##################################################################
-cd ~/Projects/vedo-embo-course/scripts && ./run_all.sh 
-cd ~/Projects/vedo-bias-course/scripts && ./run_all.sh 
+cd ~/Projects/vedo-embo-course/solutions/ && ./run_all.sh 
 cd ~/Projects/vedo-epug-tutorial/scripts && ./run_all.sh 
 
 
@@ -78,7 +77,6 @@ conda deactivate
 
 # OTHERS #####################################################################
 cd $VEDODIR
-python ~/Dropbox/documents/Medical/RESONANCIA.py
 vedo https://vedo.embl.es/examples/data/panther.stl.gz
 vedo https://vedo.embl.es/examples/geo_scene.npz
 vedo --convert data/290.vtk --to ply && vedo data/290.ply
@@ -100,7 +98,7 @@ pip install .
 cd ~/Projects/trackviewer
     ./main_test.py
 ################
-cd ~/Projects/clonal_analysis/clone_viewer3
+cd ~/Projects/clonal_analysis/clone_viewer
     ./clone_viewer_gio3d.py
 ################
 cd ~/Projects/rio_organoid

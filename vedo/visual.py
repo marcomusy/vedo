@@ -586,9 +586,9 @@ class Actor2D(vtki.vtkActor2D):
         self.coordinate = None
 
         if dataset is not None:
-            mapper = vtki.new("PolyDataMapper2D")
-            mapper.SetInputData(dataset)
-            self.SetMapper(mapper)
+            mapp = vtki.new("PolyDataMapper2D")
+            mapp.SetInputData(dataset)
+            self.SetMapper(mapp)
 
         self.dataset = dataset
         self.properties = self.GetProperty()
@@ -598,6 +598,11 @@ class Actor2D(vtki.vtkActor2D):
     def mapper(self):
         """Get the internal vtkMapper."""
         return self.GetMapper()
+    
+    @mapper.setter
+    def mapper(self, mp):
+        self.actor.SetMapper(mp)
+
     
     # not usable
     # @property

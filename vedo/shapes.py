@@ -4571,7 +4571,7 @@ class Text2D:
 
         self.properties = self.mapper.GetTextProperty()
 
-        self.actor = vtki.vtkActor2D()
+        self.actor = vedo.visual.Actor2D() # vtki.vtkActor2D()
         self.actor.SetMapper(self.mapper)
         
         self.actor.retrieve_object = weak_ref_to(self)
@@ -4794,6 +4794,11 @@ class Text2D:
         self.actor.SetPickable(value)
         return self
 
+    def add_observer(self, event, func, priority=1) -> int:
+        """Add an observer to the widget."""
+        event = utils.get_vtk_name_event(event)
+        cid = self.actor.AddObserver(event, func, priority)
+        return cid
 
 class Latex(Image):
     """

@@ -14,7 +14,7 @@ from vedo import utils
 from vedo import shapes
 from vedo.transformations import LinearTransform
 from vedo.assembly import Assembly, Group
-from vedo.colors import get_color, build_lut, color_map, printc
+from vedo.colors import get_color, build_lut, color_map
 from vedo.mesh import Mesh
 from vedo.pointcloud import Points, Point, merge
 from vedo.grids import TetMesh
