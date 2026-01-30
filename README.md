@@ -261,6 +261,8 @@ M. Musy  <em>et al.</em>,
 "<code>vedo</code>, a python module for scientific analysis and visualization of 3D objects and point clouds",
 Zenodo, 2021, <a href="https://doi.org/10.5281/zenodo.7019968">doi: 10.5281/zenodo.7019968</a>.
 
-[![embl_logo](https://user-images.githubusercontent.com/32848391/58046204-e9157180-7b44-11e9-81c9-e916cdf9ba84.gif)](https://www.embl.es)
 
+
+<img src="https://user-images.githubusercontent.com/32848391/58046204-e9157180-7b44-11e9-81c9-e916cdf9ba84.gif" alt="drawing" width="200"/>
+<img src="https://www.prototypesforhumanity.com/wp-content/uploads/2021/01/Logo-Elisava-UVic-UCC-horizontal-negro.png" alt="drawing" width="700"/>
 
