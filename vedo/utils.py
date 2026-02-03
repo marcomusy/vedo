@@ -1164,14 +1164,21 @@ def andrews_curves(M, res=100) -> np.ndarray:
 
 
 ###########################################################
-def numpy2vtk(arr, dtype=None, deep=True, name=""):
+def numpy2vtk(arr, dtype=None, deep=True, name="", as_image=False, dims=None):
     """
-    Convert a numpy array into a `vtkDataArray`.
+    Convert a numpy array into a `vtkDataArray` or `vtkImageArray`.
+
     Use `dtype='id'` for `vtkIdTypeArray` objects.
+    Use `as_image=True` and specify the dimensions with the `dims` keyword to generate
+    a `vtkImageArray` object suitable for use with the volume constructor directly.
     """
     # https://github.com/Kitware/VTK/blob/master/Wrapping/Python/vtkmodules/util/numpy_support.py
     if arr is None:
         return None
+
+    if as_image and dims is None:
+        vedo.logger.error("must set dimensions (dims keyword) when requesting an image")
+        raise RuntimeError()
 
     arr = np.ascontiguousarray(arr)
 
@@ -1191,6 +1198,18 @@ def numpy2vtk(arr, dtype=None, deep=True, name=""):
 
     if name:
         varr.SetName(name)
+
+    if as_image:
+        # Assuming this is meant to be used with a volume
+        varr.SetName("input_scalars")
+
+        img = vtki.vtkImageData()
+        img.SetDimensions(*dims[:3])
+        img.GetPointData().AddArray(varr)
+        img.GetPointData().SetActiveScalars(varr.GetName())
+
+        return img
+
     return varr
 
 def vtk2numpy(varr):
