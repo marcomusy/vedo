@@ -56,7 +56,7 @@ def start_2d():
         print("PIL or IPython not available")
         return
 
-    plt = vedo.plotter_instance
+    plt = vedo.current_plotter()
 
     if hasattr(plt, "window") and plt.window:
         try:
@@ -66,7 +66,7 @@ def start_2d():
             return
 
         # IPython.display.display(pil_img)
-        vedo.notebook_plotter = pil_img
+        vedo.set_current_notebook_plotter(pil_img)
         if settings.backend_autoclose and plt.renderer == plt.renderers[-1]:
             plt.close()
         return pil_img
@@ -86,7 +86,7 @@ def start_panel():
         return None
 
     print("panel backend NOT YET FUNCTIONAL")
-    plt = vedo.plotter_instance
+    plt = vedo.current_plotter()
 
     if hasattr(plt, "window") and plt.window:
         plt.renderer.ResetCamera()
@@ -97,8 +97,8 @@ def start_panel():
             orientation_widget=True,
             enable_keybindings=True,
         )
-        vedo.notebook_plotter = vtkpan
-        return vedo.notebook_plotter
+        vedo.set_current_notebook_plotter(vtkpan)
+        return vedo.current_notebook_plotter()
 
 ####################################################################################
 def start_k3d(actors2show):
@@ -110,7 +110,7 @@ def start_k3d(actors2show):
         print("\nCannot find k3d, install with:  pip install k3d")
         return None
 
-    plt = vedo.plotter_instance
+    plt = vedo.current_plotter()
     if not plt:
         return None
 
@@ -131,7 +131,7 @@ def start_k3d(actors2show):
         else:
             actors2show2.append(ia)
 
-    vedo.notebook_plotter = k3d.plot(
+    nbplot = k3d.plot(
         axes=["x", "y", "z"],
         menu_visibility=settings.k3d_menu_visibility,
         height=settings.k3d_plot_height,
@@ -145,17 +145,18 @@ def start_k3d(actors2show):
     )
 
     # set k3d camera
-    vedo.notebook_plotter.camera_auto_fit = settings.k3d_camera_autofit
-    vedo.notebook_plotter.axes_helper = settings.k3d_axes_helper
-    vedo.notebook_plotter.grid_auto_fit = settings.k3d_grid_autofit
+    vedo.set_current_notebook_plotter(nbplot)
+    nbplot.camera_auto_fit = settings.k3d_camera_autofit
+    nbplot.axes_helper = settings.k3d_axes_helper
+    nbplot.grid_auto_fit = settings.k3d_grid_autofit
 
     if already_has_axes:
-        vedo.notebook_plotter.grid_visible = False
+        nbplot.grid_visible = False
     if settings.k3d_grid_visible is not None: # override if set
-        vedo.notebook_plotter.grid_visible = settings.k3d_grid_visible
+        nbplot.grid_visible = settings.k3d_grid_visible
 
     if plt.camera:
-        vedo.notebook_plotter.camera = utils.vtkCameraToK3D(plt.camera)
+        nbplot.camera = utils.vtkCameraToK3D(plt.camera)
 
     for ia in actors2show2:
 
@@ -250,7 +251,7 @@ def start_k3d(actors2show):
                 bounds=kbounds,
                 name=name,
             )
-            vedo.notebook_plotter += kobj
+            nbplot += kobj
 
         ################################################################ Text2D
         elif isinstance(ia, vedo.Text2D):
@@ -266,7 +267,7 @@ def start_k3d(actors2show):
                 label_box=bool(ia.properties.GetFrame()),
                 # reference_point='bl',
             )
-            vedo.notebook_plotter += kobj
+            nbplot += kobj
 
         ################################################################# Lines
         elif (
@@ -293,7 +294,7 @@ def start_k3d(actors2show):
                     width=aves.astype(float),
                     name=name,
                 )
-                vedo.notebook_plotter += kobj
+                nbplot += kobj
 
         ################################################################## Mesh
         elif isinstance(ia, Mesh) and ia.npoints and ia.dataset.GetNumberOfPolys():
@@ -354,7 +355,7 @@ def start_k3d(actors2show):
             if iap.GetInterpolation() == 0:
                 kobj.flat_shading = True
 
-            vedo.notebook_plotter += kobj
+            nbplot += kobj
 
         #####################################################################Points
         elif isinstance(ia, Points):
@@ -377,7 +378,7 @@ def start_k3d(actors2show):
                 point_size=aves.astype(float),
                 name=name,
             )
-            vedo.notebook_plotter += kobj
+            nbplot += kobj
 
         #####################################################################
         elif isinstance(ia, vedo.Image):
@@ -385,7 +386,7 @@ def start_k3d(actors2show):
 
     if plt and settings.backend_autoclose:
         plt.close()
-    return vedo.notebook_plotter
+    return nbplot
 
 
 #####################################################################################
@@ -399,7 +400,7 @@ def start_trame():
         print("trame is not installed, try:\n> pip install trame==2.5.2")
         return
 
-    plt = vedo.plotter_instance
+    plt = vedo.current_plotter()
     if hasattr(plt, "window") and plt.window:
         plt.renderer.ResetCamera()
         server = get_server("jupyter-1")
@@ -433,13 +434,14 @@ def start_ipyvtklink():
         print("ipyvtklink is not installed, try:\n> pip install ipyvtklink")
         return None
 
-    plt = vedo.plotter_instance
+    plt = vedo.current_plotter()
     if hasattr(plt, "window") and plt.window:
         plt.renderer.ResetCamera()
-        vedo.notebook_plotter = ViewInteractiveWidget(
+        nbplot = ViewInteractiveWidget(
             plt.window, allow_wheel=True, quality=100, quick_quality=50
         )
-        return vedo.notebook_plotter
+        vedo.set_current_notebook_plotter(nbplot)
+        return nbplot
     vedo.logger.error("No window present for the ipyvtklink backend.")
     return None
 

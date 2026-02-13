@@ -210,7 +210,7 @@ class Figure(Assembly):
         super().__init__([self.axes])
         self.name = "Figure"
 
-        vedo.last_figure = self if settings.remember_last_figure_format else None
+        vedo.set_last_figure(self if settings.remember_last_figure_format else None)
 
 
     ##################################################################
@@ -734,9 +734,9 @@ class Histogram1D(Figure):
                     bins = x1 - x0 + 1
                     xlim = (x0 - 0.5, x1 + 0.5)
 
-        if like is None and vedo.last_figure is not None:
+        if like is None and vedo.current_last_figure() is not None:
             if xlim is None and ylim == (0, None):
-                like = vedo.last_figure
+                like = vedo.current_last_figure()
 
         if like is not None:
             xlim = like.xlim
@@ -1093,9 +1093,9 @@ class Histogram2D(Figure):
 
         padding = [0, 0, 0, 0]
 
-        if like is None and vedo.last_figure is not None:
+        if like is None and vedo.current_last_figure() is not None:
             if xlim is None and ylim == (None, None) and zlim == (None, None):
-                like = vedo.last_figure
+                like = vedo.current_last_figure()
 
         if like is not None:
             xlim = like.xlim
@@ -1308,9 +1308,9 @@ class PlotBars(Figure):
             if ytitle == " ":
                 ytitle = "log_10 (counts+1)"
 
-        if like is None and vedo.last_figure is not None:
+        if like is None and vedo.current_last_figure() is not None:
             if xlim == (None, None) and ylim == (0, None):
-                like = vedo.last_figure
+                like = vedo.current_last_figure()
 
         if like is not None:
             xlim = like.xlim
@@ -1549,9 +1549,9 @@ class PlotXY(Figure):
         if marker == "" and not line and not splined:
             marker = "o"
 
-        if like is None and vedo.last_figure is not None:
+        if like is None and vedo.current_last_figure() is not None:
             if xlim is None and ylim == (None, None):
-                like = vedo.last_figure
+                like = vedo.current_last_figure()
 
         if like is not None:
             xlim = like.xlim

@@ -740,7 +740,7 @@ def draw_scene(args):
         sp = vol.spacing()
         vol.spacing([sp[0] * args.x_spacing, sp[1] * args.y_spacing, sp[2] * args.z_spacing])
 
-        vedo.plotter_instance = None  # reset
+        vedo.set_current_plotter(None)  # reset
 
         plt = applications.Slicer3DPlotter(
             vol,
@@ -758,7 +758,7 @@ def draw_scene(args):
     ########################################################################
     elif args.edit:
         # print('edit mode for meshes and pointclouds')
-        vedo.plotter_instance = None  # reset
+        vedo.set_current_plotter(None)  # reset
         settings.use_parallel_projection = True
 
         try:
@@ -784,8 +784,8 @@ def draw_scene(args):
         vol.cmap("bone_r")
         sp = vol.spacing()
         vol.spacing([sp[0] * args.x_spacing, sp[1] * args.y_spacing, sp[2] * args.z_spacing])
-        vedo.plotter_instance = applications.Slicer2DPlotter(vol)
-        vedo.plotter_instance.show().close()
+        plt = vedo.set_current_plotter(applications.Slicer2DPlotter(vol))
+        plt.show().close()
         return
 
     ########################################################################

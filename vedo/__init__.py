@@ -26,6 +26,7 @@ except ModuleNotFoundError:
 
 #################################################
 from vedo.version import _version as __version__
+from vedo import session as _session
 
 from vedo.settings import Settings
 settings = Settings()
@@ -135,6 +136,58 @@ if not any(
     _chsh._vedo_default_handler = True  # type: ignore[attr-defined]
     logger.addHandler(_chsh)
 logger.setLevel(logging.INFO)
+
+
+def current_plotter():
+    """Return the active plotter instance for the current runtime session."""
+    return _session.get_plotter(plotter_instance)
+
+
+def set_current_plotter(plotter):
+    """Set the active plotter instance for the current runtime session."""
+    global plotter_instance
+    plotter_instance = plotter
+    _session.set_plotter(plotter)
+    return plotter
+
+
+def current_notebook_plotter():
+    """Return the active notebook plotter object for the current runtime session."""
+    return _session.get_notebook_plotter(notebook_plotter)
+
+
+def set_current_notebook_plotter(plotter):
+    """Set the active notebook plotter object for the current runtime session."""
+    global notebook_plotter
+    notebook_plotter = plotter
+    _session.set_notebook_plotter(plotter)
+    return plotter
+
+
+def current_notebook_backend():
+    """Return the active notebook backend for the current runtime session."""
+    return _session.get_notebook_backend(notebook_backend)
+
+
+def set_current_notebook_backend(backend):
+    """Set the active notebook backend for the current runtime session."""
+    global notebook_backend
+    notebook_backend = backend
+    _session.set_notebook_backend(backend)
+    return backend
+
+
+def current_last_figure():
+    """Return the last pyplot figure format remembered in this runtime session."""
+    return _session.get_last_figure(last_figure)
+
+
+def set_last_figure(figure):
+    """Set the last pyplot figure format remembered in this runtime session."""
+    global last_figure
+    last_figure = figure
+    _session.set_last_figure(figure)
+    return figure
 
 
 def __getattr__(name):

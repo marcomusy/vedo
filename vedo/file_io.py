@@ -1476,7 +1476,7 @@ def export_window(fileoutput: Union[str, os.PathLike], binary=False, plt=None) -
     """
     fileoutput = str(fileoutput)
     if plt is None:
-        plt = vedo.plotter_instance
+        plt = vedo.current_plotter()
 
     fr = fileoutput.lower()
     ####################################################################
@@ -1514,8 +1514,8 @@ def export_window(fileoutput: Union[str, os.PathLike], binary=False, plt=None) -
 
     ####################################################################
     elif fr.endswith(".html"):
-        savebk = vedo.notebook_backend
-        vedo.notebook_backend = "k3d"
+        savebk = vedo.current_notebook_backend()
+        vedo.set_current_notebook_backend("k3d")
         vedo.settings.default_backend = "k3d"
         # acts = plt.get_actors()
         plt = vedo.backends.get_notebook_backend(plt.objects)
@@ -1523,7 +1523,7 @@ def export_window(fileoutput: Union[str, os.PathLike], binary=False, plt=None) -
         with open(fileoutput, "w", encoding="UTF-8") as fp:
             fp.write(plt.get_snapshot())
 
-        vedo.notebook_backend = savebk
+        vedo.set_current_notebook_backend(savebk)
         vedo.settings.default_backend = savebk
 
     else:
@@ -1901,17 +1901,18 @@ def screenshot(filename="screenshot.png", scale=1, asarray=False) -> Union["vedo
     filename = str(filename)
     # print("calling screenshot", filename, scale, asarray)
 
-    if not vedo.plotter_instance or not vedo.plotter_instance.window:
+    plt = vedo.current_plotter()
+    if not plt or not plt.window:
         # vedo.logger.error("in screenshot(), rendering window is not present, skip.")
-        return vedo.plotter_instance  ##########
+        return plt  ##########
 
-    if vedo.plotter_instance.renderer:
-        vedo.plotter_instance.renderer.ResetCameraClippingRange()
+    if plt.renderer:
+        plt.renderer.ResetCameraClippingRange()
 
-    if asarray and scale == 1 and not vedo.plotter_instance.offscreen:
-        nx, ny = vedo.plotter_instance.window.GetSize()
+    if asarray and scale == 1 and not plt.offscreen:
+        nx, ny = plt.window.GetSize()
         arr = vtki.vtkUnsignedCharArray()
-        vedo.plotter_instance.window.GetRGBACharPixelData(0, 0, nx-1, ny-1, 0, arr)
+        plt.window.GetRGBACharPixelData(0, 0, nx-1, ny-1, 0, arr)
         narr = vedo.vtk2numpy(arr).T[:3].T.reshape([ny, nx, 3])
         narr = np.flip(narr, axis=0)
         return narr  ##########
@@ -1919,44 +1920,44 @@ def screenshot(filename="screenshot.png", scale=1, asarray=False) -> Union["vedo
     ###########################
     if filename.endswith(".pdf"):
         writer = vtki.new("GL2PSExporter")
-        writer.SetRenderWindow(vedo.plotter_instance.window)
+        writer.SetRenderWindow(plt.window)
         writer.Write3DPropsAsRasterImageOff()
         writer.SilentOn()
         writer.SetSortToBSP()
         writer.SetFileFormatToPDF()
         writer.SetFilePrefix(filename.replace(".pdf", ""))
         writer.Write()
-        return vedo.plotter_instance  ##########
+        return plt  ##########
 
     elif filename.endswith(".svg"):
         writer = vtki.new("GL2PSExporter")
-        writer.SetRenderWindow(vedo.plotter_instance.window)
+        writer.SetRenderWindow(plt.window)
         writer.Write3DPropsAsRasterImageOff()
         writer.SilentOn()
         writer.SetSortToBSP()
         writer.SetFileFormatToSVG()
         writer.SetFilePrefix(filename.replace(".svg", ""))
         writer.Write()
-        return vedo.plotter_instance  ##########
+        return plt  ##########
 
     elif filename.endswith(".eps"):
         writer = vtki.new("GL2PSExporter")
-        writer.SetRenderWindow(vedo.plotter_instance.window)
+        writer.SetRenderWindow(plt.window)
         writer.Write3DPropsAsRasterImageOff()
         writer.SilentOn()
         writer.SetSortToBSP()
         writer.SetFileFormatToEPS()
         writer.SetFilePrefix(filename.replace(".eps", ""))
         writer.Write()
-        return vedo.plotter_instance  ##########
+        return plt  ##########
 
     if settings.screeshot_large_image:
         w2if = vtki.new("RenderLargeImage")
-        w2if.SetInput(vedo.plotter_instance.renderer)
+        w2if.SetInput(plt.renderer)
         w2if.SetMagnification(scale)
     else:
         w2if = vtki.new("WindowToImageFilter")
-        w2if.SetInput(vedo.plotter_instance.window)
+        w2if.SetInput(plt.window)
         if hasattr(w2if, "SetScale"):
             w2if.SetScale(int(scale), int(scale))
         if settings.screenshot_transparent_background:
@@ -1988,7 +1989,7 @@ def screenshot(filename="screenshot.png", scale=1, asarray=False) -> Union["vedo
         writer.SetFileName(filename + ".png")
         writer.SetInputData(w2if.GetOutput())
         writer.Write()
-    return vedo.plotter_instance
+    return plt
 
 
 def ask(*question, **kwarg) -> str:
@@ -2115,7 +2116,7 @@ class Video:
         if not self.duration:
             self.duration = 5
 
-        plt = vedo.plotter_instance
+        plt = vedo.current_plotter()
         if not plt:
             vedo.logger.error("No vedo plotter found, cannot make video.")
             return self
@@ -2183,8 +2184,9 @@ class Video:
 
             cap = cv2.VideoCapture(os.path.join(self.tmp_dir.name, "%1d.png"))
             fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-            if vedo.plotter_instance:
-                w, h = vedo.plotter_instance.window.GetSize()
+            plt = vedo.current_plotter()
+            if plt:
+                w, h = plt.window.GetSize()
                 writer = cv2.VideoWriter(self.name, fourcc, self.fps, (w, h), True)
             else:
                 vedo.logger.error("No vedo plotter found, cannot make video.")

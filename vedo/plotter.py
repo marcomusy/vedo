@@ -11,6 +11,7 @@ import vedo.vtkclasses as vtki  # a wrapper for lazy imports
 import vedo
 from vedo import utils
 from vedo import addons
+from vedo.events import Event
 
 
 __doc__ = """
@@ -39,94 +40,6 @@ Key functionality:
 __docformat__ = "google"
 
 __all__ = ["Plotter", "show", "close"]
-
-########################################################################################
-class Event:
-    """
-    This class holds the info from an event in the window, works as dictionary too.
-    """
-
-    __slots__ = [
-        "name",
-        "title",
-        "id",
-        "timerid",
-        "time",
-        "priority",
-        "at",
-        "object",
-        "actor",
-        "picked3d",
-        "keypress",
-        "picked2d",
-        "delta2d",
-        "angle2d",
-        "speed2d",
-        "delta3d",
-        "speed3d",
-        "isPoints",
-        "isMesh",
-        "isAssembly",
-        "isVolume",
-        "isImage",
-        "isActor2D",
-    ]
-
-    def __init__(self):
-        self.name = "event"
-        self.title = ""
-        self.id = 0
-        self.timerid = 0
-        self.time = 0
-        self.priority = 0
-        self.at = 0
-        self.object = None
-        self.actor = None
-        self.picked3d = ()
-        self.keypress = ""
-        self.picked2d = ()
-        self.delta2d = ()
-        self.angle2d = 0
-        self.speed2d = ()
-        self.delta3d = ()
-        self.speed3d = 0
-        self.isPoints = False
-        self.isMesh = False
-        self.isAssembly = False
-        self.isVolume = False
-        self.isImage = False
-        self.isActor2D = False
-
-    def __getitem__(self, key):
-        return getattr(self, key)
-
-    def __setitem__(self, key, value):
-        setattr(self, key, value)
-
-    def __str__(self):
-        module = self.__class__.__module__
-        name = self.__class__.__name__
-        out = vedo.printc(
-            f"{module}.{name} at ({hex(id(self))})".ljust(75),
-            bold=True, invert=True, return_string=True,
-        )
-        out += "\x1b[0m"
-        for n in self.__slots__:
-            if n == "actor":
-                continue
-            out += f"{n}".ljust(11) + ": "
-            val = str(self[n]).replace("\n", "")[:65].rstrip()
-            if val == "True":
-                out += "\x1b[32;1m"
-            elif val == "False":
-                out += "\x1b[31;1m"
-            out += val + "\x1b[0m\n"
-        return out.rstrip()
-
-    def keys(self):
-        """Return the list of keys."""
-        return self.__slots__
-
 
 ##############################################################################################
 def show(
@@ -268,11 +181,12 @@ def show(
     #  If a plotter instance is already present, check if the offscreen argument
     #  is the same as the one requested by the user. If not, create a new
     # plotter instance (see https://github.com/marcomusy/vedo/issues/1026)
-    if vedo.plotter_instance and vedo.plotter_instance.offscreen != offscreen:
+    current_plt = vedo.current_plotter()
+    if current_plt and current_plt.offscreen != offscreen:
         new = True
 
-    if vedo.plotter_instance and not new:  # Plotter exists
-        plt = vedo.plotter_instance
+    if current_plt and not new:  # Plotter exists
+        plt = current_plt
 
     else:  # Plotter must be created
 
@@ -381,9 +295,10 @@ def show(
 
 def close() -> None:
     """Close the last created Plotter instance if it exists."""
-    if not vedo.plotter_instance:
+    plt = vedo.current_plotter()
+    if not plt:
         return
-    vedo.plotter_instance.close()
+    plt.close()
     return
 
 
@@ -457,7 +372,7 @@ class Plotter:
                 render in a Qt-Widget using an QVTKRenderWindowInteractor.
                 See examples `qt_windows[1,2,3].py` and `qt_cutter.py`.
         """
-        vedo.plotter_instance = self
+        vedo.set_current_plotter(self)
 
         if interactive is None:
             interactive = bool(N in (0, 1, None) and shape == (1, 1))
@@ -3635,7 +3550,7 @@ class Plotter:
     def close(self) -> Self:
         """Close the plotter."""
         # https://examples.vtk.org/site/Cxx/Visualization/CloseWindow/
-        vedo.last_figure = None
+        vedo.set_last_figure(None)
         self.last_event = None
         self.sliders = []
         self.buttons = []
@@ -3646,6 +3561,8 @@ class Plotter:
 
         self.hint_widget = None
         self.cutter_widget = None
+        if vedo.current_plotter() == self:
+            vedo.set_current_plotter(None)
 
         if vedo.settings.dry_run_mode >= 2:
             return self
@@ -3679,8 +3596,6 @@ class Plotter:
             self.window = None
             self.interactor = None
 
-        if vedo.plotter_instance == self:
-            vedo.plotter_instance = None
         return self # must return self for consistency
 
 
