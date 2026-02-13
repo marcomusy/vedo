@@ -305,7 +305,9 @@ def plot(*inputobj, **options):
                 from your eyes to the screen.
     """
     if len(inputobj) == 0:
-        vedo.plotter_instance.interactive()
+        plt = vedo.current_plotter()
+        if plt:
+            plt.interactive()
         return None
 
     if "numpy" in str(type(inputobj[0])):
@@ -354,17 +356,18 @@ def plot(*inputobj, **options):
     xtitle = options.pop("xtitle", "x")
     ytitle = options.pop("ytitle", "y")
     ztitle = options.pop("ztitle", "z")
-    if vedo.plotter_instance:
+    plt = vedo.current_plotter()
+    if plt:
         if xtitle != "x":
-            aet = vedo.plotter_instance.axes_instances
+            aet = plt.axes_instances
             if len(aet) > at and isinstance(aet[at], vtki.get_class("CubeAxesActor")):
                 aet[at].SetXTitle(xtitle)
         if ytitle != "y":
-            aet = vedo.plotter_instance.axes_instances
+            aet = plt.axes_instances
             if len(aet) > at and isinstance(aet[at], vtki.get_class("CubeAxesActor")):
                 aet[at].SetYTitle(ytitle)
         if ztitle != "z":
-            aet = vedo.plotter_instance.axes_instances
+            aet = plt.axes_instances
             if len(aet) > at and isinstance(aet[at], vtki.get_class("CubeAxesActor")):
                 aet[at].SetZTitle(ztitle)
 
@@ -428,9 +431,9 @@ def plot(*inputobj, **options):
 
     #################################################################
     actors = []
-    if vedo.plotter_instance:
+    if plt:
         if add:
-            actors = vedo.plotter_instance.actors
+            actors = plt.actors
 
     if mesh and ("mesh" in mode or "color" in mode or "displace" in mode):
 
@@ -545,8 +548,9 @@ def plot(*inputobj, **options):
         actors.append(text)
 
     if "at" in options and "interactive" not in options:
-        if vedo.plotter_instance:
-            N = vedo.plotter_instance.shape[0] * vedo.plotter_instance.shape[1]
+        plt = vedo.current_plotter()
+        if plt:
+            N = plt.shape[0] * plt.shape[1]
             if options["at"] == N - 1:
                 options["interactive"] = True
 

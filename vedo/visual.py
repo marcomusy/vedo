@@ -298,7 +298,7 @@ class CommonVisual:
             - [mesh_coloring.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mesh_coloring.py)
             - [scalarbars.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/scalarbars.py)
         """
-        plt = vedo.plotter_instance
+        plt = vedo.current_plotter()
 
         if plt and plt.renderer:
             c = (0.9, 0.9, 0.9)
@@ -390,7 +390,7 @@ class CommonVisual:
         Examples:
             - [scalarbars.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/scalarbars.py)
         """
-        plt = vedo.plotter_instance
+        plt = vedo.current_plotter()
         if plt and c is None:  # automatic black or white
             c = (0.9, 0.9, 0.9)
             if np.sum(vedo.get_color(plt.backgrcol)) > 1.5:
@@ -921,8 +921,9 @@ class PointsVisual(CommonVisual):
         if size is None:
             # work out a reasonable scale
             msiz = self.diagonal_size()
-            if vedo.plotter_instance and vedo.plotter_instance.window:
-                sz = vedo.plotter_instance.window.GetSize()
+            plt = vedo.current_plotter()
+            if plt and plt.window:
+                sz = plt.window.GetSize()
                 dsiz = utils.mag(sz)
                 size = dsiz / msiz / 10
             else:
@@ -2410,7 +2411,7 @@ class MeshVisual(PointsVisual):
         if isinstance(camera, vtki.vtkCamera):
             factor.SetCamera(camera)
         else:
-            plt = vedo.plotter_instance
+            plt = vedo.current_plotter()
             if plt and plt.renderer and plt.renderer.GetActiveCamera():
                 factor.SetCamera(plt.renderer.GetActiveCamera())
 

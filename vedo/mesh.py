@@ -2029,8 +2029,9 @@ class Mesh(MeshVisual, Points):
             sil.SetEnableFeatureAngle(1)
             sil.SetFeatureAngle(feature_angle)
 
-        if direction is None and vedo.plotter_instance and vedo.plotter_instance.camera:
-            sil.SetCamera(vedo.plotter_instance.camera)
+        plt = vedo.current_plotter()
+        if direction is None and plt and plt.camera:
+            sil.SetCamera(plt.camera)
             m = Mesh()
             m.mapper.SetInputConnection(sil.GetOutputPort())
 

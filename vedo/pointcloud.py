@@ -3296,11 +3296,12 @@ class Points(PointsVisual, PointAlgorithms):
 
         A pointdata array is created with name 'DistanceToCamera' and returned.
         """
-        if vedo.plotter_instance and vedo.plotter_instance.renderer:
+        plt = vedo.current_plotter()
+        if plt and plt.renderer:
             poly = self.dataset
             dc = vtki.new("DistanceToCamera")
             dc.SetInputData(poly)
-            dc.SetRenderer(vedo.plotter_instance.renderer)
+            dc.SetRenderer(plt.renderer)
             dc.Update()
             self._update(dc.GetOutput(), reset_locators=False)
             return self.pointdata["DistanceToCamera"]
@@ -3877,10 +3878,10 @@ class Points(PointsVisual, PointAlgorithms):
         svp.SetInputData(self.dataset)
 
         ren = None
-        if vedo.plotter_instance:
-            if vedo.plotter_instance.renderer:
-                ren = vedo.plotter_instance.renderer
-                svp.SetRenderer(ren)
+        plt = vedo.current_plotter()
+        if plt and plt.renderer:
+            ren = plt.renderer
+            svp.SetRenderer(ren)
         if not ren:
             vedo.logger.warning(
                 "visible_points() can only be used after a rendering step"

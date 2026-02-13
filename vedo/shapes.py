@@ -4215,7 +4215,7 @@ class Text3D(Mesh):
             pos = (pos[0], pos[1], 0)
 
         if c is None:  # automatic black or white
-            pli = vedo.plotter_instance
+            pli = vedo.current_plotter()
             if pli and pli.renderer:
                 c = (0.9, 0.9, 0.9)
                 if pli.renderer.GetGradientBackground():
@@ -4581,11 +4581,12 @@ class Text2D:
         # automatic black or white
         if c is None:
             c = (0.1, 0.1, 0.1)
-            if vedo.plotter_instance and vedo.plotter_instance.renderer:
-                if vedo.plotter_instance.renderer.GetGradientBackground():
-                    bgcol = vedo.plotter_instance.renderer.GetBackground2()
+            plt = vedo.current_plotter()
+            if plt and plt.renderer:
+                if plt.renderer.GetGradientBackground():
+                    bgcol = plt.renderer.GetBackground2()
                 else:
-                    bgcol = vedo.plotter_instance.renderer.GetBackground()
+                    bgcol = plt.renderer.GetBackground()
                 c = (0.9, 0.9, 0.9)
                 if np.sum(bgcol) > 1.5:
                     c = (0.1, 0.1, 0.1)
@@ -4941,8 +4942,9 @@ def VedoLogo(distance=0.0, c=None, bc="t", version=False, frame=True) -> "vedo.A
     """
     if c is None:
         c = (0, 0, 0)
-        if vedo.plotter_instance:
-            if sum(get_color(vedo.plotter_instance.backgrcol)) > 1.5:
+        plt = vedo.current_plotter()
+        if plt:
+            if sum(get_color(plt.backgrcol)) > 1.5:
                 c = [0, 0, 0]
             else:
                 c = "linen"

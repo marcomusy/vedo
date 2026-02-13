@@ -479,8 +479,9 @@ class ButtonWidget:
             self.interactor = plotter.interactor
             self.widget.SetInteractor(plotter.interactor)
         else:
-            if vedo.plotter_instance:
-                self.interactor = vedo.plotter_instance.interactor
+            plt = vedo.current_plotter()
+            if plt:
+                self.interactor = plt.interactor
                 self.widget.SetInteractor(self.interactor)
 
         self.representation = vtki.new("TexturedButtonRepresentation2D")
@@ -1074,10 +1075,11 @@ class DrawingWidget:
         self.callback_id = None
         self.event_name = "EndInteractionEvent"
 
-        if vedo.plotter_instance:
-            self.widget.SetInteractor(vedo.plotter_instance.interactor)
-        if vedo.plotter_instance.renderer:
-            self.widget.SetDefaultRenderer(vedo.plotter_instance.renderer)
+        plt = vedo.current_plotter()
+        if plt:
+            self.widget.SetInteractor(plt.interactor)
+            if plt.renderer:
+                self.widget.SetDefaultRenderer(plt.renderer)
 
         try:
             self.widget.SetViewProp(obj.actor)
@@ -3020,8 +3022,9 @@ def compute_visible_bounds(objs=None) -> list:
     """Calculate max objects bounds and sizes."""
     bns = []
 
-    if objs is None and vedo.plotter_instance:
-        objs = vedo.plotter_instance.actors
+    plt = vedo.current_plotter()
+    if objs is None and plt:
+        objs = plt.actors
     elif not utils.is_sequence(objs):
         objs = [objs]
 
@@ -3039,8 +3042,8 @@ def compute_visible_bounds(objs=None) -> list:
             max_bns = np.max(bns, axis=0)
             min_bns = np.min(bns, axis=0)
             vbb = [min_bns[0], max_bns[1], min_bns[2], max_bns[3], min_bns[4], max_bns[5]]
-        elif vedo.plotter_instance:
-            vbb = list(vedo.plotter_instance.renderer.ComputeVisiblePropBounds())
+        elif plt and plt.renderer:
+            vbb = list(plt.renderer.ComputeVisiblePropBounds())
             max_bns = vbb
             min_bns = vbb
         sizes = np.array(
@@ -3386,7 +3389,7 @@ class Ruler2D(vtki.vtkAxisActor2D):
         super().__init__()
         self.name = "Ruler2D"
 
-        plt = vedo.plotter_instance
+        plt = vedo.current_plotter()
         if not plt:
             vedo.logger.error("Ruler2D need to initialize Plotter first.")
             raise RuntimeError()
@@ -3508,7 +3511,7 @@ class DistanceTool(Group):
         self.p1 = [0, 0, 0]
         self.distance = 0
         if plotter is None:
-            plotter = vedo.plotter_instance
+            plotter = vedo.current_plotter()
         self.plotter = plotter
         # define self.callback as callable function:
         self.callback = lambda x: None
@@ -3728,7 +3731,7 @@ def Axes(
 
     if c is None:  # automatic black or white
         c = (0.1, 0.1, 0.1)
-        plt = vedo.plotter_instance
+        plt = vedo.current_plotter()
         if plt and plt.renderer:
             bgcol = plt.renderer.GetBackground()
         else:
@@ -4797,7 +4800,7 @@ def add_global_axes(axtype=None, c=None, bounds=()) -> None:
                 },
             )
     """
-    plt = vedo.plotter_instance
+    plt = vedo.current_plotter()
     if plt is None:
         return
 
