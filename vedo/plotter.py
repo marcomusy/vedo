@@ -13,6 +13,22 @@ from vedo import utils
 from vedo import addons
 from vedo.events import Event
 from vedo.plotter_bootstrap import apply_gradient_mode, configure_renderer_common
+from vedo.plotter_camera import (
+    plotter_azimuth,
+    plotter_dolly,
+    plotter_elevation,
+    plotter_fly_to,
+    plotter_fov,
+    plotter_look_at,
+    plotter_move_camera,
+    plotter_parallel_projection,
+    plotter_render_hidden_lines,
+    plotter_reset_camera,
+    plotter_reset_clipping_range,
+    plotter_reset_viewup,
+    plotter_roll,
+    plotter_zoom,
+)
 from vedo.plotter_interaction import (
     plotter_add_callback,
     plotter_add_observer,
@@ -27,6 +43,18 @@ from vedo.plotter_interaction import (
 )
 from vedo.plotter_io import plotter_export, plotter_screenshot, plotter_toimage
 from vedo.plotter_keymap import handle_default_keypress as _handle_default_keypress
+from vedo.plotter_lifecycle import (
+    plotter_break_interaction,
+    plotter_clear,
+    plotter_close,
+    plotter_freeze,
+    plotter_initialize_interactor,
+    plotter_interactive,
+    plotter_process_events,
+    plotter_render,
+    plotter_use_depth_peeling,
+    plotter_user_mode,
+)
 from vedo.plotter_scene import (
     plotter_actors,
     plotter_add,
@@ -3772,6 +3800,31 @@ Plotter.pop = plotter_pop
 Plotter.get_meshes = plotter_get_meshes
 Plotter.get_volumes = plotter_get_volumes
 Plotter.get_actors = plotter_get_actors
+
+Plotter.initialize_interactor = plotter_initialize_interactor
+Plotter.process_events = plotter_process_events
+Plotter.render = plotter_render
+Plotter.interactive = plotter_interactive
+Plotter.use_depth_peeling = plotter_use_depth_peeling
+Plotter.reset_camera = plotter_reset_camera
+Plotter.reset_clipping_range = plotter_reset_clipping_range
+Plotter.reset_viewup = plotter_reset_viewup
+Plotter.move_camera = plotter_move_camera
+Plotter.fly_to = plotter_fly_to
+Plotter.look_at = plotter_look_at
+Plotter.parallel_projection = plotter_parallel_projection
+Plotter.render_hidden_lines = plotter_render_hidden_lines
+Plotter.fov = plotter_fov
+Plotter.zoom = plotter_zoom
+Plotter.azimuth = plotter_azimuth
+Plotter.elevation = plotter_elevation
+Plotter.roll = plotter_roll
+Plotter.dolly = plotter_dolly
+Plotter.clear = plotter_clear
+Plotter.break_interaction = plotter_break_interaction
+Plotter.freeze = plotter_freeze
+Plotter.user_mode = plotter_user_mode
+Plotter.close = plotter_close
 
 Plotter.fill_event = plotter_fill_event
 Plotter.add_callback = plotter_add_callback
