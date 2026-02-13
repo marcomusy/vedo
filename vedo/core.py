@@ -402,6 +402,72 @@ class DataArrayHelper:
 class CommonAlgorithms:
     """Common algorithms."""
 
+    def _ensure_cell_locator(cls):
+        """Build and cache a cell locator for the current dataset if missing."""
+        if not cls.cell_locator:
+            cls.cell_locator = vtki.new("CellTreeLocator")
+            cls.cell_locator.SetDataSet(cls.dataset)
+            cls.cell_locator.BuildLocator()
+        return cls.cell_locator
+
+    @staticmethod
+    def _vtk_idlist_to_numpy(id_list) -> np.ndarray:
+        """Convert a vtkIdList to a numpy array of ids."""
+        return np.array([id_list.GetId(i) for i in range(id_list.GetNumberOfIds())])
+
+    def _run_gradient_filter(
+        cls,
+        mode: str,
+        on: str,
+        array_name: Union[str, None],
+        fast: bool,
+        result_name: str,
+    ) -> np.ndarray:
+        """Shared implementation for gradient/divergence/vorticity extraction."""
+        gf = vtki.new("GradientFilter")
+        if on.startswith("p"):
+            varr = cls.dataset.GetPointData()
+            assoc = vtki.vtkDataObject.FIELD_ASSOCIATION_POINTS
+            getter = lambda out: out.GetPointData().GetArray(result_name)
+        elif on.startswith("c"):
+            varr = cls.dataset.GetCellData()
+            assoc = vtki.vtkDataObject.FIELD_ASSOCIATION_CELLS
+            getter = lambda out: out.GetCellData().GetArray(result_name)
+        else:
+            vedo.logger.error(f"in {mode}(): unknown option {on}")
+            raise RuntimeError
+
+        if array_name is None:
+            if mode == "gradient":
+                active = varr.GetScalars()
+                if not active:
+                    vedo.logger.error(f"in gradient: no scalars found for {on}")
+                    raise RuntimeError
+            else:
+                active = varr.GetVectors()
+                if not active:
+                    vedo.logger.error(f"in {mode}(): no vectors found for {on}")
+                    raise RuntimeError
+            array_name = active.GetName()
+
+        gf.SetInputData(cls.dataset)
+        gf.SetInputScalars(assoc, array_name)
+        gf.SetFasterApproximation(fast)
+
+        gf.ComputeGradientOn() if mode == "gradient" else gf.ComputeGradientOff()
+        gf.ComputeDivergenceOn() if mode == "divergence" else gf.ComputeDivergenceOff()
+        gf.ComputeVorticityOn() if mode == "vorticity" else gf.ComputeVorticityOff()
+
+        if mode == "gradient":
+            gf.SetResultArrayName(result_name)
+        elif mode == "divergence":
+            gf.SetDivergenceArrayName(result_name)
+        elif mode == "vorticity":
+            gf.SetVorticityArrayName(result_name)
+
+        gf.Update()
+        return utils.vtk2numpy(getter(gf.GetOutput()))
+
     @property
     def pointdata(cls):
         """
@@ -710,48 +776,24 @@ class CommonAlgorithms:
                 bnds[5] = zbounds[1]
 
         cell_ids = vtki.vtkIdList()
-        if not cls.cell_locator:
-            cls.cell_locator = vtki.new("CellTreeLocator")
-            cls.cell_locator.SetDataSet(cls.dataset)
-            cls.cell_locator.BuildLocator()
-        cls.cell_locator.FindCellsWithinBounds(bnds, cell_ids)
-        cids = []
-        for i in range(cell_ids.GetNumberOfIds()):
-            cid = cell_ids.GetId(i)
-            cids.append(cid)
-        return np.array(cids)
+        cls._ensure_cell_locator().FindCellsWithinBounds(bnds, cell_ids)
+        return cls._vtk_idlist_to_numpy(cell_ids)
 
     def find_cells_along_line(cls, p0, p1, tol=0.001) -> np.ndarray:
         """
         Find cells that are intersected by a line segment.
         """
         cell_ids = vtki.vtkIdList()
-        if not cls.cell_locator:
-            cls.cell_locator = vtki.new("CellTreeLocator")
-            cls.cell_locator.SetDataSet(cls.dataset)
-            cls.cell_locator.BuildLocator()
-        cls.cell_locator.FindCellsAlongLine(p0, p1, tol, cell_ids)
-        cids = []
-        for i in range(cell_ids.GetNumberOfIds()):
-            cid = cell_ids.GetId(i)
-            cids.append(cid)
-        return np.array(cids)
+        cls._ensure_cell_locator().FindCellsAlongLine(p0, p1, tol, cell_ids)
+        return cls._vtk_idlist_to_numpy(cell_ids)
 
     def find_cells_along_plane(cls, origin, normal, tol=0.001) -> np.ndarray:
         """
         Find cells that are intersected by a plane.
         """
         cell_ids = vtki.vtkIdList()
-        if not cls.cell_locator:
-            cls.cell_locator = vtki.new("CellTreeLocator")
-            cls.cell_locator.SetDataSet(cls.dataset)
-            cls.cell_locator.BuildLocator()
-        cls.cell_locator.FindCellsAlongPlane(origin, normal, tol, cell_ids)
-        cids = []
-        for i in range(cell_ids.GetNumberOfIds()):
-            cid = cell_ids.GetId(i)
-            cids.append(cid)
-        return np.array(cids)
+        cls._ensure_cell_locator().FindCellsAlongPlane(origin, normal, tol, cell_ids)
+        return cls._vtk_idlist_to_numpy(cell_ids)
 
     def keep_cell_types(cls, types=()):
         """
@@ -1210,37 +1252,13 @@ class CommonAlgorithms:
 
             ![](https://user-images.githubusercontent.com/32848391/72433087-f00a8780-3798-11ea-9778-991f0abeca70.png)
         """
-        gra = vtki.new("GradientFilter")
-        if on.startswith("p"):
-            varr = cls.dataset.GetPointData()
-            tp = vtki.vtkDataObject.FIELD_ASSOCIATION_POINTS
-        elif on.startswith("c"):
-            varr = cls.dataset.GetCellData()
-            tp = vtki.vtkDataObject.FIELD_ASSOCIATION_CELLS
-        else:
-            vedo.logger.error(f"in gradient: unknown option {on}")
-            raise RuntimeError
-
-        if input_array is None:
-            if varr.GetScalars():
-                input_array = varr.GetScalars().GetName()
-            else:
-                vedo.logger.error(f"in gradient: no scalars found for {on}")
-                raise RuntimeError
-
-        gra.SetInputData(cls.dataset)
-        gra.SetInputScalars(tp, input_array)
-        gra.SetResultArrayName("Gradient")
-        gra.SetFasterApproximation(fast)
-        gra.ComputeDivergenceOff()
-        gra.ComputeVorticityOff()
-        gra.ComputeGradientOn()
-        gra.Update()
-        if on.startswith("p"):
-            gvecs = utils.vtk2numpy(gra.GetOutput().GetPointData().GetArray("Gradient"))
-        else:
-            gvecs = utils.vtk2numpy(gra.GetOutput().GetCellData().GetArray("Gradient"))
-        return gvecs
+        return cls._run_gradient_filter(
+            mode="gradient",
+            on=on,
+            array_name=input_array,
+            fast=fast,
+            result_name="Gradient",
+        )
 
     def divergence(cls, array_name=None, on="points", fast=False) -> np.ndarray:
         """
@@ -1256,37 +1274,13 @@ class CommonAlgorithms:
                 if True, will use a less accurate algorithm
                 that performs fewer derivative calculations and is therefore faster.
         """
-        div = vtki.new("GradientFilter")
-        if on.startswith("p"):
-            varr = cls.dataset.GetPointData()
-            tp = vtki.vtkDataObject.FIELD_ASSOCIATION_POINTS
-        elif on.startswith("c"):
-            varr = cls.dataset.GetCellData()
-            tp = vtki.vtkDataObject.FIELD_ASSOCIATION_CELLS
-        else:
-            vedo.logger.error(f"in divergence(): unknown option {on}")
-            raise RuntimeError
-
-        if array_name is None:
-            if varr.GetVectors():
-                array_name = varr.GetVectors().GetName()
-            else:
-                vedo.logger.error(f"in divergence(): no vectors found for {on}")
-                raise RuntimeError
-
-        div.SetInputData(cls.dataset)
-        div.SetInputScalars(tp, array_name)
-        div.ComputeDivergenceOn()
-        div.ComputeGradientOff()
-        div.ComputeVorticityOff()
-        div.SetDivergenceArrayName("Divergence")
-        div.SetFasterApproximation(fast)
-        div.Update()
-        if on.startswith("p"):
-            dvecs = utils.vtk2numpy(div.GetOutput().GetPointData().GetArray("Divergence"))
-        else:
-            dvecs = utils.vtk2numpy(div.GetOutput().GetCellData().GetArray("Divergence"))
-        return dvecs
+        return cls._run_gradient_filter(
+            mode="divergence",
+            on=on,
+            array_name=array_name,
+            fast=fast,
+            result_name="Divergence",
+        )
 
     def vorticity(cls, array_name=None, on="points", fast=False) -> np.ndarray:
         """
@@ -1302,37 +1296,13 @@ class CommonAlgorithms:
                 if True, will use a less accurate algorithm
                 that performs fewer derivative calculations (and is therefore faster).
         """
-        vort = vtki.new("GradientFilter")
-        if on.startswith("p"):
-            varr = cls.dataset.GetPointData()
-            tp = vtki.vtkDataObject.FIELD_ASSOCIATION_POINTS
-        elif on.startswith("c"):
-            varr = cls.dataset.GetCellData()
-            tp = vtki.vtkDataObject.FIELD_ASSOCIATION_CELLS
-        else:
-            vedo.logger.error(f"in vorticity(): unknown option {on}")
-            raise RuntimeError
-
-        if array_name is None:
-            if varr.GetVectors():
-                array_name = varr.GetVectors().GetName()
-            else:
-                vedo.logger.error(f"in vorticity(): no vectors found for {on}")
-                raise RuntimeError
-
-        vort.SetInputData(cls.dataset)
-        vort.SetInputScalars(tp, array_name)
-        vort.ComputeDivergenceOff()
-        vort.ComputeGradientOff()
-        vort.ComputeVorticityOn()
-        vort.SetVorticityArrayName("Vorticity")
-        vort.SetFasterApproximation(fast)
-        vort.Update()
-        if on.startswith("p"):
-            vvecs = utils.vtk2numpy(vort.GetOutput().GetPointData().GetArray("Vorticity"))
-        else:
-            vvecs = utils.vtk2numpy(vort.GetOutput().GetCellData().GetArray("Vorticity"))
-        return vvecs
+        return cls._run_gradient_filter(
+            mode="vorticity",
+            on=on,
+            array_name=array_name,
+            fast=fast,
+            result_name="Vorticity",
+        )
 
     def probe(
             cls,
