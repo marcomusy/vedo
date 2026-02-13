@@ -9,7 +9,7 @@ import vedo.vtkclasses as vtki
 __docformat__ = "google"
 
 
-def plotter_initialize_interactor(plotter) -> Any:
+def initialize_interactor(plotter) -> Any:
     """Initialize the interactor if not already initialized."""
     if plotter.offscreen:
         return plotter
@@ -19,7 +19,7 @@ def plotter_initialize_interactor(plotter) -> Any:
             plotter.interactor.RemoveObservers("CharEvent")
     return plotter
 
-def plotter_process_events(plotter) -> Any:
+def process_events(plotter) -> Any:
     """Process all pending events."""
     plotter.initialize_interactor()
     if plotter.interactor:
@@ -29,7 +29,7 @@ def plotter_process_events(plotter) -> Any:
             pass
     return plotter
 
-def plotter_render(plotter, resetcam=False) -> Any:
+def render(plotter, resetcam=False) -> Any:
     """Render the scene. This method is typically used in loops or callback functions."""
 
     if vedo.settings.dry_run_mode >= 2:
@@ -51,7 +51,7 @@ def plotter_render(plotter, resetcam=False) -> Any:
             plotter._cocoa_process_events = False
     return plotter
 
-def plotter_interactive(plotter) -> Any:
+def interactive(plotter) -> Any:
     """
     Start window interaction.
     Analogous to `show(..., interactive=True)`.
@@ -75,7 +75,7 @@ def plotter_interactive(plotter) -> Any:
             plotter.camera = None
     return plotter
 
-def plotter_use_depth_peeling(plotter, at=None, value=True) -> Any:
+def use_depth_peeling(plotter, at=None, value=True) -> Any:
     """
     Specify whether use depth peeling algorithm at this specific renderer
     Call this method before the first rendering.
@@ -84,7 +84,7 @@ def plotter_use_depth_peeling(plotter, at=None, value=True) -> Any:
     ren.SetUseDepthPeeling(value)
     return plotter
 
-def plotter_clear(plotter, at=None, deep=False) -> Any:
+def clear(plotter, at=None, deep=False) -> Any:
     """Clear the scene from all meshes and volumes."""
     renderer = plotter.renderer if at is None else plotter.renderers[at]
     if not renderer:
@@ -109,14 +109,14 @@ def plotter_clear(plotter, at=None, deep=False) -> Any:
                 pass
     return plotter
 
-def plotter_break_interaction(plotter) -> Any:
+def break_interaction(plotter) -> Any:
     """Break window interaction and return to the python execution flow"""
     if plotter.interactor:
         plotter.check_actors_trasform()
         plotter.interactor.ExitCallback()
     return plotter
 
-def plotter_freeze(plotter, value=True) -> Any:
+def freeze(plotter, value=True) -> Any:
     """Freeze the current renderer. Use this with `sharecam=False`."""
     if not plotter.interactor:
         return plotter
@@ -125,7 +125,7 @@ def plotter_freeze(plotter, value=True) -> Any:
     plotter.renderer.SetInteractive(not value)
     return plotter
 
-def plotter_user_mode(plotter, mode) -> Any:
+def user_mode(plotter, mode) -> Any:
     """
     Modify the user interaction mode.
 
@@ -190,7 +190,7 @@ def plotter_user_mode(plotter, mode) -> Any:
 
     return plotter
 
-def plotter_close(plotter) -> Any:
+def close(plotter) -> Any:
     """Close the plotter."""
     # https://examples.vtk.org/site/Cxx/Visualization/CloseWindow/
     vedo.set_last_figure(None)

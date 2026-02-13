@@ -44,16 +44,16 @@ from vedo.plotter_interaction import (
 from vedo.plotter_io import plotter_export, plotter_screenshot, plotter_toimage
 from vedo.plotter_keymap import handle_default_keypress as _handle_default_keypress
 from vedo.plotter_lifecycle import (
-    plotter_break_interaction,
-    plotter_clear,
-    plotter_close,
-    plotter_freeze,
-    plotter_initialize_interactor,
-    plotter_interactive,
-    plotter_process_events,
-    plotter_render,
-    plotter_use_depth_peeling,
-    plotter_user_mode,
+    break_interaction,
+    clear,
+    close as lifecycle_close,
+    freeze,
+    initialize_interactor,
+    interactive,
+    process_events,
+    render as lifecycle_render,
+    use_depth_peeling,
+    user_mode,
 )
 from vedo.plotter_scene import (
     plotter_actors,
@@ -2528,11 +2528,11 @@ Plotter.get_meshes = plotter_get_meshes
 Plotter.get_volumes = plotter_get_volumes
 Plotter.get_actors = plotter_get_actors
 
-Plotter.initialize_interactor = plotter_initialize_interactor
-Plotter.process_events = plotter_process_events
-Plotter.render = plotter_render
-Plotter.interactive = plotter_interactive
-Plotter.use_depth_peeling = plotter_use_depth_peeling
+Plotter.initialize_interactor = initialize_interactor
+Plotter.process_events = process_events
+Plotter.render = lifecycle_render
+Plotter.interactive = interactive
+Plotter.use_depth_peeling = use_depth_peeling
 Plotter.reset_camera = plotter_reset_camera
 Plotter.reset_clipping_range = plotter_reset_clipping_range
 Plotter.reset_viewup = plotter_reset_viewup
@@ -2547,11 +2547,11 @@ Plotter.azimuth = plotter_azimuth
 Plotter.elevation = plotter_elevation
 Plotter.roll = plotter_roll
 Plotter.dolly = plotter_dolly
-Plotter.clear = plotter_clear
-Plotter.break_interaction = plotter_break_interaction
-Plotter.freeze = plotter_freeze
-Plotter.user_mode = plotter_user_mode
-Plotter.close = plotter_close
+Plotter.clear = clear
+Plotter.break_interaction = break_interaction
+Plotter.freeze = freeze
+Plotter.user_mode = user_mode
+Plotter.close = lifecycle_close
 
 Plotter.fill_event = plotter_fill_event
 Plotter.add_callback = plotter_add_callback
