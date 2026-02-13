@@ -1,5 +1,6 @@
 import glob
 import os
+import shutil
 import time
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 from typing import Any, List, Tuple, Union
@@ -226,8 +227,12 @@ def load(inputobj: Union[list, str, os.PathLike], unpack=True, force=False) -> A
             acts.append(a)
 
         elif os.path.isdir(fod):  ### it's a directory or DICOM
-            flist = os.listdir(fod)
-            if ".dcm" in flist[0]:  ### it's DICOM
+            flist = utils.humansort(os.listdir(fod))
+            if not flist:
+                vedo.logger.warning(f"Cannot load empty directory {fod!r}")
+                continue
+            is_dicom_dir = any(fname.lower().endswith(".dcm") for fname in flist)
+            if is_dicom_dir:  ### it's DICOM
                 reader = vtki.new("DICOMImageReader")
                 reader.SetDirectoryName(fod)
                 reader.Update()
@@ -254,9 +259,11 @@ def load(inputobj: Union[list, str, os.PathLike], unpack=True, force=False) -> A
                 acts.append(vol)
 
             else:  ### it's a normal directory
-                utils.humansort(flist)
                 for ifile in flist:
-                    a = _load_file(fod + "/" + ifile, unpack)
+                    full_path = os.path.join(fod, ifile)
+                    if not os.path.isfile(full_path):
+                        continue
+                    a = _load_file(full_path, unpack)
                     acts.append(a)
         else:
             vedo.logger.error(f"in load(), cannot find {fod}")
@@ -330,14 +337,8 @@ def _load_file(filename, unpack):
         objt = Volume(img)
 
     ######################################################### 2D images:
-    elif fl.endswith((".jpg", ".jpeg",".png", ".bmp")):
-        if ".png" in fl:
-            picr = vtki.new("PNGReader")
-        elif ".jpg" in fl or ".jpeg" in fl:
-            picr = vtki.new("JPEGReader")
-        elif ".bmp" in fl:
-            picr = vtki.new("BMPReader")
-        elif ".gif" in fl:
+    elif fl.endswith((".jpg", ".jpeg", ".png", ".bmp", ".gif")):
+        if fl.endswith(".gif"):
             from PIL import Image as PILImage, ImageSequence
 
             img = PILImage.open(filename)
@@ -347,6 +348,12 @@ def _load_file(filename, unpack):
                 a = a.reshape([frame.size[1], frame.size[0], 3])
                 frames.append(Image(a))
             return frames
+        if fl.endswith(".png"):
+            picr = vtki.new("PNGReader")
+        elif fl.endswith(".jpg") or fl.endswith(".jpeg"):
+            picr = vtki.new("JPEGReader")
+        elif fl.endswith(".bmp"):
+            picr = vtki.new("BMPReader")
 
         picr.SetFileName(filename)
         picr.Update()
@@ -420,8 +427,6 @@ def _load_file(filename, unpack):
             reader = vtki.new("BYUReader")
         elif fl.endswith(".foam"):  # OpenFoam
             reader = vtki.new("OpenFOAMReader")
-        elif fl.endswith(".pvd"):
-            reader = vtki.new("XMLGenericDataObjectReader")
         elif fl.endswith(".vtp"):
             reader = vtki.new("XMLPolyDataReader")
         elif fl.endswith(".vts"):
@@ -1281,18 +1286,18 @@ def write(objct: Any, fileoutput: Union[str, os.PathLike], binary=True) -> Any:
     ###############################
     obj = objct.dataset
 
+    # Check if object actor has a non-identity transform and bake it before writing.
     try:
-        # check if obj is a Mesh.actor and has a transform
         M = objct.actor.GetMatrix()
-        if M and not M.IsIdentity():
-            obj = objct.apply_transform_from_actor()
-            obj = objct.dataset
-            vedo.logger.info(
-                f"object '{objct.name}' "
-                "was manually moved. Writing uses current position."
-            )
-    except:
-        pass
+    except AttributeError:
+        M = None
+    if M and not M.IsIdentity():
+        objct.apply_transform_from_actor()
+        obj = objct.dataset
+        vedo.logger.info(
+            f"object '{objct.name}' "
+            "was manually moved. Writing uses current position."
+        )
 
     fr = fileoutput.lower()
     if fr.endswith(".vtk"):
@@ -1446,8 +1451,8 @@ def write(objct: Any, fileoutput: Union[str, os.PathLike], binary=True) -> Any:
         writer.SetInputData(obj)
         writer.SetFileName(fileoutput)
         writer.Write()
-    except:
-        vedo.logger.error(f"could not save {fileoutput}")
+    except Exception as e:
+        vedo.logger.error(f"could not save {fileoutput}: {e}")
     return objct
 
 def save(obj: Any, fileoutput="out.png", binary=True) -> Any:
@@ -2098,7 +2103,7 @@ class Video:
         for _ in range(n):
             fr2 = self.get_filename(str(len(self.frames)) + ".png")
             self.frames.append(fr2)
-            os.system("cp -f %s %s" % (fr, fr2))
+            shutil.copyfile(fr, fr2)
         return self
 
     def action(self, elevation=(0, 80), azimuth=(0, 359), cameras=(), resetcam=False) -> "Video":
@@ -2256,5 +2261,5 @@ class Video:
         for i, frame in utils.progressbar(
             enumerate(reader), title=f"writing {file_format} frames", c="m", width=20
         ):
-            output_file = os.path.join(output_dir, f"{prefix}{str(i).zfill(5)}.{format}")
+            output_file = os.path.join(output_dir, f"{prefix}{str(i).zfill(5)}.{file_format}")
             imageio.imwrite(output_file, frame, format=file_format)
