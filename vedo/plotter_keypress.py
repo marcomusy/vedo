@@ -13,6 +13,202 @@ from vedo import addons, utils
 
 __docformat__ = "google"
 
+
+def _key_quit(plotter, _iren, _renderer) -> bool:
+    plotter.break_interaction()
+    return True
+
+
+def _key_close(plotter, _iren, _renderer) -> bool:
+    plotter.close()
+    return True
+
+
+def _key_abort(plotter, _iren, _renderer) -> bool:
+    vedo.logger.info("Execution aborted. Exiting python kernel now.")
+    plotter.break_interaction()
+    sys.exit(0)
+
+
+def _key_help(_plotter, _iren, _renderer) -> bool:
+    msg = f" vedo {vedo.__version__}"
+    msg += f" | vtk {vtki.vtkVersion().GetVTKVersion()}"
+    msg += f" | numpy {np.__version__}"
+    msg += f" | python {sys.version_info[0]}.{sys.version_info[1]}, press: "
+    vedo.printc(msg.ljust(75), invert=True)
+    msg = (
+        "    i     print info about the last clicked object     \n"
+        "    I     print color of the pixel under the mouse     \n"
+        "    Y     show the pipeline for this object as a graph \n"
+        "    <- -> use arrows to reduce/increase opacity        \n"
+        "    x     toggle mesh visibility                       \n"
+        "    w     toggle wireframe/surface style               \n"
+        "    l     toggle surface edges visibility              \n"
+        "    p/P   hide surface faces and show only points      \n"
+        "    1-3   cycle surface color (2=light, 3=dark)        \n"
+        "    4     cycle color map (press shift-4 to go back)   \n"
+        "    5-6   cycle point-cell arrays (shift to go back)   \n"
+        "    7-8   cycle background and gradient color          \n"
+        "    09+-  cycle axes styles (on keypad, or press +/-)  \n"
+        "    k     cycle available lighting styles              \n"
+        "    K     toggle shading as flat or phong              \n"
+        "    A     toggle anti-aliasing                         \n"
+        "    D     toggle depth-peeling (for transparencies)    \n"
+        "    U     toggle perspective/parallel projection       \n"
+        "    o/O   toggle extra light to scene and rotate it    \n"
+        "    a     toggle interaction to Actor Mode             \n"
+        "    n     toggle surface normals                       \n"
+        "    r     reset camera position                        \n"
+        "    R     reset camera to the closest orthogonal view  \n"
+        "    .     fly camera to the last clicked point         \n"
+        "    C     print the current camera parameters state    \n"
+        "    X     invoke a cutter widget tool                  \n"
+        "    S     save a screenshot of the current scene       \n"
+        "    E/F   export 3D scene to numpy file or X3D         \n"
+        "    q     return control to python script              \n"
+        "    Esc   abort execution and exit python kernel       "
+    )
+    vedo.printc(msg, dim=True, italic=True, bold=True)
+    vedo.printc(
+        " Check out the documentation at:  https://vedo.embl.es ".ljust(75),
+        invert=True,
+        bold=True,
+    )
+    return True
+
+
+def _key_toggle_actor_mode(_plotter, iren, _renderer) -> bool:
+    cur = iren.GetInteractorStyle()
+    if isinstance(cur, vtki.get_class("InteractorStyleTrackballCamera")):
+        msg = "Interactor style changed to TrackballActor\n"
+        msg += "  you can now move and rotate individual meshes:\n"
+        msg += "  press X twice to save the repositioned mesh\n"
+        msg += "  press 'a' to go back to normal style"
+        vedo.printc(msg)
+        iren.SetInteractorStyle(vtki.new("InteractorStyleTrackballActor"))
+    else:
+        iren.SetInteractorStyle(vtki.new("InteractorStyleTrackballCamera"))
+    return True
+
+
+def _key_toggle_depth_peeling(plotter, _iren, renderer) -> bool:
+    udp = not renderer.GetUseDepthPeeling()
+    renderer.SetUseDepthPeeling(udp)
+    if udp:
+        plotter.window.SetAlphaBitPlanes(1)
+        renderer.SetMaximumNumberOfPeels(vedo.settings.max_number_of_peels)
+        renderer.SetOcclusionRatio(vedo.settings.occlusion_ratio)
+    plotter.interactor.Render()
+    wasUsed = renderer.GetLastRenderingUsedDepthPeeling()
+    rnr = plotter.renderers.index(renderer)
+    vedo.printc(f"Depth peeling set to {udp} for renderer nr.{rnr}", c=udp)
+    if not wasUsed and udp:
+        vedo.printc("\t...but last rendering did not actually used it!", c=udp, invert=True)
+    return True
+
+
+def _key_fly_to(plotter, _iren, _renderer) -> bool:
+    if plotter.picked3d:
+        plotter.fly_to(plotter.picked3d)
+    return True
+
+
+def _key_screenshot(plotter, _iren, _renderer) -> bool:
+    fname = "screenshot.png"
+    i = 1
+    while os.path.isfile(fname):
+        fname = f"screenshot{i}.png"
+        i += 1
+    for ss in plotter.sliders:
+        ss[0].off()
+    for bb in plotter.buttons:
+        bb.off()
+    vedo.file_io.screenshot(fname)
+    vedo.printc(rf":camera: Saved rendering window to {fname}", c="b")
+    for ss in plotter.sliders:
+        ss[0].on()
+        ss[0].Render()
+    for bb in plotter.buttons:
+        bb.on()
+    return True
+
+
+def _key_print_camera(_plotter, _iren, renderer) -> bool:
+    cam = renderer.GetActiveCamera()
+    vedo.printc("\n###################################################", c="y")
+    vedo.printc("## Template python code to position this camera: ##", c="y")
+    vedo.printc("cam = dict(", c="y")
+    vedo.printc("    pos=" + utils.precision(cam.GetPosition(), 6) + ",", c="y")
+    vedo.printc("    focal_point=" + utils.precision(cam.GetFocalPoint(), 6) + ",", c="y")
+    vedo.printc("    viewup=" + utils.precision(cam.GetViewUp(), 6) + ",", c="y")
+    vedo.printc("    roll=" + utils.precision(cam.GetRoll(), 6) + ",", c="y")
+    if cam.GetParallelProjection():
+        vedo.printc("    parallel_scale=" + utils.precision(cam.GetParallelScale(), 6) + ",", c="y")
+    else:
+        vedo.printc("    distance=" + utils.precision(cam.GetDistance(), 6) + ",", c="y")
+    vedo.printc("    clipping_range=" + utils.precision(cam.GetClippingRange(), 6) + ",", c="y")
+    vedo.printc(")", c="y")
+    vedo.printc("show(mymeshes, camera=cam)", c="y")
+    vedo.printc("###################################################", c="y")
+    return True
+
+
+def _key_export_npz(_plotter, _iren, _renderer) -> bool:
+    vedo.printc(r":camera: Exporting 3D window to file scene.npz", c="b", end="")
+    vedo.file_io.export_window("scene.npz")
+    vedo.printc(", try:\n> vedo scene.npz  # (this is experimental!)", c="b")
+    return True
+
+
+def _key_export_x3d(_plotter, _iren, _renderer) -> bool:
+    vedo.file_io.export_window("scene.x3d")
+    vedo.printc(r":camera: Exporting 3D window to file", c="b", end="")
+    vedo.file_io.export_window("scene.npz")
+    vedo.printc(". Try:\n> firefox scene.html", c="b")
+    return False
+
+
+def _key_print_info(plotter, _iren, _renderer) -> bool:
+    if plotter.clicked_object:
+        print(plotter.clicked_object)
+    else:
+        print(plotter)
+    return False
+
+
+def _key_pick_color(plotter, iren, _renderer) -> bool:
+    x, y = iren.GetEventPosition()
+    plotter.color_picker([x, y], verbose=True)
+    return False
+
+
+def _key_show_pipeline(plotter, _iren, _renderer) -> bool:
+    if plotter.clicked_object and plotter.clicked_object.pipeline:
+        plotter.clicked_object.pipeline.show()
+    return False
+
+
+_KEY_DISPATCH = {
+    "q": _key_quit,
+    "Return": _key_quit,
+    "Ctrl+q": _key_close,
+    "Ctrl+w": _key_close,
+    "Escape": _key_close,
+    "F1": _key_abort,
+    "h": _key_help,
+    "a": _key_toggle_actor_mode,
+    "D": _key_toggle_depth_peeling,
+    "period": _key_fly_to,
+    "S": _key_screenshot,
+    "C": _key_print_camera,
+    "E": _key_export_npz,
+    "F": _key_export_x3d,
+    "i": _key_print_info,
+    "I": _key_pick_color,
+    "Y": _key_show_pipeline,
+}
+
+
 def handle_default_keypress(plotter, iren, event) -> None:
     # NB: qt creates and passes a vtkGenericRenderWindowInteractor
 
@@ -39,18 +235,10 @@ def handle_default_keypress(plotter, iren, event) -> None:
     x, y = iren.GetEventPosition()
     renderer = iren.FindPokedRenderer(x, y)
 
-    if key in ["q", "Return"]:
-        plotter.break_interaction()
-        return
-
-    elif key in ["Ctrl+q", "Ctrl+w", "Escape"]:
-        plotter.close()
-        return
-
-    elif key == "F1":
-        vedo.logger.info("Execution aborted. Exiting python kernel now.")
-        plotter.break_interaction()
-        sys.exit(0)
+    dispatch = _KEY_DISPATCH.get(key)
+    if dispatch:
+        if dispatch(plotter, iren, renderer):
+            return
 
     elif key == "Down":
         if plotter.clicked_object and plotter.clicked_object in plotter.get_meshes():
@@ -167,65 +355,6 @@ def handle_default_keypress(plotter, iren, event) -> None:
     elif key == "r":
         renderer.ResetCamera()
 
-    elif key == "h":
-        msg  = f" vedo {vedo.__version__}"
-        msg += f" | vtk {vtki.vtkVersion().GetVTKVersion()}"
-        msg += f" | numpy {np.__version__}"
-        msg += f" | python {sys.version_info[0]}.{sys.version_info[1]}, press: "
-        vedo.printc(msg.ljust(75), invert=True)
-        msg = (
-            "    i     print info about the last clicked object     \n"
-            "    I     print color of the pixel under the mouse     \n"
-            "    Y     show the pipeline for this object as a graph \n"
-            "    <- -> use arrows to reduce/increase opacity        \n"
-            "    x     toggle mesh visibility                       \n"
-            "    w     toggle wireframe/surface style               \n"
-            "    l     toggle surface edges visibility              \n"
-            "    p/P   hide surface faces and show only points      \n"
-            "    1-3   cycle surface color (2=light, 3=dark)        \n"
-            "    4     cycle color map (press shift-4 to go back)   \n"
-            "    5-6   cycle point-cell arrays (shift to go back)   \n"
-            "    7-8   cycle background and gradient color          \n"
-            "    09+-  cycle axes styles (on keypad, or press +/-)  \n"
-            "    k     cycle available lighting styles              \n"
-            "    K     toggle shading as flat or phong              \n"
-            "    A     toggle anti-aliasing                         \n"
-            "    D     toggle depth-peeling (for transparencies)    \n"
-            "    U     toggle perspective/parallel projection       \n"
-            "    o/O   toggle extra light to scene and rotate it    \n"
-            "    a     toggle interaction to Actor Mode             \n"
-            "    n     toggle surface normals                       \n"
-            "    r     reset camera position                        \n"
-            "    R     reset camera to the closest orthogonal view  \n"
-            "    .     fly camera to the last clicked point         \n"
-            "    C     print the current camera parameters state    \n"
-            "    X     invoke a cutter widget tool                  \n"
-            "    S     save a screenshot of the current scene       \n"
-            "    E/F   export 3D scene to numpy file or X3D         \n"
-            "    q     return control to python script              \n"
-            "    Esc   abort execution and exit python kernel       "
-        )
-        vedo.printc(msg, dim=True, italic=True, bold=True)
-        vedo.printc(
-            " Check out the documentation at:  https://vedo.embl.es ".ljust(75),
-            invert=True,
-            bold=True,
-        )
-        return
-
-    elif key == "a":
-        cur = iren.GetInteractorStyle()
-        if isinstance(cur, vtki.get_class("InteractorStyleTrackballCamera")):
-            msg  = "Interactor style changed to TrackballActor\n"
-            msg += "  you can now move and rotate individual meshes:\n"
-            msg += "  press X twice to save the repositioned mesh\n"
-            msg += "  press 'a' to go back to normal style"
-            vedo.printc(msg)
-            iren.SetInteractorStyle(vtki.new("InteractorStyleTrackballActor"))
-        else:
-            iren.SetInteractorStyle(vtki.new("InteractorStyleTrackballCamera"))
-        return
-
     elif key == "A":  # toggle antialiasing
         msam = plotter.window.GetMultiSamples()
         if not msam:
@@ -237,68 +366,6 @@ def handle_default_keypress(plotter, iren, event) -> None:
             vedo.printc(f"Antialiasing set to {msam} samples", c=bool(msam))
         else:
             vedo.printc("Antialiasing disabled", c=bool(msam))
-
-    elif key == "D":  # toggle depthpeeling
-        udp = not renderer.GetUseDepthPeeling()
-        renderer.SetUseDepthPeeling(udp)
-        # plotter.renderer.SetUseDepthPeelingForVolumes(udp)
-        if udp:
-            plotter.window.SetAlphaBitPlanes(1)
-            renderer.SetMaximumNumberOfPeels(vedo.settings.max_number_of_peels)
-            renderer.SetOcclusionRatio(vedo.settings.occlusion_ratio)
-        plotter.interactor.Render()
-        wasUsed = renderer.GetLastRenderingUsedDepthPeeling()
-        rnr = plotter.renderers.index(renderer)
-        vedo.printc(f"Depth peeling set to {udp} for renderer nr.{rnr}", c=udp)
-        if not wasUsed and udp:
-            vedo.printc("\t...but last rendering did not actually used it!", c=udp, invert=True)
-        return
-
-    elif key == "period":
-        if plotter.picked3d:
-            plotter.fly_to(plotter.picked3d)
-        return
-
-    elif key == "S":
-        fname = "screenshot.png"
-        i = 1
-        while os.path.isfile(fname):
-            fname = f"screenshot{i}.png"
-            i += 1
-        for ss in plotter.sliders:
-            ss[0].off()
-        for bb in plotter.buttons:
-            bb.off()
-        vedo.file_io.screenshot(fname)
-        vedo.printc(rf":camera: Saved rendering window to {fname}", c="b")
-        for ss in plotter.sliders:
-            ss[0].on()
-            ss[0].Render()
-        for bb in plotter.buttons:
-            bb.on()
-        return
-
-    elif key == "C":
-        # Precision needs to be 7 (or even larger) to guarantee a consistent camera when
-        #   the model coordinates are not centered at (0, 0, 0) and the mode is large.
-        # This could happen for plotting geological models with UTM coordinate systems
-        cam = renderer.GetActiveCamera()
-        vedo.printc("\n###################################################", c="y")
-        vedo.printc("## Template python code to position this camera: ##", c="y")
-        vedo.printc("cam = dict(", c="y")
-        vedo.printc("    pos=" + utils.precision(cam.GetPosition(), 6) + ",", c="y")
-        vedo.printc("    focal_point=" + utils.precision(cam.GetFocalPoint(), 6) + ",", c="y")
-        vedo.printc("    viewup=" + utils.precision(cam.GetViewUp(), 6) + ",", c="y")
-        vedo.printc("    roll=" + utils.precision(cam.GetRoll(), 6) + ",", c="y")
-        if cam.GetParallelProjection():
-            vedo.printc('    parallel_scale='+utils.precision(cam.GetParallelScale(),6)+',', c='y')
-        else:
-            vedo.printc('    distance='     +utils.precision(cam.GetDistance(),6)+',', c='y')
-        vedo.printc('    clipping_range='+utils.precision(cam.GetClippingRange(),6)+',', c='y')
-        vedo.printc(')', c='y')
-        vedo.printc('show(mymeshes, camera=cam)', c='y')
-        vedo.printc('###################################################', c='y')
-        return
 
     elif key == "R":
         plotter.reset_viewup()
@@ -719,38 +786,6 @@ def handle_default_keypress(plotter, iren, event) -> None:
                 plotter.remove(plotter.cutter_widget)
                 plotter.cutter_widget = None
             vedo.printc("Click object and press X to open the cutter box widget.", c='g')
-
-    elif key == "E":
-        vedo.printc(r":camera: Exporting 3D window to file scene.npz", c="b", end="")
-        vedo.file_io.export_window("scene.npz")
-        vedo.printc(", try:\n> vedo scene.npz  # (this is experimental!)", c="b")
-        return
-
-    elif key == "F":
-        vedo.file_io.export_window("scene.x3d")
-        vedo.printc(r":camera: Exporting 3D window to file", c="b", end="")
-        vedo.file_io.export_window("scene.npz")
-        vedo.printc(". Try:\n> firefox scene.html", c="b")
-
-    # elif key == "G":  # not working with last version of k3d
-    #     vedo.file_io.export_window("scene.html")
-    #     vedo.printc(r":camera: Exporting K3D window to file", c="b", end="")
-    #     vedo.file_io.export_window("scene.html")
-    #     vedo.printc(". Try:\n> firefox scene.html", c="b")
-
-    elif key == "i":  # print info
-        if plotter.clicked_object:
-            print(plotter.clicked_object)
-        else:
-            print(plotter)
-
-    elif key == "I":  # print color under the mouse
-        x, y = iren.GetEventPosition()
-        plotter.color_picker([x, y], verbose=True)
-
-    elif key == "Y":
-        if plotter.clicked_object and plotter.clicked_object.pipeline:
-            plotter.clicked_object.pipeline.show()
 
     if iren:
         iren.Render()
