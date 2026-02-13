@@ -27,19 +27,27 @@ __all__ = [
 ]
 
 #########################################################
-try:
-    import matplotlib
+matplotlib = None
+cmaps = None
+_has_matplotlib = None
+
+
+def _setup_colormaps():
+    """Initialize colormap backends lazily to keep import time low."""
+    global matplotlib, cmaps, _has_matplotlib
+    if _has_matplotlib is not None:
+        return
+
     try:
-        matplotlib.colormaps # v3.4 will fail this
+        import matplotlib as _mpl
+        _ = _mpl.colormaps  # matplotlib >=3.5
+        matplotlib = _mpl
         _has_matplotlib = True
         cmaps = {}
-    except AttributeError:
+    except (ModuleNotFoundError, AttributeError):
+        from vedo.cmaps import cmaps as _cmaps
+        cmaps = _cmaps
         _has_matplotlib = False
-except ModuleNotFoundError:
-    from vedo.cmaps import cmaps
-    _has_matplotlib = False
-    # see below, this is dealt with in color_map()
-# print("colors.py: _has_matplotlib", _has_matplotlib)
 
 _printc_delay_timestamp = [0]
 
@@ -569,9 +577,10 @@ emoji = {
 # terminal or notebook can do color print
 def _has_colors(stream):
     try:
-        import IPython
-        return True
-    except:
+        # Avoid importing IPython at module import time: this slows down startup.
+        from builtins import get_ipython
+        return get_ipython() is not None
+    except Exception:
         pass
 
     if not hasattr(stream, "isatty"):
@@ -784,6 +793,8 @@ def color_map(value, name="jet", vmin=None, vmax=None):
         else:
             values = [(value - vmin) / (vmax - vmin)]
 
+    _setup_colormaps()
+
     if _has_matplotlib:
         # matplotlib is available, use it! ###########################
         if isinstance(name, str):
@@ -795,6 +806,9 @@ def color_map(value, name="jet", vmin=None, vmax=None):
     else:
         # matplotlib not available ###################################
         invert = False
+        if not isinstance(name, str):
+            vedo.logger.error("in color_map(), colormap object input requires matplotlib.")
+            return np.array([0.5, 0.5, 0.5])
         if name.endswith("_r"):
             invert = True
             name = name.replace("_r", "")

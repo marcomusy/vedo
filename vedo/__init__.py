@@ -13,6 +13,7 @@
 import os
 import sys
 import logging
+import importlib
 import numpy as np
 from numpy import sin, cos, sqrt, exp, log, dot, cross  # just because handy
 
@@ -45,13 +46,10 @@ from vedo.addons import *
 from vedo.plotter import *
 from vedo.visual import *
 
-from vedo import applications
-from vedo import interactor_modes
-
 try:
     import platform
     sys_platform = platform.system()
-except (ModuleNotFoundError, AttributeError) as e:
+except (ModuleNotFoundError, AttributeError):
     sys_platform = ""
 
 ######################################################################### GLOBALS
@@ -128,6 +126,21 @@ if sys.stderr is None:
 _chsh.flush = sys.stdout.flush
 _chsh.setLevel(logging.DEBUG)
 _chsh.setFormatter(_LoggingCustomFormatter())
-logger.addHandler(_chsh)
+# Avoid duplicate handlers when vedo is re-imported/reloaded.
+if not any(
+    isinstance(h, logging.StreamHandler)
+    and getattr(h, "_vedo_default_handler", False)
+    for h in logger.handlers
+):
+    _chsh._vedo_default_handler = True  # type: ignore[attr-defined]
+    logger.addHandler(_chsh)
 logger.setLevel(logging.INFO)
 
+
+def __getattr__(name):
+    """Lazy-load selected heavy optional modules while preserving public API."""
+    if name in {"applications", "interactor_modes"}:
+        module = importlib.import_module(f"vedo.{name}")
+        globals()[name] = module
+        return module
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
