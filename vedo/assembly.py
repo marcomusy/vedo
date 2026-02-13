@@ -128,9 +128,10 @@ class Group:
                 out+= f", legend='{self.info['legend']}'"
             out += "\n"
 
-        n = len(self.unpack())
+        parts = self.unpack()
+        n = len(parts)
         out += "n. of objects".ljust(14) + ": " + str(n) + " "
-        names = [a.name for a in self.unpack() if a.name]
+        names = [a.name for a in parts if hasattr(a, "name") and a.name]
         if names:
             out += str(names).replace("'","")[:56]
         return out.rstrip() + "\x1b[0m"
@@ -158,7 +159,8 @@ class Group:
                     self.actor.RemovePart(a)
                 except TypeError:
                     self.actor.RemovePart(a.actor)
-                    self.objects.append(a)
+                if a in self.objects:
+                    self.objects.remove(a)
         return self
     
     def rename(self, name: str) -> "Group":
@@ -179,8 +181,8 @@ class Group:
     def _unpack(self):
         """Unpack the group into its elements"""
         elements = []
-        self.InitPathTraversal()
-        parts = self.GetParts()
+        self.actor.InitPathTraversal()
+        parts = self.actor.GetParts()
         parts.InitTraversal()
         for i in range(parts.GetNumberOfItems()):
             ele = parts.GetItemAsObject(i)
@@ -197,6 +199,10 @@ class Group:
 
         return elements
 
+    def unpack(self):
+        """Unpack the group into its vedo objects."""
+        return self.objects
+
     def clear(self) -> "Group":
         """Remove all parts"""
         for a in self._unpack():
@@ -206,12 +212,12 @@ class Group:
 
     def on(self) -> "Group":
         """Switch on visibility"""
-        self.VisibilityOn()
+        self.actor.VisibilityOn()
         return self
 
     def off(self) -> "Group":
         """Switch off visibility"""
-        self.VisibilityOff()
+        self.actor.VisibilityOff()
         return self
 
     def pickable(self, value=True) -> "Group":
@@ -472,9 +478,13 @@ class Assembly(CommonVisual, Actor3DHelper):
                 try:
                     self.actor.RemovePart(a)
                     self.objects.remove(a)
+                    if a in self.actors:
+                        self.actors.remove(a)
                 except TypeError:
                     self.actor.RemovePart(a.actor)
                     self.objects.remove(a)
+                    if a.actor in self.actors:
+                        self.actors.remove(a.actor)
         return self
 
     def rename(self, name: str) -> "Assembly":
@@ -710,7 +720,7 @@ class Assembly(CommonVisual, Actor3DHelper):
                 a2d = b.clone2d(size=s, offset=offset)
             else:
                 if rotation:
-                    a.rotate_z(rotation, around=cm)
+                    a = a.clone().rotate_z(rotation, around=cm)
                 a2d = a.clone2d(size=s, offset=offset)
             a2d.pos(position).ontop(ontop)
             group += a2d
