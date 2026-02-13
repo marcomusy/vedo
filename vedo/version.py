@@ -1,1 +1,1 @@
-_version = '2025.5.4+dev11'
+_version = '2025.6.0+dev01'
