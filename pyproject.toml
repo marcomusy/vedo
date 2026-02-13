@@ -61,6 +61,7 @@ Changelog = "https://github.com/marcomusy/vedo/blob/master/docs/changes.md"
 
 packages = [
     "vedo",
+    "vedo.applications",
     "vedo.addons",
     "vedo.shapes",
     "vedo.fonts",
