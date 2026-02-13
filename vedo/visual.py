@@ -598,10 +598,6 @@ class Actor2D(vtki.vtkActor2D):
     def mapper(self):
         """Get the internal vtkMapper."""
         return self.GetMapper()
-    
-    @mapper.setter
-    def mapper(self, mp):
-        self.actor.SetMapper(mp)
 
     
     # not usable
@@ -674,7 +670,7 @@ class Actor2D(vtki.vtkActor2D):
 
     def off(self) -> Self:
         """Set object visibility."""
-        self.VisibilityOn()
+        self.VisibilityOff()
         return self
 
     def toggle(self) -> Self:
