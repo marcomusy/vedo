@@ -1,0 +1,2569 @@
+# -*- coding: utf-8 -*-
+import os.path
+import sys
+import time
+from typing import MutableSequence, Callable, Any, Union
+from typing_extensions import Self
+import numpy as np
+
+import vedo.vtkclasses as vtki  # a wrapper for lazy imports
+
+import vedo
+from vedo import utils
+from vedo import addons
+from vedo.events import Event
+from .bootstrap import apply_gradient_mode, configure_renderer_common
+from .camera import (
+    azimuth,
+    dolly,
+    elevation,
+    fly_to,
+    fov,
+    look_at,
+    move_camera,
+    parallel_projection,
+    render_hidden_lines,
+    reset_camera,
+    reset_clipping_range,
+    reset_viewup,
+    roll,
+    zoom,
+)
+from .interaction import (
+    add_callback,
+    add_observer,
+    compute_screen_coordinates,
+    compute_world_coordinate,
+    default_mouseleftclick,
+    fill_event,
+    pick_area,
+    remove_all_observers,
+    remove_callback,
+    timer_callback,
+)
+from .io import export, screenshot, toimage
+from .keymap import handle_default_keypress as _handle_default_keypress
+from .lifecycle import (
+    break_interaction,
+    clear,
+    close as lifecycle_close,
+    freeze,
+    initialize_interactor,
+    interactive,
+    process_events,
+    render as lifecycle_render,
+    use_depth_peeling,
+    user_mode,
+)
+from .scene import (
+    actors,
+    add,
+    get_actors,
+    get_meshes,
+    get_volumes,
+    pop,
+    remove,
+    remove_lights,
+)
+
+
+__doc__ = """
+Module containing the Plotter class for managing objects and 3D rendering.
+
+The Plotter class is the main interface for creating visualization windows,
+rendering 3D scenes, handling interactions, managing renderers, cameras,
+and visualization settings. It provides methods for displaying meshes, creating
+screenshots, handling user events, and configuring the visualization pipeline.
+
+Key functionality:
+- Create and manage multiple render windows
+
+- Handle user interaction via mouse and keyboard events
+
+- Control camera position and settings
+
+- Configure lighting and shading
+
+- Add text labels, scalar bars and other annotations
+
+- Export visualizations to images and movies
+
+![](https://vedo.embl.es/images/basic/multirenderers.png)
+"""
+__docformat__ = "google"
+
+__all__ = ["Plotter", "show", "close"]
+
+##############################################################################################
+def show(
+    *objects,
+    at=None,
+    shape=(1, 1),
+    N=None,
+    pos=(0, 0),
+    size="auto",
+    screensize="auto",
+    title="vedo",
+    bg="white",
+    bg2=None,
+    axes=None,
+    interactive=None,
+    offscreen=False,
+    sharecam=True,
+    resetcam=True,
+    zoom=None,
+    viewup="",
+    azimuth=0.0,
+    elevation=0.0,
+    roll=0.0,
+    camera=None,
+    mode=None,
+    screenshot="",
+    new=False,
+) -> Union[Self, None]:
+    """
+    Create on the fly an instance of class Plotter and show the object(s) provided.
+
+    Arguments:
+        at : (int)
+            number of the renderer to plot to, in case of more than one exists
+        shape : (list, str)
+            Number of sub-render windows inside of the main window. E.g.:
+            specify two across with shape=(2,1) and a two by two grid
+            with shape=(2, 2). By default there is only one renderer.
+
+            Can also accept a shape as string descriptor. E.g.:
+            - shape="3|1" means 3 plots on the left and 1 on the right,
+            - shape="4/2" means 4 plots on top of 2 at bottom.
+
+        N : (int)
+            number of desired sub-render windows arranged automatically in a grid
+        pos : (list)
+            position coordinates of the top-left corner of the rendering window
+            on the screen
+        size : (list)
+            size of the rendering window
+        screensize : (list)
+            physical size of the monitor screen
+        title : (str)
+            window title
+        bg : (color)
+            background color or specify jpg image file name with path
+        bg2 : (color)
+            background color of a gradient towards the top
+        axes : (int)
+            set the type of axes to be shown:
+            - 0,  no axes
+            - 1,  draw three gray grid walls
+            - 2,  show cartesian axes from (0,0,0)
+            - 3,  show positive range of cartesian axes from (0,0,0)
+            - 4,  show a triad at bottom left
+            - 5,  show a cube at bottom left
+            - 6,  mark the corners of the bounding box
+            - 7,  draw a 3D ruler at each side of the cartesian axes
+            - 8,  show the `vtkCubeAxesActor` object
+            - 9,  show the bounding box outLine
+            - 10, show three circles representing the maximum bounding box
+            - 11, show a large grid on the x-y plane
+            - 12, show polar axes
+            - 13, draw a simple ruler at the bottom of the window
+            - 14: draw a `CameraOrientationWidget`
+
+            Axis type-1 can be fully customized by passing a dictionary.
+            Check `vedo.addons.Axes()` for the full list of options.
+        azimuth/elevation/roll : (float)
+            move camera accordingly the specified value
+        viewup : (str, list)
+            either `['x', 'y', 'z']` or a vector to set vertical direction
+        resetcam : (bool)
+            re-adjust camera position to fit objects
+        camera : (dict, vtkCamera)
+            camera parameters can further be specified with a dictionary
+            assigned to the `camera` keyword (E.g. `show(camera={'pos':(1,2,3), 'thickness':1000,})`):
+            - **pos** (list),  the position of the camera in world coordinates
+            - **focal_point** (list), the focal point of the camera in world coordinates
+            - **viewup** (list), the view up direction for the camera
+            - **distance** (float), set the focal point to the specified distance from the camera position.
+            - **clipping_range** (float), distance of the near and far clipping planes along the direction of projection.
+            - **parallel_scale** (float),
+            scaling used for a parallel projection, i.e. the height of the viewport
+            in world-coordinate distances. The default is 1. Note that the "scale" parameter works as
+            an "inverse scale", larger numbers produce smaller images.
+            This method has no effect in perspective projection mode.
+            - **thickness** (float),
+            set the distance between clipping planes. This method adjusts the far clipping
+            plane to be set a distance 'thickness' beyond the near clipping plane.
+            - **view_angle** (float),
+            the camera view angle, which is the angular height of the camera view
+            measured in degrees. The default angle is 30 degrees.
+            This method has no effect in parallel projection mode.
+            The formula for setting the angle up for perfect perspective viewing is:
+            angle = 2*atan((h/2)/d) where h is the height of the RenderWindow
+            (measured by holding a ruler up to your screen) and d is the distance
+            from your eyes to the screen.
+        interactive : (bool)
+            pause and interact with window (True) or continue execution (False)
+        rate : (float)
+            maximum rate of `show()` in Hertz
+        mode : (int, str)
+            set the type of interaction:
+            - 0 = TrackballCamera [default]
+            - 1 = TrackballActor
+            - 2 = JoystickCamera
+            - 3 = JoystickActor
+            - 4 = Flight
+            - 5 = RubberBand2D
+            - 6 = RubberBand3D
+            - 7 = RubberBandZoom
+            - 8 = Terrain
+            - 9 = Unicam
+            - 10 = Image
+        new : (bool)
+            if set to `True`, a call to show will instantiate
+            a new Plotter object (a new window) instead of reusing the first created.
+            If new is `True`, but the existing plotter was instantiated with a different
+            argument for `offscreen`, `new` is ignored and a new Plotter is created anyway.
+    """
+    if len(objects) == 0:
+        objects = None
+    elif len(objects) == 1:
+        objects = objects[0]
+    else:
+        objects = utils.flatten(objects)
+
+    #  If a plotter instance is already present, check if the offscreen argument
+    #  is the same as the one requested by the user. If not, create a new
+    # plotter instance (see https://github.com/marcomusy/vedo/issues/1026)
+    current_plt = vedo.current_plotter()
+    if current_plt and current_plt.offscreen != offscreen:
+        new = True
+
+    if current_plt and not new:  # Plotter exists
+        plt = current_plt
+
+    else:  # Plotter must be created
+
+        if utils.is_sequence(at):  # user passed a sequence for "at"
+
+            if not utils.is_sequence(objects):
+                vedo.logger.error("in show() input must be a list.")
+                raise RuntimeError()
+            if len(at) != len(objects):
+                vedo.logger.error("in show() lists 'input' and 'at' must have equal lengths")
+                raise RuntimeError()
+            if shape == (1, 1) and N is None:
+                N = max(at) + 1
+
+        elif at is None and (N or shape != (1, 1)):
+
+            if not utils.is_sequence(objects):
+                e = "in show(), N or shape is set, but input is not a sequence\n"
+                e += "              you may need to specify e.g. at=0"
+                vedo.logger.error(e)
+                raise RuntimeError()
+            at = list(range(len(objects)))
+
+        plt = Plotter(
+            shape=shape,
+            N=N,
+            pos=pos,
+            size=size,
+            screensize=screensize,
+            title=title,
+            axes=axes,
+            sharecam=sharecam,
+            resetcam=resetcam,
+            interactive=interactive,
+            offscreen=offscreen,
+            bg=bg,
+            bg2=bg2,
+        )
+
+    if vedo.settings.dry_run_mode >= 2:
+        return plt
+
+    # use _plt_to_return because plt.show() can return a k3d plot
+    _plt_to_return = None
+
+    if utils.is_sequence(at):
+
+        for i, act in enumerate(objects):
+            _plt_to_return = plt.show(
+                act,
+                at=i,
+                zoom=zoom,
+                resetcam=resetcam,
+                viewup=viewup,
+                azimuth=azimuth,
+                elevation=elevation,
+                roll=roll,
+                camera=camera,
+                interactive=False,
+                mode=mode,
+                screenshot=screenshot,
+                bg=bg,
+                bg2=bg2,
+                axes=axes,
+            )
+
+        if (
+            interactive
+            or len(at) == N
+            or (isinstance(shape[0], int) and len(at) == shape[0] * shape[1])
+        ):
+            # note that shape can be a string
+            if plt.interactor and not offscreen and (interactive is None or interactive):
+                plt.interactor.Start()
+                if plt._must_close_now:
+                    plt.interactor.GetRenderWindow().Finalize()
+                    plt.interactor.TerminateApp()
+                    plt.interactor = None
+                    plt.window = None
+                    plt.renderer = None
+                    plt.renderers = []
+                    plt.camera = None
+
+    else:
+
+        _plt_to_return = plt.show(
+            objects,
+            at=at,
+            zoom=zoom,
+            resetcam=resetcam,
+            viewup=viewup,
+            azimuth=azimuth,
+            elevation=elevation,
+            roll=roll,
+            camera=camera,
+            interactive=interactive,
+            mode=mode,
+            screenshot=screenshot,
+            bg=bg,
+            bg2=bg2,
+            axes=axes,
+        )
+
+    return _plt_to_return
+
+
+def close() -> None:
+    """Close the last created Plotter instance if it exists."""
+    plt = vedo.current_plotter()
+    if not plt:
+        return
+    plt.close()
+    return
+
+
+########################################################################
+class Plotter:
+    """Main class to manage objects."""
+
+    def __init__(
+        self,
+        shape=(1, 1),
+        N=None,
+        pos=(0, 0),
+        size="auto",
+        screensize="auto",
+        title="vedo",
+        bg="white",
+        bg2=None,
+        axes=None,
+        sharecam=True,
+        resetcam=True,
+        interactive=None,
+        offscreen=False,
+        qt_widget=None,
+        wx_widget=None,
+    ):
+        """
+        Arguments:
+            shape : (str, list)
+                shape of the grid of renderers in format (rows, columns). Ignored if N is specified.
+            N : (int)
+                number of desired renderers arranged in a grid automatically.
+            pos : (list)
+                (x,y) position in pixels of top-left corner of the rendering window on the screen
+            size : (str, list)
+                size of the rendering window. If 'auto', guess it based on screensize.
+            screensize : (list)
+                physical size of the monitor screen in pixels
+            bg : (color, str)
+                background color or specify jpg image file name with path
+            bg2 : (color)
+                background color of a gradient towards the top
+            title : (str)
+                window title
+            axes : (int)
+                axis type-1 can be fully customized by passing a dictionary.
+                Check `addons.Axes()` for the full list of options.
+                Set the type of axes to be shown:
+                - 0,  no axes
+                - 1,  draw three gray grid walls
+                - 2,  show cartesian axes from (0,0,0)
+                - 3,  show positive range of cartesian axes from (0,0,0)
+                - 4,  show a triad at bottom left
+                - 5,  show a cube at bottom left
+                - 6,  mark the corners of the bounding box
+                - 7,  draw a 3D ruler at each side of the cartesian axes
+                - 8,  show the `vtkCubeAxesActor` object
+                - 9,  show the bounding box outLine
+                - 10, show three circles representing the maximum bounding box
+                - 11, show a large grid on the x-y plane
+                - 12, show polar axes
+                - 13, draw a simple ruler at the bottom of the window
+                - 14: draw a camera orientation widget
+
+            sharecam : (bool)
+                if False each renderer will have an independent camera
+            interactive : (bool)
+                if True will stop after show() to allow interaction with the 3d scene
+            offscreen : (bool)
+                if True will not show the rendering window
+            qt_widget : (QVTKRenderWindowInteractor)
+                render in a Qt-Widget using an QVTKRenderWindowInteractor.
+                See examples `qt_windows[1,2,3].py` and `qt_cutter.py`.
+        """
+        vedo.set_current_plotter(self)
+
+        if interactive is None:
+            interactive = bool(N in (0, 1, None) and shape == (1, 1))
+        self._interactive = interactive
+        # print("interactive", interactive, N, shape)
+
+        self.objects = []           # list of objects to be shown
+        self.clicked_object = None  # holds the object that has been clicked
+        self.clicked_actor = None   # holds the actor that has been clicked
+
+        self.shape = shape   # nr. of subwindows in grid
+        self.axes = axes     # show axes type nr.
+        self.title = title   # window title
+        self.size = size     # window size
+        self.backgrcol = bg  # used also by backend notebooks
+
+        self.offscreen= offscreen
+        self.resetcam = resetcam
+        self.sharecam = sharecam  # share the same camera if multiple renderers
+        self.pos      = pos       # used by vedo.file_io
+
+        self.picker   = None  # hold the vtkPicker object
+        self.picked2d = None  # 2d coords of a clicked point on the rendering window
+        self.picked3d = None  # 3d coords of a clicked point on an actor
+
+        self.qt_widget = qt_widget  # QVTKRenderWindowInteractor
+        self.wx_widget = wx_widget  # wxVTKRenderWindowInteractor
+        self.interactor = None
+        self.window = None
+        self.renderer = None
+        self.renderers = []  # list of renderers
+
+        # mostly internal stuff:
+        self.hover_legends = []
+        self.justremoved = None
+        self.axes_instances = []
+        self.clock = 0
+        self.sliders = []
+        self.buttons = []
+        self.widgets = []
+        self.cutter_widget = None
+        self.hint_widget = None
+        self.background_renderer = None
+        self.last_event = None
+        self.skybox = None
+        self._icol = 0
+        self._clockt0 = time.time()
+        self._extralight = None
+        self._cocoa_initialized = False
+        self._cocoa_process_events = True  # make one call in show()
+        self._must_close_now = False
+
+        #####################################################################
+        if vedo.settings.default_backend == "2d":
+            self.offscreen = True
+            if self.size == "auto":
+                self.size = (800, 600)
+
+        elif vedo.settings.default_backend == "k3d":
+            if self.size == "auto":
+                self.size = (1000, 1000)
+            ####################################
+            return  ############################
+            ####################################
+
+        #############################################################
+        if screensize == "auto":
+            screensize = (2160, 1440)  # TODO: get actual screen size
+
+        # build the rendering window:
+        self.window = vtki.vtkRenderWindow()
+
+        self.window.GlobalWarningDisplayOff()
+
+        if self.title == "vedo":  # check if dev version
+            if "dev" in vedo.__version__:
+                self.title = f"vedo ({vedo.__version__})"
+        self.window.SetWindowName(self.title)
+
+        # more vedo.settings
+        if vedo.settings.use_depth_peeling:
+            self.window.SetAlphaBitPlanes(vedo.settings.alpha_bit_planes)
+        self.window.SetMultiSamples(vedo.settings.multi_samples)
+
+        self.window.SetPolygonSmoothing(vedo.settings.polygon_smoothing)
+        self.window.SetLineSmoothing(vedo.settings.line_smoothing)
+        self.window.SetPointSmoothing(vedo.settings.point_smoothing)
+
+        #############################################################
+        if N:  # N = number of renderers. Find out the best
+
+            if shape != (1, 1):  # arrangement based on minimum nr. of empty renderers
+                vedo.logger.warning("having set N, shape is ignored.")
+
+            x, y = screensize
+            nx = int(np.sqrt(int(N * y / x) + 1))
+            ny = int(np.sqrt(int(N * x / y) + 1))
+            lm = [
+                (nx, ny),
+                (nx, ny + 1),
+                (nx - 1, ny),
+                (nx + 1, ny),
+                (nx, ny - 1),
+                (nx - 1, ny + 1),
+                (nx + 1, ny - 1),
+                (nx + 1, ny + 1),
+                (nx - 1, ny - 1),
+            ]
+            ind, minl = 0, 1000
+            for i, m in enumerate(lm):
+                l = m[0] * m[1]
+                if N <= l < minl:
+                    ind = i
+                    minl = l
+            shape = lm[ind]
+
+        ##################################################
+        if isinstance(shape, str):
+
+            if "|" in shape:
+                if self.size == "auto":
+                    self.size = (800, 1200)
+                n = int(shape.split("|")[0])
+                m = int(shape.split("|")[1])
+                rangen = reversed(range(n))
+                rangem = reversed(range(m))
+            else:
+                if self.size == "auto":
+                    self.size = (1200, 800)
+                m = int(shape.split("/")[0])
+                n = int(shape.split("/")[1])
+                rangen = range(n)
+                rangem = range(m)
+
+            if n >= m:
+                xsplit = m / (n + m)
+            else:
+                xsplit = 1 - n / (n + m)
+            if vedo.settings.window_splitting_position:
+                xsplit = vedo.settings.window_splitting_position
+
+            for i in rangen:
+                arenderer = vtki.vtkRenderer()
+                if "|" in shape:
+                    arenderer.SetViewport(0, i / n, xsplit, (i + 1) / n)
+                else:
+                    arenderer.SetViewport(i / n, 0, (i + 1) / n, xsplit)
+                self.renderers.append(arenderer)
+
+            for i in rangem:
+                arenderer = vtki.vtkRenderer()
+
+                if "|" in shape:
+                    arenderer.SetViewport(xsplit, i / m, 1, (i + 1) / m)
+                else:
+                    arenderer.SetViewport(i / m, xsplit, (i + 1) / m, 1)
+                self.renderers.append(arenderer)
+
+            for r in self.renderers:
+                configure_renderer_common(r, self.backgrcol)
+                self.axes_instances.append(None)
+
+            self.shape = (n + m,)
+
+        elif utils.is_sequence(shape) and isinstance(shape[0], dict):
+            # passing a sequence of dicts for renderers specifications
+
+            if self.size == "auto":
+                self.size = (1000, 800)
+
+            for rd in shape:
+                x0, y0 = rd["bottomleft"]
+                x1, y1 = rd["topright"]
+                bg_ = rd.pop("bg", "white")
+                bg2_ = rd.pop("bg2", None)
+
+                arenderer = vtki.vtkRenderer()
+                arenderer.SetViewport(x0, y0, x1, y1)
+                configure_renderer_common(arenderer, bg_, bg2_)
+
+                self.renderers.append(arenderer)
+                self.axes_instances.append(None)
+
+            self.shape = (len(shape),)
+
+        else:
+
+            if isinstance(self.size, str) and self.size == "auto":
+                # figure out a reasonable window size
+                f = 1.5
+                x, y = screensize
+                xs = y / f * shape[1]  # because y<x
+                ys = y / f * shape[0]
+                if xs > x / f:  # shrink
+                    xs = x / f
+                    ys = xs / shape[1] * shape[0]
+                if ys > y / f:
+                    ys = y / f
+                    xs = ys / shape[0] * shape[1]
+                self.size = (int(xs), int(ys))
+                if shape == (1, 1):
+                    self.size = (int(y / f), int(y / f))  # because y<x
+            else:
+                self.size = (self.size[0], self.size[1])
+
+            try:
+                image_actor = None
+                bgname = str(self.backgrcol).lower()
+                if ".jpg" in bgname or ".jpeg" in bgname or ".png" in bgname:
+                    self.window.SetNumberOfLayers(2)
+                    self.background_renderer = vtki.vtkRenderer()
+                    self.background_renderer.SetLayer(0)
+                    self.background_renderer.InteractiveOff()
+                    self.background_renderer.SetBackground(vedo.get_color(bg2))
+                    image_actor = vedo.Image(self.backgrcol).actor
+                    self.window.AddRenderer(self.background_renderer)
+                    self.background_renderer.AddActor(image_actor)
+            except AttributeError:
+                pass
+
+            for i in reversed(range(shape[0])):
+                for j in range(shape[1]):
+                    arenderer = vtki.vtkRenderer()
+                    configure_renderer_common(arenderer, self.backgrcol, bg2, two_sided=True)
+
+                    if image_actor:
+                        arenderer.SetLayer(1)
+
+                    x0 = i / shape[0]
+                    y0 = j / shape[1]
+                    x1 = (i + 1) / shape[0]
+                    y1 = (j + 1) / shape[1]
+                    arenderer.SetViewport(y0, x0, y1, x1)
+                    self.renderers.append(arenderer)
+                    self.axes_instances.append(None)
+            self.shape = shape
+
+        if self.renderers:
+            self.renderer = self.renderers[0]
+            self.camera.SetParallelProjection(vedo.settings.use_parallel_projection)
+
+        #########################################################
+        if self.qt_widget or self.wx_widget:
+            if self.qt_widget:
+                self.window = self.qt_widget.GetRenderWindow()  # overwrite
+            else:
+                self.window = self.wx_widget.GetRenderWindow()
+            self.interactor = self.window.GetInteractor()
+
+        #########################################################
+        for r in self.renderers:
+            self.window.AddRenderer(r)
+            apply_gradient_mode(r)
+
+        # Backend ####################################################
+        if vedo.settings.default_backend in ["panel", "trame", "k3d"]:
+            return  ################
+            ########################
+
+        #########################################################
+        if self.qt_widget or self.wx_widget:
+            self.interactor.SetRenderWindow(self.window)
+            if vedo.settings.enable_default_keyboard_callbacks:
+                self.interactor.AddObserver("KeyPressEvent", self._default_keypress)
+            if vedo.settings.enable_default_mouse_callbacks:
+                self.interactor.AddObserver("LeftButtonPressEvent", self._default_mouseleftclick)
+            return  ################
+            ########################
+
+        if self.size[0] == "f":  # full screen
+            self.size = "fullscreen"
+            self.window.SetFullScreen(True)
+            self.window.BordersOn()
+        else:
+            self.window.SetSize(int(self.size[0]), int(self.size[1]))
+
+        if self.offscreen:
+            if self.axes in (4, 5, 8, 12, 14):
+                self.axes = 0  # does not work with those
+            self.window.SetOffScreenRendering(True)
+            self.interactor = None
+            self._interactive = False
+            return  ################
+            ########################
+
+        self.window.SetPosition(pos)
+
+        #########################################################
+        self.interactor = vtki.vtkRenderWindowInteractor()
+
+        self.interactor.SetRenderWindow(self.window)
+        vsty = vtki.new("InteractorStyleTrackballCamera")
+        self.interactor.SetInteractorStyle(vsty)
+        self.interactor.RemoveObservers("CharEvent")
+
+        if vedo.settings.enable_default_keyboard_callbacks:
+            self.interactor.AddObserver("KeyPressEvent", self._default_keypress)
+        if vedo.settings.enable_default_mouse_callbacks:
+            self.interactor.AddObserver("LeftButtonPressEvent", self._default_mouseleftclick)
+
+    ##################################################################### ..init ends here.
+
+    def __str__(self):
+        """Return Plotter info."""
+        axtype = {
+            0: "(no axes)",
+            1: "(default customizable grid walls)",
+            2: "(cartesian axes from origin",
+            3: "(positive range of cartesian axes from origin",
+            4: "(axes triad at bottom left)",
+            5: "(oriented cube at bottom left)",
+            6: "(mark the corners of the bounding box)",
+            7: "(3D ruler at each side of the cartesian axes)",
+            8: "(the vtkCubeAxesActor object)",
+            9: "(the bounding box outline)",
+            10: "(circles of maximum bounding box range)",
+            11: "(show a large grid on the x-y plane)",
+            12: "(show polar axes)",
+            13: "(simple ruler at the bottom of the window)",
+            14: "(the vtkCameraOrientationWidget object)",
+        }
+
+        module = self.__class__.__module__
+        name = self.__class__.__name__
+        out = vedo.printc(
+            f"{module}.{name} at ({hex(id(self))})".ljust(75),
+            bold=True, invert=True, return_string=True,
+        )
+        out += "\x1b[0m"
+        if self.interactor:
+            out += "window title".ljust(14) + ": " + self.title + "\n"
+            out += "window size".ljust(14) + f": {self.window.GetSize()}"
+            out += f", full_screen={self.window.GetScreenSize()}\n"
+            out += "activ renderer".ljust(14) + ": nr." + str(self.renderers.index(self.renderer))
+            out += f" (out of {len(self.renderers)} renderers)\n"
+
+        bns, totpt = [], 0
+        for a in self.objects:
+            try:
+                b = a.bounds()
+                bns.append(b)
+            except (AttributeError, TypeError):
+                pass
+            try:
+                totpt += a.npoints
+            except AttributeError:
+                pass
+        out += "n. of objects".ljust(14) + f": {len(self.objects)}"
+        out += f" ({totpt} vertices)\n" if totpt else "\n"
+
+        if len(bns) > 0:
+            min_bns = np.min(bns, axis=0)
+            max_bns = np.max(bns, axis=0)
+            bx1, bx2 = utils.precision(min_bns[0], 3), utils.precision(max_bns[1], 3)
+            by1, by2 = utils.precision(min_bns[2], 3), utils.precision(max_bns[3], 3)
+            bz1, bz2 = utils.precision(min_bns[4], 3), utils.precision(max_bns[5], 3)
+            out += "bounds".ljust(14) + ":"
+            out += " x=(" + bx1 + ", " + bx2 + "),"
+            out += " y=(" + by1 + ", " + by2 + "),"
+            out += " z=(" + bz1 + ", " + bz2 + ")\n"
+
+        if utils.is_integer(self.axes):
+            out += "axes style".ljust(14) + f": {self.axes} {axtype[self.axes]}\n"
+        elif isinstance(self.axes, dict):
+            out += "axes style".ljust(14) + f": 1 {axtype[1]}\n"
+        else:
+            out += "axes style".ljust(14) + f": {[self.axes]}\n"
+        return out.rstrip() + "\x1b[0m"
+
+    def print(self):
+        """Print information about the current instance."""
+        print(self.__str__())
+        return self
+
+    def __iadd__(self, objects):
+        self.add(objects)
+        return self
+
+    def __isub__(self, objects):
+        self.remove(objects)
+        return self
+
+    def __enter__(self):
+        # context manager like in "with Plotter() as plt:"
+        return self
+
+    def __exit__(self, *args, **kwargs):
+        # context manager like in "with Plotter() as plt:"
+        self.close()
+
+
+
+    def at(self, nren: int, yren=None) -> Self:
+        """
+        Select the current renderer number as an int.
+        Can also use the `[nx, ny]` format.
+        """
+        if utils.is_sequence(nren):
+            if len(nren) == 2:
+                nren, yren = nren
+            else:
+                vedo.logger.error("at() argument must be a single number or a list of two numbers")
+                raise TypeError
+
+        if yren is not None:
+            a, b = self.shape
+            x, y = nren, yren
+            nren_orig = nren
+            nren = x * b + y
+            # print("at (", x, y, ")  -> ren", nren)
+            if nren < 0 or nren > len(self.renderers) or x >= a or y >= b:
+                vedo.logger.error(f"at({nren_orig, yren}) is malformed!")
+                raise RuntimeError
+
+        self.renderer = self.renderers[nren]
+        return self
+
+
+    ############################################################################
+
+    @property
+
+
+
+
+
+
+    def background(self, c1=None, c2=None, at=None, mode=0) -> Union[Self, "np.ndarray"]:
+        """Set the color of the background for the current renderer.
+        A different renderer index can be specified by keyword `at`.
+
+        Arguments:
+            c1 : (list)
+                background main color.
+            c2 : (list)
+                background color for the upper part of the window.
+            at : (int)
+                renderer index.
+            mode : (int)
+                background mode (needs vtk version >= 9.3)
+                    0 = vertical,
+                    1 = horizontal,
+                    2 = radial farthest side,
+                    3 = radia farthest corner.
+        """
+        if not self.renderers:
+            return self
+        r = self.renderer if at is None else self.renderers[at]
+
+        if c1 is None and c2 is None:
+            return np.array(r.GetBackground())
+
+        if r:
+            if c1 is not None:
+                r.SetBackground(vedo.get_color(c1))
+            if c2 is not None:
+                r.GradientBackgroundOn()
+                r.SetBackground2(vedo.get_color(c2))
+                if mode:
+                    try:  # only works with vtk>=9.3
+                        modes = [
+                            vtki.vtkViewport.GradientModes.VTK_GRADIENT_VERTICAL,
+                            vtki.vtkViewport.GradientModes.VTK_GRADIENT_HORIZONTAL,
+                            vtki.vtkViewport.GradientModes.VTK_GRADIENT_RADIAL_VIEWPORT_FARTHEST_SIDE,
+                            vtki.vtkViewport.GradientModes.VTK_GRADIENT_RADIAL_VIEWPORT_FARTHEST_CORNER,
+                        ]
+                        r.SetGradientMode(modes[mode])
+                    except AttributeError:
+                        pass
+
+            else:
+                r.GradientBackgroundOff()
+        return self
+
+    ##################################################################
+
+
+
+    def check_actors_trasform(self, at=None) -> Self:
+        """
+        Reset the transformation matrix of all actors at specified renderer.
+        This is only useful when actors have been moved/rotated/scaled manually
+        in an already rendered scene using interactors like
+        'TrackballActor' or 'JoystickActor'.
+        """
+        # see issue https://github.com/marcomusy/vedo/issues/1046
+        for a in self.get_actors(at=at, include_non_pickables=True):
+            try:
+                M = a.GetMatrix()
+            except AttributeError:
+                continue
+            if M and not M.IsIdentity():
+                try:
+                    a.retrieve_object().apply_transform_from_actor()
+                    # vedo.logger.info(
+                    #     f"object '{a.retrieve_object().name}' "
+                    #     "was manually moved. Updated to its current position."
+                    # )
+                except AttributeError:
+                    pass
+        return self
+
+
+
+
+
+
+
+    def record(self, filename="") -> str:
+        """
+        Record camera, mouse, keystrokes and all other events.
+        Recording can be toggled on/off by pressing key "R".
+
+        Arguments:
+            filename : (str)
+                ascii file to store events.
+                The default is `vedo.settings.cache_directory+"vedo/recorded_events.log"`.
+
+        Returns:
+            a string descriptor of events.
+
+        Examples:
+            - [record_play.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/record_play.py)
+        """
+        if vedo.settings.dry_run_mode >= 1:
+            return ""
+        if not self.interactor:
+            vedo.logger.warning("Cannot record events, no interactor defined.")
+            return ""
+        erec = vtki.new("InteractorEventRecorder")
+        erec.SetInteractor(self.interactor)
+        if not filename:
+            if not os.path.exists(vedo.settings.cache_directory):
+                os.makedirs(vedo.settings.cache_directory)
+            home_dir = os.path.expanduser("~")
+            filename = os.path.join(
+                home_dir, vedo.settings.cache_directory, "vedo", "recorded_events.log")
+            print("Events will be recorded in", filename)
+        erec.SetFileName(filename)
+        erec.SetKeyPressActivationValue("R")
+        erec.EnabledOn()
+        erec.Record()
+        self.interactor.Start()
+        erec.Stop()
+        erec.EnabledOff()
+        with open(filename, "r", encoding="UTF-8") as fl:
+            events = fl.read()
+        erec = None
+        return events
+
+    def play(self, recorded_events="", repeats=0) -> Self:
+        """
+        Play camera, mouse, keystrokes and all other events.
+
+        Arguments:
+            events : (str)
+                file o string of events.
+                The default is `vedo.settings.cache_directory+"vedo/recorded_events.log"`.
+            repeats : (int)
+                number of extra repeats of the same events. The default is 0.
+
+        Examples:
+            - [record_play.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/record_play.py)
+        """
+        if vedo.settings.dry_run_mode >= 1:
+            return self
+        if not self.interactor:
+            vedo.logger.warning("Cannot play events, no interactor defined.")
+            return self
+
+        erec = vtki.new("InteractorEventRecorder")
+        erec.SetInteractor(self.interactor)
+
+        if not recorded_events:
+            home_dir = os.path.expanduser("~")
+            recorded_events = os.path.join(
+                home_dir, vedo.settings.cache_directory, "vedo", "recorded_events.log")
+
+        if recorded_events.endswith(".log"):
+            erec.ReadFromInputStringOff()
+            erec.SetFileName(recorded_events)
+        else:
+            erec.ReadFromInputStringOn()
+            erec.SetInputString(recorded_events)
+
+        erec.Play()
+        for _ in range(repeats):
+            erec.Rewind()
+            erec.Play()
+        erec.EnabledOff()
+        erec = None
+        return self
+
+
+
+
+
+
+
+
+
+    ##################################################################
+    def add_slider(
+        self,
+        sliderfunc,
+        xmin,
+        xmax,
+        value=None,
+        pos=4,
+        title="",
+        font="Calco",
+        title_size=1,
+        c=None,
+        alpha=1,
+        show_value=True,
+        delayed=False,
+        **options,
+    ) -> "vedo.addons.Slider2D":
+        """
+        Add a `vedo.addons.Slider2D` which can call an external custom function.
+
+        Arguments:
+            sliderfunc : (Callable)
+                external function to be called by the widget
+            xmin : (float)
+                lower value of the slider
+            xmax : (float)
+                upper value
+            value : (float)
+                current value
+            pos : (list, str)
+                position corner number: horizontal [1-5] or vertical [11-15]
+                it can also be specified by corners coordinates [(x1,y1), (x2,y2)]
+                and also by a string descriptor (eg. "bottom-left")
+            title : (str)
+                title text
+            font : (str)
+                title font face. Check [available fonts here](https://vedo.embl.es/fonts).
+            title_size : (float)
+                title text scale [1.0]
+            show_value : (bool)
+                if True current value is shown
+            delayed : (bool)
+                if True the callback is delayed until when the mouse button is released
+            alpha : (float)
+                opacity of the scalar bar texts
+            slider_length : (float)
+                slider length
+            slider_width : (float)
+                slider width
+            end_cap_length : (float)
+                length of the end cap
+            end_cap_width : (float)
+                width of the end cap
+            tube_width : (float)
+                width of the tube
+            title_height : (float)
+                width of the title
+            tformat : (str)
+                format of the title
+
+        Examples:
+            - [sliders1.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/sliders1.py)
+            - [sliders2.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/sliders2.py)
+
+            ![](https://user-images.githubusercontent.com/32848391/50738848-be033480-11d8-11e9-9b1a-c13105423a79.jpg)
+        """
+        if c is None:  # automatic black or white
+            c = (0.8, 0.8, 0.8)
+            if np.sum(vedo.get_color(self.backgrcol)) > 1.5:
+                c = (0.2, 0.2, 0.2)
+        else:
+            c = vedo.get_color(c)
+
+        slider2d = addons.Slider2D(
+            sliderfunc,
+            xmin,
+            xmax,
+            value,
+            pos,
+            title,
+            font,
+            title_size,
+            c,
+            alpha,
+            show_value,
+            delayed,
+            **options,
+        )
+
+        if self.renderer:
+            slider2d.renderer = self.renderer
+            if self.interactor:
+                slider2d.interactor = self.interactor
+                slider2d.on()
+                self.sliders.append([slider2d, sliderfunc])
+        return slider2d
+
+    def add_slider3d(
+        self,
+        sliderfunc,
+        pos1,
+        pos2,
+        xmin,
+        xmax,
+        value=None,
+        s=0.03,
+        t=1,
+        title="",
+        rotation=0.0,
+        c=None,
+        show_value=True,
+    ) -> "vedo.addons.Slider3D":
+        """
+        Add a 3D slider widget which can call an external custom function.
+
+        Arguments:
+            sliderfunc : (function)
+                external function to be called by the widget
+            pos1 : (list)
+                first position 3D coordinates
+            pos2 : (list)
+                second position coordinates
+            xmin : (float)
+                lower value
+            xmax : (float)
+                upper value
+            value : (float)
+                initial value
+            s : (float)
+                label scaling factor
+            t : (float)
+                tube scaling factor
+            title : (str)
+                title text
+            c : (color)
+                slider color
+            rotation : (float)
+                title rotation around slider axis
+            show_value : (bool)
+                if True current value is shown
+
+        Examples:
+            - [sliders3d.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/sliders3d.py)
+
+            ![](https://user-images.githubusercontent.com/32848391/52859555-4efcf200-312d-11e9-9290-6988c8295163.png)
+        """
+        if c is None:  # automatic black or white
+            c = (0.8, 0.8, 0.8)
+            if np.sum(vedo.get_color(self.backgrcol)) > 1.5:
+                c = (0.2, 0.2, 0.2)
+        else:
+            c = vedo.get_color(c)
+
+        slider3d = addons.Slider3D(
+            sliderfunc,
+            pos1,
+            pos2,
+            xmin,
+            xmax,
+            value,
+            s,
+            t,
+            title,
+            rotation,
+            c,
+            show_value,
+        )
+        slider3d.renderer = self.renderer
+        slider3d.interactor = self.interactor
+        slider3d.on()
+        self.sliders.append([slider3d, sliderfunc])
+        return slider3d
+
+    def add_button(
+        self,
+        fnc=None,
+        states=("On", "Off"),
+        c=("w", "w"),
+        bc=("green4", "red4"),
+        pos=(0.7, 0.1),
+        size=24,
+        font="Courier",
+        bold=True,
+        italic=False,
+        alpha=1,
+        angle=0,
+    ) -> Union["vedo.addons.Button", None]:
+        """
+        Add a button to the renderer window.
+
+        Arguments:
+            states : (list)
+                a list of possible states, e.g. ['On', 'Off']
+            c : (list)
+                a list of colors for each state
+            bc : (list)
+                a list of background colors for each state
+            pos : (list)
+                2D position from left-bottom corner
+            size : (float)
+                size of button font
+            font : (str)
+                font type. Check [available fonts here](https://vedo.embl.es/fonts).
+            bold : (bool)
+                bold font face (False)
+            italic : (bool)
+                italic font face (False)
+            alpha : (float)
+                opacity level
+            angle : (float)
+                anticlockwise rotation in degrees
+
+        Returns:
+            `vedo.addons.Button` object.
+
+        Examples:
+            - [buttons1.py](https://github.com/marcomusy/vedo/blob/master/examples/basic/buttons1.py)
+            - [buttons2.py](https://github.com/marcomusy/vedo/blob/master/examples/basic/buttons2.py)
+
+            ![](https://user-images.githubusercontent.com/32848391/50738870-c0fe2500-11d8-11e9-9b78-92754f5c5968.jpg)
+        """
+        if self.interactor:
+            bu = addons.Button(fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle)
+            self.renderer.AddActor2D(bu.actor)
+            bu.function_id = bu.actor.AddObserver("PickEvent", bu.function)
+            self.buttons.append(bu)
+            return bu
+        return None
+
+    def add_spline_tool(
+        self,
+        points,
+        pc="k",
+        ps=8,
+        lc="r4",
+        ac="g5",
+        lw=2,
+        alpha=1,
+        closed=False,
+        ontop=True,
+        can_add_nodes=True,
+    ) -> "vedo.addons.SplineTool":
+        """
+        Add a spline tool to the current plotter.
+        Nodes of the spline can be dragged in space with the mouse.
+        Clicking on the line itself adds an extra point.
+        Selecting a point and pressing del removes it.
+
+        Arguments:
+            points : (Mesh, Points, array)
+                the set of coordinates forming the spline nodes.
+            pc : (str)
+                point color. The default is 'k'.
+            ps : (str)
+                point size. The default is 8.
+            lc : (str)
+                line color. The default is 'r4'.
+            ac : (str)
+                active point marker color. The default is 'g5'.
+            lw : (int)
+                line width. The default is 2.
+            alpha : (float)
+                line transparency.
+            closed : (bool)
+                spline is meant to be closed. The default is False.
+
+        Returns:
+            a `SplineTool` object.
+
+        Examples:
+            - [spline_tool.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/spline_tool.py)
+
+            ![](https://vedo.embl.es/images/basic/spline_tool.png)
+        """
+        sw = addons.SplineTool(points, pc, ps, lc, ac, lw, alpha, closed, ontop, can_add_nodes)
+        sw.interactor = self.interactor
+        sw.on()
+        sw.Initialize(sw.points.dataset)
+        sw.representation.SetRenderer(self.renderer)
+        sw.representation.SetClosedLoop(closed)
+        sw.representation.BuildRepresentation()
+        self.widgets.append(sw)
+        return sw
+
+    def add_icon(self, icon, pos=3, size=0.08) -> "vedo.addons.Icon":
+        """Add an inset icon mesh into the same renderer.
+
+        Arguments:
+            pos : (int, list)
+                icon position in the range [1-4] indicating one of the 4 corners,
+                or it can be a tuple (x,y) as a fraction of the renderer size.
+            size : (float)
+                size of the square inset.
+
+        Examples:
+            - [icon.py](https://github.com/marcomusy/vedo/tree/master/examples/other/icon.py)
+        """
+        iconw = addons.Icon(icon, pos, size)
+
+        iconw.SetInteractor(self.interactor)
+        iconw.EnabledOn()
+        iconw.InteractiveOff()
+        self.widgets.append(iconw)
+        return iconw
+
+    def add_global_axes(self, axtype=None, c=None) -> Self:
+        """Draw axes on scene. Available axes types:
+
+        Arguments:
+            axtype : (int)
+                - 0,  no axes,
+                - 1,  draw three gray grid walls
+                - 2,  show cartesian axes from (0,0,0)
+                - 3,  show positive range of cartesian axes from (0,0,0)
+                - 4,  show a triad at bottom left
+                - 5,  show a cube at bottom left
+                - 6,  mark the corners of the bounding box
+                - 7,  draw a 3D ruler at each side of the cartesian axes
+                - 8,  show the vtkCubeAxesActor object
+                - 9,  show the bounding box outLine
+                - 10, show three circles representing the maximum bounding box
+                - 11, show a large grid on the x-y plane
+                - 12, show polar axes
+                - 13, draw a simple ruler at the bottom of the window
+
+            Axis type-1 can be fully customized by passing a dictionary axes=dict().
+
+        Example:
+            ```python
+            from vedo import Box, show
+            b = Box(pos=(0, 0, 0), size=(80, 90, 70)).alpha(0.1)
+            show(
+                b,
+                axes={
+                    "xtitle": "Some long variable [a.u.]",
+                    "number_of_divisions": 4,
+                    # ...
+                },
+            )
+            ```
+
+        Examples:
+            - [custom_axes1.py](https://github.com/marcomusy/vedo/blob/master/examples/pyplot/custom_axes1.py)
+            - [custom_axes2.py](https://github.com/marcomusy/vedo/blob/master/examples/pyplot/custom_axes2.py)
+            - [custom_axes3.py](https://github.com/marcomusy/vedo/blob/master/examples/pyplot/custom_axes3.py)
+            - [custom_axes4.py](https://github.com/marcomusy/vedo/blob/master/examples/pyplot/custom_axes4.py)
+
+            <img src="https://user-images.githubusercontent.com/32848391/72752870-ab7d5280-3bc3-11ea-8911-9ace00211e23.png" width="600">
+        """
+        addons.add_global_axes(axtype, c)
+        return self
+
+    def add_legend_box(self, **kwargs) -> "vedo.addons.LegendBox":
+        """Add a legend to the top right.
+
+        Examples:
+            - [legendbox.py](https://github.com/marcomusy/vedo/blob/master/examples/basic/legendbox.py),
+            - [flag_labels1.py](https://github.com/marcomusy/vedo/blob/master/examples/other/flag_labels1.py)
+            - [flag_labels2.py](https://github.com/marcomusy/vedo/blob/master/examples/other/flag_labels2.py)
+        """
+        acts = self.get_meshes()
+        lb = addons.LegendBox(acts, **kwargs)
+        self.add(lb)
+        return lb
+
+    def add_hint(
+        self,
+        obj,
+        text="",
+        c="k",
+        bg="yellow9",
+        font="Calco",
+        size=18,
+        justify=0,
+        angle=0,
+        delay=250,
+    ) -> Union[vtki.vtkBalloonWidget, None]:
+        """
+        Create a pop-up hint style message when hovering an object.
+        Use `add_hint(obj, False)` to disable a hinting a specific object.
+        Use `add_hint(None)` to disable all hints.
+
+        Arguments:
+            obj : (Mesh, Points)
+                the object to associate the pop-up to
+            text : (str)
+                string description of the pop-up
+            delay : (int)
+                milliseconds to wait before pop-up occurs
+        """
+        if self.offscreen or not self.interactor:
+            return None
+
+        if vedo.vtk_version[:2] == (9, 0) and "Linux" in vedo.sys_platform:
+            # Linux vtk9.0 is bugged
+            vedo.logger.warning(
+                f"add_hint() is not available on Linux platforms for vtk{vedo.vtk_version}."
+            )
+            return None
+
+        if obj is None:
+            self.hint_widget.EnabledOff()
+            self.hint_widget.SetInteractor(None)
+            self.hint_widget = None
+            return self.hint_widget
+
+        if text is False and self.hint_widget:
+            self.hint_widget.RemoveBalloon(obj)
+            return self.hint_widget
+
+        if text == "":
+            if obj.name:
+                text = obj.name
+            elif obj.filename:
+                text = obj.filename
+            else:
+                return None
+
+        if not self.hint_widget:
+            self.hint_widget = vtki.vtkBalloonWidget()
+
+            rep = self.hint_widget.GetRepresentation()
+            rep.SetBalloonLayoutToImageRight()
+
+            trep = rep.GetTextProperty()
+            trep.SetFontFamily(vtki.VTK_FONT_FILE)
+            trep.SetFontFile(utils.get_font_path(font))
+            trep.SetFontSize(size)
+            trep.SetColor(vedo.get_color(c))
+            trep.SetBackgroundColor(vedo.get_color(bg))
+            trep.SetShadow(0)
+            trep.SetJustification(justify)
+            trep.UseTightBoundingBoxOn()
+
+            self.hint_widget.ManagesCursorOff()
+            self.hint_widget.SetTimerDuration(delay)
+            self.hint_widget.SetInteractor(self.interactor)
+            if angle:
+                trep.SetOrientation(angle)
+                trep.SetBackgroundOpacity(0)
+            # else:
+            #     trep.SetBackgroundOpacity(0.5) # doesnt work well
+            self.hint_widget.SetRepresentation(rep)
+            self.widgets.append(self.hint_widget)
+            self.hint_widget.EnabledOn()
+
+        bst = self.hint_widget.GetBalloonString(obj.actor)
+        if bst:
+            self.hint_widget.UpdateBalloonString(obj.actor, text)
+        else:
+            self.hint_widget.AddBalloon(obj.actor, text)
+
+        return self.hint_widget
+
+    def add_shadows(self) -> Self:
+        """Add shadows at the current renderer."""
+        if self.renderer:
+            shadows = vtki.new("ShadowMapPass")
+            seq = vtki.new("SequencePass")
+            passes = vtki.new("RenderPassCollection")
+            passes.AddItem(shadows.GetShadowMapBakerPass())
+            passes.AddItem(shadows)
+            seq.SetPasses(passes)
+            camerapass = vtki.new("CameraPass")
+            camerapass.SetDelegatePass(seq)
+            self.renderer.SetPass(camerapass)
+        return self
+
+    def add_ambient_occlusion(self, radius: float, bias=0.01, blur=True, samples=100) -> Self:
+        """
+        Screen Space Ambient Occlusion.
+
+        For every pixel on the screen, the pixel shader samples the depth values around
+        the current pixel and tries to compute the amount of occlusion from each of the sampled
+        points.
+
+        Arguments:
+            radius : (float)
+                radius of influence in absolute units
+            bias : (float)
+                bias of the normals
+            blur : (bool)
+                add a blurring to the sampled positions
+            samples : (int)
+                number of samples to probe
+
+        Examples:
+            - [ssao.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/ssao.py)
+
+            ![](https://vedo.embl.es/images/basic/ssao.jpg)
+        """
+        lights = vtki.new("LightsPass")
+
+        opaque = vtki.new("OpaquePass")
+
+        ssaoCam = vtki.new("CameraPass")
+        ssaoCam.SetDelegatePass(opaque)
+
+        ssao = vtki.new("SSAOPass")
+        ssao.SetRadius(radius)
+        ssao.SetBias(bias)
+        ssao.SetBlur(blur)
+        ssao.SetKernelSize(samples)
+        ssao.SetDelegatePass(ssaoCam)
+
+        translucent = vtki.new("TranslucentPass")
+
+        volpass = vtki.new("VolumetricPass")
+        ddp = vtki.new("DualDepthPeelingPass")
+        ddp.SetTranslucentPass(translucent)
+        ddp.SetVolumetricPass(volpass)
+
+        over = vtki.new("OverlayPass")
+
+        collection = vtki.new("RenderPassCollection")
+        collection.AddItem(lights)
+        collection.AddItem(ssao)
+        collection.AddItem(ddp)
+        collection.AddItem(over)
+
+        sequence = vtki.new("SequencePass")
+        sequence.SetPasses(collection)
+
+        cam = vtki.new("CameraPass")
+        cam.SetDelegatePass(sequence)
+
+        self.renderer.SetPass(cam)
+        return self
+
+    def add_depth_of_field(self, autofocus=True) -> Self:
+        """Add a depth of field effect in the scene."""
+        lights = vtki.new("LightsPass")
+
+        opaque = vtki.new("OpaquePass")
+
+        dofCam = vtki.new("CameraPass")
+        dofCam.SetDelegatePass(opaque)
+
+        dof = vtki.new("DepthOfFieldPass")
+        dof.SetAutomaticFocalDistance(autofocus)
+        dof.SetDelegatePass(dofCam)
+
+        collection = vtki.new("RenderPassCollection")
+        collection.AddItem(lights)
+        collection.AddItem(dof)
+
+        sequence = vtki.new("SequencePass")
+        sequence.SetPasses(collection)
+
+        cam = vtki.new("CameraPass")
+        cam.SetDelegatePass(sequence)
+
+        self.renderer.SetPass(cam)
+        return self
+
+    def _add_skybox(self, hdrfile: str) -> Self:
+        # many hdr files are at https://polyhaven.com/all
+
+        reader = vtki.new("HDRReader")
+        # Check the image can be read.
+        if not reader.CanReadFile(hdrfile):
+            vedo.logger.error(f"Cannot read HDR file {hdrfile}")
+            return self
+        reader.SetFileName(hdrfile)
+        reader.Update()
+
+        texture = vtki.vtkTexture()
+        texture.SetColorModeToDirectScalars()
+        texture.SetInputData(reader.GetOutput())
+
+        # Convert to a cube map
+        tcm = vtki.new("EquirectangularToCubeMapTexture")
+        tcm.SetInputTexture(texture)
+        # Enable mipmapping to handle HDR image
+        tcm.MipmapOn()
+        tcm.InterpolateOn()
+
+        self.renderer.SetEnvironmentTexture(tcm)
+        self.renderer.UseImageBasedLightingOn()
+        self.skybox = vtki.new("Skybox")
+        self.skybox.SetTexture(tcm)
+        self.renderer.AddActor(self.skybox)
+        return self
+
+    def add_renderer_frame(self, 
+            c=None, alpha=None, lw=None, 
+            padding=None, pattern="brtl") -> "vedo.addons.RendererFrame":
+        """
+        Add a frame to the renderer subwindow.
+
+        Arguments:
+            c : (color)
+                color name or index
+            alpha : (float)
+                opacity level
+            lw : (int)
+                line width in pixels.
+            padding : (float)
+                padding space in pixels.
+            pattern : (str)
+                a string made of characters 'b', 'r', 't', 'l' 
+                to show the frame line at the bottom, right, top, left.
+        """
+        if c is None:  # automatic black or white
+            c = (0.9, 0.9, 0.9)
+            if self.renderer:
+                if np.sum(self.renderer.GetBackground()) > 1.5:
+                    c = (0.1, 0.1, 0.1)
+        renf = addons.RendererFrame(c, alpha, lw, padding, pattern)
+        if renf:
+            self.renderer.AddActor(renf)
+        return renf
+
+    def add_hover_legend(
+        self,
+        at=None,
+        c=None,
+        pos="bottom-left",
+        font="Calco",
+        s=0.75,
+        bg="auto",
+        alpha=0.33,
+        maxlength=24,
+        use_info=False,
+    ) -> int:
+        """
+        Add a legend with 2D text which is triggered by hovering the mouse on an object.
+
+        The created text object are stored in `plotter.hover_legends`.
+
+        Returns:
+            the id of the callback function.
+
+        Arguments:
+            c : (color)
+                Text color. If None then black or white is chosen automatically
+            pos : (str)
+                text positioning
+            font : (str)
+                text font type. Check [available fonts here](https://vedo.embl.es/fonts).
+            s : (float)
+                text size scale
+            bg : (color)
+                background color of the 2D box containing the text
+            alpha : (float)
+                box transparency
+            maxlength : (int)
+                maximum number of characters per line
+            use_info : (bool)
+                visualize the content of the `obj.info` attribute
+
+        Examples:
+            - [hover_legend.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/hover_legend.py)
+            - [earthquake_browser.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/earthquake_browser.py)
+
+            ![](https://vedo.embl.es/images/pyplot/earthquake_browser.jpg)
+        """
+        hoverlegend = vedo.shapes.Text2D(pos=pos, font=font, c=c, s=s, alpha=alpha, bg=bg)
+
+        if at is None:
+            at = self.renderers.index(self.renderer)
+
+        def _legfunc(evt):
+            if not evt.object or not self.renderer or at != evt.at:
+                if hoverlegend.mapper.GetInput():  # clear and return
+                    hoverlegend.mapper.SetInput("")
+                    self.render()
+                return
+
+            if use_info:
+                if hasattr(evt.object, "info"):
+                    t = str(evt.object.info)
+                else:
+                    return
+            else:
+                t, tp = "", ""
+                if evt.isMesh:
+                    tp = "Mesh "
+                elif evt.isPoints:
+                    tp = "Points "
+                elif evt.isVolume:
+                    tp = "Volume "
+                elif evt.isImage:
+                    tp = "Image "
+                elif evt.isAssembly:
+                    tp = "Assembly "
+                else:
+                    return
+
+                if evt.isAssembly:
+                    if not evt.object.name:
+                        t += f"Assembly object of {len(evt.object.unpack())} parts\n"
+                    else:
+                        t += f"Assembly name: {evt.object.name} ({len(evt.object.unpack())} parts)\n"
+                else:
+                    if evt.object.name:
+                        t += f"{tp}name"
+                        if evt.isPoints:
+                            t += "  "
+                        if evt.isMesh:
+                            t += "  "
+                        t += f": {evt.object.name[:maxlength]}".ljust(maxlength) + "\n"
+
+                if evt.object.filename:
+                    t += f"{tp}filename: "
+                    t += f"{os.path.basename(evt.object.filename[-maxlength:])}".ljust(maxlength)
+                    t += "\n"
+                    if not evt.object.file_size:
+                        evt.object.file_size, evt.object.created = vedo.file_io.file_info(evt.object.filename)
+                    if evt.object.file_size:
+                        t += "             : "
+                        sz, created = evt.object.file_size, evt.object.created
+                        t += f"{created[4:-5]} ({sz})" + "\n"
+
+                if evt.isPoints:
+                    indata = evt.object.dataset
+                    if indata.GetNumberOfPoints():
+                        t += (
+                            f"#points/cells: {indata.GetNumberOfPoints()}"
+                            f" / {indata.GetNumberOfCells()}"
+                        )
+                    pdata = indata.GetPointData()
+                    cdata = indata.GetCellData()
+                    if pdata.GetScalars() and pdata.GetScalars().GetName():
+                        t += f"\nPoint array  : {pdata.GetScalars().GetName()}"
+                        if pdata.GetScalars().GetName() == evt.object.mapper.GetArrayName():
+                            t += " *"
+                    if cdata.GetScalars() and cdata.GetScalars().GetName():
+                        t += f"\nCell  array  : {cdata.GetScalars().GetName()}"
+                        if cdata.GetScalars().GetName() == evt.object.mapper.GetArrayName():
+                            t += " *"
+
+                if evt.isImage:
+                    t = f"{os.path.basename(evt.object.filename[:maxlength+10])}".ljust(maxlength+10)
+                    t += f"\nImage shape: {evt.object.shape}"
+                    pcol = self.color_picker(evt.picked2d)
+                    t += f"\nPixel color: {vedo.colors.rgb2hex(pcol/255)} {pcol}"
+
+            # change box color if needed in 'auto' mode
+            if evt.isPoints and "auto" in str(bg):
+                actcol = evt.object.properties.GetColor()
+                if hoverlegend.mapper.GetTextProperty().GetBackgroundColor() != actcol:
+                    hoverlegend.mapper.GetTextProperty().SetBackgroundColor(actcol)
+
+            # adapt to changes in bg color
+            bgcol = self.renderers[at].GetBackground()
+            _bgcol = c
+            if _bgcol is None:  # automatic black or white
+                _bgcol = (0.9, 0.9, 0.9)
+                if sum(bgcol) > 1.5:
+                    _bgcol = (0.1, 0.1, 0.1)
+                if len(set(_bgcol).intersection(bgcol)) < 3:
+                    hoverlegend.color(_bgcol)
+
+            if hoverlegend.mapper.GetInput() != t:
+                hoverlegend.mapper.SetInput(t)
+                self.interactor.Render()
+
+            # print("ABORT", idcall, hoverlegend.actor.GetCommand(idcall))
+            # hoverlegend.actor.GetCommand(idcall).AbortFlagOn()
+
+        self.add(hoverlegend, at=at)
+        self.hover_legends.append(hoverlegend)
+        idcall = self.add_callback("MouseMove", _legfunc)
+        return idcall
+
+    def add_scale_indicator(
+        self,
+        pos=(0.7, 0.05),
+        s=0.02,
+        length=2,
+        lw=4,
+        c="k1",
+        alpha=1,
+        units="",
+        gap=0.05,
+    ) -> Union["vedo.visual.Actor2D", None]:
+        """
+        Add a Scale Indicator. Only works in parallel mode (no perspective).
+
+        Arguments:
+            pos : (list)
+                fractional (x,y) position on the screen.
+            s : (float)
+                size of the text.
+            length : (float)
+                length of the line.
+            units : (str)
+                string to show units.
+            gap : (float)
+                separation of line and text.
+
+        Example:
+            ```python
+            from vedo import settings, Cube, Plotter
+            settings.use_parallel_projection = True # or else it does not make sense!
+            cube = Cube().alpha(0.2)
+            plt = Plotter(size=(900,600), axes=dict(xtitle='x (um)'))
+            plt.add_scale_indicator(units='um', c='blue4')
+            plt.show(cube, "Scale indicator with units").close()
+            ```
+            ![](https://vedo.embl.es/images/feats/scale_indicator.png)
+        """
+        # Note that this cannot go in addons.py
+        # because it needs callbacks and window size
+        if not self.interactor:
+            return None
+
+        ppoints = vtki.vtkPoints()  # Generate the polyline
+        psqr = [[0.0, gap], [length / 10, gap]]
+        dd = psqr[1][0] - psqr[0][0]
+        for i, pt in enumerate(psqr):
+            ppoints.InsertPoint(i, pt[0], pt[1], 0)
+        lines = vtki.vtkCellArray()
+        lines.InsertNextCell(len(psqr))
+        for i in range(len(psqr)):
+            lines.InsertCellPoint(i)
+        pd = vtki.vtkPolyData()
+        pd.SetPoints(ppoints)
+        pd.SetLines(lines)
+
+        wsx, wsy = self.window.GetSize()
+        if not self.camera.GetParallelProjection():
+            vedo.logger.warning("add_scale_indicator called with use_parallel_projection OFF. Skip.")
+            return None
+
+        rlabel = vtki.new("VectorText")
+        rlabel.SetText("scale")
+        tf = vtki.new("TransformPolyDataFilter")
+        tf.SetInputConnection(rlabel.GetOutputPort())
+        t = vtki.vtkTransform()
+        t.Scale(s * wsy / wsx, s, 1)
+        tf.SetTransform(t)
+
+        app = vtki.new("AppendPolyData")
+        app.AddInputConnection(tf.GetOutputPort())
+        app.AddInputData(pd)
+
+        mapper = vtki.new("PolyDataMapper2D")
+        mapper.SetInputConnection(app.GetOutputPort())
+        cs = vtki.vtkCoordinate()
+        cs.SetCoordinateSystem(1)
+        mapper.SetTransformCoordinate(cs)
+
+        fractor = vedo.visual.Actor2D()
+        csys = fractor.GetPositionCoordinate()
+        csys.SetCoordinateSystem(3)
+        fractor.SetPosition(pos)
+        fractor.SetMapper(mapper)
+        fractor.GetProperty().SetColor(vedo.get_color(c))
+        fractor.GetProperty().SetOpacity(alpha)
+        fractor.GetProperty().SetLineWidth(lw)
+        fractor.GetProperty().SetDisplayLocationToForeground()
+
+        def sifunc(iren, ev):
+            wsx, wsy = self.window.GetSize()
+            ps = self.camera.GetParallelScale()
+            newtxt = utils.precision(ps / wsy * wsx * length * dd, 3)
+            if units:
+                newtxt += " " + units
+            if rlabel.GetText() != newtxt:
+                rlabel.SetText(newtxt)
+
+        self.renderer.AddActor(fractor)
+        self.interactor.AddObserver("MouseWheelBackwardEvent", sifunc)
+        self.interactor.AddObserver("MouseWheelForwardEvent", sifunc)
+        self.interactor.AddObserver("InteractionEvent", sifunc)
+        sifunc(0, 0)
+        return fractor
+
+
+
+
+
+
+
+
+
+
+    def _scan_input_return_acts(self, objs) -> Any:
+        # scan the input and return a list of actors
+        if not utils.is_sequence(objs):
+            objs = [objs]
+
+        #################
+        wannabe_acts = []
+        for a in objs:
+
+            try:
+                wannabe_acts.append(a.actor)
+            except AttributeError:
+                wannabe_acts.append(a)  # already actor
+
+            try:
+                wannabe_acts.append(a.scalarbar)
+            except AttributeError:
+                pass
+
+            try:
+                for sh in a.shadows:
+                    wannabe_acts.append(sh.actor)
+            except AttributeError:
+                pass
+
+            try:
+                wannabe_acts.append(a.trail.actor)
+                if a.trail.shadows:  # trails may also have shadows
+                    for sh in a.trail.shadows:
+                        wannabe_acts.append(sh.actor)
+            except AttributeError:
+                pass
+
+        #################
+        scanned_acts = []
+        for a in wannabe_acts:  # scan content of list
+
+            if a is None:
+                pass
+
+            elif isinstance(a, (vtki.vtkActor, vtki.vtkActor2D, vtki.vtkAssembly)):
+                scanned_acts.append(a)
+
+            elif isinstance(a, (vedo.Assembly, vedo.Group)):
+                scanned_acts.append(a.actor)
+
+            elif isinstance(a, str):
+                # assume a 2D comment was given
+                changed = False  # check if one already exists so to just update text
+                if self.renderer:  # might be jupyter
+                    acs = self.renderer.GetActors2D()
+                    acs.InitTraversal()
+                    for i in range(acs.GetNumberOfItems()):
+                        act = acs.GetNextItem()
+                        if isinstance(act, vedo.shapes.Text2D):
+                            aposx, aposy = act.GetPosition()
+                            if aposx < 0.01 and aposy > 0.99:  # "top-left"
+                                act.text(a)  # update content! no appending nada
+                                changed = True
+                                break
+                    if not changed:
+                        out = vedo.shapes.Text2D(a)  # append a new one
+                        scanned_acts.append(out)
+                # scanned_acts.append(vedo.shapes.Text2D(a)) # naive version
+
+            elif isinstance(a, vtki.vtkPolyData):
+                scanned_acts.append(vedo.Mesh(a).actor)
+
+            elif isinstance(a, vtki.vtkImageData):
+                scanned_acts.append(vedo.Volume(a).actor)
+
+            elif isinstance(a, vedo.RectilinearGrid):
+                scanned_acts.append(a.actor)
+
+            elif isinstance(a, vedo.StructuredGrid):
+                scanned_acts.append(a.actor)
+
+            elif isinstance(a, vtki.vtkLight):
+                scanned_acts.append(a)
+
+            elif isinstance(a, vedo.visual.LightKit):
+                a.lightkit.AddLightsToRenderer(self.renderer)
+
+            elif isinstance(a, vtki.get_class("MultiBlockDataSet")):
+                for i in range(a.GetNumberOfBlocks()):
+                    b = a.GetBlock(i)
+                    if isinstance(b, vtki.vtkPolyData):
+                        scanned_acts.append(vedo.Mesh(b).actor)
+                    elif isinstance(b, vtki.vtkImageData):
+                        scanned_acts.append(vedo.Volume(b).actor)
+
+            elif isinstance(a, (vtki.vtkProp, vtki.vtkInteractorObserver)):
+                scanned_acts.append(a)
+
+            elif "trimesh" in str(type(a)):
+                scanned_acts.append(utils.trimesh2vedo(a))
+
+            elif "meshlab" in str(type(a)):
+                if "MeshSet" in str(type(a)):
+                    for i in range(a.number_meshes()):
+                        if a.mesh_id_exists(i):
+                            scanned_acts.append(utils.meshlab2vedo(a.mesh(i)))
+                else:
+                    scanned_acts.append(utils.meshlab2vedo(a))
+
+            elif "dolfin" in str(type(a)):  # assume a dolfin.Mesh object
+                import vedo.dolfin as vdlf # type: ignore[import]
+
+                scanned_acts.append(vdlf.IMesh(a).actor)
+
+            elif "madcad" in str(type(a)):
+                scanned_acts.append(utils.madcad2vedo(a).actor)
+
+            elif "TetgenIO" in str(type(a)):
+                scanned_acts.append(vedo.TetMesh(a).shrink(0.9).c("pink7").actor)
+
+            elif "matplotlib.figure.Figure" in str(type(a)):
+                scanned_acts.append(vedo.Image(a).clone2d("top-right", 0.6))
+
+            else:
+                vedo.logger.error(f"cannot understand input in show(): {type(a)}")
+
+        return scanned_acts
+
+    def show(
+        self,
+        *objects,
+        at=None,
+        axes=None,
+        resetcam=None,
+        zoom=False,
+        interactive=None,
+        viewup="",
+        azimuth=0.0,
+        elevation=0.0,
+        roll=0.0,
+        camera=None,
+        mode=None,
+        rate=None,
+        bg=None,
+        bg2=None,
+        size=None,
+        title=None,
+        screenshot="",
+    ) -> Any:
+        """
+        Render a list of objects.
+
+        Arguments:
+            at : (int)
+                number of the renderer to plot to, in case of more than one exists
+
+            axes : (int)
+                axis type-1 can be fully customized by passing a dictionary.
+                Check `addons.Axes()` for the full list of options.
+                set the type of axes to be shown:
+                - 0,  no axes
+                - 1,  draw three gray grid walls
+                - 2,  show cartesian axes from (0,0,0)
+                - 3,  show positive range of cartesian axes from (0,0,0)
+                - 4,  show a triad at bottom left
+                - 5,  show a cube at bottom left
+                - 6,  mark the corners of the bounding box
+                - 7,  draw a 3D ruler at each side of the cartesian axes
+                - 8,  show the `vtkCubeAxesActor` object
+                - 9,  show the bounding box outLine
+                - 10, show three circles representing the maximum bounding box
+                - 11, show a large grid on the x-y plane
+                - 12, show polar axes
+                - 13, draw a simple ruler at the bottom of the window
+
+            azimuth/elevation/roll : (float)
+                move camera accordingly the specified value
+
+            viewup: str, list
+                either `['x', 'y', 'z']` or a vector to set vertical direction
+
+            resetcam : (bool)
+                re-adjust camera position to fit objects
+
+            camera : (dict, vtkCamera)
+                camera parameters can further be specified with a dictionary
+                assigned to the `camera` keyword (E.g. `show(camera={'pos':(1,2,3), 'thickness':1000,})`):
+                - pos, `(list)`,  the position of the camera in world coordinates
+                - focal_point `(list)`, the focal point of the camera in world coordinates
+                - viewup `(list)`, the view up direction for the camera
+                - distance `(float)`, set the focal point to the specified distance from the camera position.
+                - clipping_range `(float)`, distance of the near and far clipping planes along the direction of projection.
+                - parallel_scale `(float)`, scaling used for a parallel projection, i.e. the height of the viewport
+                in world-coordinate distances. The default is 1.
+                Note that the "scale" parameter works as an "inverse scale", larger numbers produce smaller images.
+                This method has no effect in perspective projection mode.
+
+                - thickness `(float)`, set the distance between clipping planes. This method adjusts the far clipping
+                plane to be set a distance 'thickness' beyond the near clipping plane.
+
+                - view_angle `(float)`, the camera view angle, which is the angular height of the camera view
+                measured in degrees. The default angle is 30 degrees.
+                This method has no effect in parallel projection mode.
+                The formula for setting the angle up for perfect perspective viewing is:
+                angle = 2*atan((h/2)/d) where h is the height of the RenderWindow
+                (measured by holding a ruler up to your screen) and d is the distance from your eyes to the screen.
+
+            interactive : (bool)
+                pause and interact with window (True) or continue execution (False)
+
+            rate : (float)
+                maximum rate of `show()` in Hertz
+
+            mode : (int, str)
+                set the type of interaction:
+                - 0 = TrackballCamera [default]
+                - 1 = TrackballActor
+                - 2 = JoystickCamera
+                - 3 = JoystickActor
+                - 4 = Flight
+                - 5 = RubberBand2D
+                - 6 = RubberBand3D
+                - 7 = RubberBandZoom
+                - 8 = Terrain
+                - 9 = Unicam
+                - 10 = Image
+                - Check out `vedo.interaction_modes` for more options.
+
+            bg : (str, list)
+                background color in RGB format, or string name
+
+            bg2 : (str, list)
+                second background color to create a gradient background
+
+            size : (str, list)
+                size of the window, e.g. size="fullscreen", or size=[600,400]
+
+            title : (str)
+                window title text
+
+            screenshot : (str)
+                save a screenshot of the window to file
+        """
+
+        if vedo.settings.dry_run_mode >= 2:
+            return self
+
+        if self.wx_widget:
+            return self
+
+        if self.renderers:  # in case of notebooks
+
+            if at is None:
+                at = self.renderers.index(self.renderer)
+
+            else:
+
+                if at >= len(self.renderers):
+                    t = f"trying to show(at={at}) but only {len(self.renderers)} renderers exist"
+                    vedo.logger.error(t)
+                    return self
+
+                self.renderer = self.renderers[at]
+
+        if title is not None:
+            self.title = title
+
+        if size is not None:
+            self.size = size
+            if self.size[0] == "f":  # full screen
+                self.size = "fullscreen"
+                self.window.SetFullScreen(True)
+                self.window.BordersOn()
+            else:
+                self.window.SetSize(int(self.size[0]), int(self.size[1]))
+
+        if vedo.settings.default_backend == "vtk":
+            if str(bg).endswith(".hdr"):
+                self._add_skybox(bg)
+            else:
+                if bg is not None:
+                    self.backgrcol = vedo.get_color(bg)
+                    self.renderer.SetBackground(self.backgrcol)
+                if bg2 is not None:
+                    self.renderer.GradientBackgroundOn()
+                    self.renderer.SetBackground2(vedo.get_color(bg2))
+
+        if axes is not None:
+            if isinstance(axes, vedo.Assembly):  # user passing show(..., axes=myaxes)
+                objects = list(objects)
+                objects.append(axes)  # move it into the list of normal things to show
+                axes = 0
+            self.axes = axes
+
+        if interactive is not None:
+            self._interactive = interactive
+        if self.offscreen:
+            self._interactive = False
+
+        # camera stuff
+        if resetcam is not None:
+            self.resetcam = resetcam
+
+        if camera is not None:
+            self.resetcam = False
+            viewup = ""
+            if isinstance(camera, vtki.vtkCamera):
+                cameracopy = vtki.vtkCamera()
+                cameracopy.DeepCopy(camera)
+                self.camera = cameracopy
+            else:
+                self.camera = utils.camera_from_dict(camera)
+
+        self.add(objects)
+
+        # Backend ###############################################################
+        if vedo.settings.default_backend in ["k3d", "panel"]:
+            return vedo.backends.get_notebook_backend(self.objects)
+        #########################################################################
+
+        for ia in utils.flatten(objects):
+            try:
+                # fix gray color labels and title to white or black
+                ltc = np.array(ia.scalarbar.GetLabelTextProperty().GetColor())
+                if np.linalg.norm(ltc - (0.5, 0.5, 0.5)) / 3 < 0.05:
+                    c = (0.9, 0.9, 0.9)
+                    if np.sum(self.renderer.GetBackground()) > 1.5:
+                        c = (0.1, 0.1, 0.1)
+                    ia.scalarbar.GetLabelTextProperty().SetColor(c)
+                    ia.scalarbar.GetTitleTextProperty().SetColor(c)
+            except AttributeError:
+                pass
+
+        if self.sharecam:
+            for r in self.renderers:
+                r.SetActiveCamera(self.camera)
+
+        if self.axes is not None:
+            if viewup != "2d" or self.axes in [1, 8] or isinstance(self.axes, dict):
+                bns = self.renderer.ComputeVisiblePropBounds()
+                addons.add_global_axes(self.axes, bounds=bns)
+
+        # Backend ###############################################################
+        if vedo.settings.default_backend in ["ipyvtk", "trame"]:
+            return vedo.backends.get_notebook_backend()
+        #########################################################################
+
+        if self.resetcam and self.renderer:
+            self.renderer.ResetCamera()
+
+        if len(self.renderers) > 1:
+            self.add_renderer_frame()
+
+        if vedo.settings.default_backend == "2d" and not zoom:
+            zoom = "tightest"
+
+        if zoom:
+            if zoom == "tight":
+                self.reset_camera(tight=0.04)
+            elif zoom == "tightest":
+                self.reset_camera(tight=0.0001)
+            else:
+                self.camera.Zoom(zoom)
+        if elevation:
+            self.camera.Elevation(elevation)
+        if azimuth:
+            self.camera.Azimuth(azimuth)
+        if roll:
+            self.camera.Roll(roll)
+
+        if len(viewup) > 0:
+            b = self.renderer.ComputeVisiblePropBounds()
+            cm = np.array([(b[1] + b[0]) / 2, (b[3] + b[2]) / 2, (b[5] + b[4]) / 2])
+            sz = np.array([(b[1] - b[0]), (b[3] - b[2]), (b[5] - b[4])])
+            if viewup == "x":
+                sz = np.linalg.norm(sz)
+                self.camera.SetViewUp([1, 0, 0])
+                self.camera.SetPosition(cm + sz)
+            elif viewup == "y":
+                sz = np.linalg.norm(sz)
+                self.camera.SetViewUp([0, 1, 0])
+                self.camera.SetPosition(cm + sz)
+            elif viewup == "z":
+                sz = np.array([(b[1]-b[0])*0.7, -(b[3]-b[2])*1.0, (b[5]-b[4])*1.2])
+                self.camera.SetViewUp([0, 0, 1])
+                self.camera.SetPosition(cm + 2 * sz)
+            elif utils.is_sequence(viewup):
+                sz = np.linalg.norm(sz)
+                self.camera.SetViewUp(viewup)
+                cpos = np.cross([0, 1, 0], viewup)
+                self.camera.SetPosition(cm - 2 * sz * cpos)
+
+        self.renderer.ResetCameraClippingRange()
+
+        self.initialize_interactor()
+
+        if vedo.settings.immediate_rendering:
+            self.window.Render()  ##################### <-------------- Render
+
+        if self.interactor:  # can be offscreen or not the vtk backend..
+
+            self.window.SetWindowName(self.title)
+
+            # pic = vedo.Image(vedo.dataurl+'images/vtk_logo.png')
+            # pic = vedo.Image('/home/musy/Downloads/icons8-3d-96.png')
+            # print(pic.dataset)# Array 0 name PNGImage
+            # self.window.SetIcon(pic.dataset)
+
+            try:
+                # Needs "pip install pyobjc" on Mac OSX
+                if (
+                    self._cocoa_initialized is False
+                    and "Darwin" in vedo.sys_platform
+                    and not self.offscreen
+                ):
+                    self._cocoa_initialized = True
+                    from Cocoa import NSRunningApplication, NSApplicationActivateIgnoringOtherApps # type: ignore
+                    pid = os.getpid()
+                    x = NSRunningApplication.runningApplicationWithProcessIdentifier_(int(pid))
+                    x.activateWithOptions_(NSApplicationActivateIgnoringOtherApps)
+            except:
+                # vedo.logger.debug("On Mac OSX try: pip install pyobjc")
+                pass
+
+            # Set the interaction style
+            if mode is not None:
+                self.user_mode(mode)
+            if self.qt_widget and mode is None:
+                self.user_mode(0)
+
+            if screenshot:
+                self.screenshot(screenshot)
+
+            if self._interactive and self.interactor:
+                self.interactor.Start()
+                if self._must_close_now and self.interactor:
+                    self.interactor.GetRenderWindow().Finalize()
+                    self.interactor.TerminateApp()
+                    self.camera = None
+                    self.renderer = None
+                    self.renderers = []
+                    self.window = None
+                    self.interactor = None
+                return self
+
+            if rate:
+                if self.clock is None:  # set clock and limit rate
+                    self._clockt0 = time.time()
+                    self.clock = 0.0
+                else:
+                    t = time.time() - self._clockt0
+                    elapsed = t - self.clock
+                    mint = 1.0 / rate
+                    if elapsed < mint:
+                        time.sleep(mint - elapsed)
+                    self.clock = time.time() - self._clockt0
+
+        # 2d ####################################################################
+        if vedo.settings.default_backend in ["2d"]:
+            return vedo.backends.get_notebook_backend()
+        #########################################################################
+
+        return self
+
+    def add_inset(
+        self, *objects, **options
+    ) -> Union[vtki.vtkOrientationMarkerWidget, None]:
+        """Add a draggable inset space into a renderer.
+
+        Arguments:
+            at : (int)
+                specify the renderer number
+            pos : (list)
+                icon position in the range [1-4] indicating one of the 4 corners,
+                or it can be a tuple (x,y) as a fraction of the renderer size.
+            size : (float)
+                size of the square inset
+            draggable : (bool)
+                if True the subrenderer space can be dragged around
+            c : (color)
+                color of the inset frame when dragged
+
+        Examples:
+            - [inset.py](https://github.com/marcomusy/vedo/tree/master/examples/other/inset.py)
+
+            ![](https://user-images.githubusercontent.com/32848391/56758560-3c3f1300-6797-11e9-9b33-49f5a4876039.jpg)
+        """
+        if not self.interactor:
+            return None
+
+        if not self.renderer:
+            vedo.logger.warning("call add_inset() only after first rendering of the scene.")
+            return None
+
+        options = dict(options)
+        pos = options.pop("pos", 0)
+        size = options.pop("size", 0.1)
+        c = options.pop("c", "lb")
+        at = options.pop("at", None)
+        draggable = options.pop("draggable", True)
+
+        r, g, b = vedo.get_color(c)
+        widget = vtki.vtkOrientationMarkerWidget()
+        widget.SetOutlineColor(r, g, b)
+        if len(objects) == 1:
+            widget.SetOrientationMarker(objects[0].actor)
+        else:
+            widget.SetOrientationMarker(vedo.Assembly(objects).actor)
+
+        widget.SetInteractor(self.interactor)
+
+        if utils.is_sequence(pos):
+            widget.SetViewport(pos[0] - size, pos[1] - size, pos[0] + size, pos[1] + size)
+        else:
+            if pos < 2:
+                widget.SetViewport(0, 1 - 2 * size, size * 2, 1)
+            elif pos == 2:
+                widget.SetViewport(1 - 2 * size, 1 - 2 * size, 1, 1)
+            elif pos == 3:
+                widget.SetViewport(0, 0, size * 2, size * 2)
+            elif pos == 4:
+                widget.SetViewport(1 - 2 * size, 0, 1, size * 2)
+        widget.EnabledOn()
+        widget.SetInteractive(draggable)
+        if at is not None and at < len(self.renderers):
+            widget.SetCurrentRenderer(self.renderers[at])
+        else:
+            widget.SetCurrentRenderer(self.renderer)
+        self.widgets.append(widget)
+        return widget
+
+
+
+
+
+
+
+    @property
+    def camera(self):
+        """Return the current active camera."""
+        if self.renderer:
+            return self.renderer.GetActiveCamera()
+
+    @camera.setter
+    def camera(self, cam):
+        if self.renderer:
+            if isinstance(cam, dict):
+                cam = utils.camera_from_dict(cam)
+            self.renderer.SetActiveCamera(cam)
+
+
+
+
+    def color_picker(self, xy, verbose=False):
+        """Pick color of specific (x,y) pixel on the screen."""
+        w2if = vtki.new("WindowToImageFilter")
+        w2if.SetInput(self.window)
+        w2if.ReadFrontBufferOff()
+        w2if.Update()
+        nx, ny = self.window.GetSize()
+        varr = w2if.GetOutput().GetPointData().GetScalars()
+
+        arr = utils.vtk2numpy(varr).reshape(ny, nx, 3)
+        x, y = int(xy[0]), int(xy[1])
+        if y < ny and x < nx:
+
+            rgb = arr[y, x]
+
+            if verbose:
+                vedo.printc(":rainbow:Pixel", [x, y], "has RGB[", end="")
+                vedo.printc("█", c=[rgb[0], 0, 0], end="")
+                vedo.printc("█", c=[0, rgb[1], 0], end="")
+                vedo.printc("█", c=[0, 0, rgb[2]], end="")
+                vedo.printc("] = ", end="")
+                cnm = vedo.get_color_name(rgb)
+                if np.sum(rgb) < 150:
+                    vedo.printc(
+                        rgb.tolist(),
+                        vedo.colors.rgb2hex(np.array(rgb) / 255),
+                        c="w",
+                        bc=rgb,
+                        invert=1,
+                        end="",
+                    )
+                    vedo.printc("  -> " + cnm, invert=1, c="w")
+                else:
+                    vedo.printc(
+                        rgb.tolist(),
+                        vedo.colors.rgb2hex(np.array(rgb) / 255),
+                        c=rgb,
+                        end="",
+                    )
+                    vedo.printc("  -> " + cnm, c=cnm)
+
+            return rgb
+
+        return None
+
+    #######################################################################
+
+        # -----------
+        # if "Histogram1D" in picker.GetAssembly().__class__.__name__:
+        #     histo = picker.GetAssembly()
+        #     if histo.verbose:
+        #         x = self.picked3d[0]
+        #         idx = np.digitize(x, histo.edges) - 1
+        #         f = histo.frequencies[idx]
+        #         cn = histo.centers[idx]
+        #         vedo.colors.printc(f"{histo.name}, bin={idx}, center={cn}, value={f}")
+
+    #######################################################################
+    def _default_keypress(self, iren, event) -> None:
+        """Default keypress handler delegate (implemented in `plotter_keymap`)."""
+        _handle_default_keypress(self, iren, event)
+
+
+# Facade delegation: keep Plotter API stable while moving internals to helper modules.
+Plotter.add = add
+Plotter.remove = remove
+Plotter.actors = actors
+Plotter.remove_lights = remove_lights
+Plotter.pop = pop
+Plotter.get_meshes = get_meshes
+Plotter.get_volumes = get_volumes
+Plotter.get_actors = get_actors
+
+Plotter.initialize_interactor = initialize_interactor
+Plotter.process_events = process_events
+Plotter.render = lifecycle_render
+Plotter.interactive = interactive
+Plotter.use_depth_peeling = use_depth_peeling
+Plotter.reset_camera = reset_camera
+Plotter.reset_clipping_range = reset_clipping_range
+Plotter.reset_viewup = reset_viewup
+Plotter.move_camera = move_camera
+Plotter.fly_to = fly_to
+Plotter.look_at = look_at
+Plotter.parallel_projection = parallel_projection
+Plotter.render_hidden_lines = render_hidden_lines
+Plotter.fov = fov
+Plotter.zoom = zoom
+Plotter.azimuth = azimuth
+Plotter.elevation = elevation
+Plotter.roll = roll
+Plotter.dolly = dolly
+Plotter.clear = clear
+Plotter.break_interaction = break_interaction
+Plotter.freeze = freeze
+Plotter.user_mode = user_mode
+Plotter.close = lifecycle_close
+
+Plotter.fill_event = fill_event
+Plotter.add_callback = add_callback
+Plotter.remove_callback = remove_callback
+Plotter.remove_all_observers = remove_all_observers
+Plotter.timer_callback = timer_callback
+Plotter.add_observer = add_observer
+Plotter.compute_world_coordinate = compute_world_coordinate
+Plotter.compute_screen_coordinates = compute_screen_coordinates
+Plotter.pick_area = pick_area
+Plotter._default_mouseleftclick = default_mouseleftclick
+
+Plotter.screenshot = screenshot
+Plotter.toimage = toimage
+Plotter.export = export
