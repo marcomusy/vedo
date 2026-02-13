@@ -3759,7 +3759,7 @@ class Plotter:
 
     #######################################################################
     def _default_keypress(self, iren, event) -> None:
-        """Default keypress handler delegate (implemented in `plotter_keypress`)."""
+        """Default keypress handler delegate (implemented in `plotter_keymap`)."""
         _handle_default_keypress(self, iren, event)
 
 
