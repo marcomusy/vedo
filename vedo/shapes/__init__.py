@@ -4940,6 +4940,6 @@ def VedoLogo(distance=0.0, c=None, bc="t", version=False, frame=True) -> "vedo.A
         bc : (color)
             text back face color
     """
-    from vedo.shapes_branding import vedo_logo
+    from vedo.shapes.branding import vedo_logo
 
     return vedo_logo(distance=distance, c=c, bc=bc, version=version, frame=frame)
