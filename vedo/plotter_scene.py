@@ -11,7 +11,7 @@ from vedo.events import Event
 __docformat__ = "google"
 
 
-def plotter_add(plotter, *objs, at=None) -> Any:
+def add(plotter, *objs, at=None) -> Any:
     """
     Append the input objects to the internal list of objects to be shown.
 
@@ -57,7 +57,7 @@ def plotter_add(plotter, *objs, at=None) -> Any:
 
     return plotter
 
-def plotter_remove(plotter, *objs, at=None) -> Any:
+def remove(plotter, *objs, at=None) -> Any:
     """
     Remove input object to the internal list of objects to be shown.
 
@@ -136,17 +136,17 @@ def plotter_remove(plotter, *objs, at=None) -> Any:
     plotter.objects = [ele for ele in plotter.objects if ele not in objs_to_remove]
     return plotter
 
-def plotter_actors(plotter):
+def actors(plotter):
     """Return the list of actors."""
     return [ob.actor for ob in plotter.objects if hasattr(ob, "actor")]
 
-def plotter_remove_lights(plotter) -> Any:
+def remove_lights(plotter) -> Any:
     """Remove all the present lights in the current renderer."""
     if plotter.renderer:
         plotter.renderer.RemoveAllLights()
     return plotter
 
-def plotter_pop(plotter, at=None) -> Any:
+def pop(plotter, at=None) -> Any:
     """
     Remove the last added object from the rendering window.
     This method is typically used in loops or callback functions.
@@ -160,7 +160,7 @@ def plotter_pop(plotter, at=None) -> Any:
         plotter.remove(plotter.objects[-1], at)
     return plotter
 
-def plotter_get_meshes(plotter, at=None, include_non_pickables=False, unpack_assemblies=True) -> list:
+def get_meshes(plotter, at=None, include_non_pickables=False, unpack_assemblies=True) -> list:
     """
     Return a list of Meshes from the specified renderer.
 
@@ -210,7 +210,7 @@ def plotter_get_meshes(plotter, at=None, include_non_pickables=False, unpack_ass
                 pass
     return objs
 
-def plotter_get_volumes(plotter, at=None, include_non_pickables=False) -> list:
+def get_volumes(plotter, at=None, include_non_pickables=False) -> list:
     """
     Return a list of Volumes from the specified renderer.
 
@@ -234,7 +234,7 @@ def plotter_get_volumes(plotter, at=None, include_non_pickables=False) -> list:
                 pass
     return vols
 
-def plotter_get_actors(plotter, at=None, include_non_pickables=False) -> list:
+def get_actors(plotter, at=None, include_non_pickables=False) -> list:
     """
     Return a list of Volumes from the specified renderer.
 

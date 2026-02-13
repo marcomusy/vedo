@@ -14,34 +14,34 @@ from vedo import addons
 from vedo.events import Event
 from vedo.plotter_bootstrap import apply_gradient_mode, configure_renderer_common
 from vedo.plotter_camera import (
-    plotter_azimuth,
-    plotter_dolly,
-    plotter_elevation,
-    plotter_fly_to,
-    plotter_fov,
-    plotter_look_at,
-    plotter_move_camera,
-    plotter_parallel_projection,
-    plotter_render_hidden_lines,
-    plotter_reset_camera,
-    plotter_reset_clipping_range,
-    plotter_reset_viewup,
-    plotter_roll,
-    plotter_zoom,
+    azimuth,
+    dolly,
+    elevation,
+    fly_to,
+    fov,
+    look_at,
+    move_camera,
+    parallel_projection,
+    render_hidden_lines,
+    reset_camera,
+    reset_clipping_range,
+    reset_viewup,
+    roll,
+    zoom,
 )
 from vedo.plotter_interaction import (
-    plotter_add_callback,
-    plotter_add_observer,
-    plotter_compute_screen_coordinates,
-    plotter_compute_world_coordinate,
-    plotter_default_mouseleftclick,
-    plotter_fill_event,
-    plotter_pick_area,
-    plotter_remove_all_observers,
-    plotter_remove_callback,
-    plotter_timer_callback,
+    add_callback,
+    add_observer,
+    compute_screen_coordinates,
+    compute_world_coordinate,
+    default_mouseleftclick,
+    fill_event,
+    pick_area,
+    remove_all_observers,
+    remove_callback,
+    timer_callback,
 )
-from vedo.plotter_io import plotter_export, plotter_screenshot, plotter_toimage
+from vedo.plotter_io import export, screenshot, toimage
 from vedo.plotter_keymap import handle_default_keypress as _handle_default_keypress
 from vedo.plotter_lifecycle import (
     break_interaction,
@@ -56,14 +56,14 @@ from vedo.plotter_lifecycle import (
     user_mode,
 )
 from vedo.plotter_scene import (
-    plotter_actors,
-    plotter_add,
-    plotter_get_actors,
-    plotter_get_meshes,
-    plotter_get_volumes,
-    plotter_pop,
-    plotter_remove,
-    plotter_remove_lights,
+    actors,
+    add,
+    get_actors,
+    get_meshes,
+    get_volumes,
+    pop,
+    remove,
+    remove_lights,
 )
 
 
@@ -2519,51 +2519,51 @@ class Plotter:
 
 
 # Facade delegation: keep Plotter API stable while moving internals to helper modules.
-Plotter.add = plotter_add
-Plotter.remove = plotter_remove
-Plotter.actors = plotter_actors
-Plotter.remove_lights = plotter_remove_lights
-Plotter.pop = plotter_pop
-Plotter.get_meshes = plotter_get_meshes
-Plotter.get_volumes = plotter_get_volumes
-Plotter.get_actors = plotter_get_actors
+Plotter.add = add
+Plotter.remove = remove
+Plotter.actors = actors
+Plotter.remove_lights = remove_lights
+Plotter.pop = pop
+Plotter.get_meshes = get_meshes
+Plotter.get_volumes = get_volumes
+Plotter.get_actors = get_actors
 
 Plotter.initialize_interactor = initialize_interactor
 Plotter.process_events = process_events
 Plotter.render = lifecycle_render
 Plotter.interactive = interactive
 Plotter.use_depth_peeling = use_depth_peeling
-Plotter.reset_camera = plotter_reset_camera
-Plotter.reset_clipping_range = plotter_reset_clipping_range
-Plotter.reset_viewup = plotter_reset_viewup
-Plotter.move_camera = plotter_move_camera
-Plotter.fly_to = plotter_fly_to
-Plotter.look_at = plotter_look_at
-Plotter.parallel_projection = plotter_parallel_projection
-Plotter.render_hidden_lines = plotter_render_hidden_lines
-Plotter.fov = plotter_fov
-Plotter.zoom = plotter_zoom
-Plotter.azimuth = plotter_azimuth
-Plotter.elevation = plotter_elevation
-Plotter.roll = plotter_roll
-Plotter.dolly = plotter_dolly
+Plotter.reset_camera = reset_camera
+Plotter.reset_clipping_range = reset_clipping_range
+Plotter.reset_viewup = reset_viewup
+Plotter.move_camera = move_camera
+Plotter.fly_to = fly_to
+Plotter.look_at = look_at
+Plotter.parallel_projection = parallel_projection
+Plotter.render_hidden_lines = render_hidden_lines
+Plotter.fov = fov
+Plotter.zoom = zoom
+Plotter.azimuth = azimuth
+Plotter.elevation = elevation
+Plotter.roll = roll
+Plotter.dolly = dolly
 Plotter.clear = clear
 Plotter.break_interaction = break_interaction
 Plotter.freeze = freeze
 Plotter.user_mode = user_mode
 Plotter.close = lifecycle_close
 
-Plotter.fill_event = plotter_fill_event
-Plotter.add_callback = plotter_add_callback
-Plotter.remove_callback = plotter_remove_callback
-Plotter.remove_all_observers = plotter_remove_all_observers
-Plotter.timer_callback = plotter_timer_callback
-Plotter.add_observer = plotter_add_observer
-Plotter.compute_world_coordinate = plotter_compute_world_coordinate
-Plotter.compute_screen_coordinates = plotter_compute_screen_coordinates
-Plotter.pick_area = plotter_pick_area
-Plotter._default_mouseleftclick = plotter_default_mouseleftclick
+Plotter.fill_event = fill_event
+Plotter.add_callback = add_callback
+Plotter.remove_callback = remove_callback
+Plotter.remove_all_observers = remove_all_observers
+Plotter.timer_callback = timer_callback
+Plotter.add_observer = add_observer
+Plotter.compute_world_coordinate = compute_world_coordinate
+Plotter.compute_screen_coordinates = compute_screen_coordinates
+Plotter.pick_area = pick_area
+Plotter._default_mouseleftclick = default_mouseleftclick
 
-Plotter.screenshot = plotter_screenshot
-Plotter.toimage = plotter_toimage
-Plotter.export = plotter_export
+Plotter.screenshot = screenshot
+Plotter.toimage = toimage
+Plotter.export = export

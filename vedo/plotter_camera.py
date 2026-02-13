@@ -13,7 +13,7 @@ from vedo import utils
 __docformat__ = "google"
 
 
-def plotter_reset_camera(plotter, tight=None) -> Any:
+def reset_camera(plotter, tight=None) -> Any:
     """
     Reset the camera position and zooming.
     If tight (float) is specified the zooming reserves a padding space
@@ -41,7 +41,7 @@ def plotter_reset_camera(plotter, tight=None) -> Any:
         plotter.renderer.ResetCameraClippingRange(x0, x1, y0, y1, z0, z1)
     return plotter
 
-def plotter_reset_clipping_range(plotter, bounds=None) -> Any:
+def reset_clipping_range(plotter, bounds=None) -> Any:
     """
     Reset the camera clipping range to include all visible actors.
     If bounds is given, it will be used instead of computing it.
@@ -52,7 +52,7 @@ def plotter_reset_clipping_range(plotter, bounds=None) -> Any:
         plotter.renderer.ResetCameraClippingRange(bounds)
     return plotter
 
-def plotter_reset_viewup(plotter, smooth=True) -> Any:
+def reset_viewup(plotter, smooth=True) -> Any:
     """
     Reset the orientation of the camera to the closest orthogonal direction and view-up.
     """
@@ -129,7 +129,7 @@ def plotter_reset_viewup(plotter, smooth=True) -> Any:
     plotter.render()
     return plotter
 
-def plotter_move_camera(plotter, cameras, t=0, times=(), smooth=True, output_times=()) -> list:
+def move_camera(plotter, cameras, t=0, times=(), smooth=True, output_times=()) -> list:
     """
     Takes as input two cameras set camera at an interpolated position:
 
@@ -172,7 +172,7 @@ def plotter_move_camera(plotter, cameras, t=0, times=(), smooth=True, output_tim
             vcams.append(c)
         return vcams
 
-def plotter_fly_to(plotter, point) -> Any:
+def fly_to(plotter, point) -> Any:
     """
     Fly camera to the specified point.
 
@@ -195,7 +195,7 @@ def plotter_fly_to(plotter, point) -> Any:
         plotter.interactor.FlyTo(plotter.renderer, point)
     return plotter
 
-def plotter_look_at(plotter, plane="xy") -> Any:
+def look_at(plotter, plane="xy") -> Any:
     """Move the camera so that it looks at the specified cartesian plane"""
     cam = plotter.renderer.GetActiveCamera()
     fp = np.array(cam.GetFocalPoint())
@@ -215,7 +215,7 @@ def plotter_look_at(plotter, plane="xy") -> Any:
         vedo.logger.error(f"in plotter.look() cannot understand argument {plane}")
     return plotter
 
-def plotter_parallel_projection(plotter, value=True, at=None) -> Any:
+def parallel_projection(plotter, value=True, at=None) -> Any:
     """
     Use parallel projection `at` a specified renderer.
     Object is seen from "infinite" distance, e.i. remove any perspective effects.
@@ -230,12 +230,12 @@ def plotter_parallel_projection(plotter, value=True, at=None) -> Any:
     r.Modified()
     return plotter
 
-def plotter_render_hidden_lines(plotter, value=True) -> Any:
+def render_hidden_lines(plotter, value=True) -> Any:
     """Remove hidden lines when in wireframe mode."""
     plotter.renderer.SetUseHiddenLineRemoval(not value)
     return plotter
 
-def plotter_fov(plotter, angle: float) -> Any:
+def fov(plotter, angle: float) -> Any:
     """
     Set the field of view angle for the camera.
     This is the angle of the camera frustum in the horizontal direction.
@@ -248,28 +248,28 @@ def plotter_fov(plotter, angle: float) -> Any:
     plotter.renderer.GetActiveCamera().SetViewAngle(angle)
     return plotter
 
-def plotter_zoom(plotter, zoom: float) -> Any:
+def zoom(plotter, zoom: float) -> Any:
     """Apply a zooming factor for the current camera view"""
     plotter.renderer.GetActiveCamera().Zoom(zoom)
     return plotter
 
-def plotter_azimuth(plotter, angle: float) -> Any:
+def azimuth(plotter, angle: float) -> Any:
     """Rotate camera around the view up vector."""
     plotter.renderer.GetActiveCamera().Azimuth(angle)
     return plotter
 
-def plotter_elevation(plotter, angle: float) -> Any:
+def elevation(plotter, angle: float) -> Any:
     """Rotate the camera around the cross product of the negative
     of the direction of projection and the view up vector."""
     plotter.renderer.GetActiveCamera().Elevation(angle)
     return plotter
 
-def plotter_roll(plotter, angle: float) -> Any:
+def roll(plotter, angle: float) -> Any:
     """Roll the camera about the direction of projection."""
     plotter.renderer.GetActiveCamera().Roll(angle)
     return plotter
 
-def plotter_dolly(plotter, value: float) -> Any:
+def dolly(plotter, value: float) -> Any:
     """Move the camera towards (value>0) or away from (value<0) the focal point."""
     plotter.renderer.GetActiveCamera().Dolly(value)
     return plotter

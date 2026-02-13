@@ -15,7 +15,7 @@ from vedo.events import Event
 __docformat__ = "google"
 
 
-def plotter_fill_event(plotter, ename="", pos=(), enable_picking=True) -> "Event":
+def fill_event(plotter, ename="", pos=(), enable_picking=True) -> "Event":
     """
     Create an Event object with information of what was clicked.
 
@@ -120,7 +120,7 @@ def plotter_fill_event(plotter, ename="", pos=(), enable_picking=True) -> "Event
         event.isActor2D = isinstance(event.object, vtki.vtkActor2D)
     return event
 
-def plotter_add_callback(plotter, event_name: str, func: Callable, priority=0.0, enable_picking=True) -> int:
+def add_callback(plotter, event_name: str, func: Callable, priority=0.0, enable_picking=True) -> int:
     """
     Add a function to be executed while show() is active.
 
@@ -219,7 +219,7 @@ def plotter_add_callback(plotter, event_name: str, func: Callable, priority=0.0,
     # print(f"Registering event: {event_name} with id={cid}")
     return cid
 
-def plotter_remove_callback(plotter, cid: Union[int, str]) -> Any:
+def remove_callback(plotter, cid: Union[int, str]) -> Any:
     """
     Remove a callback function by its id
     or a whole category of callbacks by their name.
@@ -237,7 +237,7 @@ def plotter_remove_callback(plotter, cid: Union[int, str]) -> Any:
             plotter.interactor.RemoveObserver(cid)
     return plotter
 
-def plotter_remove_all_observers(plotter) -> Any:
+def remove_all_observers(plotter) -> Any:
     """
     Remove all observers.
 
@@ -270,7 +270,7 @@ def plotter_remove_all_observers(plotter) -> Any:
         plotter.interactor.RemoveAllObservers()
     return plotter
 
-def plotter_timer_callback(plotter, action: str, timer_id=None, dt=1, one_shot=False) -> int:
+def timer_callback(plotter, action: str, timer_id=None, dt=1, one_shot=False) -> int:
     """
     Start or stop an existing timer.
 
@@ -315,7 +315,7 @@ def plotter_timer_callback(plotter, action: str, timer_id=None, dt=1, one_shot=F
         vedo.logger.error(e)
     return timer_id
 
-def plotter_add_observer(plotter, event_name: str, func: Callable, priority=0.0) -> int:
+def add_observer(plotter, event_name: str, func: Callable, priority=0.0) -> int:
     """
     Add a callback function that will be called when an event occurs.
     Consider using `add_callback()` instead.
@@ -326,7 +326,7 @@ def plotter_add_observer(plotter, event_name: str, func: Callable, priority=0.0)
     idd = plotter.interactor.AddObserver(event_name, func, priority)
     return idd
 
-def plotter_compute_world_coordinate(
+def compute_world_coordinate(
     plotter,
     pos2d: MutableSequence[float],
     at=None,
@@ -391,7 +391,7 @@ def plotter_compute_world_coordinate(
     # validd = pp.ValidateDisplayPosition(renderer, pos2d)
     return np.array(worldPos)
 
-def plotter_compute_screen_coordinates(plotter, obj, full_window=False) -> np.ndarray:
+def compute_screen_coordinates(plotter, obj, full_window=False) -> np.ndarray:
     """
     Given a 3D points in the current renderer (or full window),
     find the screen pixel coordinates.
@@ -432,7 +432,7 @@ def plotter_compute_screen_coordinates(plotter, obj, full_window=False) -> np.nd
             p2d.append(cs.GetComputedViewportValue(plotter.renderer))
     return np.array(p2d, dtype=int)
 
-def plotter_pick_area(plotter, pos1, pos2, at=None) -> "vedo.Mesh":
+def pick_area(plotter, pos1, pos2, at=None) -> "vedo.Mesh":
     """
     Pick all objects within a box defined by two corner points in 2D screen coordinates.
 
@@ -481,7 +481,7 @@ def plotter_pick_area(plotter, pos1, pos2, at=None) -> "vedo.Mesh":
     afru.name = "Frustum"
     return afru
 
-def plotter_default_mouseleftclick(plotter, iren, event) -> None:
+def default_mouseleftclick(plotter, iren, event) -> None:
     x, y = iren.GetEventPosition()
     renderer = iren.FindPokedRenderer(x, y)
     picker = vtki.vtkPropPicker()

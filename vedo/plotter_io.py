@@ -9,7 +9,7 @@ import vedo.vtkclasses as vtki
 __docformat__ = "google"
 
 
-def plotter_screenshot(plotter, filename="screenshot.png", scale=1, asarray=False) -> Any:
+def screenshot(plotter, filename="screenshot.png", scale=1, asarray=False) -> Any:
     """
     Take a screenshot of the Plotter window.
 
@@ -45,7 +45,7 @@ def plotter_screenshot(plotter, filename="screenshot.png", scale=1, asarray=Fals
     """
     return vedo.file_io.screenshot(filename, scale, asarray)
 
-def plotter_toimage(plotter, scale=1) -> "vedo.image.Image":
+def toimage(plotter, scale=1) -> "vedo.image.Image":
     """
     Generate a `Image` object from the current rendering window.
 
@@ -68,7 +68,7 @@ def plotter_toimage(plotter, scale=1) -> "vedo.image.Image":
     w2if.Update()
     return vedo.image.Image(w2if.GetOutput())
 
-def plotter_export(plotter, filename="scene.npz", binary=False) -> Any:
+def export(plotter, filename="scene.npz", binary=False) -> Any:
     """
     Export scene to file to HTML, X3D or Numpy file.
 
