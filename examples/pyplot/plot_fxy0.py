@@ -14,7 +14,7 @@ def update_plot(widget=None, evt=""):
     color = vedo.color_map(k, name="winter_r", vmin=x[0], vmax=x[-1])
     title = (f"y-mean : {np.mean(y):.3f}, std: {np.std(y):.3f},\n"
              f"y-range: [{np.min(y):.3f}, {np.max(y):.3f}], "
-             f"integral: {np.trapz(y, x):.3f}")
+             f"integral: {np.trapezoid(y, x):.3f}")
     p = vedo.pyplot.plot(
         x, y,
         xlim=xrange,

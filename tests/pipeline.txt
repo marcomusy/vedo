@@ -58,9 +58,7 @@ code $VEDOLOGFILE  #### inspect logfile
 
 
 # TUTORIALS ##################################################################
-cd ~/Projects/vedo-embo-course/solutions/ && ./run_all.sh 
 cd ~/Projects/vedo-epug-tutorial/scripts && ./run_all.sh 
-
 
 # TRIMESH #####################################################################
 cd $VEDODIR/examples/other/trimesh && ./run_all.sh
@@ -98,9 +96,6 @@ pip install .
 cd ~/Projects/trackviewer
     ./main_test.py
 ################
-cd ~/Projects/clonal_analysis/clone_viewer
-    ./clone_viewer_gio3d.py
-################
 cd ~/Projects/rio_organoid
     python main4.py
     python piv_read_fw2_C3.py
@@ -131,6 +126,9 @@ cd ~/Projects/napari-vedo-bridge
 cd ~/Projects/clonal_analysis
     python -m analysis_plots2d
     python main3d_v4.py
+################
+cd ~/Projects/clonal_analysis/clone_viewer
+    ./clone_viewer3d_v2.py
 ################
 cd ~/Projects/gustaf
     git pull

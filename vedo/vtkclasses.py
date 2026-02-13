@@ -258,7 +258,8 @@ for name in [
     "vtkFeatureEdges",
     "vtkFlyingEdges3D",
     "vtkGlyph3D",
-    "vtkIdFilter",
+    "vtkIdFilter", # available in VTK <9.6 only
+    "vtkGenerateIds",
     "vtkImageAppend",
     "vtkImplicitPolyDataDistance",
     "vtkMarchingSquares",

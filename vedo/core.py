@@ -46,6 +46,20 @@ __all__ = [
 
 
 ###############################################################################
+def _get_data_legacy_format(arr):
+    # try the old way then the new way to get the array in legacy format 
+    # #issue #1292
+    if utils.vtk_version_at_least(6, 0):
+        varr = vtki.vtkIdTypeArray()
+        arr.ExportLegacyFormat(varr)
+        arr1d = utils.vtk2numpy(varr)
+        # print("got legacy format with ExportLegacyFormat", [arr])
+    else:
+        arr1d = utils.vtk2numpy(arr.GetData())
+    return arr1d
+
+
+###############################################################################
 class DataArrayHelper:
     """
     Helper class to manage data associated to either points (or vertices) and cells (or faces).
@@ -628,9 +642,9 @@ class CommonAlgorithms:
         # Get cell connettivity ids as a 1D array. The vtk format is:
         #    [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
         try:
-            arr1d = utils.vtk2numpy(cls.dataset.GetLines().GetData())
+            arr1d = _get_data_legacy_format(cls.dataset.GetLines())
         except AttributeError:
-            return np.array([])
+            return np.array([], dtype=int)
         i = 0
         conn = []
         n = len(arr1d)
@@ -652,9 +666,9 @@ class CommonAlgorithms:
         See also: `lines()`.
         """
         try:
-            return utils.vtk2numpy(cls.dataset.GetLines().GetData())
+            return _get_data_legacy_format(cls.dataset.GetLines())
         except AttributeError:
-            return np.array([])
+            return np.array([], dtype=int)
 
     def mark_boundaries(cls) -> Self:
         """
@@ -864,10 +878,10 @@ class CommonAlgorithms:
         """
         try:
             # valid for unstructured grid
-            arr1d = utils.vtk2numpy(cls.dataset.GetCells().GetData())
+            arr1d = _get_data_legacy_format(cls.dataset.GetCells())
         except AttributeError:
             # valid for polydata
-            arr1d = utils.vtk2numpy(cls.dataset.GetPolys().GetData())
+            arr1d = _get_data_legacy_format(cls.dataset.GetPolys())
         return arr1d
 
     @property
@@ -879,14 +893,14 @@ class CommonAlgorithms:
         """
         try:
             # valid for unstructured grid
-            arr1d = utils.vtk2numpy(cls.dataset.GetCells().GetData())
+            arr1d = _get_data_legacy_format(cls.dataset.GetCells())
         except AttributeError:
             try:
                 # valid for polydata
-                arr1d = utils.vtk2numpy(cls.dataset.GetPolys().GetData())
+                arr1d = _get_data_legacy_format(cls.dataset.GetPolys())
             except AttributeError:
-                vedo.logger.warning(f"Cannot get cells for {type(cls)}")
-                return np.array([])
+                vedo.logger.error(f"Cannot get cells for {type(cls)}")
+                return np.array([], dtype=int)
 
         # Get cell connettivity ids as a 1D array. vtk format is:
         # [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
@@ -895,7 +909,7 @@ class CommonAlgorithms:
         n = len(arr1d)
         if n:
             while True:
-                cell = [arr1d[i + k] for k in range(1, arr1d[i] + 1)]
+                cell = [int(arr1d[i + k]) for k in range(1, arr1d[i] + 1)]
                 conn.append(cell)
                 i += arr1d[i] + 1
                 if i >= n:
@@ -1152,7 +1166,10 @@ class CommonAlgorithms:
 
         Two new arrays are added to the mesh named `PointID` and `CellID`.
         """
-        ids = vtki.new("IdFilter")
+        try:
+            ids = vtki.new("IdFilter") # available in VTK <9.6 only
+        except AttributeError:
+            ids = vtki.new("GenerateIds")
         ids.SetInputData(cls.dataset)
         ids.PointIdsOn()
         ids.CellIdsOn()

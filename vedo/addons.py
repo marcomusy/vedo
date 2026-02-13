@@ -2106,8 +2106,11 @@ class Slider2D(SliderWidget):
                     tformat = "%0.0f"
                 else:
                     tformat = "%0.2f"
+            if utils.vtk_version_at_least(6,0):
+                # replace the default format of '%0.2g' to '{:0.2f}' to show more significant digits
+                tformat = tformat.replace("%", "{:").replace("f", "f}").replace("g", "g}")
 
-            slider_rep.SetLabelFormat(tformat)  # default is '%0.3g'
+            slider_rep.SetLabelFormat(tformat)  
             slider_rep.GetLabelProperty().SetShadow(0)
             slider_rep.GetLabelProperty().SetBold(0)
             slider_rep.GetLabelProperty().SetOpacity(alpha)
@@ -5145,7 +5148,8 @@ def add_global_axes(axtype=None, c=None, bounds=()) -> None:
             polaxes.SetNumberOfPolarAxisTicks(10)
             polaxes.SetNumberOfPolarAxisTicks(5)
         except Exception as e:
-            vedo.logger.warning("Failed to set polar axis properties")
+            pass
+            # vedo.logger.warning("Failed to set polar axis properties")
         polaxes.SetCamera(plt.renderer.GetActiveCamera())
         polaxes.SetPolarLabelFormat("%6.1f")
         polaxes.PolarLabelVisibilityOff()  # due to bad overlap of labels

@@ -14,7 +14,7 @@ mslice = mesh.section(plane_origin=mesh.centroid, plane_normal=[0,0,1])
 
 pl = Plane(mesh.centroid, normal=[0,0,1], s=[6,4], c='green', alpha=0.3)
 
-slice_2D, to_3D = mslice.to_planar()
+slice_2D, to_3D = mslice.to_2D()
 
 # show objects on N=2 non-synced renderers:
 show([(mesh, pl), (slice_2D, txt)], N=2, sharecam=False, axes=7).close()

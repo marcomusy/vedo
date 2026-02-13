@@ -1813,13 +1813,16 @@ class Mesh(MeshVisual, Points):
             fe.SetFeatureAngle(feature_angle)
 
         if return_point_ids or return_cell_ids:
-            idf = vtki.new("IdFilter")
-            idf.SetInputData(self.dataset)
-            idf.SetPointIdsArrayName("BoundaryIds")
-            idf.SetPointIds(True)
-            idf.Update()
+            try:
+                ids = vtki.new("IdFilter") # available in VTK <9.6 only
+            except AttributeError:
+                ids = vtki.new("GenerateIds")
+            ids.SetInputData(self.dataset)
+            ids.SetPointIdsArrayName("BoundaryIds")
+            ids.SetPointIds(True)
+            ids.Update()
 
-            fe.SetInputData(idf.GetOutput())
+            fe.SetInputData(ids.GetOutput())
             fe.Update()
 
             vid = fe.GetOutput().GetPointData().GetArray("BoundaryIds")
