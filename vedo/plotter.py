@@ -12,7 +12,31 @@ import vedo
 from vedo import utils
 from vedo import addons
 from vedo.events import Event
-from vedo.plotter_keypress import handle_default_keypress as _handle_default_keypress
+from vedo.plotter_bootstrap import apply_gradient_mode, configure_renderer_common
+from vedo.plotter_interaction import (
+    plotter_add_callback,
+    plotter_add_observer,
+    plotter_compute_screen_coordinates,
+    plotter_compute_world_coordinate,
+    plotter_default_mouseleftclick,
+    plotter_fill_event,
+    plotter_pick_area,
+    plotter_remove_all_observers,
+    plotter_remove_callback,
+    plotter_timer_callback,
+)
+from vedo.plotter_io import plotter_export, plotter_screenshot, plotter_toimage
+from vedo.plotter_keymap import handle_default_keypress as _handle_default_keypress
+from vedo.plotter_scene import (
+    plotter_actors,
+    plotter_add,
+    plotter_get_actors,
+    plotter_get_meshes,
+    plotter_get_volumes,
+    plotter_pop,
+    plotter_remove,
+    plotter_remove_lights,
+)
 
 
 __doc__ = """
@@ -533,18 +557,7 @@ class Plotter:
                 self.renderers.append(arenderer)
 
             for r in self.renderers:
-                r.SetLightFollowCamera(vedo.settings.light_follows_camera)
-
-                r.SetUseDepthPeeling(vedo.settings.use_depth_peeling)
-                # r.SetUseDepthPeelingForVolumes(vedo.settings.use_depth_peeling)
-                if vedo.settings.use_depth_peeling:
-                    r.SetMaximumNumberOfPeels(vedo.settings.max_number_of_peels)
-                    r.SetOcclusionRatio(vedo.settings.occlusion_ratio)
-                r.SetUseFXAA(vedo.settings.use_fxaa)
-                r.SetPreserveDepthBuffer(vedo.settings.preserve_depth_buffer)
-
-                r.SetBackground(vedo.get_color(self.backgrcol))
-
+                configure_renderer_common(r, self.backgrcol)
                 self.axes_instances.append(None)
 
             self.shape = (n + m,)
@@ -562,21 +575,8 @@ class Plotter:
                 bg2_ = rd.pop("bg2", None)
 
                 arenderer = vtki.vtkRenderer()
-                arenderer.SetLightFollowCamera(vedo.settings.light_follows_camera)
-
-                arenderer.SetUseDepthPeeling(vedo.settings.use_depth_peeling)
-                # arenderer.SetUseDepthPeelingForVolumes(vedo.settings.use_depth_peeling)
-                if vedo.settings.use_depth_peeling:
-                    arenderer.SetMaximumNumberOfPeels(vedo.settings.max_number_of_peels)
-                    arenderer.SetOcclusionRatio(vedo.settings.occlusion_ratio)
-                arenderer.SetUseFXAA(vedo.settings.use_fxaa)
-                arenderer.SetPreserveDepthBuffer(vedo.settings.preserve_depth_buffer)
-
                 arenderer.SetViewport(x0, y0, x1, y1)
-                arenderer.SetBackground(vedo.get_color(bg_))
-                if bg2_:
-                    arenderer.GradientBackgroundOn()
-                    arenderer.SetBackground2(vedo.get_color(bg2_))
+                configure_renderer_common(arenderer, bg_, bg2_)
 
                 self.renderers.append(arenderer)
                 self.axes_instances.append(None)
@@ -621,23 +621,10 @@ class Plotter:
             for i in reversed(range(shape[0])):
                 for j in range(shape[1]):
                     arenderer = vtki.vtkRenderer()
-                    arenderer.SetLightFollowCamera(vedo.settings.light_follows_camera)
-                    arenderer.SetTwoSidedLighting(vedo.settings.two_sided_lighting)
-
-                    arenderer.SetUseDepthPeeling(vedo.settings.use_depth_peeling)
-                    if vedo.settings.use_depth_peeling:
-                        arenderer.SetMaximumNumberOfPeels(vedo.settings.max_number_of_peels)
-                        arenderer.SetOcclusionRatio(vedo.settings.occlusion_ratio)
-                    arenderer.SetUseFXAA(vedo.settings.use_fxaa)
-                    arenderer.SetPreserveDepthBuffer(vedo.settings.preserve_depth_buffer)
+                    configure_renderer_common(arenderer, self.backgrcol, bg2, two_sided=True)
 
                     if image_actor:
                         arenderer.SetLayer(1)
-
-                    arenderer.SetBackground(vedo.get_color(self.backgrcol))
-                    if bg2:
-                        arenderer.GradientBackgroundOn()
-                        arenderer.SetBackground2(vedo.get_color(bg2))
 
                     x0 = i / shape[0]
                     y0 = j / shape[1]
@@ -663,19 +650,7 @@ class Plotter:
         #########################################################
         for r in self.renderers:
             self.window.AddRenderer(r)
-            # set the background gradient if any
-            if vedo.settings.background_gradient_orientation > 0:
-                try:
-                    modes = [
-                        vtki.vtkViewport.GradientModes.VTK_GRADIENT_VERTICAL,
-                        vtki.vtkViewport.GradientModes.VTK_GRADIENT_HORIZONTAL,
-                        vtki.vtkViewport.GradientModes.VTK_GRADIENT_RADIAL_VIEWPORT_FARTHEST_SIDE,
-                        vtki.vtkViewport.GradientModes.VTK_GRADIENT_RADIAL_VIEWPORT_FARTHEST_CORNER,
-                    ]
-                    r.SetGradientMode(modes[vedo.settings.background_gradient_orientation])
-                    r.GradientBackgroundOn()
-                except AttributeError:
-                    pass
+            apply_gradient_mode(r)
 
         # Backend ####################################################
         if vedo.settings.default_backend in ["panel", "trame", "k3d"]:
@@ -3786,3 +3761,29 @@ class Plotter:
     def _default_keypress(self, iren, event) -> None:
         """Default keypress handler delegate (implemented in `plotter_keypress`)."""
         _handle_default_keypress(self, iren, event)
+
+
+# Facade delegation: keep Plotter API stable while moving internals to helper modules.
+Plotter.add = plotter_add
+Plotter.remove = plotter_remove
+Plotter.actors = plotter_actors
+Plotter.remove_lights = plotter_remove_lights
+Plotter.pop = plotter_pop
+Plotter.get_meshes = plotter_get_meshes
+Plotter.get_volumes = plotter_get_volumes
+Plotter.get_actors = plotter_get_actors
+
+Plotter.fill_event = plotter_fill_event
+Plotter.add_callback = plotter_add_callback
+Plotter.remove_callback = plotter_remove_callback
+Plotter.remove_all_observers = plotter_remove_all_observers
+Plotter.timer_callback = plotter_timer_callback
+Plotter.add_observer = plotter_add_observer
+Plotter.compute_world_coordinate = plotter_compute_world_coordinate
+Plotter.compute_screen_coordinates = plotter_compute_screen_coordinates
+Plotter.pick_area = plotter_pick_area
+Plotter._default_mouseleftclick = plotter_default_mouseleftclick
+
+Plotter.screenshot = plotter_screenshot
+Plotter.toimage = plotter_toimage
+Plotter.export = plotter_export
