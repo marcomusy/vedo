@@ -113,18 +113,19 @@ def _load_font(font) -> np.ndarray:
                 fontfile = os.path.join(vedo.fonts_path, font + ".npz")
 
     try:
-        font_meshes = np.load(fontfile, allow_pickle=True)["font"]
-    except FileNotFoundError:
-        vedo.logger.warning(f"font {font} not found")
-        fontfile = os.path.join(vedo.fonts_path, settings.default_font + ".npz")
-        font_meshes = np.load(fontfile, allow_pickle=True)["font"]
+        font_meshes = np.load(fontfile, allow_pickle=True)["font"][0]
+    except Exception:
+        vedo.logger.warning(f"font name {font} not found.")
+        raise RuntimeError
 
     return font_meshes
 
 
+@lru_cache(None)
 def _get_font_letter(font, letter):
     font_meshes = _load_font(font)
-    if letter in font_meshes.keys():
+    try:
         pts, faces = font_meshes[letter]
-        return np.array(pts), np.array(faces)
-    return np.array([]), np.array([])
+        return utils.buildPolyData(pts.astype(float), faces)
+    except KeyError:
+        return None

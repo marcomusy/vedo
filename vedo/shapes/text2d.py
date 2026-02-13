@@ -11,6 +11,7 @@ import vedo.vtkclasses as vtki
 
 from vedo import settings, utils
 from vedo.colors import get_color
+from vedo.shapes.text_utils import _reps
 
 class Text2D:
     """
