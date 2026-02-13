@@ -27,6 +27,7 @@ www
 dev_*.py
 ?.py
 ??.py
+!vedo/addons/ui.py
 ??.???
 *.npy
 *.npz
