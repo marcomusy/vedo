@@ -28,13 +28,12 @@ __all__ = [
 
 #########################################################
 matplotlib = None
-cmaps = None
 _has_matplotlib = None
 
 
 def _setup_colormaps():
     """Initialize colormap backends lazily to keep import time low."""
-    global matplotlib, cmaps, _has_matplotlib
+    global matplotlib, _has_matplotlib
     if _has_matplotlib is not None:
         return
 
@@ -43,11 +42,11 @@ def _setup_colormaps():
         _ = _mpl.colormaps  # matplotlib >=3.5
         matplotlib = _mpl
         _has_matplotlib = True
-        cmaps = {}
     except (ModuleNotFoundError, AttributeError):
-        from vedo.cmaps import cmaps as _cmaps
-        cmaps = _cmaps
-        _has_matplotlib = False
+        raise RuntimeError(
+            "matplotlib is required for vedo color maps. "
+            "Install it with `pip install matplotlib`."
+        )
 
 _printc_delay_timestamp = [0]
 
@@ -795,39 +794,11 @@ def color_map(value, name="jet", vmin=None, vmax=None):
 
     _setup_colormaps()
 
-    if _has_matplotlib:
-        # matplotlib is available, use it! ###########################
-        if isinstance(name, str):
-            mp = matplotlib.colormaps[name]
-        else:
-            mp = name  # assume matplotlib.colors.LinearSegmentedColormap
-        result = mp(values)[:, [0, 1, 2]]
-
+    if isinstance(name, str):
+        mp = matplotlib.colormaps[name]
     else:
-        # matplotlib not available ###################################
-        invert = False
-        if not isinstance(name, str):
-            vedo.logger.error("in color_map(), colormap object input requires matplotlib.")
-            return np.array([0.5, 0.5, 0.5])
-        if name.endswith("_r"):
-            invert = True
-            name = name.replace("_r", "")
-        try:
-            cmap = cmaps[name]
-        except KeyError:
-            vedo.logger.error(f"in color_map(), no color map with name {name} or {name}_r")
-            vedo.logger.error(f"Available color maps are:\n{cmaps.keys()}")
-            return np.array([0.5, 0.5, 0.5])
-
-        result = []
-        n = len(cmap) - 1
-        for v in values:
-            iv = int(v * n)
-            if invert:
-                iv = n - iv
-            rgb = hex2rgb(cmap[iv])
-            result.append(rgb)
-        result = np.array(result)
+        mp = name  # assume matplotlib.colors.LinearSegmentedColormap
+    result = mp(values)[:, [0, 1, 2]]
 
     if cut:
         return result

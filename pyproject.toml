@@ -42,7 +42,8 @@ dependencies = [
     "vtk",
     "numpy",
     "typing-extensions",
-    "Pygments"
+    "Pygments",
+    "matplotlib"
 ]
 
 [project.optional-dependencies]
