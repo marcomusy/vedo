@@ -12,7 +12,7 @@ import vedo
 from vedo import colors
 from vedo import utils
 from vedo.transformations import LinearTransform
-from vedo.core_data import DataArrayHelper, _get_data_legacy_format
+from vedo.core.data import DataArrayHelper, _get_data_legacy_format
 
 __all__ = ["CommonAlgorithms"]
 

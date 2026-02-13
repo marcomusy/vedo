@@ -8,7 +8,7 @@ import vedo.vtkclasses as vtki
 
 import vedo
 from vedo import utils
-from vedo.core_common import CommonAlgorithms
+from vedo.core.common import CommonAlgorithms
 
 __all__ = ["VolumeAlgorithms"]
 
