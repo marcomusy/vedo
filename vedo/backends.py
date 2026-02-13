@@ -22,24 +22,17 @@ __all__ = []
 def get_notebook_backend(actors2show=()):
     """Return the appropriate notebook viewer"""
 
-    #########################################
-    if settings.default_backend == "2d":
+    backend = settings.default_backend
+
+    if backend == "2d":
         return start_2d()
-
-    #########################################
-    if settings.default_backend == "k3d":
+    if backend == "k3d":
         return start_k3d(actors2show)
-
-    #########################################
-    if settings.default_backend.startswith("trame"):
+    if backend.startswith("trame"):
         return start_trame()
-
-    #########################################
-    if settings.default_backend.startswith("ipyvtk"):
+    if backend.startswith("ipyvtk"):
         return start_ipyvtklink()
-
-    #########################################
-    if settings.default_backend.startswith("panel"):
+    if backend.startswith("panel"):
         return start_panel()
 
     vedo.logger.error(f"Unknown jupyter backend: {settings.default_backend}")
@@ -57,6 +50,9 @@ def start_2d():
         return
 
     plt = vedo.current_plotter()
+    if not plt:
+        vedo.logger.error("No active Plotter found for the 2d backend.")
+        return None
 
     if hasattr(plt, "window") and plt.window:
         try:
@@ -87,6 +83,9 @@ def start_panel():
 
     print("panel backend NOT YET FUNCTIONAL")
     plt = vedo.current_plotter()
+    if not plt:
+        vedo.logger.error("No active Plotter found for the panel backend.")
+        return None
 
     if hasattr(plt, "window") and plt.window:
         plt.renderer.ResetCamera()
@@ -112,7 +111,40 @@ def start_k3d(actors2show):
 
     plt = vedo.current_plotter()
     if not plt:
+        vedo.logger.error("No active Plotter found for the k3d backend.")
         return None
+
+    def _setup_scalar_metadata(polydata, mapper):
+        """Build scalar metadata for k3d color mapping."""
+        vtkdata = polydata.GetPointData()
+        vtkscals = vtkdata.GetScalars()
+
+        if vtkscals is None:
+            vtkdata = polydata.GetCellData()
+            vtkscals = vtkdata.GetScalars()
+            if vtkscals is not None:
+                c2p = vtki.new("CellDataToPointData")
+                c2p.SetInputData(polydata)
+                c2p.Update()
+                polydata = c2p.GetOutput()
+                vtkdata = polydata.GetPointData()
+                vtkscals = vtkdata.GetScalars()
+
+        if vtkscals is None:
+            return polydata, None, None, None, None
+
+        if not vtkscals.GetName():
+            vtkscals.SetName("scalars")
+        scals_min, scals_max = mapper.GetScalarRange()
+        color_attribute = (vtkscals.GetName(), scals_min, scals_max)
+        lut = mapper.GetLookupTable()
+        lut.Build()
+        kcmap = []
+        nlut = lut.GetNumberOfTableValues()
+        for i in range(nlut):
+            r, g, b, _ = lut.GetTableValue(i)
+            kcmap += [i / (nlut - 1), r, g, b]
+        return polydata, vtkscals, color_attribute, kcmap, (scals_min, scals_max)
 
     already_has_axes = False
     actors2show2 = []
@@ -194,34 +226,11 @@ def start_k3d(actors2show):
                 iapoly = ia.dataset
 
             if ia.mapper.GetScalarVisibility() and ia.mapper.GetColorMode() > 0:
-
-                vtkdata = iapoly.GetPointData()
-                vtkscals = vtkdata.GetScalars()
-
-                if vtkscals is None:
-                    vtkdata = iapoly.GetCellData()
-                    vtkscals = vtkdata.GetScalars()
-                    if vtkscals is not None:
-                        c2p = vtki.new("CellDataToPointData")
-                        c2p.SetInputData(iapoly)
-                        c2p.Update()
-                        iapoly = c2p.GetOutput()
-                        vtkdata = iapoly.GetPointData()
-                        vtkscals = vtkdata.GetScalars()
-
-                else:
-
-                    if not vtkscals.GetName():
-                        vtkscals.SetName("scalars")
-                    scals_min, scals_max = ia.mapper.GetScalarRange()
-                    color_attribute = (vtkscals.GetName(), scals_min, scals_max)
-                    lut = ia.mapper.GetLookupTable()
-                    lut.Build()
-                    kcmap = []
-                    nlut = lut.GetNumberOfTableValues()
-                    for i in range(nlut):
-                        r, g, b, _ = lut.GetTableValue(i)
-                        kcmap += [i / (nlut - 1), r, g, b]
+                iapoly, vtkscals, color_attribute, kcmap, scal_range = _setup_scalar_metadata(
+                    iapoly, ia.mapper
+                )
+                if scal_range is not None:
+                    scals_min, scals_max = scal_range
 
             else:
                 color_attribute = ia.color()
@@ -401,6 +410,9 @@ def start_trame():
         return
 
     plt = vedo.current_plotter()
+    if not plt:
+        vedo.logger.error("No active Plotter found for the trame backend.")
+        return None
     if hasattr(plt, "window") and plt.window:
         plt.renderer.ResetCamera()
         server = get_server("jupyter-1")
@@ -435,6 +447,9 @@ def start_ipyvtklink():
         return None
 
     plt = vedo.current_plotter()
+    if not plt:
+        vedo.logger.error("No active Plotter found for the ipyvtklink backend.")
+        return None
     if hasattr(plt, "window") and plt.window:
         plt.renderer.ResetCamera()
         nbplot = ViewInteractiveWidget(
