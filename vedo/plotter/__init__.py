@@ -12,8 +12,8 @@ import vedo
 from vedo import utils
 from vedo import addons
 from vedo.events import Event
-from vedo.plotter_bootstrap import apply_gradient_mode, configure_renderer_common
-from vedo.plotter_camera import (
+from .bootstrap import apply_gradient_mode, configure_renderer_common
+from .camera import (
     azimuth,
     dolly,
     elevation,
@@ -29,7 +29,7 @@ from vedo.plotter_camera import (
     roll,
     zoom,
 )
-from vedo.plotter_interaction import (
+from .interaction import (
     add_callback,
     add_observer,
     compute_screen_coordinates,
@@ -41,9 +41,9 @@ from vedo.plotter_interaction import (
     remove_callback,
     timer_callback,
 )
-from vedo.plotter_io import export, screenshot, toimage
-from vedo.plotter_keymap import handle_default_keypress as _handle_default_keypress
-from vedo.plotter_lifecycle import (
+from .io import export, screenshot, toimage
+from .keymap import handle_default_keypress as _handle_default_keypress
+from .lifecycle import (
     break_interaction,
     clear,
     close as lifecycle_close,
@@ -55,7 +55,7 @@ from vedo.plotter_lifecycle import (
     use_depth_peeling,
     user_mode,
 )
-from vedo.plotter_scene import (
+from .scene import (
     actors,
     add,
     get_actors,
