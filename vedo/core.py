@@ -249,15 +249,16 @@ class DataArrayHelper:
             data = self.obj.dataset.GetCellData()
         elif self.association == 2:
             data = self.obj.dataset.GetFieldData()
+        names = []
         for i in range(data.GetNumberOfArrays()):
             if self.association == 2:
-                if data.GetAbstractArray(i):
-                    name = data.GetAbstractArray(i).GetName()
-                    data.RemoveArray(name)
+                arr = data.GetAbstractArray(i)
             else:
-                if data.GetArray(i):
-                    name = data.GetArray(i).GetName()
-                    data.RemoveArray(name)
+                arr = data.GetArray(i)
+            if arr:
+                names.append(arr.GetName())
+        for name in names:
+            data.RemoveArray(name)
 
     def select(self, key: Union[int, str]) -> Any:
         """Select one specific array by its name to make it the `active` one."""
@@ -348,6 +349,7 @@ class DataArrayHelper:
 
     def __repr__(self) -> str:
         """Representation"""
+        out = ""
 
         def _get_str(pd, header):
             out = f"\x1b[2m\x1b[1m\x1b[7m{header}"
@@ -390,6 +392,8 @@ class DataArrayHelper:
                     out += "\nindex".ljust(15) + f": {i}"
                     shape = (varr.GetNumberOfTuples(), varr.GetNumberOfComponents())
                     out += "\nshape".ljust(15) + f": {shape}"
+            else:
+                out = "\x1b[2m\x1b[1m\x1b[7mMeta Data is empty.\x1b[0m"
 
         return out
 
@@ -467,7 +471,7 @@ class CommonAlgorithms:
         return int(cls.dataset.GetAddressAsString("")[5:], 16)
 
     def memory_size(cls) -> int:
-        """Return the size in bytes of the object in memory."""
+        """Return the approximate memory size of the object in kilobytes."""
         return cls.dataset.GetActualMemorySize()
 
     def modified(cls) -> Self:
