@@ -18,7 +18,7 @@ from .loaders import _import_npy
 
 __docformat__ = "google"
 
-def export_window(fileoutput: Union[str, os.PathLike], binary=False, plt=None) -> "vedo.Plotter":
+def export_window(fileoutput: Union[str, os.PathLike], binary=False, plt=None) -> Union["vedo.Plotter", None]:
     """
     Exporter which writes out the rendered scene into an HTML, X3D or Numpy file.
 
@@ -36,6 +36,9 @@ def export_window(fileoutput: Union[str, os.PathLike], binary=False, plt=None) -
     fileoutput = str(fileoutput)
     if plt is None:
         plt = vedo.current_plotter()
+    if plt is None:
+        vedo.logger.error("export_window(): no active Plotter found")
+        return None
 
     fr = fileoutput.lower()
     ####################################################################
@@ -74,16 +77,15 @@ def export_window(fileoutput: Union[str, os.PathLike], binary=False, plt=None) -
     ####################################################################
     elif fr.endswith(".html"):
         savebk = vedo.current_notebook_backend()
-        vedo.set_current_notebook_backend("k3d")
-        vedo.settings.default_backend = "k3d"
-        # acts = plt.get_actors()
-        plt = vedo.backends.get_notebook_backend(plt.objects)
-
-        with open(fileoutput, "w", encoding="UTF-8") as fp:
-            fp.write(plt.get_snapshot())
-
-        vedo.set_current_notebook_backend(savebk)
-        vedo.settings.default_backend = savebk
+        try:
+            vedo.set_current_notebook_backend("k3d")
+            vedo.settings.default_backend = "k3d"
+            backend_obj = vedo.backends.get_notebook_backend(plt.objects)
+            with open(fileoutput, "w", encoding="UTF-8") as fp:
+                fp.write(backend_obj.get_snapshot())
+        finally:
+            vedo.set_current_notebook_backend(savebk)
+            vedo.settings.default_backend = savebk
 
     else:
         vedo.logger.error(f"export extension {fr.split('.')[-1]} is not supported")
@@ -290,6 +292,9 @@ def to_numpy(act: Any) -> dict:
 def _export_npy(plt, fileoutput="scene.npz") -> None:
 
     fileoutput = str(fileoutput)
+    if plt is None:
+        vedo.logger.error("_export_npy(): no active Plotter found")
+        return
 
     sdict = {}
     sdict["shape"] = plt.shape
@@ -333,18 +338,18 @@ def _export_npy(plt, fileoutput="scene.npz") -> None:
                 asse_ori = ob.GetOrientation()
                 asse_org = ob.GetOrigin()
                 for elem in ob.unpack():
-                    elem.name = f"ASSEMBLY{i}_{ob.name}_{elem.name}"
-                    # elem.info.update({"assembly": ob.name}) # TODO
-                    # elem.info.update({"assembly_scale": asse_scale})
-                    # elem.info.update({"assembly_position": asse_pos})
-                    # elem.info.update({"assembly_orientation": asse_ori})
-                    # elem.info.update({"assembly_origin": asse_org})
-                    elem.metadata["assembly"] = ob.name
-                    elem.metadata["assembly_scale"] = asse_scale
-                    elem.metadata["assembly_position"] = asse_pos
-                    elem.metadata["assembly_orientation"] = asse_ori
-                    elem.metadata["assembly_origin"] = asse_org
-                    allobjs.append(elem)
+                    npobj = to_numpy(elem)
+                    npobj["name"] = f"ASSEMBLY{i}_{ob.name}_{npobj.get('name', '')}"
+                    metadata = npobj.get("metadata")
+                    if not isinstance(metadata, dict):
+                        metadata = {}
+                        npobj["metadata"] = metadata
+                    metadata["assembly"] = ob.name
+                    metadata["assembly_scale"] = asse_scale
+                    metadata["assembly_position"] = asse_pos
+                    metadata["assembly_orientation"] = asse_ori
+                    metadata["assembly_origin"] = asse_org
+                    sdict["objects"].append(npobj)
             else:
                 allobjs.append(ob)
 
@@ -408,6 +413,7 @@ def screenshot(filename="screenshot.png", scale=1, asarray=False) -> Union["vedo
             Return a numpy array of the image
     """
     filename = str(filename)
+    filename_lower = filename.lower()
     # print("calling screenshot", filename, scale, asarray)
 
     plt = vedo.current_plotter()
@@ -427,7 +433,7 @@ def screenshot(filename="screenshot.png", scale=1, asarray=False) -> Union["vedo
         return narr  ##########
 
     ###########################
-    if filename.endswith(".pdf"):
+    if filename_lower.endswith(".pdf"):
         writer = vtki.new("GL2PSExporter")
         writer.SetRenderWindow(plt.window)
         writer.Write3DPropsAsRasterImageOff()
@@ -438,7 +444,7 @@ def screenshot(filename="screenshot.png", scale=1, asarray=False) -> Union["vedo
         writer.Write()
         return plt  ##########
 
-    elif filename.endswith(".svg"):
+    elif filename_lower.endswith(".svg"):
         writer = vtki.new("GL2PSExporter")
         writer.SetRenderWindow(plt.window)
         writer.Write3DPropsAsRasterImageOff()
@@ -449,7 +455,7 @@ def screenshot(filename="screenshot.png", scale=1, asarray=False) -> Union["vedo
         writer.Write()
         return plt  ##########
 
-    elif filename.endswith(".eps"):
+    elif filename_lower.endswith(".eps"):
         writer = vtki.new("GL2PSExporter")
         writer.SetRenderWindow(plt.window)
         writer.Write3DPropsAsRasterImageOff()
