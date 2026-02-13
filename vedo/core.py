@@ -1184,12 +1184,8 @@ class CommonAlgorithms:
         for ex in exclude:
             interpolator.AddExcludedArray(ex)
 
-        # remove arrays that are already present in the source
-        # this is because the interpolator will ignore them otherwise
-        for i in range(cls.dataset.GetPointData().GetNumberOfArrays()):
-            name = cls.dataset.GetPointData().GetArrayName(i)
-            if name not in exclude:
-                cls.dataset.GetPointData().RemoveArray(name)
+        # Keep existing non-overlapping arrays on destination dataset.
+        # Overlapping names were already removed above to force interpolation output.
 
         interpolator.Update()
 
