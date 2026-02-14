@@ -3,6 +3,7 @@
 import vedo
 import madcad
 
+# Configure inputs and run the visualization workflow.
 mesh = vedo.Mesh(vedo.dataurl+"bunny.obj")
 mesh.compute_normals()
 

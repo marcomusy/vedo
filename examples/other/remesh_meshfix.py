@@ -1,3 +1,4 @@
+"""External-tools interoperability example."""
 #Credits:
 #M. Attene. A lightweight approach to repairing digitized polygon meshes.
 #The Visual Computer, 2010. (c) Springer. DOI: 10.1007/s00371-010-0416-3

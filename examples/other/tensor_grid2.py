@@ -2,6 +2,7 @@
 import numpy as np
 import vedo
 
+# Configure inputs and run the visualization workflow.
 # Define a simple deformation function
 def deform(x, y):
     xd = np.array([x + 0.25 * x * x, 

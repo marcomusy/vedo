@@ -9,6 +9,7 @@ import numpy as np
 from scipy.interpolate import griddata
 from vedo import spher2cart, mag, Box, Point, Points, Plotter
 
+# Configure inputs and run the visualization workflow.
 ###########################################################################
 lmax = 8              # maximum degree of the spherical harm. expansion
 N    = 50             # number of grid intervals on the unit sphere

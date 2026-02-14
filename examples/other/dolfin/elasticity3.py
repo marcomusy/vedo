@@ -1,3 +1,4 @@
+"""Dolfin/FEniCS integration example."""
 #!/usr/bin/env python3
 """An initial circle is stretched by means of a variable force into its final shape.
 Colored lines are the trajectories of a few initial points."""

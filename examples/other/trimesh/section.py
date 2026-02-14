@@ -1,3 +1,4 @@
+"""Trimesh interoperability example."""
 import numpy as np
 from vedo import show, Plane, printc, download, settings
 import trimesh

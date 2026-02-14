@@ -11,6 +11,7 @@ import numpy as np
 from pysr import PySRRegressor
 import vedo
 
+# Configure inputs and run the visualization workflow.
 
 model = PySRRegressor(
     maxsize=20,

@@ -2,6 +2,7 @@
 to pop a flag-style label"""
 from vedo import *
 
+# Configure inputs and run the visualization workflow.
 b = Mesh(dataurl + "bunny.obj")
 b.color("purple5").legend("Bugs the bunny")
 c = Cube(side=0.1).y(-0.02).compute_normals()

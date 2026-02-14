@@ -7,6 +7,7 @@ import numpy as np
 import fast_simplification as fs
 import vedo
 
+# Configure inputs and run the visualization workflow.
 # Load a mesh and define a signal on vertices
 mesh = vedo.Sphere()
 points = mesh.vertices

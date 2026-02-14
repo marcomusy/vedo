@@ -1,3 +1,4 @@
+"""Dolfin/FEniCS integration example."""
 '''Time-integration of the
 elastodynamics equation
 '''

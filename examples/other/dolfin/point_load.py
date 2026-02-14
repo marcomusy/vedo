@@ -6,6 +6,7 @@ to a corner of a linear-elastic cube.
 from dolfin import *
 from vedo.external.dolfin import plot
 
+# Configure inputs and run the visualization workflow.
 BULK_MOD = 1.0
 SHEAR_MOD = 1.0
 

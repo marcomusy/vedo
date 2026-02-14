@@ -1,3 +1,4 @@
+"""madcad interoperability example."""
 # Example of usage of the madcad library
 # See https://pymadcad.readthedocs.io/en/latest/index.html
 import vedo

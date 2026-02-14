@@ -1,6 +1,7 @@
 """Extract matchingsub meshes from a common mesh"""
 from dolfin import *
 
+# Configure inputs and run the visualization workflow.
 class Structure(SubDomain):
     def inside(self, x, on_boundary):
         return x[0] > 1.4 - DOLFIN_EPS and x[0] < 1.6 \

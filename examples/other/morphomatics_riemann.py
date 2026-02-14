@@ -8,6 +8,7 @@ from morphomatics.manifold import Bezierfold
 from morphomatics.manifold import Sphere
 import vedo
 
+# Configure inputs and run the visualization workflow.
 
 M = Sphere()
 B = Bezierfold(M, 2, 2)

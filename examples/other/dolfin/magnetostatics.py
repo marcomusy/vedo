@@ -7,6 +7,7 @@ from fenics import *
 from mshr import *
 from math import sin, cos, pi
 
+# Configure inputs and run the visualization workflow.
 a = 1.0   # inner radius of iron cylinder
 b = 1.2   # outer radius of iron cylinder
 c_1 = 0.8 # radius for inner circle of copper wires

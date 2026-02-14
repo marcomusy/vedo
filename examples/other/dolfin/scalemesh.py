@@ -2,6 +2,7 @@
 from dolfin import *
 from mshr import *
 
+# Configure inputs and run the visualization workflow.
 domain = Rectangle(Point(0.0, 0.0), Point(5.0, 0.01))
 mesh = generate_mesh(domain, 20)
 V = FunctionSpace(mesh, "CG", 2)

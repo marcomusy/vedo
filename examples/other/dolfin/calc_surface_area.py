@@ -1,3 +1,4 @@
+"""Dolfin/FEniCS integration example."""
 from dolfin import *
 import sympy as sp
 # Credits:

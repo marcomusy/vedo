@@ -6,6 +6,7 @@ from vedo.pyplot import histogram
 from pyvista import wrap
 from pyacvd import Clustering
 
+# Configure inputs and run the visualization workflow.
 msh1 = Sphere(res=50).cut_with_plane()
 msh1.compute_quality().cmap('RdYlGn', on='cells', vmin=0, vmax=70).linewidth(1)
 

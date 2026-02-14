@@ -10,6 +10,7 @@
 import numpy as np
 from fenics import *
 
+# Configure inputs and run the visualization workflow.
 # Create mesh and define function space
 mesh = UnitSquareMesh(8, 8)
 V = FunctionSpace(mesh, "P", 1)

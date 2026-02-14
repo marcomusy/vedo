@@ -3,6 +3,7 @@ a mixed (two-field) formulation."""
 # https://fenicsproject.org/docs/dolfin/2018.1.0/python/demos/mixed-poisson
 from dolfin import *
 
+# Configure inputs and run the visualization workflow.
 # Create mesh
 mesh = UnitSquareMesh(30, 30)
 

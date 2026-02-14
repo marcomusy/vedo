@@ -1,3 +1,4 @@
+"""Trimesh interoperability example."""
 from vedo import show
 import trimesh
 import networkx as nx

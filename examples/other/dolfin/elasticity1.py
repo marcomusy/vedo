@@ -9,6 +9,7 @@ print(__doc__)
 ########################################################### dolfin
 from dolfin import *
 
+# Configure inputs and run the visualization workflow.
 # Create mesh and define function space
 mesh = UnitCubeMesh(10, 10, 10)
 V = VectorFunctionSpace(mesh, "Lagrange", 1)

@@ -2,6 +2,7 @@
 import numpy as np
 import vedo
 
+# Configure inputs and run the visualization workflow.
 try:
     from morphomatics.geom import Surface
     from morphomatics.stats import StatisticalShapeModel

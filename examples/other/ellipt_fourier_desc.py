@@ -4,6 +4,7 @@ import numpy as np
 import vedo
 import pyefd
 
+# Configure inputs and run the visualization workflow.
 shapes = vedo.Assembly(vedo.dataurl+'timecourse1d.npy')
 
 s = shapes[55].c('red5').lw(3)

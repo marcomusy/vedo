@@ -1,3 +1,4 @@
+"""Dolfin/FEniCS integration example."""
 # A simple eigenvalue solver
 # ==========================
 

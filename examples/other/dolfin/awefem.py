@@ -10,6 +10,7 @@ from vedo import ProgressBar, printc, download, settings
 from vedo.external.dolfin import plot
 import numpy as np
 
+# Configure inputs and run the visualization workflow.
 set_log_level(30)
 
 def ricker_source(t, f=40):

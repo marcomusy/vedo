@@ -2,6 +2,7 @@
 
 from dolfin import *
 
+# Configure inputs and run the visualization workflow.
 # Scaled variables
 l, w = 1, 0.1
 mu_, lambda_ = 1, 1

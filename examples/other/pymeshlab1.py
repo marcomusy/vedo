@@ -1,3 +1,4 @@
+"""PyMeshLab processing example."""
 import vedo
 import pymeshlab  # tested on pymeshlab-2022.2.post2
 

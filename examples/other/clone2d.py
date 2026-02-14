@@ -2,6 +2,7 @@
 and place it in the rendering window"""
 from vedo import Mesh, dataurl, show
 
+# Configure inputs and run the visualization workflow.
 man3d = Mesh(dataurl+'man.vtk')
 man3d.rotate_z(20).rotate_x(-70).scale(0.2)
 man3d.c('darkgreen').lighting('glossy')

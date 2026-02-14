@@ -13,6 +13,7 @@ The initial condition u_0 is chosen as a Gaussian hill.
 from fenics import *
 set_log_level(30)
 
+# Configure inputs and run the visualization workflow.
 
 num_steps = 50  # number of time steps
 dt = 0.02       # time step size

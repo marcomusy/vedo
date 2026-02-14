@@ -1,3 +1,4 @@
+"""MeshLib processing example."""
 import numpy as np
 import vedo
 from meshlib import mrmeshpy as mm

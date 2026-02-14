@@ -1,6 +1,7 @@
 """Show fenics mesh and displacement solution."""
 from dolfin import *
 
+# Configure inputs and run the visualization workflow.
 # Create mesh and define function space
 mesh = UnitCubeMesh(12, 12, 12)
 V = VectorFunctionSpace(mesh, "Lagrange", 1)

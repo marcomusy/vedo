@@ -3,6 +3,7 @@ and place it in one of the 4 corners
 within the same renderer"""
 from vedo import *
 
+# Configure inputs and run the visualization workflow.
 plt = Plotter(axes=5)
 
 plt += Text3D(__doc__).bc('tomato')

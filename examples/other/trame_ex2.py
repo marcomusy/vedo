@@ -1,3 +1,4 @@
+"""Trame integration example."""
 #!/usr/bin/env python
 #
 from trame.app import get_server

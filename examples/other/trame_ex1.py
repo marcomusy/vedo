@@ -1,3 +1,4 @@
+"""Trame integration example."""
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # See more examples at:

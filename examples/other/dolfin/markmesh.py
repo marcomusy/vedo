@@ -1,3 +1,4 @@
+"""Dolfin/FEniCS integration example."""
 '''
 Mark mesh with boundary function
 '''

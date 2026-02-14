@@ -1,3 +1,4 @@
+"""External-tools interoperability example."""
 # Available modifiers:
 #  c (foreground color), bc (background color)
 #  bold, blink, underLine, dim, invert, box

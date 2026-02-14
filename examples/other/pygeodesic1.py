@@ -2,6 +2,7 @@
 from pygeodesic import geodesic  # pip install pygeodesic
 import vedo
 
+# Configure inputs and run the visualization workflow.
 m = vedo.Mesh(vedo.dataurl+"bunny.obj").c("green9")
 
 geoalg = geodesic.PyGeodesicAlgorithmExact(m.vertices, m.cells)

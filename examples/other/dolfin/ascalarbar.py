@@ -10,6 +10,7 @@ Available styles:
 """
 from dolfin import *
 
+# Configure inputs and run the visualization workflow.
 mesh = UnitSquareMesh(16, 16)
 V = FunctionSpace(mesh, 'Lagrange', 1)
 f = Expression('10*(x[0]+x[1]-1)', degree=1)

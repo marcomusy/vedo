@@ -7,6 +7,7 @@ import numpy as np
 from vedo import download
 from vedo.external.dolfin import plot
 
+# Configure inputs and run the visualization workflow.
 # Print log messages only from the root process in parallel
 parameters["std_out_all_processes"] = False
 

@@ -1,6 +1,7 @@
 """Make a video file with or without graphic window"""
 from vedo import dataurl, Plotter, Mesh, Axes, Video
 
+# Configure inputs and run the visualization workflow.
 
 msh = Mesh(dataurl+"data/teapot.vtk").normalize()#.rotate_x(-90)
 msh.shift(-msh.center_of_mass())

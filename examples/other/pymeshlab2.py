@@ -3,6 +3,7 @@ Surface reconstruction by ball pivoting"""
 import vedo
 import pymeshlab  # tested on pymeshlab-2022.2.post2
 
+# Configure inputs and run the visualization workflow.
 pts = vedo.Mesh(vedo.dataurl+'cow.vtk').points # numpy array of vertices
 
 m = pymeshlab.Mesh(vertex_matrix=pts)

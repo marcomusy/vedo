@@ -7,6 +7,7 @@ try:
 except ImportError:
     print("Please install magicclass with: pip install magic-class")
 
+# Configure inputs and run the visualization workflow.
 @magicclass
 class ViewerUI:
     canvas = field(VedoCanvas)

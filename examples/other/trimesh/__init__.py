@@ -1,3 +1,4 @@
+"""Trimesh interoperability example."""
 #
 #
 

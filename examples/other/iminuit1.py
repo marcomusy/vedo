@@ -4,6 +4,7 @@ from iminuit import Minuit
 # pip install iminuit  # https://github.com/scikit-hep/iminuit
 import numpy as np
 
+# Configure inputs and run the visualization workflow.
 
 def fcn(x, y, z):
     f =  (x - 4) ** 4 + (y - 3) ** 4 + (z - 2) ** 2

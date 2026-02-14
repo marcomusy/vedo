@@ -9,6 +9,7 @@ The load p is a Gaussian function centered at (0, 0.6).
 from fenics import *
 from mshr import Circle, generate_mesh
 
+# Configure inputs and run the visualization workflow.
 # Create mesh and define function space
 domain = Circle(Point(0, 0), 1)
 mesh = generate_mesh(domain, 64)

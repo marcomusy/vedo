@@ -5,6 +5,7 @@ import numpy as np
 from vedo import show, Arrows, download
 import trimesh
 
+# Configure inputs and run the visualization workflow.
 plyfile = download('https://github.com/mikedh/trimesh/blob/main/models/cycloidal.ply')
 
 mesh = trimesh.load(plyfile)

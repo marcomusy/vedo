@@ -4,6 +4,7 @@
 from dolfin import *
 set_log_level(30)
 
+# Configure inputs and run the visualization workflow.
 
 # Create mesh and build function space
 mesh = UnitSquareMesh(30, 30, "crossed")

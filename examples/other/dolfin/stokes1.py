@@ -7,6 +7,7 @@ import numpy as np
 from vedo.external.dolfin import plot
 from vedo import Latex, dataurl, download
 
+# Configure inputs and run the visualization workflow.
 # Load mesh and subdomains
 fpath = download(dataurl + "dolfin_fine.xml")
 mesh = Mesh(fpath)

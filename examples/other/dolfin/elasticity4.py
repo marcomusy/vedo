@@ -1,3 +1,4 @@
+"""Dolfin/FEniCS integration example."""
 import numpy as np
 from dolfin import *
 import vedo

@@ -5,6 +5,7 @@ Stokes equations with an iterative solver.
 #  stokes-iterative/demo_stokes-iterative.py.html
 from dolfin import *
 
+# Configure inputs and run the visualization workflow.
 
 mesh = UnitCubeMesh(10, 10, 10)
 
