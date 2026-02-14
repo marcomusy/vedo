@@ -26,7 +26,7 @@ except ModuleNotFoundError:
 
 #################################################
 from vedo.version import _version as __version__
-from vedo import session as _session
+from vedo.plotter import session as _session
 
 from vedo.settings import Settings
 settings = Settings()
