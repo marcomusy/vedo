@@ -45,7 +45,7 @@ p_line = np.array([p(point) for point in points])
 
 
 #######################################################################
-from vedo.dolfin import plot
+from vedo.external.dolfin import plot
 from vedo import Line, Latex
 
 pde = r'-T \nabla^{2} D=p, ~\Omega=\left\{(x, y) | x^{2}+y^{2} \leq R\right\}'

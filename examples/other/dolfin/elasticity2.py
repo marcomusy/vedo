@@ -27,6 +27,6 @@ solve(inner(grad(w), grad(v)) * dx == inner(c, v) * dx, u, [bcl, bcr])
 
 
 ########################################################### vedo
-from vedo.dolfin import plot
+from vedo.external.dolfin import plot
 
 plot(u, mode='displacements', azimuth=45)

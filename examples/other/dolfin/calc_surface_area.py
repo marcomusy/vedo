@@ -38,6 +38,6 @@ f        = interpolate(e, Q)
 A_vector = project( sqrt(f.dx(0)**2 + f.dx(1)**2 + 1), Q)
 
 
-from vedo.dolfin import plot
+from vedo.external.dolfin import plot
 plot(A_vector)
 

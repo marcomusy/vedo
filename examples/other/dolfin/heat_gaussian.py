@@ -41,7 +41,7 @@ F = u*v*dx + dt*dot(grad(u), grad(v))*dx - (u_n + dt*f)*v*dx
 a, L = lhs(F), rhs(F)
 
 ############################################################# vedo
-from vedo.dolfin import plot
+from vedo.external.dolfin import plot
 from vedo import Latex
 
 f = r'\frac{\partial u}{\partial t}=\nabla^2 u+f~\mathrm{in}~\Omega\times(0,T]'

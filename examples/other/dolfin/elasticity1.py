@@ -38,7 +38,7 @@ solve(inner(grad(w), grad(v)) * dx == inner(c, v) * dx, u, [bcl, bcr])
 bmesh = BoundaryMesh(mesh, "exterior")
 
 ########################################################### vedo
-from vedo.dolfin import *
+from vedo.external.dolfin import *
 
 # ps = point size, only mesh vertices are shown
 plot(u, mode='mesh', ps=10, scalarbar='3d')

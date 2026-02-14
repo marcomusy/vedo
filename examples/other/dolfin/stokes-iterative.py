@@ -68,7 +68,7 @@ pressures = p.compute_vertex_values(mesh)
 
 
 #################################################### vedo
-from vedo.dolfin import plot
+from vedo.external.dolfin import plot
 
 # Plot u and p solutions on N=2 synced renderers
 plot(u, mode='mesh arrows', at=0, N=2, legend='velocity',

@@ -17,7 +17,7 @@ u = interpolate(f, V)
 
 
 ################################## vedo
-from vedo.dolfin import plot
+from vedo.external.dolfin import plot
 
 plot(u, mode='color', vmin=-3, vmax=3, style=1, text=__doc__)
 

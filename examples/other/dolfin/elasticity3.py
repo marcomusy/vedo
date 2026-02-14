@@ -5,7 +5,7 @@ from dolfin import *
 from mshr import *
 import numpy as np
 import vedo
-from vedo.dolfin import plot
+from vedo.external.dolfin import plot
 
 set_log_level(30)
 

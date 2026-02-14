@@ -10,7 +10,7 @@ e = Expression("sin(2*pi*(x[0]*x[0]+x[1]*x[1]))", degree=2)
 f = interpolate(e, V)
 
 ####################################################
-from vedo.dolfin import plot
+from vedo.external.dolfin import plot
 
 plt = plot(
     f,

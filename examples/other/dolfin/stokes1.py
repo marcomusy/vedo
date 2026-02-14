@@ -4,7 +4,7 @@ the velocity and first degree elements for the pressure (Taylor-Hood elements)""
 # https://github.com/pf4d/fenics_scripts/blob/master/cbc_block/stokes.py
 from dolfin import *
 import numpy as np
-from vedo.dolfin import plot
+from vedo.external.dolfin import plot
 from vedo import Latex, dataurl, download
 
 # Load mesh and subdomains

@@ -30,7 +30,7 @@ solve( dot(grad(w), grad(v))*dx == f*v*dx,  u, bc)
 f = r'-\nabla^{2} u=f'
 
 ########################################################### vedo
-from vedo.dolfin import plot
+from vedo.external.dolfin import plot
 from vedo.pyplot import histogram
 from vedo import Latex
 

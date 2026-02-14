@@ -29,7 +29,7 @@ ALE.move(fluid_mesh, structure_mesh)
 fluid_mesh.smooth()
 
 #############################################
-from vedo.dolfin import plot
+from vedo.external.dolfin import plot
 
 plot(fluid_mesh, text=__doc__, interactive=False)
 plot(structure_mesh, c='tomato', add=True)

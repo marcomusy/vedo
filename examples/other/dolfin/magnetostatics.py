@@ -85,7 +85,7 @@ W = VectorFunctionSpace(mesh, 'P', 1)
 B = project(as_vector((A_z.dx(1), -A_z.dx(0))), W)
 
 # Plot solution
-from vedo.dolfin import plot
+from vedo.external.dolfin import plot
 plot(A_z, B,
      lw=0,           # linewidth of mesh
      isolines={'n':10, 'lw':0, 'c':'black'},

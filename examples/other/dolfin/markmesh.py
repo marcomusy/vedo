@@ -16,5 +16,5 @@ tcond.set_all(0)
 left.mark(tcond, 1)
 
 ##################################
-from vedo.dolfin import plot
+from vedo.external.dolfin import plot
 plot(tcond, cmap='cool', elevation=20, text=__doc__)

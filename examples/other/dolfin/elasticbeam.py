@@ -47,7 +47,7 @@ u_magnitude = project(u_magnitude, V)
 
 ################################ Plot solution
 from vedo import Text3D
-from vedo.dolfin import plot
+from vedo.external.dolfin import plot
 
 plot(
     u, mode="displaced mesh",

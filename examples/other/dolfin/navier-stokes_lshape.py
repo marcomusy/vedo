@@ -5,7 +5,7 @@ on an L-shaped domain using Chorin's splitting method.
 from dolfin import *
 import numpy as np
 from vedo import download
-from vedo.dolfin import plot
+from vedo.external.dolfin import plot
 
 # Print log messages only from the root process in parallel
 parameters["std_out_all_processes"] = False
