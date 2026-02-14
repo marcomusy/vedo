@@ -192,8 +192,10 @@ class OperationNode:
             tree.create_node(self.operation_plain, self.operation_plain + str(self.time))
             _build_tree(self)
             out = tree.show(stdout=False)
-        except:
-            out = f"Sorry treelib failed to build the tree for '{self.operation_plain}()'."
+        except Exception as e:
+            out = (
+                f"Sorry treelib failed to build the tree for '{self.operation_plain}()': {e}."
+            )
         return out
 
     def print(self) -> None:
@@ -934,8 +936,7 @@ class Minimizer:
             ihess = np.linalg.inv(hessian)
             cov = ihess / 2
             self.results["parameter_errors"] = np.sqrt(np.diag(cov))
-            print(self.results["parameter_errors"])
-        except:
+        except (np.linalg.LinAlgError, ValueError):
             vedo.logger.warning("Cannot compute hessian for parameter errors")
             self.results["parameter_errors"] = np.zeros(n)
         return hessian
@@ -969,7 +970,7 @@ class Minimizer:
                 separator=', ', precision=6, suppress_small=True,
             )
             out += "Hessian Matrix:\n" + arr
-        except:
+        except Exception:
             out += "Hessian Matrix: (not available)"
         return out
 
@@ -1057,10 +1058,8 @@ def compute_hessian(func, params, bounds=None, epsilon=1e-5, verbose=True) -> np
     # Off-diagonal elements (mixed partial derivatives)
     for i in range(n):
         if verbose:
-            print(f"Computing Hessian: {i+1}/{n} for off-diagonal ", end='')
+            vedo.printc(f"Computing Hessian: {i+1}/{n} for off-diagonal", delay=0)
         for j in range(i + 1, n):
-            if verbose:
-                print(f".", end='')
             if bounds:
                 lb_i, ub_i = bounds[i]
                 lb_j, ub_j = bounds[j]
@@ -1103,8 +1102,6 @@ def compute_hessian(func, params, bounds=None, epsilon=1e-5, verbose=True) -> np
             # Central difference for off-diagonal
             hessian[i, j] = (f_pp - f_pm - f_mp + f_mm) / (4 * h_i * h_j)
             hessian[j, i] = hessian[i, j]  # Symmetric
-        if verbose:
-            print()
     return hessian
 
 
@@ -1341,14 +1338,35 @@ def buildPolyData(vertices, faces=None, lines=None, strips=None, index_offset=0)
                         vline.GetPointIds().SetId(0, i1)
                         vline.GetPointIds().SetId(1, i2)
                         linesarr.InsertNextCell(vline)
-        else:  # assume format [id0,id1,...]
-            # print("buildPolyData: assuming lines format [id0,id1,...]", lines)
-            # TODO CORRECT THIS CASE, MUST BE [2, id0,id1,...]
-            for i in range(0, len(lines) - 1):
-                vline = vtki.vtkLine()
-                vline.GetPointIds().SetId(0, lines[i])
-                vline.GetPointIds().SetId(1, lines[i + 1])
-                linesarr.InsertNextCell(vline)
+        else:
+            # VTK-style connectivity stream format:
+            # [n0, p0, p1, ..., n1, q0, q1, ...]
+            # For n==2 we insert a line segment, for n>2 a polyline.
+            i = 0
+            nvals = len(lines)
+            while i < nvals:
+                npts = int(lines[i])
+                if npts < 2:
+                    raise ValueError("buildPolyData(lines): each cell must have at least 2 points")
+                end = i + 1 + npts
+                if end > nvals:
+                    raise ValueError(
+                        "buildPolyData(lines): malformed connectivity stream, "
+                        f"expected {npts} ids after position {i}"
+                    )
+                ids = [int(pid) for pid in lines[i + 1 : end]]
+                if npts == 2:
+                    vline = vtki.vtkLine()
+                    vline.GetPointIds().SetId(0, ids[0])
+                    vline.GetPointIds().SetId(1, ids[1])
+                    linesarr.InsertNextCell(vline)
+                else:
+                    pline = vtki.vtkPolyLine()
+                    pline.GetPointIds().SetNumberOfIds(npts)
+                    for k, pid in enumerate(ids):
+                        pline.GetPointIds().SetId(k, pid)
+                    linesarr.InsertNextCell(pline)
+                i = end
         poly.SetLines(linesarr)
 
     if faces is not None:
@@ -1435,7 +1453,7 @@ def get_font_path(font: str) -> str:
         else:
             try:
                 fl = vedo.file_io.download(f"https://vedo.embl.es/fonts/{font}.ttf", verbose=False)
-            except:
+            except Exception:
                 vedo.logger.warning(f"Could not download https://vedo.embl.es/fonts/{font}.ttf")
                 fl = os.path.join(vedo.fonts_path, "Normografo.ttf")
     else:
@@ -2102,7 +2120,7 @@ def precision(x, p: int, vrange=None, delimiter="e") -> str:
             try:
                 if np.isnan(ix):
                     return "NaN"
-            except:
+            except Exception:
                 # cannot handle list of list
                 continue
 
@@ -2395,7 +2413,10 @@ def print_table(*columns, headers=None, c="g") -> None:
     corner = "─"
     if headers is None:
         headers = [f"Column {i}" for i in range(1, len(columns) + 1)]
-    assert len(headers) == len(columns)
+    if len(headers) != len(columns):
+        raise ValueError(
+            f"print_table(headers=...) expected {len(columns)} headers, got {len(headers)}"
+        )
 
     # Find the maximum length of the elements in each column and header
     max_lens = [max(len(str(x)) for x in column) for column in columns]
