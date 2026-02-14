@@ -107,7 +107,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             self.filename = inputobj
 
         elif "meshlab" in str(type(inputobj)):
-            self.dataset = vedo.utils.meshlab2vedo(inputobj).dataset
+            self.dataset = vedo.external.meshlab2vedo(inputobj).dataset
 
         elif "meshlib" in str(type(inputobj)):
             import meshlib.mrmeshnumpy as mrmeshnumpy # type: ignore
@@ -117,7 +117,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             )
 
         elif "trimesh" in str(type(inputobj)):
-            self.dataset = vedo.utils.trimesh2vedo(inputobj).dataset
+            self.dataset = vedo.external.trimesh2vedo(inputobj).dataset
 
         elif "meshio" in str(type(inputobj)):
             # self.dataset = vedo.utils.meshio2vedo(inputobj) ##TODO

@@ -1994,15 +1994,15 @@ class Plotter:
                 scanned_acts.append(a)
 
             elif "trimesh" in str(type(a)):
-                scanned_acts.append(utils.trimesh2vedo(a))
+                scanned_acts.append(vedo.external.trimesh2vedo(a))
 
             elif "meshlab" in str(type(a)):
                 if "MeshSet" in str(type(a)):
                     for i in range(a.number_meshes()):
                         if a.mesh_id_exists(i):
-                            scanned_acts.append(utils.meshlab2vedo(a.mesh(i)))
+                            scanned_acts.append(vedo.external.meshlab2vedo(a.mesh(i)))
                 else:
-                    scanned_acts.append(utils.meshlab2vedo(a))
+                    scanned_acts.append(vedo.external.meshlab2vedo(a))
 
             elif "dolfin" in str(type(a)):  # assume a dolfin.Mesh object
                 import vedo.external.dolfin as vdlf # type: ignore[import]
@@ -2010,7 +2010,7 @@ class Plotter:
                 scanned_acts.append(vdlf.IMesh(a).actor)
 
             elif "madcad" in str(type(a)):
-                scanned_acts.append(utils.madcad2vedo(a).actor)
+                scanned_acts.append(vedo.external.madcad2vedo(a).actor)
 
             elif "TetgenIO" in str(type(a)):
                 scanned_acts.append(vedo.TetMesh(a).shrink(0.9).c("pink7").actor)

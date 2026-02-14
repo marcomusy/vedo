@@ -49,12 +49,6 @@ __all__ = [
     "camera_from_dict",
     "camera_to_dict",
     "oriented_camera",
-    "vedo2trimesh",
-    "trimesh2vedo",
-    "vedo2meshlab",
-    "meshlab2vedo",
-    "vedo2open3d",
-    "open3d2vedo",
     "vtk2numpy",
     "numpy2vtk",
     "get_uv",
@@ -1201,7 +1195,15 @@ def numpy2vtk(arr, dtype=None, deep=True, name="", as_image=False, dims=None):
         varr.SetName("input_scalars")
 
         img = vtki.vtkImageData()
-        img.SetDimensions(*dims[:3])
+        dims3 = tuple(int(d) for d in dims[:3])
+        expected = int(np.prod(dims3))
+        n_tuples = varr.GetNumberOfTuples()
+        if n_tuples != expected:
+            raise ValueError(
+                f"numpy2vtk(as_image=True): scalar tuple count ({n_tuples}) "
+                f"does not match image dimensions product ({expected})"
+            )
+        img.SetDimensions(*dims3)
         img.GetPointData().AddArray(varr)
         img.GetPointData().SetActiveScalars(varr.GetName())
 
@@ -1383,10 +1385,19 @@ def buildPolyData(vertices, faces=None, lines=None, strips=None, index_offset=0)
 
             if faces.ndim > 1:
                 nf, nc = faces.shape
-                hs = np.hstack((np.zeros(nf)[:, None] + nc, faces))
+                hs = np.hstack((np.zeros(nf)[:, None] + nc, faces - index_offset))
             else:
                 nf = faces.shape[0]
-                hs = faces
+                hs = faces.copy()
+                # Flat packed format: [n0, p0, p1, ..., n1, q0, q1, ...]
+                # Apply index_offset only to point-id entries.
+                i = 0
+                while i < len(hs):
+                    nids = int(hs[i])
+                    start = i + 1
+                    end = start + nids
+                    hs[start:end] -= index_offset
+                    i = end
             arr = numpy_to_vtkIdTypeArray(hs.astype(ast).ravel(), deep=True)
             source_polygons.SetCells(nf, arr)
 
@@ -2888,83 +2899,6 @@ def grid_corners(i: int, nm: list, size: list, margin=0, yflip=True) -> Tuple[np
     return np.array(c1), np.array(c2)
 
 
-############################################################################
-# Trimesh support
-#
-# Install trimesh with:
-#
-#    sudo apt install python3-rtree
-#    pip install rtree shapely
-#    conda install trimesh
-#
-# Check the example gallery in: examples/other/trimesh>
-###########################################################################
-def vedo2trimesh(mesh):
-    """
-    Convert `vedo.mesh.Mesh` to `Trimesh.Mesh` object.
-    """
-    from vedo.external.conversions import vedo2trimesh as _vedo2trimesh
-    return _vedo2trimesh(mesh)
-
-
-def trimesh2vedo(inputobj):
-    """
-    Convert a `Trimesh` object to `vedo.Mesh` or `vedo.Assembly` object.
-    """
-    from vedo.external.conversions import trimesh2vedo as _trimesh2vedo
-    return _trimesh2vedo(inputobj)
-
-
-def vedo2meshlab(vmesh):
-    """Convert a `vedo.Mesh` to a Meshlab object."""
-    from vedo.external.conversions import vedo2meshlab as _vedo2meshlab
-    return _vedo2meshlab(vmesh)
-
-
-def meshlab2vedo(mmesh, pointdata_keys=(), celldata_keys=()):
-    """Convert a Meshlab object to `vedo.Mesh`."""
-    from vedo.external.conversions import meshlab2vedo as _meshlab2vedo
-    return _meshlab2vedo(mmesh, pointdata_keys=pointdata_keys, celldata_keys=celldata_keys)
-
-
-def open3d2vedo(o3d_mesh):
-    """Convert `open3d.geometry.TriangleMesh` to a `vedo.Mesh`."""
-    from vedo.external.conversions import open3d2vedo as _open3d2vedo
-    return _open3d2vedo(o3d_mesh)
-
-
-def vedo2open3d(vedo_mesh):
-    """
-    Return an `open3d.geometry.TriangleMesh` version of the current mesh.
-    """
-    from vedo.external.conversions import vedo2open3d as _vedo2open3d
-    return _vedo2open3d(vedo_mesh)
-
-def vedo2madcad(vedo_mesh):
-    """
-    Convert a `vedo.Mesh` to a `madcad.Mesh`.
-    """
-    from vedo.external.conversions import vedo2madcad as _vedo2madcad
-    return _vedo2madcad(vedo_mesh)
-
-
-def madcad2vedo(madcad_mesh):
-    """
-    Convert a `madcad.Mesh` to a `vedo.Mesh`.
-
-    A pointdata or celldata array named "tracks" is added to the output mesh, indicating
-    the mesh region each point belongs to.
-
-    A metadata array named "madcad_groups" is added to the output mesh, indicating
-    the mesh groups.
-
-    See [pymadcad website](https://pymadcad.readthedocs.io/en/latest/index.html)
-    for more info.
-    """
-    from vedo.external.conversions import madcad2vedo as _madcad2vedo
-    return _madcad2vedo(madcad_mesh)
-
-
 def vtk_version_at_least(major, minor=0, build=0) -> bool:
     """
     Check the installed VTK version.
@@ -3079,6 +3013,6 @@ def get_vtk_name_event(name: str) -> str:
             f"Error: '{name}' is not a valid event name.", c='r')
         vedo.printc("Check the list of events here:", c='r')
         vedo.printc("\thttps://vtk.org/doc/nightly/html/classvtkCommand.html", c='r')
-        # raise RuntimeError
+        raise ValueError(f"Invalid VTK event name: {name!r}")
 
     return event_name
