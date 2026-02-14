@@ -10,8 +10,9 @@ import vedo.vtkclasses as vtki
 
 from vedo import utils
 from vedo.transformations import LinearTransform
-from vedo.colors import get_color
+from vedo.colors import get_color, cmaps_names
 from vedo.mesh import Mesh
+from vedo.pointcloud import Points
 from vedo.shapes.glyphs import Glyph
 from vedo.shapes.curves_core import Line
 
@@ -593,5 +594,3 @@ class FlatArrow(Ribbon):
         self.actor.PickableOff()
         self.actor.DragableOff()
         self.name = "FlatArrow"
-
-
