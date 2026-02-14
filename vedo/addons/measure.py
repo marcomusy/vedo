@@ -271,6 +271,8 @@ def compute_visible_bounds(objs=None) -> list:
     plt = vedo.current_plotter()
     if objs is None and plt:
         objs = plt.actors
+    if callable(objs):
+        objs = objs()
     elif not utils.is_sequence(objs):
         objs = [objs]
 

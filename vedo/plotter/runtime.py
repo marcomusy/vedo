@@ -2521,7 +2521,7 @@ class Plotter:
 # Facade delegation: keep Plotter API stable while moving internals to helper modules.
 Plotter.add = add
 Plotter.remove = remove
-Plotter.actors = actors
+Plotter.actors = property(actors)
 Plotter.remove_lights = remove_lights
 Plotter.pop = pop
 Plotter.get_meshes = get_meshes
