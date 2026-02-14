@@ -240,7 +240,7 @@ class Settings:
     # 0 = normal
     # 1 = do not hold execution
     # 2 = do not hold execution and do not show any window
-    dry_run_mode = 0
+    dry_run_mode = 2
 
     ############################################################
     def __init__(self) -> None:

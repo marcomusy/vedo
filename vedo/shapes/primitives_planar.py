@@ -138,7 +138,7 @@ class Star(Mesh):
 
         if line:
             apts.append(pts[0])
-            poly = utils.buildPolyData(apts, lines=list(range(len(apts))))
+            poly = utils.buildPolyData(apts, lines=[list(range(len(apts)))])
             super().__init__(poly, c, alpha)
             self.lw(2)
         else:
@@ -907,5 +907,4 @@ class Rectangle(Mesh):
         self.pos(p1)
         self.properties.LightingOff()
         self.name = "Rectangle"
-
 

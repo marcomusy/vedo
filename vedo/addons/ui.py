@@ -3,6 +3,7 @@
 from __future__ import annotations
 """UI actor helpers extracted from vedo.addons."""
 
+import os
 from typing_extensions import Self
 import numpy as np
 
@@ -12,6 +13,7 @@ import vedo.vtkclasses as vtki
 from vedo import settings
 from vedo import utils
 from vedo.colors import get_color
+from vedo.pointcloud import Points
 class Flagpost(vtki.vtkFlagpoleLabel):
     """
     Create a flag post style element to describe an object.

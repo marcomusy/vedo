@@ -1,6 +1,7 @@
 """PyMeshLab processing example."""
 import vedo
 import pymeshlab  # tested on pymeshlab-2022.2.post2
+from vedo.external import vedo2meshlab
 
 filepath = vedo.download(vedo.dataurl+'bunny.obj')
 
@@ -16,7 +17,7 @@ mlab_mesh = ms.current_mesh()
 vedo_mesh = vedo.Mesh(mlab_mesh).cmap('Paired').add_scalarbar("distance")
 
 print("We can also convert it back to pymeshlab.MeshSet:",
-      type(vedo.utils.vedo2meshlab(vedo_mesh))
+      type(vedo2meshlab(vedo_mesh))
 )
 
 vedo.show(

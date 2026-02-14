@@ -204,6 +204,9 @@ class Spring(Mesh):
         diff = diff / length
         theta = np.arccos(diff[2])
         phi = np.arctan2(diff[1], diff[0])
+        # Local import avoids circular dependencies during shapes package initialization.
+        from .curves_core import Line
+
         sp = Line(pts)
 
         t = vtki.vtkTransform()
@@ -454,4 +457,3 @@ class Hyperboloid(Mesh):
         self.mapper.ScalarVisibilityOff()
         self.pos(pos)
         self.name = "Hyperboloid"
-

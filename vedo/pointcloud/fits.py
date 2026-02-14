@@ -12,6 +12,7 @@ import vedo.vtkclasses as vtki
 import vedo
 from vedo import colors
 from vedo import utils
+from vedo.transformations import LinearTransform
 from .core import Points
 
 __all__ = [

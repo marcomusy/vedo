@@ -3,11 +3,12 @@
 # See https://pymadcad.readthedocs.io/en/latest/index.html
 import vedo
 from madcad import *
+from vedo.external import madcad2vedo
 
 ##########################################################################
 points = [O, X, X + Z, 2 * X + Z, 2 * (X + Z), X + 2 * Z, X + 5 * Z, 5 * Z]
 section = Wire(points).segmented().flip() 
-rev = revolution(2 * pi, (O, Z), section)
+rev = revolution(section, (O, Z), 2 * pi)
 rev.mergeclose()
 vedo.show("Revolution of a wire", rev, axes=7).close()
 
@@ -28,12 +29,16 @@ vedo.show("Boolean difference", diff, axes=14).close()
 
 ##########################################################################
 cube = brick(width=vec3(2))
-bevel(
-   cube,
-   [(0, 1), (1, 2), (2, 3), (0, 3), (1, 5), (0, 4)],  # Edges to smooth
-   ("width", 0.3),  # Cutting description, known as 'cutter'
-)
-vedo.show("A bevel cube", cube, axes=1).close()
+try:
+    bevel(
+       cube,
+       [(0, 1), (1, 2), (2, 3), (0, 3), (1, 5), (0, 4)],  # Edges to smooth
+       ("width", 0.3),  # Cutting description, known as 'cutter'
+    )
+    vedo.show("A bevel cube", cube, axes=1).close()
+except TypeError:
+    # Newer madcad versions expose beveling via a different API.
+    pass
 
 
 ##########################################################################
@@ -47,7 +52,7 @@ path = web(primitives)
 path.mergeclose()
 m = tube(square_profile, path)
 
-vmesh = vedo.utils.madcad2vedo(m)  # <-- convert to vedo.Mesh
+vmesh = madcad2vedo(m)  # <-- convert to vedo.Mesh
 print(vmesh)
 
 scalar = vmesh.vertices[:, 0]
@@ -58,8 +63,8 @@ vedo.show("Generating a path", vmesh, axes=7).close()
 c1 = Circle((vec3(0), Z), 1)
 c2 = Circle((2 * X, X), 0.5)
 c3 = (Circle((2 * Y, Y), 0.5), "tangent", 2)
-e1 = extrusion(2 * Z, web(c1))
+e1 = extrusion(web(c1), 2 * Z)
 
 m = junction(e1, c2, c3, tangents="normal")
-vm = vedo.utils.madcad2vedo(m)
+vm = madcad2vedo(m)
 vedo.show(vm, e1, axes=1, viewup="z").close()
