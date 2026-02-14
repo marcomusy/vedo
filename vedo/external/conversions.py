@@ -87,7 +87,7 @@ def trimesh2vedo(inputobj):
         return tact
 
     if "PointCloud" in inputobj_type:
-        vdpts = vedo.shapes.Points(inputobj.vertices, r=8, c="k")
+        vdpts = vedo.Points(inputobj.vertices, r=8, c="k")
         if hasattr(inputobj, "vertices_color"):
             vcols = (inputobj.vertices_color * 1).astype(np.uint8)
             vdpts.pointcolors = vcols
@@ -96,7 +96,7 @@ def trimesh2vedo(inputobj):
     if "path" in inputobj_type:
         lines = []
         for e in inputobj.entities:
-            lines.append(vedo.shapes.Line(inputobj.vertices[e.points], c="k", lw=2))
+            lines.append(vedo.Line(inputobj.vertices[e.points], c="k", lw=2))
         return vedo.Assembly(lines)
 
     return None
