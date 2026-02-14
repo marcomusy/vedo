@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import os
 from weakref import ref as weak_ref_to
 from typing import Tuple, List, Union, Any
 from typing_extensions import Self
@@ -30,9 +31,9 @@ def _get_img(obj: Union[np.ndarray, str], flip=False, translate=()) -> vtki.vtkI
     # compute vtkImageData from numpy array or filename
     img = None
 
-    if isinstance(obj, str) or "PosixPath" in str(type(obj)):
+    if isinstance(obj, (str, os.PathLike)):
+        obj = os.fspath(obj)
         if "https://" in obj:
-            obj = str(obj)
             obj = vedo.file_io.download(obj, verbose=False)
 
         fname = obj.lower()
@@ -46,11 +47,12 @@ def _get_img(obj: Union[np.ndarray, str], flip=False, translate=()) -> vtki.vtkI
             picr = vtki.new("TIFFReader")
             picr.SetOrientationType(vedo.settings.tiff_orientation_type)
         else:
-            colors.printc("Cannot understand image format", obj, c="r")
-            return vtki.vtkImageData()
+            raise ValueError(f"Cannot understand image format: {obj}")
         picr.SetFileName(obj)
         picr.Update()
         img = picr.GetOutput()
+        if not img or not img.GetPointData() or not img.GetPointData().GetScalars():
+            raise ValueError(f"Could not read image: {obj}")
 
     else:
         obj = np.asarray(obj)
@@ -85,6 +87,11 @@ def _get_img(obj: Union[np.ndarray, str], flip=False, translate=()) -> vtki.vtkI
 
             img.GetPointData().AddArray(varb)
             img.GetPointData().SetActiveScalars("RGBA")
+        else:
+            raise ValueError(f"Cannot build image from array with shape {obj.shape}")
+
+    if not img or not img.GetPointData() or not img.GetPointData().GetScalars():
+        raise ValueError("Image has no scalar data")
 
     if len(translate) > 0:
         translate_extent = vtki.new("ImageTranslateExtent")
@@ -163,7 +170,21 @@ class Image(vedo.visual.ImageVisual):
             channels :  (int, list)
                 only select these specific rgba channels (useful to remove alpha)
         """
-        assert channels in [1, 3, 4], "in Image: channels must be 1, 3 or 4"
+        channels_is_int = isinstance(channels, int)
+        if channels_is_int:
+            if channels not in (1, 3, 4):
+                raise ValueError("in Image: channels must be 1, 3 or 4")
+            channel_ids = list(range(channels))
+        elif utils.is_sequence(channels):
+            channel_ids = [int(c) for c in channels]
+            if len(channel_ids) == 0:
+                raise ValueError("in Image: channels sequence cannot be empty")
+            if len(set(channel_ids)) != len(channel_ids):
+                raise ValueError("in Image: channels sequence contains duplicates")
+            if min(channel_ids) < 0 or max(channel_ids) > 3:
+                raise ValueError("in Image: channels ids must be in [0, 3]")
+        else:
+            raise ValueError("in Image: channels must be int or sequence of channel ids")
         self.name = "Image"
         self.filename = ""
         self.file_size = 0
@@ -184,8 +205,8 @@ class Image(vedo.visual.ImageVisual):
         elif isinstance(obj, vtki.vtkImageData):
             img = obj
 
-        elif isinstance(obj, str) or "PosixPath" in str(type(obj)):
-            obj = str(obj)
+        elif isinstance(obj, (str, os.PathLike)):
+            obj = os.fspath(obj)
             img = _get_img(obj)
             self.filename = obj
 
@@ -203,29 +224,35 @@ class Image(vedo.visual.ImageVisual):
                 fig.canvas.buffer_rgba(),
                 dtype=np.uint8
             ).reshape((int(height), int(width), 4))
-            self.array = self.array[:, :, :channels]
             img = _get_img(self.array)
 
         else:
-            img = vtki.vtkImageData()
+            # lenient default: create a valid 1x1 black image
+            img = _get_img(np.zeros((1, 1, 3), dtype=np.uint8))
 
         ############# select channels
-        if isinstance(channels, int):
-            channels = list(range(channels))
-
-        nchans = len(channels)
+        if not img or not img.GetPointData() or not img.GetPointData().GetScalars():
+            raise ValueError("Image has no scalar data (failed read or empty image)")
+        nchans = len(channel_ids)
         n = img.GetPointData().GetScalars().GetNumberOfComponents()
+        if channels_is_int and n < nchans:
+            # Keep backward-compatible behavior for grayscale inputs:
+            # channels as int indicates a preferred max number of channels.
+            channel_ids = list(range(n))
+            nchans = len(channel_ids)
+        if max(channel_ids) >= n:
+            raise ValueError(f"in Image: requested channels {channel_ids} not available for {n}-component image")
         if nchans and n > nchans:
             pec = vtki.new("ImageExtractComponents")
             pec.SetInputData(img)
             if nchans == 4:
-                pec.SetComponents(channels[0], channels[1], channels[2], channels[3])
+                pec.SetComponents(channel_ids[0], channel_ids[1], channel_ids[2], channel_ids[3])
             elif nchans == 3:
-                pec.SetComponents(channels[0], channels[1], channels[2])
+                pec.SetComponents(channel_ids[0], channel_ids[1], channel_ids[2])
             elif nchans == 2:
-                pec.SetComponents(channels[0], channels[1])
+                pec.SetComponents(channel_ids[0], channel_ids[1])
             elif nchans == 1:
-                pec.SetComponents(channels[0])
+                pec.SetComponents(channel_ids[0])
             pec.Update()
             img = pec.GetOutput()
 

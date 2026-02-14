@@ -14,6 +14,7 @@ import os
 import sys
 import logging
 import importlib
+from importlib.metadata import PackageNotFoundError, version as pkg_version
 import numpy as np
 from numpy import sin, cos, sqrt, exp, log, dot, cross  # just because handy
 
@@ -25,7 +26,11 @@ except ModuleNotFoundError:
     sys.exit(1)
 
 #################################################
-from vedo.version import _version as __version__
+try:
+    __version__ = pkg_version("vedo")
+except PackageNotFoundError:
+    __version__ = "2025.6.0+dev01"
+
 from vedo.plotter import session as _session
 
 from vedo.settings import Settings

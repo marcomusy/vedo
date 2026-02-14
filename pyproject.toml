@@ -4,17 +4,16 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vedo"
-
-dynamic = ["version"]
+version = "2025.6.0+dev01"
 
 description = "A python module for scientific visualization, analysis of 3D objects and point clouds."
 
 authors = [
-    {name = "Marco Musy", email = "marco.musy@embl.es"}
+    {name = "Marco Musy", email = "mmusy@elisava.net"}
 ]
 
 maintainers = [
-    {name = "Marco Musy", email = "marco.musy@embl.es"}
+    {name = "Marco Musy", email = "mmusy@elisava.net"}
 ]
 
 readme = "README.md"
@@ -65,15 +64,22 @@ packages = [
     "vedo.core",
     "vedo.applications",
     "vedo.addons",
+    "vedo.external",
+    "vedo.file_io",
+    "vedo.grids",
+    "vedo.mesh",
+    "vedo.plotter",
+    "vedo.pointcloud",
+    "vedo.pyplot",
     "vedo.shapes",
-    "vedo.fonts",
+    "vedo.visual",
+    "vedo.volume",
     "vedo.examples.basic",
     "vedo.examples.advanced",
     "vedo.examples.pyplot",
     "vedo.examples.simulations",
     "vedo.examples.volumetric",
     "vedo.examples.other",
-    "vedo.examples.other.dolfin",
     "vedo.examples.other.trimesh"
 ]
 
@@ -96,12 +102,7 @@ vedo = "vedo"
 "vedo.examples.simulations" = "examples/simulations"
 "vedo.examples.volumetric" = "examples/volumetric"
 "vedo.examples.other" = "examples/other"
-"vedo.examples.other.dolfin" = "examples/other/dolfin"
 "vedo.examples.other.trimesh" = "examples/other/trimesh"
-
-
-[tool.setuptools.dynamic]
-version = {attr = "vedo.version._version"}
 
 [project.scripts]
 vedo = "vedo.cli:main"
