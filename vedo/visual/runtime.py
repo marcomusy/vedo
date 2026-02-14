@@ -12,7 +12,7 @@ import vedo.vtkclasses as vtki
 import vedo
 from vedo import colors
 from vedo import utils
-from vedo.visual_mixins import (
+from vedo.visual.mixins import (
     MeshVisualTextureMixin,
     PointsVisualAnnotationsMixin,
     PointsVisualEffectsMixin,
