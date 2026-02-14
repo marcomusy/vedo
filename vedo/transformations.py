@@ -423,16 +423,18 @@ class LinearTransform:
             ```
             ![](https://vedo.embl.es/images/feats/rotate_axis.png)
         """
-        if np.all(axis == 0):
-            return self
         if not angle:
+            return self
+        axis = np.asarray(axis, dtype=float)
+        axis_norm = np.linalg.norm(axis)
+        if axis_norm == 0:
             return self
         if rad:
             anglerad = angle
         else:
             anglerad = np.deg2rad(angle)
 
-        axis = np.asarray(axis) / np.linalg.norm(axis)
+        axis = axis / axis_norm
         a = np.cos(anglerad / 2)
         b, c, d = -axis * np.sin(anglerad / 2)
         aa, bb, cc, dd = a * a, b * b, c * c, d * d
@@ -766,8 +768,14 @@ class NonLinearTransform:
         s += f"sigma".ljust(9) + f": {self.sigma}\n"
         p = self.source_points
         q = self.target_points
-        s += f"sources".ljust(9) + f": {len(p)}, bounds {np.min(p, axis=0)}, {np.max(p, axis=0)}\n"
-        s += f"targets".ljust(9) + f": {len(q)}, bounds {np.min(q, axis=0)}, {np.max(q, axis=0)}"
+        if len(p):
+            s += f"sources".ljust(9) + f": {len(p)}, bounds {np.min(p, axis=0)}, {np.max(p, axis=0)}\n"
+        else:
+            s += f"sources".ljust(9) + ": 0\n"
+        if len(q):
+            s += f"targets".ljust(9) + f": {len(q)}, bounds {np.min(q, axis=0)}, {np.max(q, axis=0)}"
+        else:
+            s += f"targets".ljust(9) + ": 0"
         return s
 
     def __repr__(self):
@@ -811,6 +819,8 @@ class NonLinearTransform:
         if pts:
             for i in range(pts.GetNumberOfPoints()):
                 vpts.append(pts.GetPoint(i))
+        if not vpts:
+            return np.empty((0, 3), dtype=np.float32)
         return np.array(vpts, dtype=np.float32)
 
     @source_points.setter
@@ -832,8 +842,11 @@ class NonLinearTransform:
         """Get the target points."""
         pts = self.T.GetTargetLandmarks()
         vpts = []
-        for i in range(pts.GetNumberOfPoints()):
-            vpts.append(pts.GetPoint(i))
+        if pts:
+            for i in range(pts.GetNumberOfPoints()):
+                vpts.append(pts.GetPoint(i))
+        if not vpts:
+            return np.empty((0, 3), dtype=np.float32)
         return np.array(vpts, dtype=np.float32)
 
     @target_points.setter
@@ -1051,8 +1064,15 @@ class TransformInterpolator:
             T = T.transform
         except AttributeError:
             pass
-        self.TS.append(T)
-        self.vtk_interpolator.AddTransform(t, T.T)
+        if isinstance(T, LinearTransform):
+            LT = T
+        elif isinstance(T, vtki.vtkLinearTransform):
+            LT = LinearTransform(T)
+        else:
+            raise TypeError("TransformInterpolator.add() expects LinearTransform or vtkLinearTransform")
+
+        self.TS.append(LT)
+        self.vtk_interpolator.AddTransform(t, LT.T)
         return self
 
     # def remove(self, t) -> "TransformInterpolator":
