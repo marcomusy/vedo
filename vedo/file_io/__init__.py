@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Submodule to read/write meshes and other objects in different formats,
 and other I/O functionalities.

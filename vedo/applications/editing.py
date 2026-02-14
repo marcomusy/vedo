@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """Interactive editing and drawing applications."""
 
 import os
-from typing import Union
 
 import numpy as np
 
@@ -25,7 +25,7 @@ class FreeHandCutPlotter(Plotter):
     # thanks to Jakub Kaminski for the original version of this script
     def __init__(
         self,
-        mesh: Union[vedo.Mesh, vedo.Points],
+        mesh: vedo.Mesh | vedo.Points,
         splined=True,
         font="Bongas",
         alpha=0.9,
@@ -333,7 +333,7 @@ class SplinePlotter(Plotter):
         self.callid3 = self.add_callback("RightButtonPress", self._on_right_click)
 
 
-    def points(self, newpts=None) -> Union["SplinePlotter", np.ndarray]:
+    def points(self, newpts=None) -> "SplinePlotter" | np.ndarray:
         """Retrieve the 3D coordinates of the clicked points"""
         if newpts is not None:
             self.cpoints = newpts

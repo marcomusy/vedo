@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 import os
 from weakref import ref as weak_ref_to
 
-from typing import Union
 from typing_extensions import Self
 import numpy as np
 
@@ -137,7 +137,7 @@ class CommonVisual:
     #         cmd.AbortFlagOn()
     #     return self
 
-    def show(self, **options) -> Union["vedo.Plotter", None]:
+    def show(self, **options) -> "vedo.Plotter" | None:
         """
         Create on the fly an instance of class `Plotter` or use the last existing one to
         show one single object.
@@ -628,7 +628,7 @@ class Actor2D(vtki.vtkActor2D):
         self.SetLayerNumber(value)
         return self
 
-    def pos(self, px=None, py=None) -> Union[np.ndarray, Self]:
+    def pos(self, px=None, py=None) -> np.ndarray | Self:
         """Set/Get the screen-coordinate position."""
         if isinstance(px, str):
             vedo.logger.error("Use string descriptors only inside the constructor")
@@ -694,32 +694,32 @@ class Actor2D(vtki.vtkActor2D):
         self.SetPickable(value)
         return self
 
-    def color(self, value=None) -> Union[np.ndarray, Self]:
+    def color(self, value=None) -> np.ndarray | Self:
         """Set/Get the object color."""
         if value is None:
             return self.properties.GetColor()
         self.properties.SetColor(colors.get_color(value))
         return self
 
-    def c(self, value=None) -> Union[np.ndarray, Self]:
+    def c(self, value=None) -> np.ndarray | Self:
         """Set/Get the object color."""
         return self.color(value)
 
-    def alpha(self, value=None) -> Union[float, Self]:
+    def alpha(self, value=None) -> float | Self:
         """Set/Get the object opacity."""
         if value is None:
             return self.properties.GetOpacity()
         self.properties.SetOpacity(value)
         return self
 
-    def ps(self, point_size=None) -> Union[int, Self]:
+    def ps(self, point_size=None) -> int | Self:
         """Set/Get the point size of the object. Same as `point_size()`."""
         if point_size is None:
             return self.properties.GetPointSize()
         self.properties.SetPointSize(point_size)
         return self
 
-    def lw(self, line_width=None) -> Union[int, Self]:
+    def lw(self, line_width=None) -> int | Self:
         """Set/Get the line width of the object. Same as `line_width()`."""
         if line_width is None:
             return self.properties.GetLineWidth()
@@ -752,7 +752,7 @@ class Actor3DHelper:
         self.actor.SetScale(self.transform.T.GetScale())
         return self
 
-    def pos(self, x=None, y=None, z=None) -> Union[np.ndarray, Self]:
+    def pos(self, x=None, y=None, z=None) -> np.ndarray | Self:
         """Set/Get object position."""
         if x is None:  # get functionality
             return self.transform.position
@@ -778,7 +778,7 @@ class Actor3DHelper:
         LT = vedo.LinearTransform().translate([dx, dy, dz])
         return self.apply_transform(LT)
 
-    def origin(self, point=None) -> Union[np.ndarray, Self]:
+    def origin(self, point=None) -> np.ndarray | Self:
         """
         Set/get origin of object.
         Useful for defining pivoting point when rotating and/or scaling.
@@ -793,7 +793,7 @@ class Actor3DHelper:
         LT = vedo.LinearTransform().scale(s, origin=origin)
         return self.apply_transform(LT)
 
-    def x(self, val=None) -> Union[float, Self]:
+    def x(self, val=None) -> float | Self:
         """Set/Get object position along x axis."""
         p = self.transform.position
         if val is None:
@@ -801,7 +801,7 @@ class Actor3DHelper:
         self.pos(val, p[1], p[2])
         return self
 
-    def y(self, val=None) -> Union[float, Self]:
+    def y(self, val=None) -> float | Self:
         """Set/Get object position along y axis."""
         p = self.transform.position
         if val is None:
@@ -809,7 +809,7 @@ class Actor3DHelper:
         self.pos(p[0], val, p[2])
         return self
 
-    def z(self, val=None) -> Union[float, Self]:
+    def z(self, val=None) -> float | Self:
         """Set/Get object position along z axis."""
         p = self.transform.position
         if val is None:
@@ -851,14 +851,14 @@ class Actor3DHelper:
         """
         return np.array(self.actor.GetBounds())
 
-    def xbounds(self, i=None) -> Union[float, tuple]:
+    def xbounds(self, i=None) -> float | tuple:
         """Get the bounds `[xmin,xmax]`. Can specify upper or lower with i (0,1)."""
         b = self.bounds()
         if i is not None:
             return b[i]
         return (b[0], b[1])
 
-    def ybounds(self, i=None) -> Union[float, tuple]:
+    def ybounds(self, i=None) -> float | tuple:
         """Get the bounds `[ymin,ymax]`. Can specify upper or lower with i (0,1)."""
         b = self.bounds()
         if i == 0:
@@ -867,7 +867,7 @@ class Actor3DHelper:
             return b[3]
         return (b[2], b[3])
 
-    def zbounds(self, i=None) -> Union[float, tuple]:
+    def zbounds(self, i=None) -> float | tuple:
         """Get the bounds `[zmin,zmax]`. Can specify upper or lower with i (0,1)."""
         b = self.bounds()
         if i == 0:
@@ -1015,7 +1015,7 @@ class PointsVisual(PointsVisualEffectsMixin, PointsVisualAnnotationsMixin, Commo
         self.actor.SetVisibility(sa.GetVisibility())
         return self
 
-    def color(self, c=False, alpha=None) -> Union[np.ndarray, Self]:
+    def color(self, c=False, alpha=None) -> np.ndarray | Self:
         """
         Set/get mesh's color.
         If None is passed as input, will use colors from active scalars.
@@ -1035,14 +1035,14 @@ class PointsVisual(PointsVisualEffectsMixin, PointsVisualAnnotationsMixin, Commo
             self.alpha(alpha)
         return self
 
-    def c(self, color=False, alpha=None) -> Union[np.ndarray, Self]:
+    def c(self, color=False, alpha=None) -> np.ndarray | Self:
         """
         Shortcut for `color()`.
         If None is passed as input, will use colors from current active scalars.
         """
         return self.color(color, alpha)
 
-    def alpha(self, opacity=None) -> Union[float, Self]:
+    def alpha(self, opacity=None) -> float | Self:
         """Set/get mesh's transparency. Same as `mesh.opacity()`."""
         if opacity is None:
             return self.properties.GetOpacity()
@@ -1069,7 +1069,7 @@ class PointsVisual(PointsVisualEffectsMixin, PointsVisualAnnotationsMixin, Commo
         alpha = lut.GetOpacity(value)
         return np.array(rgb + [alpha])
 
-    def opacity(self, alpha=None) -> Union[float, Self]:
+    def opacity(self, alpha=None) -> float | Self:
         """Set/get mesh's transparency. Same as `mesh.alpha()`."""
         return self.alpha(alpha)
 
@@ -1085,7 +1085,7 @@ class PointsVisual(PointsVisualEffectsMixin, PointsVisualAnnotationsMixin, Commo
         self.actor.SetForceTranslucent(value)
         return self
 
-    def point_size(self, value=None) -> Union[int, Self]:
+    def point_size(self, value=None) -> int | Self:
         """Set/get mesh's point size of vertices. Same as `mesh.ps()`"""
         if value is None:
             return self.properties.GetPointSize()
@@ -1095,7 +1095,7 @@ class PointsVisual(PointsVisualEffectsMixin, PointsVisualAnnotationsMixin, Commo
             self.properties.SetPointSize(value)
         return self
 
-    def ps(self, pointsize=None) -> Union[int, Self]:
+    def ps(self, pointsize=None) -> int | Self:
         """Set/get mesh's point size of vertices. Same as `mesh.point_size()`"""
         return self.point_size(pointsize)
 
@@ -1623,7 +1623,7 @@ class MeshVisual(MeshVisualTextureMixin, PointsVisual):
         self.properties.SetFrontfaceCulling(value)
         return self
 
-    def backcolor(self, bc=None) -> Union[Self, np.ndarray]:
+    def backcolor(self, bc=None) -> Self | np.ndarray:
         """
         Set/get mesh's backface color.
         """
@@ -1646,11 +1646,11 @@ class MeshVisual(MeshVisualTextureMixin, PointsVisual):
         self.mapper.ScalarVisibilityOff()
         return self
 
-    def bc(self, backcolor=False) -> Union[Self, np.ndarray]:
+    def bc(self, backcolor=False) -> Self | np.ndarray:
         """Shortcut for `mesh.backcolor()`."""
         return self.backcolor(backcolor)
 
-    def linewidth(self, lw=None) -> Union[Self, int]:
+    def linewidth(self, lw=None) -> Self | int:
         """Set/get width of mesh edges. Same as `lw()`."""
         if lw is not None:
             if lw == 0:
@@ -1663,11 +1663,11 @@ class MeshVisual(MeshVisualTextureMixin, PointsVisual):
             return self.properties.GetLineWidth()
         return self
 
-    def lw(self, linewidth=None) -> Union[Self, int]:
+    def lw(self, linewidth=None) -> Self | int:
         """Set/get width of mesh edges. Same as `linewidth()`."""
         return self.linewidth(linewidth)
 
-    def linecolor(self, lc=None) -> Union[Self, np.ndarray]:
+    def linecolor(self, lc=None) -> Self | np.ndarray:
         """Set/get color of mesh edges. Same as `lc()`."""
         if lc is None:
             return np.array(self.properties.GetEdgeColor())
@@ -1675,7 +1675,7 @@ class MeshVisual(MeshVisualTextureMixin, PointsVisual):
         self.properties.SetEdgeColor(colors.get_color(lc))
         return self
 
-    def lc(self, linecolor=None) -> Union[Self, np.ndarray]:
+    def lc(self, linecolor=None) -> Self | np.ndarray:
         """Set/get color of mesh edges. Same as `linecolor()`."""
         return self.linecolor(linecolor)
 
@@ -1687,7 +1687,7 @@ class VolumeVisual(CommonVisual):
     #     # print("INIT VolumeVisual")
     #     super().__init__()
 
-    def alpha_unit(self, u=None) -> Union[Self, float]:
+    def alpha_unit(self, u=None) -> Self | float:
         """
         Defines light attenuation per unit length. Default is 1.
         The larger the unit length, the further light has to travel to attenuate the same amount.
@@ -1758,7 +1758,7 @@ class VolumeVisual(CommonVisual):
         """
         return self.color(c, alpha, vmin, vmax)
 
-    def jittering(self, status=None) -> Union[Self, bool]:
+    def jittering(self, status=None) -> Self | bool:
         """
         If `True`, each ray traversal direction will be perturbed slightly
         using a noise-texture to get rid of wood-grain effects.
@@ -1831,7 +1831,7 @@ class VolumeVisual(CommonVisual):
         return self
 
 
-    def mode(self, mode=None) -> Union[Self, int]:
+    def mode(self, mode=None) -> Self | int:
         """
         Define the volumetric rendering mode following this:
             - 0, composite rendering
@@ -1893,7 +1893,7 @@ class VolumeVisual(CommonVisual):
         self.mapper.SetBlendMode(mode)
         return self
 
-    def shade(self, status=None) -> Union[Self, bool]:
+    def shade(self, status=None) -> Self | bool:
         """
         Set/Get the shading of a Volume.
         Shading can be further controlled with `volume.lighting()` method.
@@ -1933,21 +1933,21 @@ class ImageVisual(CommonVisual, Actor3DHelper):
         """Return the scalar range of the image."""
         return np.array(self.dataset.GetScalarRange())
 
-    def alpha(self, a=None) -> Union[Self, float]:
+    def alpha(self, a=None) -> Self | float:
         """Set/get image's transparency in the rendering scene."""
         if a is not None:
             self.properties.SetOpacity(a)
             return self
         return self.properties.GetOpacity()
 
-    def level(self, value=None) -> Union[Self, float]:
+    def level(self, value=None) -> Self | float:
         """Get/Set the image color level (brightness) in the rendering scene."""
         if value is None:
             return self.properties.GetColorLevel()
         self.properties.SetColorLevel(value)
         return self
 
-    def window(self, value=None) -> Union[Self, float]:
+    def window(self, value=None) -> Self | float:
         """Get/Set the image color window (contrast) in the rendering scene."""
         if value is None:
             return self.properties.GetColorWindow()

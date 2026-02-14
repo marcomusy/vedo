@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """PointAnalyzeMixin extracted from pointcloud core."""
 
-from typing import Union, List
 from typing_extensions import Self
 
 import numpy as np
@@ -319,7 +319,7 @@ class PointAnalyzeMixin:
 
     def closest_point(
         self, pt, n=1, radius=None, return_point_id=False, return_cell_id=False
-    ) -> Union[List[int], int, np.ndarray]:
+    ) -> list[int] | int | np.ndarray:
         """
         Find the closest point(s) on a mesh given from the input point `pt`.
 
@@ -1125,7 +1125,7 @@ class PointAnalyzeMixin:
         )
         return vol
 
-    def visible_points(self, area=(), tol=None, invert=False) -> Union[Self, None]:
+    def visible_points(self, area=(), tol=None, invert=False) -> Self | None:
         """
         Extract points based on whether they are visible or not.
         Visibility is determined by accessing the z-buffer of a rendering window.

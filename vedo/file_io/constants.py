@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Shared templates used by file I/O export helpers."""
 
 __docformat__ = "google"

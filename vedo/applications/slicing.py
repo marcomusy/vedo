@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """Volume slicing and ray-casting application plotters."""
 
 import os
-from typing import Union
 
 import numpy as np
 

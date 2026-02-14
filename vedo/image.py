@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 import os
 from weakref import ref as weak_ref_to
-from typing import Tuple, List, Union, Any
+from typing import Any
 from typing_extensions import Self
 
 import numpy as np
@@ -27,7 +28,7 @@ __all__ = [
 
 
 #################################################
-def _get_img(obj: Union[np.ndarray, str], flip=False, translate=()) -> vtki.vtkImageData:
+def _get_img(obj: np.ndarray | str, flip=False, translate=()) -> vtki.vtkImageData:
     # compute vtkImageData from numpy array or filename
     img = None
 
@@ -413,12 +414,12 @@ class Image(vedo.visual.ImageVisual):
         return self.dataset.GetPointData().GetScalars().GetNumberOfComponents()
 
     @property
-    def extent(self) -> Tuple[int, int, int, int]:
+    def extent(self) -> tuple[int, int, int, int]:
         """Return the physical extent that the image spans."""
         return self.dataset.GetExtent()
 
     @extent.setter
-    def extent(self, ext: Tuple[int, int, int, int]):
+    def extent(self, ext: tuple[int, int, int, int]):
         """Set the physical extent that the image spans."""
         self.dataset.SetExtent(ext[0], ext[1], ext[2], ext[3], 0, 0)
         self.mapper.Modified()
@@ -1327,7 +1328,7 @@ class Image(vedo.visual.ImageVisual):
         narray = np.flip(narray, axis=0).astype(np.uint8)
         return narray.squeeze()
 
-    def add_rectangle(self, xspan: List[float], yspan: List[float], c="green5", alpha=1.0) -> Self:
+    def add_rectangle(self, xspan: list[float], yspan: list[float], c="green5", alpha=1.0) -> Self:
         """Draw a rectangle box on top of current image. Units are pixels.
 
         Example:
@@ -1380,7 +1381,7 @@ class Image(vedo.visual.ImageVisual):
         self.pipeline = utils.OperationNode("rectangle", parents=[self], c="#f28482")
         return self
 
-    def add_line(self, p1: List[float], p2: List[float], lw=2, c="k2", alpha=1.0) -> Self:
+    def add_line(self, p1: list[float], p2: list[float], lw=2, c="k2", alpha=1.0) -> Self:
         """Draw a line on top of current image. Units are pixels."""
         x1, x2 = p1
         y1, y2 = p2
@@ -1421,7 +1422,7 @@ class Image(vedo.visual.ImageVisual):
         self.pipeline = utils.OperationNode("line", parents=[self], c="#f28482")
         return self
 
-    def add_triangle(self, p1: List[float], p2: List[float], p3: List[float], c="red3", alpha=1.0) -> Self:
+    def add_triangle(self, p1: list[float], p2: list[float], p3: list[float], c="red3", alpha=1.0) -> Self:
         """Draw a triangle on top of current image. Units are pixels."""
         x1, y1 = p1
         x2, y2 = p2

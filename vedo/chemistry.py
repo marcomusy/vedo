@@ -1,3 +1,4 @@
+from __future__ import annotations
 import numpy as np
 from vtkmodules.util.numpy_support import vtk_to_numpy
 from vtkmodules.vtkCommonDataModel import vtkMolecule

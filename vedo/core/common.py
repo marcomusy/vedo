@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """Common algorithm mixins shared by vedo objects."""
 
-from typing import Union, Any
+from typing import Any
 from typing_extensions import Self
 import numpy as np
 
@@ -36,7 +37,7 @@ class CommonAlgorithms:
         cls,
         mode: str,
         on: str,
-        array_name: Union[str, None],
+        array_name: str | None,
         fast: bool,
         result_name: str,
     ) -> np.ndarray:
@@ -1304,7 +1305,7 @@ class CommonAlgorithms:
             step_length=0,
             surface_constrained=False,
             compute_vorticity=False,
-        ) -> Union["vedo.Lines", None]:
+        ) -> "vedo.Lines" | None:
         """
         Integrate a vector field to generate streamlines.
 

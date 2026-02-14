@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """Planar and near-planar primitive shapes."""
 
-from typing import Union, Any, List
+from typing import Any
 import numpy as np
 
 import vedo
@@ -62,9 +63,9 @@ class Circle(Polygon):
         self.nr_of_points = 0
         self.va = 0
         self.vb = 0
-        self.axis1: List[float] = []
-        self.axis2: List[float] = []
-        self.center: List[float] = []  # filled by pointcloud.pca_ellipse()
+        self.axis1: list[float] = []
+        self.axis2: list[float] = []
+        self.center: list[float] = []  # filled by pointcloud.pca_ellipse()
         self.pvalue = 0.0              # filled by pointcloud.pca_ellipse()
         self.alpha(alpha).c(c)
         self.name = "Circle"

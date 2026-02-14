@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """Default keyboard event handler for Plotter."""
 
 import os

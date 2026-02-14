@@ -1,7 +1,8 @@
+from __future__ import annotations
 """Scene import/export, screenshots, and terminal interaction helpers."""
 
 import os
-from typing import Any, Union
+from typing import Any
 
 import numpy as np
 
@@ -18,7 +19,7 @@ from .loaders import _import_npy
 
 __docformat__ = "google"
 
-def export_window(fileoutput: Union[str, os.PathLike], binary=False, plt=None) -> Union["vedo.Plotter", None]:
+def export_window(fileoutput: str | os.PathLike, binary=False, plt=None) -> "vedo.Plotter" | None:
     """
     Exporter which writes out the rendered scene into an HTML, X3D or Numpy file.
 
@@ -373,7 +374,7 @@ def _export_npy(plt, fileoutput="scene.npz") -> None:
 
 
 ########################################################################
-def import_window(fileinput: Union[str, os.PathLike]) -> Union["vedo.Plotter", None]:
+def import_window(fileinput: str | os.PathLike) -> "vedo.Plotter" | None:
     """
     Import a whole scene from a Numpy NPZ file.
 
@@ -397,7 +398,7 @@ def import_window(fileinput: Union[str, os.PathLike]) -> Union["vedo.Plotter", N
     return None
 
 
-def screenshot(filename="screenshot.png", scale=1, asarray=False) -> Union["vedo.Plotter", np.ndarray, None]:
+def screenshot(filename="screenshot.png", scale=1, asarray=False) -> "vedo.Plotter" | np.ndarray | None:
     """
     Save a screenshot of the current rendering window.
 

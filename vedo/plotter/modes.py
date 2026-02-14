@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 from dataclasses import dataclass, field
-from typing import Optional
 import numpy as np
 
 import vedo.vtkclasses as vtki
@@ -413,7 +413,7 @@ class _BlenderStyleDragInfo:
     """Data structure containing the data required to execute dragging a node"""
 
     # Scene related
-    dragged_node: Optional[object] = None  # Node
+    dragged_node: object | None = None  # Node
 
     # VTK related
     actors_dragging: list = field(default_factory=list)
@@ -521,7 +521,7 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
 
         # active drag
         # assigned to a _BlenderStyleDragInfo object when dragging is active
-        self.draginfo: Optional[_BlenderStyleDragInfo] = None
+        self.draginfo: _BlenderStyleDragInfo | None = None
 
         # picking
         self.picked_props = []  # will be filled by latest pick

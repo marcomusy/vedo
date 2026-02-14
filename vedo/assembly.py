@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 from weakref import ref as weak_ref_to
-from typing import List, Union, Any
 from typing_extensions import Self
 
 import numpy as np
@@ -25,7 +25,7 @@ __all__ = ["Group", "Assembly", "procrustes_alignment"]
 
 
 #################################################
-def procrustes_alignment(sources: List["vedo.Mesh"], rigid=False) -> "Assembly":
+def procrustes_alignment(sources: list["vedo.Mesh"], rigid=False) -> "Assembly":
     """
     Return an `Assembly` of aligned source meshes with the `Procrustes` algorithm.
     The output `Assembly` is normalized in size.
@@ -545,7 +545,7 @@ class Assembly(CommonVisual, Actor3DHelper):
     #         obj.SetScale(1, 1, 1)
     #     raise NotImplementedError()
 
-    def unpack(self, i=None) -> Union[List["vedo.Mesh"], "vedo.Mesh"]:
+    def unpack(self, i=None) -> list["vedo.Mesh"] | "vedo.Mesh":
         """Unpack the list of objects from a `Assembly`.
 
         If `i` is given, get `i-th` object from a `Assembly`.
@@ -565,7 +565,7 @@ class Assembly(CommonVisual, Actor3DHelper):
                     return m
         return []
 
-    def recursive_unpack(self) -> List["vedo.Mesh"]:
+    def recursive_unpack(self) -> list["vedo.Mesh"]:
         """Flatten out an Assembly."""
 
         def _genflatten(lst):

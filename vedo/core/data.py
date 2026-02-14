@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """Data-array helper utilities for vedo objects."""
 
-from typing import List, Union, Any
+from typing import Any
 import numpy as np
 
 import vedo.vtkclasses as vtki
@@ -141,7 +142,7 @@ class DataArrayHelper:
             else:
                 data.SetActiveVectors(key)
 
-    def keys(self) -> List[str]:
+    def keys(self) -> list[str]:
         """Return the list of available data array names"""
         if self.association == 0:
             data = self.obj.dataset.GetPointData()
@@ -162,7 +163,7 @@ class DataArrayHelper:
                 arrnames.append(name)
         return arrnames
 
-    def items(self) -> List:
+    def items(self) -> list:
         """Return the list of available data array `(names, values)`."""
         if self.association == 0:
             data = self.obj.dataset.GetPointData()
@@ -199,7 +200,7 @@ class DataArrayHelper:
                 f"Cannot rename non existing array {oldname} to {newname}"
             )
 
-    def remove(self, key: Union[int, str]) -> None:
+    def remove(self, key: int | str) -> None:
         """Remove a data array by name or number"""
         if self.association == 0:
             self.obj.dataset.GetPointData().RemoveArray(key)
@@ -227,7 +228,7 @@ class DataArrayHelper:
         for name in names:
             data.RemoveArray(name)
 
-    def select(self, key: Union[int, str]) -> Any:
+    def select(self, key: int | str) -> Any:
         """Select one specific array by its name to make it the `active` one."""
         # Default (ColorModeToDefault): unsigned char scalars are treated as colors,
         # and NOT mapped through the lookup table, while everything else is.
@@ -285,7 +286,7 @@ class DataArrayHelper:
 
         return self.obj
 
-    def select_texture_coords(self, key: Union[int,str]) -> Any:
+    def select_texture_coords(self, key: int | str) -> Any:
         """Select one specific array to be used as texture coordinates."""
         if self.association == 0:
             data = self.obj.dataset.GetPointData()
@@ -296,7 +297,7 @@ class DataArrayHelper:
             vedo.logger.warning("texture coordinates are only available for point data")
         return self.obj
 
-    def select_normals(self, key: Union[int,str]) -> Any:
+    def select_normals(self, key: int | str) -> Any:
         """Select one specific normal array by its name to make it the "active" one."""
         if self.association == 0:
             data = self.obj.dataset.GetPointData()

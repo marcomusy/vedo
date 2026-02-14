@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Lifecycle/runtime operations delegated from Plotter."""
 
 from typing import Any

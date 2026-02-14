@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """Core curve and spline primitives."""
 
-from typing import List, Union, Any
+from typing import Any
 import numpy as np
 
 import vedo
@@ -88,18 +89,18 @@ class Line(Mesh):
 
         super().__init__(poly, c, alpha)
 
-        self.slope: List[float] = []  # populated by analysis.fit_line
-        self.center: List[float] = []
-        self.variances: List[float] = []
+        self.slope: list[float] = []  # populated by analysis.fit_line
+        self.center: list[float] = []
+        self.variances: list[float] = []
 
-        self.coefficients: List[float] = []  # populated by pyplot.fit()
-        self.covariance_matrix: List[float] = []
-        self.coefficient_errors: List[float] = []
-        self.monte_carlo_coefficients: List[float] = []
+        self.coefficients: list[float] = []  # populated by pyplot.fit()
+        self.covariance_matrix: list[float] = []
+        self.coefficient_errors: list[float] = []
+        self.monte_carlo_coefficients: list[float] = []
         self.reduced_chi2 = -1
         self.ndof = 0
         self.data_sigma = 0
-        self.error_lines: List[Any] = []
+        self.error_lines: list[Any] = []
         self.error_band = None
         self.res = res
         self.is_closed = closed
@@ -1305,7 +1306,7 @@ class Tube(Mesh):
         self.name = "Tube"
 
 
-def ThickTube(pts, r1, r2, res=12, c=None, alpha=1.0) -> Union["Mesh", None]:
+def ThickTube(pts, r1, r2, res=12, c=None, alpha=1.0) -> "Mesh" | None:
     """
     Create a tube with a thickness along a line of points.
 

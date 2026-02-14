@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 import os.path
 import sys
 import time
-from typing import MutableSequence, Callable, Any, Union
+from collections.abc import Callable, MutableSequence
+from typing import Any
 from typing_extensions import Self
 import numpy as np
 
@@ -120,7 +122,7 @@ def show(
     mode=None,
     screenshot="",
     new=False,
-) -> Union[Self, None]:
+) -> Self | None:
     """
     Create on the fly an instance of class Plotter and show the object(s) provided.
 
@@ -846,7 +848,7 @@ class Plotter:
 
     ############################################################################
 
-    def background(self, c1=None, c2=None, at=None, mode=0) -> Union[Self, "np.ndarray"]:
+    def background(self, c1=None, c2=None, at=None, mode=0) -> Self | "np.ndarray":
         """Set the color of the background for the current renderer.
         A different renderer index can be specified by keyword `at`.
 
@@ -1206,7 +1208,7 @@ class Plotter:
         italic=False,
         alpha=1,
         angle=0,
-    ) -> Union["vedo.addons.Button", None]:
+    ) -> "vedo.addons.Button" | None:
         """
         Add a button to the renderer window.
 
@@ -1396,7 +1398,7 @@ class Plotter:
         justify=0,
         angle=0,
         delay=250,
-    ) -> Union[vtki.vtkBalloonWidget, None]:
+    ) -> vtki.vtkBalloonWidget | None:
         """
         Create a pop-up hint style message when hovering an object.
         Use `add_hint(obj, False)` to disable a hinting a specific object.
@@ -1796,7 +1798,7 @@ class Plotter:
         alpha=1,
         units="",
         gap=0.05,
-    ) -> Union["vedo.visual.Actor2D", None]:
+    ) -> "vedo.visual.Actor2D" | None:
         """
         Add a Scale Indicator. Only works in parallel mode (no perspective).
 
@@ -2361,7 +2363,7 @@ class Plotter:
 
     def add_inset(
         self, *objects, **options
-    ) -> Union[vtki.vtkOrientationMarkerWidget, None]:
+    ) -> vtki.vtkOrientationMarkerWidget | None:
         """Add a draggable inset space into a renderer.
 
         Arguments:

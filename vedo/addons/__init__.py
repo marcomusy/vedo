@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """Compatibility facade for add-on actors, widgets and utilities."""
 
 from vedo.addons.core import Goniometer, Light, ScalarBar, ScalarBar3D

@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Conversion helpers for optional third-party libraries."""
 
 import numpy as np

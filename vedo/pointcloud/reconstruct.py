@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """PointReconstructMixin extracted from pointcloud core."""
 
-from typing import Union, List
 from typing_extensions import Self
 
 import numpy as np

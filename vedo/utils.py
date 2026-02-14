@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 import os
 import time
 import re
-# import shutil
 
-from typing import Union, Tuple, MutableSequence, List
+from collections.abc import MutableSequence
 import numpy as np
 
 from vtkmodules.util.numpy_support import numpy_to_vtk, vtk_to_numpy
@@ -1573,7 +1573,7 @@ def sort_by_column(arr, nth, invert=False) -> np.ndarray:
     return arr
 
 
-def point_in_triangle(p, p1, p2, p3) -> Union[bool, None]:
+def point_in_triangle(p, p1, p2, p3) -> bool | None:
     """
     Return True if a point is inside (or above/below)
     a triangle defined by 3 points in space.
@@ -1596,7 +1596,7 @@ def point_in_triangle(p, p1, p2, p3) -> Union[bool, None]:
     return False
 
 
-def intersection_ray_triangle(P0, P1, V0, V1, V2) -> Union[bool, None, np.ndarray]:
+def intersection_ray_triangle(P0, P1, V0, V1, V2) -> bool | None | np.ndarray:
     """
     Fast intersection between a directional ray defined by `P0,P1`
     and triangle `V0, V1, V2`.
@@ -1793,7 +1793,7 @@ def point_line_distance(p, p1, p2) -> float:
     """
     return np.sqrt(vtki.vtkLine.DistanceToLine(p, p1, p2))
 
-def line_line_distance(p1, p2, q1, q2) -> Tuple[float, np.ndarray, np.ndarray, float, float]:
+def line_line_distance(p1, p2, q1, q2) -> tuple[float, np.ndarray, np.ndarray, float, float]:
     """
     Compute the distance of a line to a line (not the segment)
     defined by `p1` and `p2` and `q1` and `q2`.
@@ -2709,7 +2709,7 @@ def make_ticks(
         digits=None,
         logscale=False,
         useformat="",
-    ) -> Tuple[np.ndarray, List[str]]:
+    ) -> tuple[np.ndarray, list[str]]:
     """
     Generate numeric labels for the `[x0, x1]` range.
 
@@ -2851,7 +2851,7 @@ def make_ticks(
     return np.array(ticks_float), ticks_str
 
 
-def grid_corners(i: int, nm: list, size: list, margin=0, yflip=True) -> Tuple[np.ndarray, np.ndarray]:
+def grid_corners(i: int, nm: list, size: list, margin=0, yflip=True) -> tuple[np.ndarray, np.ndarray]:
     """
     Compute the 2 corners coordinates of the i-th box in a grid of shape n*m.
     The top-left square is square number 1.

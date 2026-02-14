@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """Submodule to generate simple and complex geometric shapes."""
 
 from vedo.shapes.glyphs import Glyph, Tensors

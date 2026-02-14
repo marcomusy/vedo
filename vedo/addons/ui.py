@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """UI actor helpers extracted from vedo.addons."""
 
-from typing import Union
 from typing_extensions import Self
 import numpy as np
 

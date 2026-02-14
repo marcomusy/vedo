@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """Analytical/derived shapes extracted from vedo.shapes."""
 
 import numpy as np

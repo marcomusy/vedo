@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """Curve, line and arrow shapes.
 
 Compatibility facade that re-exports curve symbols from focused modules.

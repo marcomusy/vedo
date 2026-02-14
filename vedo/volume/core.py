@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 import glob
 import os
 import time
 from weakref import ref as weak_ref_to
-from typing import Union, List, Iterable
+from collections.abc import Iterable
 from typing_extensions import Self
 
 import numpy as np
@@ -406,7 +407,7 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         newvol.pipeline = utils.OperationNode("clone", parents=[self], c="#bbd0ff", shape="diamond")
         return newvol
 
-    def astype(self, dtype: Union[str, int]) -> Self:
+    def astype(self, dtype: str | int) -> Self:
         """
         Reset the type of the scalars array.
 
@@ -441,8 +442,8 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
 
     def warp(
             self,
-            source: Union["vedo.Points", List],
-            target: Union["vedo.Points", List],
+            source: "vedo.Points" | List,
+            target: "vedo.Points" | List,
             sigma=1, mode="3d", fit=True,
         ) -> Self:
         """
@@ -474,7 +475,7 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
 
     def apply_transform(
             self,
-            T: Union[transformations.LinearTransform, transformations.NonLinearTransform],
+            T: transformations.LinearTransform | transformations.NonLinearTransform,
             fit=True, interpolation="cubic",
         ) -> Self:
         """
@@ -580,14 +581,14 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         """Return the range of the scalar values."""
         return np.array(self.dataset.GetScalarRange())
 
-    def spacing(self, s=None) -> Union[Self, Iterable[float]]:
+    def spacing(self, s=None) -> Self | Iterable[float]:
         """Set/get the voxels size in the 3 dimensions."""
         if s is not None:
             self.dataset.SetSpacing(s)
             return self
         return np.array(self.dataset.GetSpacing())
 
-    def origin(self, s=None) -> Union[Self, Iterable[float]]:
+    def origin(self, s=None) -> Self | Iterable[float]:
         """
         Set/get the origin of the volumetric dataset.
 
@@ -602,7 +603,7 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
             return self
         return np.array(self.dataset.GetOrigin())
 
-    def pos(self, p=None) -> Union[Self, Iterable[float]]:
+    def pos(self, p=None) -> Self | Iterable[float]:
         """Set/get the position of the volumetric dataset."""
         if p is not None:
             self.origin(p)
@@ -687,7 +688,7 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         )
         return self
 
-    def resample(self, new_spacing: List[float], interpolation=1) -> Self:
+    def resample(self, new_spacing: list[float], interpolation=1) -> Self:
         """
         Resamples a `Volume` to be larger or smaller.
 
@@ -906,7 +907,7 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         )
         return self
 
-    def resize(self, newdims: List[int]=(), newspacing: List[float]=()) -> Self:
+    def resize(self, newdims: list[int]=(), newspacing: list[float]=()) -> Self:
         """
         Increase or reduce the number of voxels of a Volume with interpolation.
         User must specify either the new desired dimensions or the new spacing in x, y and z.

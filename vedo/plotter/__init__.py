@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Public plotter API."""
 
 from importlib import import_module

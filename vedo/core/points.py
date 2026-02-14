@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """Point-cloud and mesh geometric transform algorithms."""
 
-from typing import Any, Union
+from typing import Any
 from typing_extensions import Self
 import numpy as np
 
@@ -250,7 +251,7 @@ class PointAlgorithms(CommonAlgorithms):
         LT.reorient(initaxis, newaxis, q, rotation, rad, xyplane)
         return cls.apply_transform(LT)
 
-    def scale(cls, s=None, reset=False, origin=True) -> Union[Self, np.ndarray]:
+    def scale(cls, s=None, reset=False, origin=True) -> Self | np.ndarray:
         """
         Set/get object's scaling factor.
 

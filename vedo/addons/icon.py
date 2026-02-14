@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """Orientation icon widget extracted from vedo.addons."""
 
 import vedo.vtkclasses as vtki

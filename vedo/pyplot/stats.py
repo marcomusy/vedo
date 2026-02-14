@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """Statistical plotting helpers."""
 
-from typing import Union
 from typing_extensions import Self
 import numpy as np
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """Ready-to-use interactive application plotters and tools."""
 
 from vedo.applications.slicing import (

@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Video generation utilities from rendered scenes."""
 
 import os
@@ -22,7 +23,7 @@ class Video:
         Program `ffmpeg` is used to create video from each generated frame.
 
         Arguments:
-            name : (Union[str, os.PathLike])
+            name : (str | os.PathLike)
                 name of the output file.
             duration : (float)
                 set the total `duration` of the video and recalculates `fps` accordingly.

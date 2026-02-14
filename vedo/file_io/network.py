@@ -1,9 +1,9 @@
+from __future__ import annotations
 """Network and filesystem utilities for file I/O."""
 
 import os
 import time
 from tempfile import NamedTemporaryFile
-from typing import Tuple
 
 from vedo import colors, settings
 
@@ -157,7 +157,7 @@ def gunzip(filename: str) -> str:
     return tmp_file.name
 
 ########################################################################
-def file_info(file_path: str) -> Tuple[str, str]:
+def file_info(file_path: str) -> tuple[str, str]:
     """Return the file size and creation time of input file"""
     siz, created = "", ""
     if os.path.isfile(file_path):

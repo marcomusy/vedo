@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """Core utility functions extracted from vedo.addons."""
 
-from typing import Union
 import numpy as np
 from typing_extensions import Self
 
@@ -187,7 +187,7 @@ def ScalarBar(
     horizontal=False,
     use_alpha=True,
     label_format=":6.3g",
-) -> Union[vtki.vtkScalarBarActor, None]:
+) -> vtki.vtkScalarBarActor | None:
     """
     A 2D scalar bar for the specified object.
 
@@ -366,7 +366,7 @@ def ScalarBar3D(
     below_text=None,
     nan_text="NaN",
     categories=None,
-) -> Union[Assembly, None]:
+) -> Assembly | None:
     """
     Create a 3D scalar bar for the specified object.
 

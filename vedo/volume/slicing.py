@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """Slicing mixin for Volume."""
 
 import os
-from typing import List
 
 import numpy as np
 
@@ -58,7 +58,7 @@ class VolumeSlicingMixin:
         return m
 
 
-    def slice_plane(self, origin: List[float], normal: List[float], autocrop=False, border=0.5, mode="linear") -> Mesh:
+    def slice_plane(self, origin: list[float], normal: list[float], autocrop=False, border=0.5, mode="linear") -> Mesh:
         """
         Extract the slice along a given plane position and normal.
 

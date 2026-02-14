@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from typing import List
+from __future__ import annotations
 from typing_extensions import Self
 from warnings import warn
 import numpy as np
@@ -1048,7 +1048,7 @@ class TransformInterpolator:
         """
         self.vtk_interpolator = vtki.new("TransformInterpolator")
         self.mode(mode)
-        self.TS: List[LinearTransform] = []
+        self.TS: list[LinearTransform] = []
 
     def __call__(self, t):
         """

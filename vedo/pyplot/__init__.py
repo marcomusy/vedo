@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Advanced plotting functionalities."""
 
 from .figure import Figure

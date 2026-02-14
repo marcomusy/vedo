@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """Interactive contour and point-cloud tools extracted from vedo.addons."""
 
-from typing import Union
 
 import numpy as np
 from typing_extensions import Self
@@ -197,13 +197,13 @@ class SplineTool(vtki.vtkContourWidget):
         self.representation.GetProperty().SetPointSize(ps)
         return self
 
-    def point_color(self, c: Union[str, tuple]) -> "SplineTool":
+    def point_color(self, c: str | tuple) -> "SplineTool":
         """Set the color of the spline points."""
         c = get_color(c)
         self.representation.GetProperty().SetColor(c)
         return self
 
-    def color(self, c: Union[str, tuple]) -> "SplineTool":
+    def color(self, c: str | tuple) -> "SplineTool":
         """Set the color of the spline."""
         c = get_color(c)
         self.representation.GetProperty().SetColor(c)
@@ -250,7 +250,7 @@ class SplineTool(vtki.vtkContourWidget):
             self.representation.SetNthNodeWorldPosition(i, pt)
         return self
 
-    def set_nodes(self, pts: Union[np.ndarray, list]) -> "SplineTool":
+    def set_nodes(self, pts: np.ndarray | list) -> "SplineTool":
         """Set all spline nodes from an array/list of points."""
         if isinstance(pts, list):
             pts = np.array(pts)

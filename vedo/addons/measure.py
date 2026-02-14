@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """Measurement helpers extracted from vedo.addons."""
 
-from typing import Union
 from typing_extensions import Self
 import numpy as np
 
@@ -456,7 +456,7 @@ def RulerAxes(
     yaxis_rotation=0,
     zaxis_rotation=0,
     xycross=True,
-) -> Union[Mesh, None]:
+) -> Mesh | None:
     """
     A 3D ruler axes to indicate the sizes of the input scene or object.
 

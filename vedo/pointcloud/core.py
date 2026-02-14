@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 import time
 from weakref import ref as weak_ref_to
 
-from typing import Union, List
 from typing_extensions import Self
 
 import numpy as np

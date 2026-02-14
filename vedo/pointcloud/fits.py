@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """Standalone fitting and pointcloud helper functions."""
 
-from typing import Union
 from typing_extensions import Self
 
 import numpy as np
@@ -26,7 +26,7 @@ __all__ = [
     "project_point_on_variety",
 ]
 
-def merge(*meshs, flag=False) -> Union["vedo.Mesh", "vedo.Points", None]:
+def merge(*meshs, flag=False) -> "vedo.Mesh" | "vedo.Points" | None:
     """
     Build a new Mesh (or Points) formed by the fusion of the inputs.
 
@@ -83,7 +83,7 @@ def merge(*meshs, flag=False) -> Union["vedo.Mesh", "vedo.Points", None]:
     return msh
 
 
-def _rotate_points(points, n0=None, n1=(0, 0, 1)) -> Union[np.ndarray, tuple]:
+def _rotate_points(points, n0=None, n1=(0, 0, 1)) -> np.ndarray | tuple:
     # Rotate a set of 3D points from direction n0 to direction n1.
     # Return the rotated points and the normal to the fitting plane (if n0 is None).
     # The pointing direction of the normal in this case is arbitrary.
@@ -123,7 +123,7 @@ def _rotate_points(points, n0=None, n1=(0, 0, 1)) -> Union[np.ndarray, tuple]:
     return np.array(rpoints), n0
 
 
-def fit_line(points: Union[np.ndarray, "vedo.Points"]) -> "vedo.shapes.Line":
+def fit_line(points: np.ndarray | "vedo.Points") -> "vedo.shapes.Line":
     """
     Fits a line through points.
 
@@ -155,7 +155,7 @@ def fit_line(points: Union[np.ndarray, "vedo.Points"]) -> "vedo.shapes.Line":
     return line
 
 
-def fit_circle(points: Union[np.ndarray, "vedo.Points"]) -> tuple:
+def fit_circle(points: np.ndarray | "vedo.Points") -> tuple:
     """
     Fits a circle through a set of 3D points, with a very fast non-iterative method.
 
@@ -217,7 +217,7 @@ def fit_circle(points: Union[np.ndarray, "vedo.Points"]) -> tuple:
     return c[0] + offs, R, n0
 
 
-def fit_plane(points: Union[np.ndarray, "vedo.Points"], signed=False) -> "vedo.shapes.Plane":
+def fit_plane(points: np.ndarray | "vedo.Points", signed=False) -> "vedo.shapes.Plane":
     """
     Fits a plane to a set of points.
 
@@ -413,7 +413,7 @@ def project_point_on_variety(
     return back_transformed, (grid, coeffs, R, centroid, gauss_curv, mean_curv)
 
 
-def fit_sphere(coords: Union[np.ndarray, "vedo.Points"]) -> "vedo.shapes.Sphere":
+def fit_sphere(coords: np.ndarray | "vedo.Points") -> "vedo.shapes.Sphere":
     """
     Fits a sphere to a set of points.
 
@@ -457,7 +457,7 @@ def fit_sphere(coords: Union[np.ndarray, "vedo.Points"]) -> "vedo.shapes.Sphere"
     return sph
 
 
-def pca_ellipse(points: Union[np.ndarray, "vedo.Points"], pvalue=0.673, res=60) -> Union["vedo.shapes.Circle", None]:
+def pca_ellipse(points: np.ndarray | "vedo.Points", pvalue=0.673, res=60) -> "vedo.shapes.Circle" | None:
     """
     Create the oriented 2D ellipse that contains the fraction `pvalue` of points.
     PCA (Principal Component Analysis) is used to compute the ellipse orientation.
@@ -518,7 +518,7 @@ def pca_ellipse(points: Union[np.ndarray, "vedo.Points"], pvalue=0.673, res=60) 
     return elli
 
 
-def pca_ellipsoid(points: Union[np.ndarray, "vedo.Points"], pvalue=0.673, res=24) -> Union["vedo.shapes.Ellipsoid", None]:
+def pca_ellipsoid(points: np.ndarray | "vedo.Points", pvalue=0.673, res=24) -> "vedo.shapes.Ellipsoid" | None:
     """
     Create the oriented ellipsoid that contains the fraction `pvalue` of points.
     PCA (Principal Component Analysis) is used to compute the ellipsoid orientation.

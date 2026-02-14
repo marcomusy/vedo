@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """Volumetric and 3D primitive shapes."""
 
-from typing import Union, Any, List
+from typing import Any
 import numpy as np
 
 import vedo

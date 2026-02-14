@@ -1,9 +1,10 @@
+from __future__ import annotations
 """Object loading and conversion utilities."""
 
 import glob
 import os
 from tempfile import TemporaryDirectory
-from typing import Any, List, Union
+from typing import Any
 
 import numpy as np
 
@@ -20,7 +21,7 @@ from .network import download, file_info, gunzip
 
 __docformat__ = "google"
 
-def load(inputobj: Union[list, str, os.PathLike], unpack=True, force=False) -> Any:
+def load(inputobj: list | str | os.PathLike, unpack=True, force=False) -> Any:
     """
     Load any vedo objects from file or from the web.
 
@@ -314,7 +315,7 @@ def _load_file(filename, unpack):
 
 
 
-def loadStructuredPoints(filename: Union[str, os.PathLike], as_points=True):
+def loadStructuredPoints(filename: str | os.PathLike, as_points=True):
     """
     Load and return a `vtkStructuredPoints` object from file.
 
@@ -334,7 +335,7 @@ def loadStructuredPoints(filename: Union[str, os.PathLike], as_points=True):
     return reader.GetOutput()
 
 ########################################################################
-def loadStructuredGrid(filename: Union[str, os.PathLike]):
+def loadStructuredGrid(filename: str | os.PathLike):
     """Load and return a `vtkStructuredGrid` object from file."""
     filename = str(filename)
     if filename.endswith(".vts"):
@@ -347,7 +348,7 @@ def loadStructuredGrid(filename: Union[str, os.PathLike]):
 
 
 ###################################################################
-def load3DS(filename: Union[str, os.PathLike]) -> Assembly:
+def load3DS(filename: str | os.PathLike) -> Assembly:
     """Load `3DS` file format from file."""
     filename = str(filename)
     renderer = vtki.vtkRenderer()
@@ -379,7 +380,7 @@ def load3DS(filename: Union[str, os.PathLike]) -> Assembly:
     return vedo.Assembly(wrapped_acts)
 
 ########################################################################
-def loadOFF(filename: Union[str, os.PathLike]) -> Mesh:
+def loadOFF(filename: str | os.PathLike) -> Mesh:
     """Read the OFF file format (polygonal mesh)."""
     filename = str(filename)
     with open(filename, "r", encoding="UTF-8") as f:
@@ -418,7 +419,7 @@ def loadOFF(filename: Union[str, os.PathLike]) -> Mesh:
 
     return Mesh(utils.buildPolyData(vertices, faces))
 
-def loadSTEP(filename: Union[str, os.PathLike], deflection=1.0) -> Mesh:
+def loadSTEP(filename: str | os.PathLike, deflection=1.0) -> Mesh:
     """
     Reads a 3D STEP file and returns its mesh representation as vertices and triangles.
 
@@ -500,7 +501,7 @@ def loadSTEP(filename: Union[str, os.PathLike], deflection=1.0) -> Mesh:
     return mesh
 
 ########################################################################
-def loadGeoJSON(filename: Union[str, os.PathLike]) -> Mesh:
+def loadGeoJSON(filename: str | os.PathLike) -> Mesh:
     """Load GeoJSON files."""
     filename = str(filename)
     jr = vtki.new("GeoJSONReader")
@@ -509,7 +510,7 @@ def loadGeoJSON(filename: Union[str, os.PathLike]) -> Mesh:
     return Mesh(jr.GetOutput())
 
 ########################################################################
-def loadDolfin(filename: Union[str, os.PathLike]) -> Union[Mesh, "vedo.TetMesh", None]:
+def loadDolfin(filename: str | os.PathLike) -> Mesh | "vedo.TetMesh" | None:
     """
     Reads a `Fenics/Dolfin` file format (.xml or .xdmf).
 
@@ -545,7 +546,7 @@ def loadDolfin(filename: Union[str, os.PathLike]) -> Union[Mesh, "vedo.TetMesh",
 
 
 ########################################################################
-def loadPVD(filename: Union[str, os.PathLike]) -> Union[List[Any], None]:
+def loadPVD(filename: str | os.PathLike) -> list[Any] | None:
     """Read paraview files."""
     filename = str(filename)
     import xml.etree.ElementTree as et
@@ -574,7 +575,7 @@ def loadPVD(filename: Union[str, os.PathLike]) -> Union[List[Any], None]:
     return listofobjs
 
 ########################################################################
-def loadNeutral(filename: Union[str, os.PathLike]) -> "vedo.TetMesh":
+def loadNeutral(filename: str | os.PathLike) -> "vedo.TetMesh":
     """
     Reads a `Neutral` tetrahedral file format.
 
@@ -600,7 +601,7 @@ def loadNeutral(filename: Union[str, os.PathLike]) -> "vedo.TetMesh":
     return vedo.TetMesh([coords, idolf_tets])
 
 ########################################################################
-def loadGmesh(filename: Union[str, os.PathLike]) -> Mesh:
+def loadGmesh(filename: str | os.PathLike) -> Mesh:
     """Reads a `gmesh` file format. Return an `Mesh` object."""
     filename = str(filename)
     with open(filename, "r", encoding="UTF-8") as f:
@@ -634,7 +635,7 @@ def loadGmesh(filename: Union[str, os.PathLike]) -> Mesh:
     return Mesh(poly)
 
 ########################################################################
-def loadPCD(filename: Union[str, os.PathLike]) -> Points:
+def loadPCD(filename: str | os.PathLike) -> Points:
     """Return a `Mesh` made of only vertex points
     from the `PointCloud` library file format.
 
@@ -781,7 +782,7 @@ def from_numpy(d: dict) -> Mesh:
     return msh
 
 #############################################################################
-def _import_npy(fileinput: Union[str, os.PathLike]) -> "vedo.Plotter":
+def _import_npy(fileinput: str | os.PathLike) -> "vedo.Plotter":
     """Import a vedo scene from numpy format."""
     fileinput = str(fileinput)
 
@@ -912,7 +913,7 @@ def _import_npy(fileinput: Union[str, os.PathLike]) -> "vedo.Plotter":
     return plt
 
 ###########################################################
-def loadImageData(filename: Union[str, os.PathLike]) -> Union[vtki.vtkImageData, None]:
+def loadImageData(filename: str | os.PathLike) -> vtki.vtkImageData | None:
     """Read and return a `vtkImageData` object from file."""
     filename = str(filename)
     if ".ome.tif" in filename.lower():
@@ -950,7 +951,7 @@ def loadImageData(filename: Union[str, os.PathLike]) -> Union[vtki.vtkImageData,
 
 ###########################################################
 
-def load_obj(fileinput: Union[str, os.PathLike], mtl_file=None, texture_path=None) -> List[Mesh]:
+def load_obj(fileinput: str | os.PathLike, mtl_file=None, texture_path=None) -> list[Mesh]:
     """
     Import a set of meshes from a OBJ wavefront file.
 

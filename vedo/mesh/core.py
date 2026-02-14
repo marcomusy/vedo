@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from typing import List, Tuple, Union, MutableSequence, Any
+from __future__ import annotations
+from collections.abc import MutableSequence
+from typing import Any
 from typing_extensions import Self
 
 import numpy as np
@@ -597,7 +599,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             )
 
         strips = []
-        points: List[Any] = []
+        points: list[Any] = []
 
         for j in range(m):
 
@@ -1111,7 +1113,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             "generate_random_points", c="#edabab", parents=[self])
         return vpts
 
-    def delete_cells(self, ids: List[int]) -> Self:
+    def delete_cells(self, ids: list[int]) -> Self:
         """
         Remove cells from the mesh object by their ID.
         Points (vertices) are not removed (you may use `clean()` to remove those).
@@ -1129,7 +1131,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         )
         return self
 
-    def delete_cells_by_point_index(self, indices: List[int]) -> Self:
+    def delete_cells_by_point_index(self, indices: list[int]) -> Self:
         """
         Delete a list of vertices identified by any of their vertex index.
 
@@ -1201,7 +1203,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         )
         return self
 
-    def compute_adjacency(self) -> List[set]:
+    def compute_adjacency(self) -> list[set]:
         """
         Computes the adjacency list for mesh edge-graph.
 
@@ -1350,7 +1352,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         sep.Update()
         return bool(sep.IsInside(0))
 
-    def inside_points(self, pts: Union["Points", list], invert=False, tol=1e-05, return_ids=False) -> Union["Points", np.ndarray]:
+    def inside_points(self, pts: "Points" | list, invert=False, tol=1e-05, return_ids=False) -> "Points" | np.ndarray:
         """
         Return the point cloud that is inside mesh surface as a new Points object.
 
@@ -1413,7 +1415,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         return_point_ids=False,
         return_cell_ids=False,
         cell_edge=False,
-    ) -> Union[Self, np.ndarray]:
+    ) -> Self | np.ndarray:
         """
         Return the boundary lines of an input mesh.
         Check also `vedo.core.CommonAlgorithms.mark_boundaries()` method.
@@ -1551,7 +1553,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         )
         return self
 
-    def connected_vertices(self, index: int) -> List[int]:
+    def connected_vertices(self, index: int) -> list[int]:
         """Find all vertices connected to an input vertex specified by its index.
 
         Examples:
@@ -1578,7 +1580,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
 
         return idxs
 
-    def extract_cells(self, ids: List[int]) -> Self:
+    def extract_cells(self, ids: list[int]) -> Self:
         """
         Extract a subset of cells from a mesh and return it as a new mesh.
         """
@@ -1607,7 +1609,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         msh.copy_properties_from(self)
         return msh
 
-    def connected_cells(self, index: int, return_ids=False) -> Union[Self, List[int]]:
+    def connected_cells(self, index: int, return_ids=False) -> Self | list[int]:
         """Find all cellls connected to an input vertex specified by its index."""
 
         # Find all cells connected to point index
@@ -2003,7 +2005,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
 
     def split(
         self, maxdepth=1000, flag=False, must_share_edge=False, sort_by_area=True
-    ) -> List[Self]:
+    ) -> list[Self]:
         """
         Split a mesh by connectivity and order the pieces by increasing area.
 
@@ -2185,7 +2187,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         msh.name = "SurfaceIntersection"
         return msh
 
-    def intersect_with_line(self, p0, p1=None, return_ids=False, tol=0) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
+    def intersect_with_line(self, p0, p1=None, return_ids=False, tol=0) -> np.ndarray | tuple[np.ndarray, np.ndarray]:
         """
         Return the list of points intersecting the mesh
         along the segment defined by two points `p0` and `p1`.
@@ -2268,7 +2270,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         msh.name = "PlaneIntersection"
         return msh
 
-    def cut_closed_surface(self, origins, normals, invert=False, return_assembly=False) -> Union[Self, "vedo.Assembly"]:
+    def cut_closed_surface(self, origins, normals, invert=False, return_assembly=False) -> Self | "vedo.Assembly":
         """
         Cut/clip a closed surface mesh with a collection of planes.
         This will produce a new closed surface by creating new polygonal
@@ -2351,7 +2353,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             )
             return self
 
-    def collide_with(self, mesh2, tol=0, return_bool=False) -> Union[Self, bool]:
+    def collide_with(self, mesh2, tol=0, return_bool=False) -> Self | bool:
         """
         Collide this Mesh with the input surface.
         Information is stored in `ContactCells1` and `ContactCells2`.

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """Animation and timeline helper applications."""
 
 import os
-from typing import Union
 
 import numpy as np
 

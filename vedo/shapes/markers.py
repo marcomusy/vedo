@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """Marker and special symbol shapes extracted from vedo.shapes."""
 
-from typing import Union, Any
+from typing import Any
 import numpy as np
 
 import vedo

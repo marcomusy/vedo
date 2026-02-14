@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Public visual API."""
 
 from . import runtime as _runtime

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """3D text mesh class."""
 
-from typing import Union, Any
+from typing import Any
 from weakref import ref as weak_ref_to
 import numpy as np
 

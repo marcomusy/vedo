@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """Axes construction helpers extracted from vedo.addons."""
 
 import os
-from typing import Union
 import numpy as np
 from typing_extensions import Self
 
@@ -90,7 +90,7 @@ def Axes(
         x_inverted=False, y_inverted=False, z_inverted=False,
         use_global=False,
         tol=0.001,
-    ) -> Union[Assembly, None]:
+    ) -> Assembly | None:
     """
     Draw axes for the input object.
     Check [available fonts here](https://vedo.embl.es/fonts).

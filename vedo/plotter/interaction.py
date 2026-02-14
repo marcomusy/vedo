@@ -1,8 +1,9 @@
+from __future__ import annotations
 """Interaction operations delegated from Plotter."""
 
 import time
-from typing import Any, Callable, Union
-from typing import MutableSequence
+from collections.abc import Callable, MutableSequence
+from typing import Any
 
 import numpy as np
 
@@ -219,7 +220,7 @@ def add_callback(plotter, event_name: str, func: Callable, priority=0.0, enable_
     # print(f"Registering event: {event_name} with id={cid}")
     return cid
 
-def remove_callback(plotter, cid: Union[int, str]) -> Any:
+def remove_callback(plotter, cid: int | str) -> Any:
     """
     Remove a callback function by its id
     or a whole category of callbacks by their name.

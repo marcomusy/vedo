@@ -1,7 +1,7 @@
+from __future__ import annotations
 """Mixins that split visual responsibilities out of core visual classes."""
 
 import os
-from typing import Union
 
 import numpy as np
 from typing_extensions import Self
@@ -197,7 +197,7 @@ class PointsVisualAnnotationsMixin:
         justify="",
         c="black",
         alpha=1.0,
-    ) -> Union["vedo.Mesh", None]:
+    ) -> "vedo.Mesh" | None:
         """
         Generate value or ID labels for mesh cells or points.
         For large nr. of labels use `font="VTK"` which is much faster.
@@ -392,7 +392,7 @@ class PointsVisualAnnotationsMixin:
         c="black",
         bc=None,
         alpha=1.0,
-    ) -> Union["Actor2D", None]:
+    ) -> "Actor2D" | None:
         """
         Generate value or ID bi-dimensional labels for mesh cells or points.
 
@@ -518,7 +518,7 @@ class PointsVisualAnnotationsMixin:
         lw=2,
         italic=0.0,
         padding=0.1,
-    ) -> Union["vedo.Mesh", None]:
+    ) -> "vedo.Mesh" | None:
         """
         Generate a flag pole style element to describe an object.
         Returns a `Mesh` object.
@@ -666,7 +666,7 @@ class PointsVisualAnnotationsMixin:
         font="Calco",
         justify="center-left",
         vspacing=1.0,
-    ) -> Union["vedo.addons.Flagpost", None]:
+    ) -> "vedo.addons.Flagpost" | None:
         """
         Generate a flag post style element to describe an object.
 
@@ -742,7 +742,7 @@ class PointsVisualAnnotationsMixin:
         alpha=1.0,
         lw=1,
         ontop=True,
-    ) -> Union["vtki.vtkCaptionActor2D", None]:
+    ) -> "vtki.vtkCaptionActor2D" | None:
         """
         Create a 2D caption to an object which follows the camera movements.
         Latex is not supported. Returns the same input object for concatenation.

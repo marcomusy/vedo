@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """Runtime-safe Points proxy to avoid circular imports in mixins."""
 
 import vedo

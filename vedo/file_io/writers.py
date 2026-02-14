@@ -1,7 +1,8 @@
+from __future__ import annotations
 """Object writing helpers."""
 
 import os
-from typing import Any, Union
+from typing import Any
 
 import numpy as np
 
@@ -16,7 +17,7 @@ from .scene import to_numpy
 
 __docformat__ = "google"
 
-def write(objct: Any, fileoutput: Union[str, os.PathLike], binary=True) -> Any:
+def write(objct: Any, fileoutput: str | os.PathLike, binary=True) -> Any:
     """
     Write object to file. Same as `save()`.
 

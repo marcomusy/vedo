@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """PointCutMixin extracted from pointcloud core."""
 
-from typing import Union, List
 from typing_extensions import Self
 
 import numpy as np
@@ -397,7 +397,7 @@ class PointCutMixin:
         self.pipeline = utils.OperationNode("cut_with_sphere", parents=[self])
         return self
 
-    def cut_with_mesh(self, mesh, invert=False, keep=False) -> Union[Self, "vedo.Assembly"]:
+    def cut_with_mesh(self, mesh, invert=False, keep=False) -> Self | "vedo.Assembly":
         """
         Cut an `Mesh` mesh with another `Mesh`.
 
