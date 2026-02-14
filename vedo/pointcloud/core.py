@@ -11,7 +11,7 @@ import vedo.vtkclasses as vtki
 import vedo
 from vedo import colors
 from vedo import utils
-from vedo.transformations import LinearTransform, NonLinearTransform
+from vedo.transformations import LinearTransform
 from vedo.core import PointAlgorithms
 from vedo.core import input as input_utils
 from vedo.visual import PointsVisual
@@ -34,7 +34,7 @@ __all__ = ["Point", "Points"]
 
 def Point(pos=(0, 0, 0), r=12, c="red", alpha=1.0) -> Self:
     """Build a point at position of radius size `r`, color `c` and transparency `alpha`."""
-    return Points([pos], r=r, c=c, alpha=alpha)
+    return Points([[0,0,0]], r=r, c=c, alpha=alpha).pos(pos)
 
 
 class Points(PointsVisual, PointAlgorithms, PointTransformMixin, 
