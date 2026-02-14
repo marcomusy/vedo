@@ -14,7 +14,8 @@ from vedo.colors import get_color
 from vedo.mesh import Mesh
 from vedo.pointcloud import Points, merge
 from vedo.shapes.curves import Line, Arc, Arrow, Arrow2D, Ribbon
-from vedo.shapes.primitives import Circle, Disc, Sphere, Cylinder, Cone, Rectangle, Grid
+from vedo.shapes.primitives import Polygon, Star, Circle, Disc, Sphere, Cylinder, Cone, Rectangle, Grid
+from vedo.shapes.text3d import Text3D
 def Marker(symbol, pos=(0, 0, 0), c="k", alpha=1.0, s=0.1, filled=True) -> Any:
     """
     Generate a marker shape. Typically used in association with `Glyph`.
