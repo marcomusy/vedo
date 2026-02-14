@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from typing import List
 from typing_extensions import Self
+from warnings import warn
 import numpy as np
 
 import vedo.vtkclasses as vtki # a wrapper for lazy imports
@@ -351,10 +352,8 @@ class LinearTransform:
 
         if pre_multiply:
             self.T.PreMultiply()
-        try:
-            self.T.Concatenate(T)
-        except:
-            self.T.Concatenate(T.T)
+        transform = T.T if hasattr(T, "T") else T
+        self.T.Concatenate(transform)
         self.T.PostMultiply()
         return self
 
@@ -599,7 +598,7 @@ class LinearTransform:
             return self
 
         if not np.any(initaxis + newaxis):
-            print("Warning: in reorient() initaxis and newaxis are parallel")
+            warn("In reorient() initaxis and newaxis are parallel", stacklevel=2)
             newaxis += np.array([0.0000001, 0.0000002, 0.0])
             angleth = np.pi
         else:
@@ -717,7 +716,7 @@ class NonLinearTransform:
             elif mode == "3d":
                 T.SetBasisToR()
             else:
-                print(f'In {filename} mode can be either "2d" or "3d"')
+                warn(f'In {filename} mode can be either "2d" or "3d"', stacklevel=2)
 
         elif len(kwargs) > 0:
             T = kwargs.copy()
@@ -728,8 +727,10 @@ class NonLinearTransform:
             mode = T.pop("mode", "3d")
             sigma = T.pop("sigma", 1.0)
             if len(T) > 0:
-                print("Warning: NonLinearTransform got unexpected keyword arguments:")
-                print(T)
+                warn(
+                    f"NonLinearTransform got unexpected keyword arguments: {sorted(T.keys())}",
+                    stacklevel=2,
+                )
 
             T = vtki.vtkThinPlateSplineTransform()
             vptss = vtki.vtkPoints()
@@ -750,7 +751,7 @@ class NonLinearTransform:
             elif mode == "3d":
                 T.SetBasisToR()
             else:
-                print(f'Warning: mode can be either "2d" or "3d"')
+                warn('Mode can be either "2d" or "3d"', stacklevel=2)
 
         self.T = T
         self.inverse_flag = False
@@ -884,7 +885,7 @@ class NonLinearTransform:
         elif m == 1:
             return "3d"
         else:
-            print("Warning: NonLinearTransform has no valid mode.")
+            warn("NonLinearTransform has no valid mode.", stacklevel=2)
             return ""
 
     @mode.setter
@@ -895,7 +896,7 @@ class NonLinearTransform:
         elif m == "2d":
             self.T.SetBasisToR2LogR()
         else:
-            print('In NonLinearTransform mode can be either "2d" or "3d"')
+            warn('In NonLinearTransform mode can be either "2d" or "3d"', stacklevel=2)
 
     def clone(self) -> "NonLinearTransform":
         """Clone transformation to make an exact copy."""
@@ -1100,7 +1101,7 @@ class TransformInterpolator:
         elif m == "spline":
             self.vtk_interpolator.SetInterpolationTypeToSpline()
         else:
-            print('In TransformInterpolator mode can be either "linear" or "spline"')
+            warn('In TransformInterpolator mode can be either "linear" or "spline"', stacklevel=2)
         return self
 
     @property
