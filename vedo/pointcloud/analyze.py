@@ -13,7 +13,6 @@ import vedo
 from vedo import colors
 from vedo import utils
 from vedo.transformations import LinearTransform, NonLinearTransform
-from ._proxy import Points
 
 class PointAnalyzeMixin:
     def compute_normals_with_pca(self, n=20, orientation_point=None, invert=False) -> Self:
@@ -850,7 +849,7 @@ class PointAnalyzeMixin:
             vor = scipy_voronoi(pts, qhull_options=options)
             _constrain_points(vor.vertices)
             pts = _relax(vor)
-        out = Points(pts)
+        out = vedo.Points(pts)
         out.name = "MeshSmoothLloyd2D"
         out.pipeline = utils.OperationNode("smooth_lloyd", parents=[self])
         return out
@@ -1047,7 +1046,7 @@ class PointAnalyzeMixin:
             raise RuntimeError()
         dens.Update()
 
-        cld = Points(dens.GetOutput())
+        cld = vedo.Points(dens.GetOutput())
         cld.copy_properties_from(self)
         cld.interpolate_data_from(self, n=nclosest, radius=radius)
         cld.name = "DensifiedCloud"
@@ -1187,6 +1186,6 @@ class PointAnalyzeMixin:
             svp.SelectInvisibleOn()
         svp.Update()
 
-        m = Points(svp.GetOutput())
+        m = vedo.Points(svp.GetOutput())
         m.name = "VisiblePoints"
         return m

@@ -13,7 +13,6 @@ import vedo
 from vedo import colors
 from vedo import utils
 from vedo.transformations import LinearTransform, NonLinearTransform
-from ._proxy import Points
 
 class PointReconstructMixin:
     def generate_surface_halo(
@@ -163,7 +162,7 @@ class PointReconstructMixin:
 
         todel = []
         density /= np.sqrt(3)
-        vgrid_tmp = Points(grid_tmp)
+        vgrid_tmp = vedo.Points(grid_tmp)
 
         for p in contour.coordinates:
             out = vgrid_tmp.closest_point(p, radius=density, return_point_id=True)
@@ -179,7 +178,7 @@ class PointReconstructMixin:
         else:
             boundary = list(range(contour.npoints))
 
-        dln = Points(points).generate_delaunay2d(mode="xy", boundaries=[boundary])
+        dln = vedo.Points(points).generate_delaunay2d(mode="xy", boundaries=[boundary])
         dln.compute_normals(points=False)  # fixes reversd faces
         dln.lw(1)
 
@@ -603,8 +602,8 @@ class PointReconstructMixin:
 
         elif method == "vtk":
             vor = vtki.new("Voronoi2D")
-            if isinstance(pts, Points):
-                vor.SetInputData(pts)
+            if isinstance(pts, vedo.pointcloud.Points):
+                vor.SetInputData(pts.dataset)
             else:
                 pts = np.asarray(pts)
                 if pts.shape[1] == 2:
@@ -666,4 +665,3 @@ class PointReconstructMixin:
         )
         m.name = "Delaunay3D"
         return m
-

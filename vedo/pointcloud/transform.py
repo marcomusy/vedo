@@ -13,7 +13,6 @@ import vedo
 from vedo import colors
 from vedo import utils
 from vedo.transformations import LinearTransform, NonLinearTransform
-from ._proxy import Points
 
 class PointTransformMixin:
     def align_to(self, target, iters=100, rigid=False, invert=False, use_centroids=False) -> Self:
@@ -418,4 +417,3 @@ class PointTransformMixin:
 
         self.pipeline = utils.OperationNode("warp", parents=parents)
         return self
-

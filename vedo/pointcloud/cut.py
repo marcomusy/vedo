@@ -13,7 +13,6 @@ import vedo
 from vedo import colors
 from vedo import utils
 from vedo.transformations import LinearTransform, NonLinearTransform
-from ._proxy import Points
 
 class PointCutMixin:
     def cut_with_plane(
@@ -159,7 +158,7 @@ class PointCutMixin:
         Check out also:
             `cut_with_line()`, `cut_with_plane()`, `cut_with_cylinder()`
         """
-        if isinstance(bounds, Points):
+        if isinstance(bounds, vedo.pointcloud.Points):
             bounds = bounds.bounds()
 
         box = vtki.new("Box")
@@ -192,7 +191,7 @@ class PointCutMixin:
             `cut_with_box()`, `cut_with_plane()`, `cut_with_sphere()`
         """
         pplane = vtki.new("PolyPlane")
-        if isinstance(points, Points):
+        if isinstance(points, vedo.pointcloud.Points):
             points = points.coordinates.tolist()
 
         if closed:
@@ -504,7 +503,7 @@ class PointCutMixin:
 
                 ![](https://vedo.embl.es/images/advanced/cutWithPoints2.png)
         """
-        if isinstance(points, Points):
+        if isinstance(points, vedo.pointcloud.Points):
             parents = [points]
             vpts = points.dataset.GetPoints()
             points = points.coordinates
