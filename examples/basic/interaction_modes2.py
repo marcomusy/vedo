@@ -1,6 +1,7 @@
 """Use the mouse to select objects and vertices in a mesh.
 Middle-click and drag to interact with the scene."""
-from vedo import settings, Mesh, dataurl, Plotter, interactor_modes
+from vedo import settings, Mesh, dataurl, Plotter
+from vedo.plotter.modes import BlenderStyle
 import numpy as np
 
 settings.enable_default_mouse_callbacks = False
@@ -18,7 +19,7 @@ def mode_select(objs):
 
 mesh = Mesh(dataurl+"cow.vtk").c("k5").lw(1)
 
-mode = interactor_modes.BlenderStyle()
+mode = BlenderStyle()
 mode.callback_select = mode_select
 
 plt = Plotter()

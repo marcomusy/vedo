@@ -192,7 +192,7 @@ def set_last_figure(figure):
 
 def __getattr__(name):
     """Lazy-load selected heavy optional modules while preserving public API."""
-    if name in {"applications", "interactor_modes"}:
+    if name in {"applications"}:
         module = importlib.import_module(f"vedo.{name}")
         globals()[name] = module
         return module

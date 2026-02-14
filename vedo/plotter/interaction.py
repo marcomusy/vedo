@@ -459,7 +459,8 @@ def pick_area(plotter, pos1, pos2, at=None) -> "vedo.Mesh":
         mesh = Mesh(dataurl+"cow.vtk")
         mesh.color("k5").linewidth(1)
 
-        mode = interactor_modes.BlenderStyle()
+        from vedo.plotter.modes import BlenderStyle
+        mode = BlenderStyle()
         mode.callback_select = mode_select
 
         plt = Plotter().user_mode(mode)

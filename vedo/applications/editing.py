@@ -13,6 +13,7 @@ import vedo
 from vedo.colors import color_map, get_color
 from vedo.utils import is_sequence, lin_interpolate, mag, precision
 from vedo.plotter import Plotter
+from vedo.plotter.modes import MousePan
 from vedo.pointcloud import fit_plane, Points
 from vedo.shapes import Line, Ribbon, Spline, Text2D
 from vedo.pyplot import CornerHistogram, histogram
@@ -464,7 +465,7 @@ class ImageEditor(Plotter):
             pos="bottom-center", c="w", bg="r6", alpha=0.8, font="Calco"
         )
 
-        self.pan = vedo.interactor_modes.MousePan(enable_rotate=False)
+        self.pan = MousePan(enable_rotate=False)
 
         self.add_callback("key", self.key_func)
 

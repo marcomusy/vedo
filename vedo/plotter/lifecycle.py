@@ -132,7 +132,8 @@ def user_mode(plotter, mode) -> Any:
     Examples:
         ```python
         from vedo import *
-        mode = interactor_modes.MousePan()
+        from vedo.plotter.modes import MousePan
+        mode = MousePan()
         mesh = Mesh(dataurl+"cow.vtk")
         plt = Plotter().user_mode(mode)
         plt.show(mesh, axes=1)

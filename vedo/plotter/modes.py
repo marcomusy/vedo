@@ -244,6 +244,7 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
     def _left_button_press(self, obj, _event):
         """Left button press."""
         # print("Left button", event)
+        display_point = [0, 0, 0]
         newPickPoint = [0, 0, 0, 0]
         focalDepth = 0.0
         self.ComputeWorldToDisplay(
@@ -251,9 +252,9 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
             self.focal_point[0],
             self.focal_point[1],
             self.focal_point[2],
-            newPickPoint,
+            display_point,
         )
-        focalDepth = newPickPoint[2]
+        focalDepth = display_point[2]
         x, y = obj.interactor.GetEventPosition()
         self.ComputeDisplayToWorld(self.renderer, x, y, focalDepth, newPickPoint)
         self.focal_point = np.array(newPickPoint)
