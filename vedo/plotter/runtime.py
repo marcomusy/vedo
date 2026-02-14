@@ -846,13 +846,6 @@ class Plotter:
 
     ############################################################################
 
-    @property
-
-
-
-
-
-
     def background(self, c1=None, c2=None, at=None, mode=0) -> Union[Self, "np.ndarray"]:
         """Set the color of the background for the current renderer.
         A different renderer index can be specified by keyword `at`.
