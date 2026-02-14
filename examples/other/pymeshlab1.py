@@ -1,7 +1,14 @@
 """PyMeshLab processing example."""
+from pathlib import Path
+import sys
+
 import vedo
-import pymeshlab  # tested on pymeshlab-2022.2.post2
 from vedo.external import vedo2meshlab
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from _optional import require_module
+
+pymeshlab = require_module("pymeshlab")  # tested on pymeshlab-2022.2.post2
 
 filepath = vedo.download(vedo.dataurl+'bunny.obj')
 

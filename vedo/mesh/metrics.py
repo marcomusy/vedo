@@ -11,7 +11,6 @@ import vedo.vtkclasses as vtki
 
 import vedo
 from vedo.utils import vtk2numpy, OperationNode
-from ._proxy import Mesh
 
 
 class MeshMetricsMixin:
@@ -409,4 +408,3 @@ class MeshMetricsMixin:
         self._update(ef.GetOutput(), reset_locators=False)
         self.mapper.ScalarVisibilityOn()
         return self
-

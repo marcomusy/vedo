@@ -9,9 +9,18 @@
 # pip install pymeshfix
 # pip install tetgen
 #
+from pathlib import Path
+import sys
+
+import vedo
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from _optional import require_module
+
+require_module("pymeshfix")
+require_module("tetgen")
 import pymeshfix
 import tetgen
-import vedo
 
 amesh = vedo.Mesh(vedo.dataurl+'290.vtk')
 
@@ -33,4 +42,3 @@ plt.at(0).show("Original mesh", amesh)
 plt.at(1).show("Repaired mesh", repaired)
 plt.at(2).show("Tetrahedral mesh\n(click & press shift-X)", tmesh.tomesh().shrink())
 plt.interactive().close()
-

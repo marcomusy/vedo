@@ -542,8 +542,14 @@ def exe_locate(args):
 
     class_names_seen = set()
     class_names_lower = set()
+    skip_prefixes = (
+        "vedo.external.dolfin",
+        "vedo.backends",
+    )
     for module_info in pkgutil.walk_packages(vedo.__path__, prefix="vedo."):
         module_name = module_info.name
+        if module_name.startswith(skip_prefixes):
+            continue
         try:
             module = importlib.import_module(module_name)
         except Exception:
@@ -569,6 +575,8 @@ def exe_locate(args):
     if target_lower in class_names_lower:
         for module_info in pkgutil.walk_packages(vedo.__path__, prefix="vedo."):
             module_name = module_info.name
+            if module_name.startswith(skip_prefixes):
+                continue
             try:
                 module = importlib.import_module(module_name)
             except Exception:

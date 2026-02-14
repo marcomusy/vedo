@@ -972,6 +972,19 @@ def new(cls_name, module_name=""):
     return instance
 
 ######################################################################
+def new_ids_filter():
+    """
+    Create a VTK ids-generation filter across VTK versions.
+
+    Returns:
+        vtkIdFilter or vtkGenerateIds instance, or None if unavailable.
+    """
+    try:
+        return get_class("IdFilter")()
+    except (KeyError, AttributeError, ImportError):
+        return new("GenerateIds")
+
+######################################################################
 def dump_hierarchy_to_file(fname=""):
     """
     Print all available vtk classes.

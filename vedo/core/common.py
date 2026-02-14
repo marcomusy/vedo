@@ -826,14 +826,7 @@ class CommonAlgorithms:
 
         Two new arrays are added to the mesh named `PointID` and `CellID`.
         """
-        ids = None
-        # vtkIdFilter was removed in VTK >= 9.6 (replaced by vtkGenerateIds).
-        try:
-            ids = vtki.get_class("IdFilter")()
-        except (KeyError, AttributeError, ImportError):
-            pass
-        if ids is None:
-            ids = vtki.new("GenerateIds")
+        ids = vtki.new_ids_filter()
         if ids is None:
             vedo.logger.error("add_ids(): cannot instantiate vtkIdFilter/vtkGenerateIds")
             raise RuntimeError("add_ids(): missing VTK ids filter")

@@ -1452,14 +1452,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             fe.SetFeatureAngle(feature_angle)
 
         if return_point_ids or return_cell_ids:
-            ids = None
-            # vtkIdFilter was removed in VTK >= 9.6 (replaced by vtkGenerateIds).
-            try:
-                ids = vtki.get_class("IdFilter")()
-            except (KeyError, AttributeError, ImportError):
-                pass
-            if ids is None:
-                ids = vtki.new("GenerateIds")
+            ids = vtki.new_ids_filter()
             if ids is None:
                 vedo.logger.error("boundaries(): cannot instantiate vtkIdFilter/vtkGenerateIds")
                 raise RuntimeError("boundaries(): missing VTK ids filter")

@@ -1,6 +1,14 @@
 """MeshLib processing example."""
+from pathlib import Path
+import sys
+
 import numpy as np
 import vedo
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from _optional import require_module
+
+require_module("meshlib")
 from meshlib import mrmeshpy as mm
 from meshlib import mrmeshnumpy as mn
 

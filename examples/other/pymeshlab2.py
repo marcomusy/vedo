@@ -1,7 +1,14 @@
 """pymeshlab interoperability example:
 Surface reconstruction by ball pivoting"""
+from pathlib import Path
+import sys
+
 import vedo
-import pymeshlab  # tested on pymeshlab-2022.2.post2
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from _optional import require_module
+
+pymeshlab = require_module("pymeshlab")  # tested on pymeshlab-2022.2.post2
 
 # Configure inputs and run the visualization workflow.
 pts = vedo.Mesh(vedo.dataurl+'cow.vtk').points # numpy array of vertices
