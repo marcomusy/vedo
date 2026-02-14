@@ -5,7 +5,7 @@ from typing import Any
 import vedo
 import vedo.vtkclasses as vtki
 from vedo import addons, utils
-from vedo.events import Event
+from vedo.plotter.events import Event
 
 
 __docformat__ = "google"

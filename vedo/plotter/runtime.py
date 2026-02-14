@@ -11,7 +11,7 @@ import vedo.vtkclasses as vtki  # a wrapper for lazy imports
 import vedo
 from vedo import utils
 from vedo import addons
-from vedo.events import Event
+from vedo.plotter.events import Event
 from .bootstrap import apply_gradient_mode, configure_renderer_common
 from .camera import (
     azimuth,
