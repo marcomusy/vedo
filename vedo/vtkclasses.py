@@ -4,6 +4,7 @@
 Subset of the vtk classes to be imported eagerly or lazily.
 """
 from importlib import import_module
+from importlib.util import find_spec
 
 __all__ = []
 
@@ -258,7 +259,6 @@ for name in [
     "vtkFeatureEdges",
     "vtkFlyingEdges3D",
     "vtkGlyph3D",
-    "vtkIdFilter", # available in VTK <9.6 only
     "vtkGenerateIds",
     "vtkImageAppend",
     "vtkImplicitPolyDataDistance",
@@ -284,6 +284,14 @@ for name in [
     "vtkStaticCleanUnstructuredGrid",
     "vtkPolyDataPlaneCutter"
 ]: location[name] = "vtkFiltersCore"
+
+# Compatibility across VTK versions:
+# vtkIdFilter was removed in newer VTK where vtkGenerateIds is available.
+if find_spec("vtkmodules.vtkFiltersCore"):
+    _vtk_filters_core = import_module("vtkmodules.vtkFiltersCore")
+    if hasattr(_vtk_filters_core, "vtkIdFilter"):
+        location["vtkIdFilter"] = "vtkFiltersCore"
+    del _vtk_filters_core
 
 # noinspection PyUnresolvedReferences
 from vtkmodules.vtkFiltersCore import vtkGlyph3D
@@ -924,10 +932,17 @@ def get_class(name, module_name=""):
     print(get_class("vtkActor", "vtkRenderingCore"))
     ```
     """
-    if name and not name.lower().startswith("vtk"):
+    requested_name = name
+    if name and not name.lower().startswith("vtk") and name not in location:
         name = "vtk" + name
     if not module_name:
-        module_name = location[name]
+        if name in location:
+            module_name = location[name]
+        elif requested_name in location:
+            name = requested_name
+            module_name = location[name]
+        else:
+            raise KeyError(f"Unknown VTK class or symbol: {requested_name!r}")
     module_name = "vtkmodules." + module_name
     if module_name not in module_cache:
         module = import_module(module_name)
@@ -950,8 +965,8 @@ def new(cls_name, module_name=""):
     """
     try:
         instance = get_class(cls_name, module_name)()
-    except NotImplementedError as e:
-        print(e, cls_name)
+    except (NotImplementedError, KeyError, AttributeError, ImportError) as e:
+        print(f"Unable to create VTK instance '{cls_name}': {e}")
         return None
     return instance
 
@@ -973,7 +988,7 @@ def dump_hierarchy_to_file(fname=""):
         import vtkmodules
         from vtkmodules.all import vtkVersion
         ver = vtkVersion()
-    except AttributeError:
+    except (ImportError, ModuleNotFoundError, AttributeError):
         print("Unable to detect VTK version.")
         return
     major = ver.GetVTKMajorVersion()
