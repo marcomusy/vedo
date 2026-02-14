@@ -2732,4 +2732,4 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             comment=f"#tets = {tmesh.ncells}",
             c="#e9c46a:#9e2a2b",
         )
-
+        return tmesh

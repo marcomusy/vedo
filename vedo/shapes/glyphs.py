@@ -11,6 +11,7 @@ import vedo.vtkclasses as vtki
 from vedo import utils
 from vedo.colors import cmaps_names, get_color
 from vedo.mesh import Mesh
+from vedo.pointcloud import Points
 class Glyph(Mesh):
     """
     At each vertex of a mesh, another mesh, i.e. a "glyph", is shown with
@@ -251,5 +252,4 @@ class Tensors(Mesh):
 
         super().__init__(tgn.GetOutput(), c, alpha)
         self.name = "Tensors"
-
 
