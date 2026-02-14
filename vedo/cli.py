@@ -22,7 +22,10 @@ The library includes a handy Command Line Interface.
 """
 import argparse
 import glob
+import importlib
+import inspect
 import os
+import pkgutil
 import subprocess
 import sys
 import numpy as np
@@ -71,6 +74,10 @@ def execute_cli():
 
     elif args.search_code:
         exe_search_code(args)
+        return 0
+
+    elif args.locate:
+        exe_locate(args)
         return 0
 
     elif args.convert:
@@ -134,6 +141,7 @@ def get_parser():
     pr.add_argument("--search",           type=str, help="search/grep for word in vedo examples", default='', metavar='')
     pr.add_argument("--search-vtk",       type=str, help="search examples for the input vtk class", default='', metavar='')
     pr.add_argument("--search-code",      type=str, help="search keyword in source code", default='', metavar='')
+    pr.add_argument("--locate",           type=str, help="locate module path of a vedo class", default='', metavar='')
     pr.add_argument("--reload",                     help="reload the file, ignoring any previous download", action="store_true")
     pr.add_argument("--info", nargs='*',            help="get an info printout of the current installation")
     pr.add_argument("--convert", nargs='*',         help="input file(s) to be converted")
@@ -512,6 +520,71 @@ def exe_search_vtk(args):
         print("\n".join(examples))
     else:
         print(f"No examples for the VTK Class: {vtk_class} and language: {language}")
+
+
+##############################################################################################
+def exe_locate(args):
+    """Locate the fully qualified module path for a vedo class name."""
+    target = (args.locate or "").strip()
+    if not target:
+        printc(":sad: Please provide a class name, e.g. `vedo --locate Paraboloid`", c="y")
+        return
+
+    matches = set()
+
+    # Fast path: check top-level vedo namespace first.
+    try:
+        obj = getattr(vedo, target)
+    except AttributeError:
+        obj = None
+    if inspect.isclass(obj):
+        matches.add(f"{obj.__module__}.{obj.__name__}")
+
+    class_names_seen = set()
+    class_names_lower = set()
+    for module_info in pkgutil.walk_packages(vedo.__path__, prefix="vedo."):
+        module_name = module_info.name
+        try:
+            module = importlib.import_module(module_name)
+        except Exception:
+            # Optional dependencies or side effects may make some modules unavailable.
+            continue
+
+        for cname, cls in inspect.getmembers(module, inspect.isclass):
+            if cls.__module__ != module_name:
+                continue
+            class_names_seen.add(cname)
+            class_names_lower.add(cname.lower())
+            if cname == target:
+                matches.add(f"{module_name}.{cname}")
+
+    if matches:
+        for match in sorted(matches):
+            print(match)
+        return
+
+    # Case-insensitive fallback and friendly hint.
+    target_lower = target.lower()
+    fuzzy = sorted(name for name in class_names_seen if target_lower in name.lower())[:20]
+    if target_lower in class_names_lower:
+        for module_info in pkgutil.walk_packages(vedo.__path__, prefix="vedo."):
+            module_name = module_info.name
+            try:
+                module = importlib.import_module(module_name)
+            except Exception:
+                continue
+            for cname, cls in inspect.getmembers(module, inspect.isclass):
+                if cls.__module__ != module_name:
+                    continue
+                if cname.lower() == target_lower:
+                    print(f"{module_name}.{cname}")
+        return
+
+    printc(f":sad: No vedo class found with name '{target}'.", c="y")
+    if fuzzy:
+        printc(":idea: Similar class names:", c="c")
+        for name in fuzzy:
+            print(" ", name)
 
 
 #################################################################################################################
