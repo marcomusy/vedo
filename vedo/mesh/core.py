@@ -1352,7 +1352,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         sep.Update()
         return bool(sep.IsInside(0))
 
-    def inside_points(self, pts: "Points" | list, invert=False, tol=1e-05, return_ids=False) -> "Points" | np.ndarray:
+    def inside_points(self, pts: Points | list, invert=False, tol=1e-05, return_ids=False) -> Points | np.ndarray:
         """
         Return the point cloud that is inside mesh surface as a new Points object.
 
@@ -2270,7 +2270,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         msh.name = "PlaneIntersection"
         return msh
 
-    def cut_closed_surface(self, origins, normals, invert=False, return_assembly=False) -> Self | "vedo.Assembly":
+    def cut_closed_surface(self, origins, normals, invert=False, return_assembly=False) -> Self | vedo.Assembly:
         """
         Cut/clip a closed surface mesh with a collection of planes.
         This will produce a new closed surface by creating new polygonal

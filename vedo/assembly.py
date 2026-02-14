@@ -545,7 +545,7 @@ class Assembly(CommonVisual, Actor3DHelper):
     #         obj.SetScale(1, 1, 1)
     #     raise NotImplementedError()
 
-    def unpack(self, i=None) -> list["vedo.Mesh"] | "vedo.Mesh":
+    def unpack(self, i=None) -> list[vedo.Mesh] | vedo.Mesh:
         """Unpack the list of objects from a `Assembly`.
 
         If `i` is given, get `i-th` object from a `Assembly`.

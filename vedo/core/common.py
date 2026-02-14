@@ -826,10 +826,17 @@ class CommonAlgorithms:
 
         Two new arrays are added to the mesh named `PointID` and `CellID`.
         """
+        ids = None
+        # vtkIdFilter was removed in VTK >= 9.6 (replaced by vtkGenerateIds).
         try:
-            ids = vtki.new("IdFilter") # available in VTK <9.6 only
-        except AttributeError:
+            ids = vtki.get_class("IdFilter")()
+        except (KeyError, AttributeError, ImportError):
+            pass
+        if ids is None:
             ids = vtki.new("GenerateIds")
+        if ids is None:
+            vedo.logger.error("add_ids(): cannot instantiate vtkIdFilter/vtkGenerateIds")
+            raise RuntimeError("add_ids(): missing VTK ids filter")
         ids.SetInputData(cls.dataset)
         ids.PointIdsOn()
         ids.CellIdsOn()
@@ -1305,7 +1312,7 @@ class CommonAlgorithms:
             step_length=0,
             surface_constrained=False,
             compute_vorticity=False,
-        ) -> "vedo.Lines" | None:
+        ) -> vedo.Lines | None:
         """
         Integrate a vector field to generate streamlines.
 

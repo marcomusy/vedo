@@ -4,16 +4,18 @@ import datetime
 import os
 import subprocess
 from pathlib import Path
+
 from vedo import __version__, printc
 
-output_dir = Path(os.getenv("VEDO_PDOC_OUTPUT", "html"))
+script_dir = Path(__file__).resolve().parent
+output_dir = Path(os.getenv("VEDO_PDOC_OUTPUT", str(script_dir / "html"))).expanduser().resolve()
 cmd = [
     "pdoc",
     "vedo",
     "-o",
     str(output_dir),
     "-t",
-    ".",
+    str(script_dir),
     "--footer-text",
     f"version {__version__}, rev {datetime.date.today()}.",
     "--logo",
@@ -24,8 +26,12 @@ cmd = [
 printc("Generating documentation:\n", " ".join(cmd), "\n..please wait", c="y")
 subprocess.run(cmd, check=True)
 for root, dirs, files in os.walk(output_dir):
-    for name in dirs + files:
-        os.chmod(Path(root) / name, 0o755)
+    root_path = Path(root)
+    os.chmod(root_path, 0o755)
+    for name in dirs:
+        os.chmod(root_path / name, 0o755)
+    for name in files:
+        os.chmod(root_path / name, 0o644)
 printc("Done.", c="y")
 
 printc("Move to server manually with commands:")

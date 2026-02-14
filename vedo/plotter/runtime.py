@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 import os.path
-import sys
 import time
-from collections.abc import Callable, MutableSequence
 from typing import Any
 from typing_extensions import Self
 import numpy as np
@@ -13,7 +11,6 @@ import vedo.vtkclasses as vtki  # a wrapper for lazy imports
 import vedo
 from vedo import utils
 from vedo import addons
-from vedo.plotter.events import Event
 from .bootstrap import apply_gradient_mode, configure_renderer_common
 from .camera import (
     azimuth,
@@ -848,7 +845,7 @@ class Plotter:
 
     ############################################################################
 
-    def background(self, c1=None, c2=None, at=None, mode=0) -> Self | "np.ndarray":
+    def background(self, c1=None, c2=None, at=None, mode=0) -> Self | np.ndarray:
         """Set the color of the background for the current renderer.
         A different renderer index can be specified by keyword `at`.
 
@@ -1208,7 +1205,7 @@ class Plotter:
         italic=False,
         alpha=1,
         angle=0,
-    ) -> "vedo.addons.Button" | None:
+    ) -> vedo.addons.Button | None:
         """
         Add a button to the renderer window.
 
@@ -1798,7 +1795,7 @@ class Plotter:
         alpha=1,
         units="",
         gap=0.05,
-    ) -> "vedo.visual.Actor2D" | None:
+    ) -> vedo.visual.Actor2D | None:
         """
         Add a Scale Indicator. Only works in parallel mode (no perspective).
 

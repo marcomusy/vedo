@@ -510,7 +510,7 @@ def loadGeoJSON(filename: str | os.PathLike) -> Mesh:
     return Mesh(jr.GetOutput())
 
 ########################################################################
-def loadDolfin(filename: str | os.PathLike) -> Mesh | "vedo.TetMesh" | None:
+def loadDolfin(filename: str | os.PathLike) -> Mesh | vedo.TetMesh | None:
     """
     Reads a `Fenics/Dolfin` file format (.xml or .xdmf).
 

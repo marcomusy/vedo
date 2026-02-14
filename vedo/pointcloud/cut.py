@@ -397,7 +397,7 @@ class PointCutMixin:
         self.pipeline = utils.OperationNode("cut_with_sphere", parents=[self])
         return self
 
-    def cut_with_mesh(self, mesh, invert=False, keep=False) -> Self | "vedo.Assembly":
+    def cut_with_mesh(self, mesh, invert=False, keep=False) -> Self | vedo.Assembly:
         """
         Cut an `Mesh` mesh with another `Mesh`.
 
@@ -645,4 +645,3 @@ class PointCutMixin:
             "crop", parents=[self], comment=f"#pts {self.dataset.GetNumberOfPoints()}"
         )
         return self
-

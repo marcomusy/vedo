@@ -333,7 +333,7 @@ class SplinePlotter(Plotter):
         self.callid3 = self.add_callback("RightButtonPress", self._on_right_click)
 
 
-    def points(self, newpts=None) -> "SplinePlotter" | np.ndarray:
+    def points(self, newpts=None) -> SplinePlotter | np.ndarray:
         """Retrieve the 3D coordinates of the clicked points"""
         if newpts is not None:
             self.cpoints = newpts

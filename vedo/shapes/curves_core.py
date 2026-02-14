@@ -1306,7 +1306,7 @@ class Tube(Mesh):
         self.name = "Tube"
 
 
-def ThickTube(pts, r1, r2, res=12, c=None, alpha=1.0) -> "Mesh" | None:
+def ThickTube(pts, r1, r2, res=12, c=None, alpha=1.0) -> Mesh | None:
     """
     Create a tube with a thickness along a line of points.
 
@@ -1425,5 +1425,4 @@ class Tubes(Mesh):
 
         super().__init__(tuf.GetOutput())
         self.name = "Tubes"
-
 

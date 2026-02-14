@@ -442,8 +442,8 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
 
     def warp(
             self,
-            source: "vedo.Points" | List,
-            target: "vedo.Points" | List,
+            source: vedo.Points | list,
+            target: vedo.Points | list,
             sigma=1, mode="3d", fit=True,
         ) -> Self:
         """

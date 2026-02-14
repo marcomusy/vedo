@@ -298,6 +298,7 @@ class PointAnalyzeMixin:
         self.pipeline = utils.OperationNode("quantize", parents=[self])
         return self
 
+    @property
     def vertex_normals(self) -> np.ndarray:
         """
         Retrieve vertex normals as a numpy array. Same as `point_normals`.
@@ -310,6 +311,7 @@ class PointAnalyzeMixin:
             vtknormals = self.dataset.GetPointData().GetNormals()
         return utils.vtk2numpy(vtknormals)
 
+    @property
     def point_normals(self) -> np.ndarray:
         """
         Retrieve vertex normals as a numpy array. Same as `vertex_normals`.
@@ -1188,4 +1190,3 @@ class PointAnalyzeMixin:
         m = Points(svp.GetOutput())
         m.name = "VisiblePoints"
         return m
-

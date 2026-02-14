@@ -1549,7 +1549,7 @@ def _histogram_spheric(thetavalues, phivalues, rmax=1.2, res=8, cmap="rainbow", 
 
 def streamplot(
     X, Y, U, V, direction="both", max_propagation=None, lw=2, cmap="viridis", probes=()
-) -> "vedo.shapes.Lines" | None:
+) -> vedo.shapes.Lines | None:
     """
     Generate a streamline plot of a vectorial field (U,V) defined at positions (X,Y).
     Returns a `Mesh` object.

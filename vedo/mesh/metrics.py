@@ -15,6 +15,7 @@ from ._proxy import Mesh
 
 
 class MeshMetricsMixin:
+    @property
     def vertex_normals(self) -> np.ndarray:
         """
         Retrieve vertex normals as a numpy array. 
@@ -28,6 +29,7 @@ class MeshMetricsMixin:
         return vtk2numpy(vtknormals)
 
 
+    @property
     def cell_normals(self) -> np.ndarray:
         """
         Retrieve face normals as a numpy array.
@@ -407,5 +409,4 @@ class MeshMetricsMixin:
         self._update(ef.GetOutput(), reset_locators=False)
         self.mapper.ScalarVisibilityOn()
         return self
-
 

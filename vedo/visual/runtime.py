@@ -137,7 +137,7 @@ class CommonVisual:
     #         cmd.AbortFlagOn()
     #     return self
 
-    def show(self, **options) -> "vedo.Plotter" | None:
+    def show(self, **options) -> vedo.Plotter | None:
         """
         Create on the fly an instance of class `Plotter` or use the last existing one to
         show one single object.
