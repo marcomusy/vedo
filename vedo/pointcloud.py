@@ -15,6 +15,7 @@ from vedo import colors
 from vedo import utils
 from vedo.transformations import LinearTransform, NonLinearTransform
 from vedo.core import PointAlgorithms
+from vedo.core import input as input_utils
 from vedo.visual import PointsVisual
 
 __docformat__ = "google"
@@ -452,7 +453,7 @@ def fit_sphere(coords: Union[np.ndarray, "vedo.Points"]) -> "vedo.shapes.Sphere"
     f[:, 0] = x * x + y * y + z * z
     try:
         C, residue, rank, _ = np.linalg.lstsq(A, f, rcond=-1)  # solve AC=f
-    except:
+    except TypeError:
         C, residue, rank, _ = np.linalg.lstsq(A, f)  # solve AC=f
     if rank < 4:
         return None
@@ -707,9 +708,10 @@ class Points(PointsVisual, PointAlgorithms):
         elif utils.is_sequence(inputobj):  # passing point coords
             self.dataset = utils.buildPolyData(utils.make3d(inputobj))
 
-        elif isinstance(inputobj, str) or "PosixPath" in str(type(inputobj)):
-            verts = vedo.file_io.load(inputobj)
-            self.filename = str(inputobj)
+        elif input_utils.is_path_like(inputobj):
+            inpath = input_utils.as_path(inputobj)
+            verts = vedo.file_io.load(inpath)
+            self.filename = str(inpath)
             self.dataset = verts.dataset
 
         elif "meshlib" in str(type(inputobj)):
@@ -718,23 +720,11 @@ class Points(PointsVisual, PointAlgorithms):
 
         else:
             # try to extract the points from a generic VTK input data object
-            if hasattr(inputobj, "dataset"):
-                inputobj = inputobj.dataset
             try:
-                vvpts = inputobj.GetPoints()
-                self.dataset = vtki.vtkPolyData()
-                self.dataset.SetPoints(vvpts)
-                for i in range(inputobj.GetPointData().GetNumberOfArrays()):
-                    arr = inputobj.GetPointData().GetArray(i)
-                    self.dataset.GetPointData().AddArray(arr)
-                carr = vtki.vtkCellArray()
-                for i in range(self.dataset.GetNumberOfPoints()):
-                    carr.InsertNextCell(1)
-                    carr.InsertCellPoint(i)
-                self.dataset.SetVerts(carr)
-            except:
-                vedo.logger.error(f"cannot build Points from type {type(inputobj)}")
-                raise RuntimeError()
+                self.dataset = input_utils.points_polydata_from_dataset(inputobj)
+            except Exception as e:
+                vedo.logger.error(f"cannot build Points from type {type(inputobj)}: {e}")
+                raise RuntimeError() from e
 
         self.actor.SetMapper(self.mapper)
         self.mapper.SetInputData(self.dataset)
@@ -1114,7 +1104,7 @@ class Points(PointsVisual, PointAlgorithms):
                 center = data.mean(axis=0)
                 res = np.linalg.svd(data - center)
                 acoplanarities.append(res[1][2] / npts)
-            except:
+            except (np.linalg.LinAlgError, ValueError, TypeError, IndexError):
                 acoplanarities.append(-1.0)
 
         if "point" in on:

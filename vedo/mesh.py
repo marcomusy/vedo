@@ -8,6 +8,7 @@ import numpy as np
 import vedo.vtkclasses as vtki  # a wrapper for lazy imports
 
 import vedo
+from vedo.core import input as input_utils
 from vedo.colors import get_color
 from vedo.pointcloud import Points
 from vedo.utils import buildPolyData, is_sequence, mag, precision
@@ -99,8 +100,8 @@ class Mesh(MeshVisual, Points):
             gf.Update()
             self.dataset = gf.GetOutput()
 
-        elif isinstance(inputobj, str) or "PosixPath" in str(type(inputobj)):
-            inputobj = str(inputobj)
+        elif input_utils.is_path_like(inputobj):
+            inputobj = input_utils.as_path(inputobj)
             self.dataset = vedo.file_io.load(inputobj).dataset
             self.filename = inputobj
 
@@ -135,17 +136,14 @@ class Mesh(MeshVisual, Points):
                         vdata.SetName(str(k))
                         self.dataset.GetPointData().AddArray(vdata)
             except AssertionError:
-                print("Could not add meshio point data, skip.")
+                vedo.logger.warning("Could not add meshio point data, skip.")
 
         else:
             try:
-                gf = vtki.new("GeometryFilter")
-                gf.SetInputData(inputobj)
-                gf.Update()
-                self.dataset = gf.GetOutput()
-            except:
-                vedo.logger.error(f"cannot build mesh from type {type(inputobj)}")
-                raise RuntimeError()
+                self.dataset = input_utils.geometry_filter_to_polydata(inputobj)
+            except Exception as e:
+                vedo.logger.error(f"cannot build mesh from type {type(inputobj)}: {e}")
+                raise RuntimeError() from e
 
         self.mapper.SetInputData(self.dataset)
         self.actor.SetMapper(self.mapper)
@@ -798,10 +796,11 @@ class Mesh(MeshVisual, Points):
         lines0 = b0.lines
         lines1 = b1.lines
         m =  len(lines0)
-        assert m == len(lines1), (
-            "lines must have the same number of points\n"
-            f"line has {m} points in b0 and {len(lines1)} in b1"
-        )
+        if m != len(lines1):
+            raise ValueError(
+                "lines must have the same number of points\n"
+                f"line has {m} points in b0 and {len(lines1)} in b1"
+            )
 
         strips = []
         points: List[Any] = []
@@ -812,10 +811,11 @@ class Mesh(MeshVisual, Points):
             ids1j = list(lines1[j])
 
             n = len(ids0j)
-            assert n == len(ids1j), (
-                "lines must have the same number of points\n"
-                f"line {j} has {n} points in b0 and {len(ids1j)} in b1"
-            )
+            if n != len(ids1j):
+                raise ValueError(
+                    "lines must have the same number of points\n"
+                    f"line {j} has {n} points in b0 and {len(ids1j)} in b1"
+                )
 
             if closed:
                 ids0j.append(ids0j[0])
@@ -1595,10 +1595,10 @@ class Mesh(MeshVisual, Points):
         if adjacency_list is None:
             adjacency_list = self.compute_adjacency()
         k = self.npoints
-        assert 0 <= index < k, f"index {index} out of range [0, {k})"
-        assert len(adjacency_list) == k, (
-            f"adjacency_list must have {k} entries, got {len(adjacency_list)}"
-        )
+        if not (0 <= index < k):
+            raise IndexError(f"index {index} out of range [0, {k})")
+        if len(adjacency_list) != k:
+            raise ValueError(f"adjacency_list must have {k} entries, got {len(adjacency_list)}")
         ball = {index}
         i = 0
         while i < depth and len(ball) < k:
@@ -2846,7 +2846,8 @@ class Mesh(MeshVisual, Points):
 
                 ![](https://vedo.embl.es/images/volumetric/mesh2volume.png)
         """
-        assert len(values) == 2, "values must be a list of 2 values"
+        if len(values) != 2:
+            raise ValueError("values must be a list of 2 values")
         fg_value, bg_value = values
 
         bounds = self.bounds()
