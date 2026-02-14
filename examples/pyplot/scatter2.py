@@ -1,5 +1,4 @@
-# Scatter plot of a gaussian distribution
-# with varying color and point sizes
+"""Scatter plot of a gaussian cloud with varying marker size and color."""
 from vedo import Text2D, Plotter
 from vedo.pyplot import plot
 import numpy as np

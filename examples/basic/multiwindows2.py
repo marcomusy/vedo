@@ -1,6 +1,7 @@
 """Multiple plotter sync-ed windows"""
 from vedo import Ellipsoid, Cone, Cylinder, show
 
+# One actor per window; cameras are shared.
 acts = [Ellipsoid().color('Bisque'),
         Cone().color('RosyBrown'),
         Cylinder().color('Chocolate'),
@@ -15,6 +16,7 @@ plt2 = show(acts[2], __doc__, **opts, pos=(1000,0), title=ts[2], camera=plt0.cam
 plts = [plt0, plt1, plt2]
 
 def func(evt):
+    """Render sibling windows when one camera changes."""
     for i in range(3):
         if ts[i] != evt.title: # only update the other windows
             plts[i].render()

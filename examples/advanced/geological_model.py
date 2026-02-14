@@ -10,6 +10,7 @@ settings.use_depth_peeling = True
 # Load surfaces, import the file from github
 printc("...loading data...", invert=1, end='')
 url = "https://raw.githubusercontent.com/ahinoamp/Example3DGeologicModelUsingVTKPlotter/master/"
+# Data files are loaded directly from the project repository.
 
 landSurfacePD   = pd.read_csv(url+"land_surface_vertices.csv")
 vertices_175CPD = pd.read_csv(url+"175C_vertices.csv")

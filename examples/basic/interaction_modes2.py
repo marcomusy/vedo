@@ -7,6 +7,7 @@ import numpy as np
 settings.enable_default_mouse_callbacks = False
 
 def mode_select(objs):
+    """Selection callback for Blender-like interaction mode."""
     print("Selected objects:", objs)
     d0 = mode.start_x, mode.start_y  # display coords
     d1 = mode.end_x,   mode.end_y
@@ -17,6 +18,7 @@ def mode_select(objs):
     infru.ps(10).c(color)
     plt.add(frustum, infru).render()
 
+# Scene object to interact with.
 mesh = Mesh(dataurl+"cow.vtk").c("k5").lw(1)
 
 mode = BlenderStyle()

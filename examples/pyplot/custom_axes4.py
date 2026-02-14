@@ -2,6 +2,7 @@
 Access any element to change its size and color"""
 from vedo import *
 
+
 settings.use_depth_peeling = True
 
 # Create a bunch of objects

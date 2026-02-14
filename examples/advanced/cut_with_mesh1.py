@@ -4,6 +4,7 @@ from vedo import dataurl, settings, Plotter, Volume, Ellipsoid
 settings.tiff_orientation_type = 4 # data origin is bottom-left
 
 vol = Volume(dataurl + "embryo.tif")
+# Extract isosurface to be clipped.
 iso = vol.isosurface(30, flying_edges=False).normalize().pos(0,0,0)
 
 emsh = Ellipsoid().scale(0.4).pos(2.8, 1.5, 1.5).wireframe()

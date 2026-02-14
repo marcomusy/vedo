@@ -1,6 +1,7 @@
 """Cast a shadow of 2 meshes onto the wall"""
 from vedo import dataurl, Mesh, Sphere, show
 
+# Textured mesh casting a planar shadow.
 spider = Mesh(dataurl+"spider.ply")
 # spider.rotate_z(-90).normalize()
 spider.texture(dataurl+'textures/leather.jpg')

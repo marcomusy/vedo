@@ -3,6 +3,7 @@ from vedo import *
 
 world = Box([0,0,0], size=(30, 16, 8)).wireframe()
 
+# Two independent aircraft following different parametric trajectories.
 plane1 = Mesh(dataurl+"cessna.vtk").c("green")
 plane1.add_trail(n=100)
 plane1.add_shadow('z', -4).add_shadow('y', 8)

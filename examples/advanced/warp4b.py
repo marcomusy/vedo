@@ -1,3 +1,4 @@
+"""Interactive 3D surface morphing with applications.MorphPlotter."""
 # Same as warp4b.py but using the applications.MorphPlotter class
 from vedo import Mesh, settings, dataurl
 from vedo.applications import MorphPlotter
@@ -110,4 +111,3 @@ plt = MorphPlotter(source, target, size=(2400, 850), axes=14)
 plt.cmap_name = "RdYlBu_r"
 plt.show()
 plt.close()
-

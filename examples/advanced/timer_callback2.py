@@ -1,3 +1,4 @@
+"""Wrap Plotter in a small viewer class with play/pause timer controls."""
 # Create a class which wraps the vedo.Plotter class and adds a timer callback
 # Credits: Nicolas Antille, https://github.com/nantille
 import vedo

@@ -1,3 +1,4 @@
+"""Simulate a chain of coupled pendulum bobs with collisions."""
 import numpy as np
 from vedo import Plotter, mag, versor, vector
 from vedo import Cylinder, Line, Box, Sphere
@@ -48,6 +49,7 @@ DiaSq = (2 * R) ** 2  # Diameter of bob squared
 
 
 def loop_func(evt):
+    """Advance one midpoint-integration step and refresh actors."""
     global bob_x, bob_y
 
     bob_x_m = list(map((lambda x, dx: x + Dt2 * dx), bob_x, x_dot))  # midpoint variables

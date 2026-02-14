@@ -6,6 +6,7 @@ import numpy as np
 x = np.random.randn(100) + 10
 y = np.random.randn(100) * 20 + 20
 
+# Plain scatter style (no connecting polyline).
 fig = plot(
     x, y,
     lw=0,         # do not join points with lines

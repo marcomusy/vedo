@@ -8,6 +8,7 @@
 from vedo import settings, ParametricShape, Text2D, Axes, Plotter
 from vedo.plotter.modes import FlyOverSurface
 
+# Disable default callbacks to let the custom fly-over mode own interactions.
 settings.enable_default_keyboard_callbacks = False
 settings.enable_default_mouse_callbacks = False
 

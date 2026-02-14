@@ -1,6 +1,8 @@
+"""Customize axes styling and placement for multiple objects."""
 from vedo import Points, Axes, show
 import numpy as np
 
+# Two point clouds sharing one custom axes object.
 pts = np.random.randn(2000,3)*[3,2,4]-[1,2,3]
 vpts1 = Points(pts).alpha(0.2).c('blue2')
 vpts2 = vpts1.clone().shift(5,6,7).c('green2')

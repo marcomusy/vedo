@@ -1,3 +1,4 @@
+"""Use a repeating timer callback to animate an actor."""
 from vedo import *
 from time import time
 

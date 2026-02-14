@@ -1,4 +1,4 @@
-# Plot a volume evolution in time
+"""Plot the time evolution of a synthetic 3D scalar field volume."""
 # Credits: https://github.com/edmontz
 import numpy as np
 from scipy.fftpack import fftn, fftshift
@@ -19,6 +19,7 @@ axes = Axes(xrange=(0,n), yrange=(0,n), zrange=(0,n))
 plt.show(axes, viewup='z')
 
 for q in progressbar(range(qn), c='r'):
+    # Update field, FFT-transform it, and render the resulting volume.
     t = 2 * q / qn - 1
     for k in range(n1):
         z = 2 * k / n1 - 1

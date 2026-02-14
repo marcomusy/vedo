@@ -1,6 +1,7 @@
 """The 3D-ruler axes and a goniometer"""
 from vedo import *
 
+
 settings.use_parallel_projection = True  # avoid parallax effects
 
 mesh = Cone().rotate_y(90).pos([1, 2, 3])

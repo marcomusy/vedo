@@ -38,6 +38,7 @@ v = np.zeros(N + 2, float)
 # Integrate forward
 ####################################################
 # Acceleration function for the simple harmonic oscillator
+# Interior points are coupled to nearest neighbors, boundaries stay fixed.
 def accel(y, v, t):
     a = np.zeros(N + 2, float)  # acceleration of particles
     a[1 : N+1] = -(y[1 : N+1] - y[0:N]) - (y[1 : N+1] - y[2 : N+2])

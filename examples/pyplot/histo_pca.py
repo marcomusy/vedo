@@ -3,6 +3,7 @@ import numpy as np
 from vedo import Points, pca_ellipse, Arrow2D, Goniometer
 from vedo.pyplot import Figure, histogram
 
+
 data = np.random.randn(1000, 3)
 
 pts = Points(data).color('#1f77b4').ps(6)

@@ -27,6 +27,7 @@ Ls1 = LBox[1] - Rs
 # Start with the big sphere at the center, then put the small
 # spheres at random selected from a grid of possible positions.
 ListPos = [(0, 0)]
+# Candidate positions avoid overlap with the central big sphere.
 PossiblePos = [
     (x, y)
     for x in np.arange(-LBox[0] + 2 * Rs, LBox[0] - 2 * Rs, 2.2 * Rs)

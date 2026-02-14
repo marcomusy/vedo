@@ -3,10 +3,11 @@ from vedo import settings, Mesh, dataurl, Plane, show
 
 settings.use_depth_peeling = False # depending on your system
 
+# Mesh and receiving plane.
 msh = Mesh(dataurl+"man.vtk").c("k5")
-
 plane = Plane(pos=(0,0,-1.6), normal=(0,0,1), s=[6,7]).alpha(0.2)
 
+# Project mesh onto plane using a directional light vector.
 shad = msh.clone().project_on_plane(plane, direction=(0.5,1,-1))
 shad.c("k7").alpha(1).lighting("off").use_bounds(False)
 

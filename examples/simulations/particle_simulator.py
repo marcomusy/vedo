@@ -45,7 +45,7 @@ class ParticleSim:
         Runs the particle simulation. Simulates one time step, dt, of the particle motion.
         Calculates the force between each pair of particles and updates their motion accordingly
         """
-        # Main simulation loop
+        # Main simulation loop (pairwise Coulomb interactions).
         for i in range(self.iterations):
             for a in self.particles:
                 if a.fixed:

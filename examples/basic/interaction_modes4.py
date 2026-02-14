@@ -13,6 +13,7 @@ img = Image(dataurl+"images/dog.jpg")
 
 
 def toggle_active(event):
+    """Switch active renderer panel with TAB."""
     global active, inactive
     if event.keypress == "Tab":  # toggle active renderer
         active, inactive = inactive, active

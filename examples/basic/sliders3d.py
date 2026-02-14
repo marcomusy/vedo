@@ -8,6 +8,7 @@ mesh = Mesh(dataurl+"spider.ply")
 
 
 def slider_y(widget, event):
+    # Move mesh along x as slider changes.
     mesh.x(widget.value)  # set y coordinate position
 
 plt.add_slider3d(

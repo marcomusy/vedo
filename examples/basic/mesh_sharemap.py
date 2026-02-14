@@ -2,7 +2,6 @@
 across different meshes"""
 from vedo import Mesh, show, dataurl
 
-
 #####################################
 man1 = Mesh(dataurl+"man.vtk")
 scals = man1.vertices[:, 2] * 5 + 27  # pick z coordinates [18->34]

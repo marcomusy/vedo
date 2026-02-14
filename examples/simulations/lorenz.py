@@ -27,6 +27,7 @@ pt.trail.add_shadow("x",  3, alpha=0.5)
 pt.trail.add_shadow("z",-25, alpha=0.5)
 
 def loop_func(event): # move the point
+    # Animate by consuming precomputed trajectory points.
     if len(pts) > 0:
         pos = pts.pop(0)
         pt.pos(pos)

@@ -9,10 +9,12 @@ textures_path = dataurl+'textures/'
 print(__doc__)
 print('example textures:', textures_path)
 
-cubes = []
-cubes.append(Cube().texture(textures_path+'leather.jpg'))
-cubes.append(Cube().texture(textures_path+'paper2.jpg'))
-cubes.append(Cube().texture(textures_path+'wood1.jpg'))
-cubes.append(Cube().texture(textures_path+'wood2.jpg'))
+# Build one textured cube per image.
+cubes = [
+    Cube().texture(textures_path + 'leather.jpg'),
+    Cube().texture(textures_path + 'paper2.jpg'),
+    Cube().texture(textures_path + 'wood1.jpg'),
+    Cube().texture(textures_path + 'wood2.jpg'),
+]
 
 show(cubes, N=4, bg2='lightblue').close()

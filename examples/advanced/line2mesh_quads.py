@@ -2,6 +2,7 @@
 from vedo import Spline, Grid, show
 import numpy as np
 
+# Closed contour to be meshed.
 pts = [
     [0.0, 0.0],
     [1.0, 0.0],
@@ -23,7 +24,7 @@ ycoords += np.sin(ycoords+0.5)*0.75 # to refine mesh resolution
 
 grd = Grid(s=[xcoords, ycoords])    # create a gridded plane
 
+# Generate quad-dominant mesh constrained by the contour.
 msh = shape.generate_mesh(grid=grd, quads=True)
 
 show(shape, msh, __doc__, axes=1).close()
-

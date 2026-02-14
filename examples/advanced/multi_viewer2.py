@@ -1,9 +1,11 @@
+"""Custom multi-panel viewer with click-to-preview interaction."""
 from vedo import settings, Plotter, ParametricShape, VedoLogo, Text2D
 
 settings.renderer_frame_width = 1
 
 ##############################################################################
 def on_left_click(evt):
+    """Show clicked shape in the main preview panel."""
     if not evt.object: return
     shapename.text(f'This is called: {evt.object.name}, on renderer nr.{evt.at}')
     plt.at(1).remove(objs).add(evt.object).reset_camera()

@@ -1,7 +1,8 @@
 """Use a flagpost object to visualize some property interactively"""
 from vedo import ParametricShape, Plotter, precision
 
-def func(evt):  ### called every time mouse moves!
+def func(evt):
+    """Update a floating label with pointer position and speed."""
     if not evt.object:
         return  # mouse hits nothing, return.
 

@@ -2,6 +2,7 @@
 the signed curvature of a line"""
 from vedo import *
 
+
 shape = Spline([
     [1.0, 2.0, -1.0],
     [1.5, 0.0,  0.4],

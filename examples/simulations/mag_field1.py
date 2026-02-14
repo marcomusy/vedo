@@ -11,7 +11,8 @@ def func(evt):
     txt.c('red5').background('yellow7')
     plt.render()
 
-    pts = sptool.spline().points  # extract the current spline
+    # Use current spline as discretized wire carrying current.
+    pts = sptool.spline().points
     field = []
     for probe in probes:
         B = np.zeros(3)

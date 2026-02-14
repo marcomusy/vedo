@@ -1,3 +1,4 @@
+"""Embed both vedo and matplotlib charts in a single interactive scene."""
 import numpy as np
 from vedo import Plotter, Points, Image, settings
 from vedo.pyplot import histogram, plot
@@ -5,6 +6,7 @@ import matplotlib.pyplot as plt
 
 
 def func(w, evt=""):
+    # Filter data by slider threshold and update all overlays.
     d = data[data > w.value]
     if len(d) == 0:
         return

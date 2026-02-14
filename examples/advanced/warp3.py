@@ -26,6 +26,7 @@ class Morpher(Plotter):
         self.pttarget = []
 
     def _func(self, pars):
+        # Objective: squared distance between morphed source and target.
         shift = np.array(np.split(pars, 2)).T  # recreate the shift vectors
         z = np.zeros((self.npts, 1))
         shift = np.append(shift, z, axis=1)  # make them 3d

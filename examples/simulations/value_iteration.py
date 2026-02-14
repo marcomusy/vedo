@@ -38,6 +38,7 @@ def maze(shape=(30, 50), complexity=0.8, density=0.8):
     return Z
 
 def solve(Z, start, goal):
+    # Value-iteration solver on a 4-connected gridworld.
     Z = 1 - Z
     G = np.zeros(Z.shape)
     G[start] = 1

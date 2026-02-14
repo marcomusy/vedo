@@ -18,6 +18,7 @@ dt = 0.015
 
 
 def derivs(state, t):
+    # State derivatives for the coupled double-pendulum ODE.
     dydx = np.zeros_like(state)
     dydx[0] = state[1]
     a = state[2] - state[0]

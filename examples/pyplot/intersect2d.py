@@ -2,6 +2,7 @@
 from vedo import Mesh, precision, show
 import numpy as np
 
+
 verts1 = [(1.9, 0.50), (2.1, 0.8), (2.4, 0.4)]
 verts2 = [(2.3, 0.75), (1.7, 0.4), (2.1, 0.3)]
 faces  = [(0,1,2)]

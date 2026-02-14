@@ -4,6 +4,7 @@ of cell divisions"""
 from vedo import show
 from vedo.pyplot import DirectedGraph
 
+
 # Layouts: [2d, fast2d, clustering2d, circular, circular3d, cone, force, tree]
 #g = Graph(layout='2d', zrange=7)
 g = DirectedGraph(layout='cone')

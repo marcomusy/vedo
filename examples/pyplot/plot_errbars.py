@@ -2,6 +2,7 @@
 from vedo.pyplot import plot
 from vedo import np, settings
 
+
 settings.default_font = 'Theemim'
 settings.remember_last_figure_format = True
 

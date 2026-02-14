@@ -8,6 +8,7 @@ import numpy as np
 ls = np.linspace(0, 10, 8)
 X, Y, Z = np.meshgrid(ls, ls, ls)
 xr, yr, zr = X.ravel(), Y.ravel(), Z.ravel()
+# Regular lattice of sample positions.
 positions = np.vstack([xr, yr, zr]).T
 
 sources = [(5, 8, 5), (8, 5, 5), (5, 2, 5)]
@@ -62,4 +63,3 @@ plt2.interactive()
 
 plt2.close()
 plt1.close()
-

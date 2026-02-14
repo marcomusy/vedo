@@ -1,3 +1,4 @@
+"""Core optics primitives: optical elements and ray-tracing utilities."""
 import vedo
 import numpy as np
 
@@ -5,7 +6,7 @@ vedo.settings.use_depth_peeling = True
 
 ############################
 class OpticalElement:
-    # A base class
+    # Shared hit bookkeeping for any optical element.
     def __init__(self):
         self.name = "OpticalElement"
         self.type = "undefined"
@@ -290,7 +291,6 @@ class Ray:
                 ln.color(c)
             return ln
         return None
-
 
 
 

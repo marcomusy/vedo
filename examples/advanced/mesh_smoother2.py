@@ -4,6 +4,7 @@ from vedo import dataurl, Mesh, show
 s1 = Mesh(dataurl+'panther.stl').lw(1)
 
 s2 = s1.clone().x(50)  # place at x=50
+# Subdivide then smooth to improve visual continuity.
 s2.subdivide(3).smooth().compute_normals()
 s2.c('light blue').lw(0).lighting('glossy').phong()
 

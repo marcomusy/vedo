@@ -4,8 +4,10 @@ from vedo import Plotter, Image, dataurl
 
 plt = Plotter(axes=7)
 
+# Base image.
 pic = Image(dataurl+"images/dog.jpg")
 
+# Create transformed clones.
 for i in range(5):
     p = pic.clone()
     p.crop(bottom=0.20) # crop 20% from bottom

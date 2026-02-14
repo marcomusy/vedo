@@ -3,6 +3,7 @@ import numpy as np
 from vedo import Points, show
 from vedo.pyplot import histogram
 
+
 n = 1000
 x = np.random.randn(n)*1.5 + 60
 y = np.random.randn(n)     + 70

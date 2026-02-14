@@ -3,6 +3,7 @@ Any 3D Mesh object can be added to the figure!"""
 from vedo import *
 from vedo.pyplot import plot, Figure
 
+
 settings.default_font = "Cartoons123"
 settings.palette = 2
 settings.remember_last_figure_format = True

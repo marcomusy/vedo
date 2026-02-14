@@ -28,6 +28,7 @@ elements = [lens1, lens2, lens3, lens4, lens5, mirror, screen]
 lines = []
 source = Grid(res=[20,20]).points # a numpy array
 for pt in source:
+    # Assign wavelength to each ray to include chromatic dispersion.
     λ = np.random.uniform(low=450, high=750)*1e-09  # nanometers
     ray = Ray(pt, direction=(0,0,1), wave_length=λ)
     line = ray.trace(elements).asLine(min_hits=4, cmap_amplitudes="Blues") # vedo.Line

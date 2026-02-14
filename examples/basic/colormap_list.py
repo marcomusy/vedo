@@ -1,3 +1,4 @@
+"""Display available colormaps as horizontal color strips."""
 from vedo import *
 
 # Set the number of colors to generate

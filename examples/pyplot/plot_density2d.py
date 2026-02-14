@@ -2,6 +2,7 @@
 import numpy as np
 from vedo import *
 
+
 settings.use_depth_peeling = True
 
 n = 10000

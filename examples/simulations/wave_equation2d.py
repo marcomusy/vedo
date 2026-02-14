@@ -35,7 +35,7 @@ plt = Plotter(axes=1, size=(1000,700), interactive=False)
 plt.show(grid, txt, __doc__, camera=cam)
 
 for i in range(nframes):
-    # iterate m times before showing the frame
+    # Integrate multiple internal steps per rendered frame.
     for _ in range(m):
         ZC = Z1.copy()
         Z1[1:N-1, 1:N-1] = (

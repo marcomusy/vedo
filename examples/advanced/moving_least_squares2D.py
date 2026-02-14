@@ -10,6 +10,7 @@ plt1 = Plotter(N=3, axes=1)
 mesh = Mesh(dataurl+"bunny.obj").normalize().subdivide()
 
 pts = mesh.coordinates
+# Add synthetic measurement noise before MLS projection.
 pts += np.random.randn(len(pts), 3)/20  # add noise, will not mess up the original points
 
 

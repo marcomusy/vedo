@@ -6,6 +6,7 @@ press r to reset,
 press p to increase point size."""
 from vedo import *
 
+# scatter large example.
 N = 1000000
 
 x = np.random.rand(N)

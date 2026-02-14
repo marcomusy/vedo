@@ -1,3 +1,4 @@
+"""Estimate Gaussian and mean curvature by local quadratic fitting."""
 import numpy as np
 from vedo import Mesh, Plotter, Points, Point, Arrows
 from vedo import dataurl, project_point_on_variety, progressbar

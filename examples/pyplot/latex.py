@@ -1,3 +1,4 @@
+"""Render LaTeX/mathtext strings as textured geometry."""
 from vedo import Latex
 
 # https://matplotlib.org/tutorials/text/mathtext.html

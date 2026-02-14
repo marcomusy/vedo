@@ -7,6 +7,7 @@ settings.default_font = "Bongas"
 settings.remember_last_figure_format = True
 
 mu, sigma, n, bins = 100.0, 15.0, 600, 50
+# Synthetic gaussian samples and analytic reference curve.
 samples = np.random.normal(loc=mu, scale=sigma, size=n)
 x = np.linspace(min(samples), max(samples), num=50)
 y = 1/(sigma*np.sqrt(2*np.pi)) * np.exp( -(x-mu)**2 /(2*sigma**2))

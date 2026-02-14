@@ -3,6 +3,7 @@ from vedo.pyplot import matrix
 from vedo import show
 import numpy as np
 
+
 n, m = (6, 5)
 M = np.eye(n, m)/2 + np.random.randn(n, m)*0.1
 # print(M)

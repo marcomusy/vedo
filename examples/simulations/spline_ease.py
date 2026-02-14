@@ -22,6 +22,7 @@ plt = show(vpts, gpts, line, redpt, equi_pts, axes=1, interactive=0)
 # Animation
 pts = line.points
 for i in range(line.npoints):
+    # Step a marker along the sampled spline points.
     redpt.pos(pts[i]) # assign the new position
     plt.render()
 plt.interactive().close()

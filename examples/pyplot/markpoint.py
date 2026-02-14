@@ -4,6 +4,7 @@ from vedo import *
 
 sp = Sphere().wireframe()
 
+# Fixed text keeps orientation; follower text tracks camera orientation.
 verts = sp.vertices
 tx1 = Text3D("Fixed Text", verts[10], s=0.07, depth=0.1, c="lb")
 tx2 = Text3D("Follower Text", verts[144], s=0.07, c="lg")

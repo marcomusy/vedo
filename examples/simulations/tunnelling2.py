@@ -31,6 +31,7 @@ def f(psi):
     return 1j * (nabla2psi - V*psi)  # this is the RH of Schroedinger equation!
 
 def d_dt(psi):  # find Psi(t+dt)-Psi(t) /dt with 4th order Runge-Kutta method
+    # RK4 integration for the complex Schrodinger field.
     k1 = f(psi)
     k2 = f(psi + dt / 2 * k1)
     k3 = f(psi + dt / 2 * k2)

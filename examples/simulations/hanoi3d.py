@@ -33,6 +33,7 @@ class Hanoi:
         return disk, from_tower, to_tower
 
     def move_disks(self, n, from_tower, to_tower):
+        # Recursive Hanoi solver yielding one move at a time.
         if n == 1:
             yield self.move_disk(from_tower, to_tower)
         else:
@@ -72,4 +73,3 @@ for t in range(len(tower_states)):
             disks[disk].pos([3 * tower_nr, 0, i+0.5])
     plt.render()
 plt.interactive().close()
-

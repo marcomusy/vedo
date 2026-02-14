@@ -22,6 +22,7 @@ def koch(level):
 
 kochs = []
 for i in range(levels):
+    # Build each recursion level as a separate filled polygon.
     # Create a Line from the points and mesh the inside with minimum resolution
     kmsh = Line(koch(i)).generate_mesh(mesh_resolution=1).z(-i/1000)
     kmsh.lw(0).color(-i)

@@ -10,6 +10,7 @@ cols = color_map(vals, "summer")
 
 k = 0
 items = [__doc__]
+# Build a 4x6 grid of hexagonal extruded bars.
 for i in range(4):
     for j in range(6):
         val, col= vals[k], cols[k]

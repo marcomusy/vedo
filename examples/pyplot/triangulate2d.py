@@ -2,6 +2,7 @@
 The contours may be concave, and even contain holes."""
 from vedo import Star, merge, show
 
+# triangulate2d example.
 # let's create two bidimensional contour lines
 s1 = Star(line=True, n=9)
 s2 = Star(line=True, n=5, r1=0.3, r2=0.4).x(0.12)

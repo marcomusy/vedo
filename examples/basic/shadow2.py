@@ -1,3 +1,4 @@
+"""Cast dynamic shadows using explicit light sources."""
 from vedo import Mesh, dataurl, Box, Cube, Arrow, Light, Plotter
 
 man = Mesh(dataurl+'man.vtk').c('k9').lighting('glossy')
@@ -16,4 +17,3 @@ l3 = Light(p3)
 
 plt = Plotter(bg='blackboard').add_shadows()
 plt.show(l1, l2, l3, p1, p2, p3, man, floor, cube)
-

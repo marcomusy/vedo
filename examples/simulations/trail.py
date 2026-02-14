@@ -7,7 +7,7 @@ s.cut_with_plane([-0.8, 0, 0])  # cut left part of sphere
 
 p = Point([-2,0,0]).ps(12).color("black")
 
-# add a trail to point p with 50 segments
+# Add a finite-length trail to visualize recent trajectory.
 p.add_trail(lw=3, n=50)
 
 plt = Plotter(axes=6, interactive=False)

@@ -6,6 +6,7 @@ from vedo import Plotter, Mesh, Text2D
 
 
 def kfunc(evt):
+    """Collect typed characters and apply them as mesh color names."""
     key = evt.keypress.lower()
     field_txt = field.text().strip() # strip leading/trailing spaces
 

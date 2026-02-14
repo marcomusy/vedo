@@ -46,6 +46,7 @@ print('Du, Dv, F, k, name =', Du, Dv, F, k, name)
 
 def loop_func(event):
     global u, v
+    # Perform multiple reaction-diffusion updates per rendered frame.
     for _ in range(25):
         Lu = (                  U[0:-2, 1:-1] +
               U[1:-1, 0:-2] - 4*U[1:-1, 1:-1] + U[1:-1, 2:] +
@@ -70,4 +71,3 @@ plt.add_callback("timer", loop_func)
 plt.timer_callback("start")
 plt.show(grd, __doc__, zoom=1.25, elevation=-30)
 plt.close()
-

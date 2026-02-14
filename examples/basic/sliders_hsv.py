@@ -2,6 +2,7 @@
 from vedo import *
 from vedo.colors import rgb2hsv, hsv2rgb, rgb2hex
 
+# Keep RGB and HSV sliders synchronized in both directions.
 def update_txt(rgb, hsv):
     RGB = np.round(np.array(rgb)*255).astype(int)
     HEX = rgb2hex(rgb)

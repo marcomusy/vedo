@@ -2,6 +2,7 @@
 from vedo import Text2D, Cube, Paraboloid, Plotter
 from vedo.plotter.modes import MousePan
 
+# Shared on-screen instructions while switching interaction styles.
 msg = Text2D(
     """TrackballCamera is the default mode\n(press q to proceed)""",
     c="k", bg="yellow7", s=1.2,

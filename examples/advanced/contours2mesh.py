@@ -2,6 +2,7 @@
 from vedo import Circle, Ribbon, merge, show
 
 cs = []
+# Build a stack of offset contour lines.
 for i in range(-10, 10):
     r = 10 / (i * i + 10)
     c = Circle(r=r).rotate_y(i*2).z(i/10).x(i/20)

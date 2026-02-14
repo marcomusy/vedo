@@ -17,6 +17,7 @@ x0 = vector(-0.8, 0, 0)
 # Pre-compute the trajectory of the block and store it in a list.
 history_x = []
 for i in range(200):
+    # Integrate mass-spring-damper dynamics once per frame.
     F = -k * (x - xr) - b * v         # force and friction
     a = F / m                         # acceleration
     v = v + a * dt                    # velocity

@@ -27,6 +27,7 @@ k = 0.0 + 1j * 2 * np.pi / lambda1  # complex wave number
 norm = len(slits) * 5e5
 amplitudes = []
 verts = screen.points
+# Sum coherent contributions from each elementary slit source.
 for i, x in enumerate(verts):
     psi = 0
     for s in slits:

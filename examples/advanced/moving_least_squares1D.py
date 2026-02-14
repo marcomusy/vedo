@@ -21,6 +21,7 @@ plt = Plotter(N=N, axes=1)
 plt.at(0).show(pts, __doc__, viewup='z')
 
 for i in range(1, N):
+    # Repeated MLS projection denoises and orders the cloud along a curve.
     pts = pts.clone().smooth_mls_1d(n=50).color(i)
     if i == N-1:
         # at the last iteration make sure points

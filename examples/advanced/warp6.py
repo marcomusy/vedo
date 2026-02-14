@@ -4,6 +4,7 @@ from vedo import *
 
 def on_keypress(event):
     if event.object and event.keypress == "c":
+        # Place text along local normal, then warp it to nearby surface points.
         picked = event.picked3d
         idx = mesh.closest_point(picked, return_point_id=True)
         n = normals[idx]

@@ -3,6 +3,7 @@ import numpy as np
 from vedo.pyplot import histogram
 from vedo import settings
 
+
 settings.remember_last_figure_format = True
 
 np.random.seed(0)

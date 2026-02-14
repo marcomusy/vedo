@@ -21,6 +21,7 @@ dt = 1.5e-5
 
 ############################################################
 def reflection(p, pos):
+    # Reflect momentum vector against torus surface normal.
     n = versor(pos)
     return np.dot(np.identity(3) - 2 * n * n[:, np.newaxis], p)
 

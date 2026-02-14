@@ -1,6 +1,7 @@
 """A simple quiver plot"""
 from vedo import Grid, Arrows2D, show
 
+# quiver example.
 
 # Create displacements
 pts1 = Grid(s=[1.0,1.0]).points

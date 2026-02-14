@@ -2,6 +2,7 @@
 from vedo import Marker, settings, show, np
 from vedo.pyplot import histogram
 
+
 settings.default_font = "Ubuntu"
 
 data = np.random.normal(loc=100, size=1000) + 7

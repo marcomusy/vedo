@@ -2,7 +2,7 @@
 from vedo import *
 
 def capping(amsh, bias=0, invert=False, res=50):
-
+    # Extract ordered boundary loop from open mesh.
     bn =  amsh.boundaries().join(reset=True)
 
     pln = fit_plane(bn)
@@ -14,6 +14,7 @@ def capping(amsh, bias=0, invert=False, res=50):
         invert = cutm.npoints > amsh.npoints
 
     pts2 = pts.clone().reorient(pln.normal, [0,0,1]).project_on_plane('z')
+    # Triangulate cap in plane coordinates, then warp it back to 3D boundary.
     msh2 = pts2.generate_mesh(invert=invert, mesh_resolution=res)
 
     source = pts2.coordinates.tolist()
@@ -49,4 +50,3 @@ show([[msh, __doc__],
       [merged_msh, merged_msh.boundaries()]],
       N=2, axes=1, elevation=-40,
 ).close()
-

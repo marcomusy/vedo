@@ -16,6 +16,7 @@ cow = Mesh(dataurl+"cow.vtk").alpha(0.3).subdivide(2)
 for i, p in enumerate(cow.points):
     if i % 1000:
         continue  # skip most points
+    # Fit local osculating sphere from nearest neighbors.
     pts = cow.closest_point(p, n=16)   # find the n-closest points to p
     sph = fit_sphere(pts).alpha(0.05)  # find the fitting sphere
     if sph is None:

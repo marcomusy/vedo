@@ -8,6 +8,7 @@ mesh.compute_normals().c('white')
 plt = Plotter(N=2, bg='blue1')
 
 plt.at(0)
+# Radius controls the AO neighborhood size.
 radius = mesh.diagonal_size()/5  # need to specify it!
 plt.add_ambient_occlusion(radius)
 plt += mesh.clone()
