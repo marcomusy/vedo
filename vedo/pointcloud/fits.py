@@ -583,8 +583,3 @@ def pca_ellipsoid(points: np.ndarray | vedo.Points, pvalue=0.673, res=24) -> ved
     elli.axis3 /= np.linalg.norm(elli.axis3)
     elli.name = "PCAEllipsoid"
     return elli
-
-def Point(pos=(0, 0, 0), r=12, c="red", alpha=1.0) -> Self:
-    """Build a point at position of radius size `r`, color `c` and transparency `alpha`."""
-    from .core import Points
-    return Points([pos], r=r, c=c, alpha=alpha)

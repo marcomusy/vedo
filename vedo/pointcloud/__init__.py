@@ -3,9 +3,8 @@
 from __future__ import annotations
 """Pointcloud package facade."""
 
-from .core import Points
+from .core import Point, Points
 from .fits import (
-    Point,
     merge,
     fit_line,
     fit_circle,

@@ -6,8 +6,6 @@ from weakref import ref as weak_ref_to
 
 from typing_extensions import Self
 
-import numpy as np
-
 import vedo.vtkclasses as vtki
 
 import vedo
@@ -30,10 +28,17 @@ Submodule to work with point clouds.
 ![](https://vedo.embl.es/images/basic/pca.png)
 """
 
-__all__ = ["Points"]
+__all__ = ["Point", "Points"]
 
 
-class Points(PointsVisual, PointAlgorithms, PointTransformMixin, PointAnalyzeMixin, PointReconstructMixin, PointCutMixin):
+
+def Point(pos=(0, 0, 0), r=12, c="red", alpha=1.0) -> Self:
+    """Build a point at position of radius size `r`, color `c` and transparency `alpha`."""
+    return Points([pos], r=r, c=c, alpha=alpha)
+
+
+class Points(PointsVisual, PointAlgorithms, PointTransformMixin, 
+             PointAnalyzeMixin, PointReconstructMixin, PointCutMixin):
     """Work with point clouds."""
 
     def __init__(self, inputobj=None, r=4, c=(0.2, 0.2, 0.2), alpha=1):

@@ -1,7 +1,10 @@
 """Interactive 3D surface morphing with applications.MorphPlotter."""
 # Same as warp4b.py but using the applications.MorphPlotter class
-from vedo import Mesh, settings, dataurl
+from vedo import Mesh, settings, dataurl, printc, vtk_version
 from vedo.applications import MorphPlotter
+
+if vtk_version > (9, 3, 0):
+    printc("Warning: this example works properly with VTK <= 9.3 (regression in newer VTK).", c="y")
 
 
 ####################################################################################
