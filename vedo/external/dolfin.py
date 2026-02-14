@@ -20,7 +20,7 @@ Example:
     ```python
     import dolfin
     from vedo import dataurl, download
-    from vedo.dolfin import plot
+    from vedo.external.dolfin import plot
     fname = download(dataurl+"dolfin_fine.xml")
     mesh = dolfin.Mesh(fname)
     plot(mesh)
