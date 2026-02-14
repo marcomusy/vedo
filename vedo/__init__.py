@@ -76,17 +76,28 @@ notebook_plotter = None
 notebook_backend = None
 
 ## fonts
-fonts_path = os.path.join(installdir, "fonts/")
+_fonts_dir_candidates = [
+    os.path.join(installdir, "fonts"),
+    os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), "fonts"),
+    os.path.join(os.getcwd(), "fonts"),
+]
+fonts_path = ""
+for _candidate in _fonts_dir_candidates:
+    if os.path.isdir(_candidate):
+        fonts_path = _candidate
+        break
 
-# Note:
-# a fatal error occurs when compiling to exe,
-# developer needs to copy the fonts folder to the same location as the exe file
-# to solve this problem
-if not os.path.exists(fonts_path):
-    fonts_path = "fonts/"
-
-fonts = [_f.split(".")[0] for _f in os.listdir(fonts_path) if '.npz' not in _f]
-fonts = list(sorted(fonts))
+if fonts_path:
+    # Keep a unique, sorted list while supporting both source and packaged layouts.
+    fonts = sorted(
+        {
+            os.path.splitext(_f)[0]
+            for _f in os.listdir(fonts_path)
+            if _f.endswith((".ttf", ".npz"))
+        }
+    )
+else:
+    fonts = []
 
 # pyplot module to remember last figure format
 last_figure = None
@@ -119,12 +130,10 @@ class _LoggingCustomFormatter(logging.Formatter):
 
 logger = logging.getLogger("vedo")
 
-_chsh = logging.StreamHandler()
-if sys.stdout is None:
-    sys.stdout = open(os.devnull, "w")
-if sys.stderr is None:
-    sys.stderr = open(os.devnull, "w")
-_chsh.flush = sys.stdout.flush
+_log_stream = sys.stdout if sys.stdout is not None else sys.__stdout__
+if _log_stream is None:
+    _log_stream = open(os.devnull, "w")
+_chsh = logging.StreamHandler(_log_stream)
 _chsh.setLevel(logging.DEBUG)
 _chsh.setFormatter(_LoggingCustomFormatter())
 # Avoid duplicate handlers when vedo is re-imported/reloaded.
@@ -136,6 +145,7 @@ if not any(
     _chsh._vedo_default_handler = True  # type: ignore[attr-defined]
     logger.addHandler(_chsh)
 logger.setLevel(logging.INFO)
+logger.propagate = False
 
 
 def current_plotter():
