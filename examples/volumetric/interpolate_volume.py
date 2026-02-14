@@ -6,6 +6,7 @@ from vedo import Points, show
 from vedo.pyplot import CornerHistogram
 import numpy as np
 
+# Build the volumetric processing pipeline and render results.
 npts = 500                       # nr. of points where the scalar value is known
 coords = np.random.rand(npts, 3) # range is [0, 1]
 scals = coords[:, 2]             # let the scalar be the z of the point itself

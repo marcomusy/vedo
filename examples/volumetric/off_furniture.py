@@ -1,5 +1,5 @@
+"""Build static office furniture actors used by `office.py`."""
 # Pure vtk stuff.
-# Create the furniture objects for the office.py example
 import vtk
 
 def furniture():

@@ -2,6 +2,7 @@
 import vtk
 from vedo import *
 
+# Build the volumetric processing pipeline and render results.
 # Create a test volume with tensors
 pl = vtk.vtkPointLoad()
 pl.SetLoadValue(50)

@@ -2,6 +2,7 @@
 then generate the isosurface at distance -0.5"""
 from vedo import *
 
+# Build the volumetric processing pipeline and render results.
 mesh = Mesh(dataurl+"beethoven.ply").subdivide()
 mesh.color('k').point_size(3) # render mesh as points
 

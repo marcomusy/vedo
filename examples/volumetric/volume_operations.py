@@ -7,6 +7,7 @@ Alphas defines the opacity transfer function in the scalar range.
 from vedo import *
 printc(__doc__)
 
+# Build the volumetric processing pipeline and render results.
 plt = Plotter(N=4)
 
 v0 = Volume(dataurl+'embryo.slc').cmap(0).add_scalarbar3d()

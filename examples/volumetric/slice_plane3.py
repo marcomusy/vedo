@@ -6,6 +6,7 @@ normal = [0, 0, 1]
 cmap = "gist_stern_r"
 
 def func(w, _):
+    # Re-slice at current cutter origin/normal.
     c, n = pcutter.origin, pcutter.normal
     vslice = vol.slice_plane(c, n, autocrop=True).cmap(cmap)
     vslice.name = "Slice"

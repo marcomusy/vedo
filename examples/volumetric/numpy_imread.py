@@ -3,6 +3,7 @@ from a numpy object using imread"""
 from vedo import *
 from skimage.io import imread
 
+# Build the volumetric processing pipeline and render results.
 
 f = dataurl+'embryo.tif'
 

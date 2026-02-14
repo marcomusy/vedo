@@ -1,6 +1,7 @@
 """Cut a TetMesh with an arbitrary polygonal Mesh"""
 from vedo import *
 
+# Build the volumetric processing pipeline and render results.
 sphere = Sphere(r=500).x(400)
 sphere.color('green5', 0.2).wireframe()
 

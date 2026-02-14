@@ -3,6 +3,7 @@ mode=0, composite rendering
 mode=1, maximum-projection rendering"""
 from vedo import dataurl, Volume, show
 
+# Build the volumetric processing pipeline and render results.
 vol1 = Volume(dataurl+"vase.vti")
 
 # can set colors and transparencies along the scalar range

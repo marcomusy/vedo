@@ -1,3 +1,4 @@
+"""Compute streamlines on an unstructured grid from custom seed probes."""
 from vedo import *
 
 f = download('https://github.com/marcomusy/vedo/files/4602353/domain_unstruct.vtk.gz')

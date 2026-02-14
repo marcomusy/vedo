@@ -2,6 +2,7 @@
 hover the plane to get the scalar values"""
 from vedo import dataurl, precision, Sphere, Volume, Plotter
 
+# Build the volumetric processing pipeline and render results.
 def func(evt):
     if not evt.object:
         return

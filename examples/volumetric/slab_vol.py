@@ -2,6 +2,7 @@
 from vedo import Axes, Volume, Box, dataurl, settings, show
 from vedo.pyplot import histogram
 
+# Build the volumetric processing pipeline and render results.
 settings.default_font = "Calco"
 
 vol = Volume(dataurl + "embryo.tif")

@@ -2,6 +2,7 @@
 Press q to make it explode"""
 from vedo import TetMesh, Plotter, Text2D, dataurl
 
+# Build the volumetric processing pipeline and render results.
 n = 20000
 f1 = 0.005  # control the tetras resolution
 f2 = 0.15   # control the nr of seeds

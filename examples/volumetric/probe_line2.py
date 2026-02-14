@@ -2,6 +2,7 @@
 from vedo import dataurl, Volume, Line, show
 from vedo.pyplot import plot
 
+# Build the volumetric processing pipeline and render results.
 vol = Volume(dataurl + "embryo.slc")
 vol.add_scalarbar3d("wild-type mouse embryo", c="k")
 vol.scalarbar = vol.scalarbar.clone2d("bottom-right", 0.2)

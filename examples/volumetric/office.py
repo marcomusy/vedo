@@ -4,6 +4,7 @@ ventilation and a burning cigarette."""
 from vedo import dataurl, download, loadStructuredGrid, UnstructuredGrid, Grid, show
 from off_furniture import furniture
 
+# Build the volumetric processing pipeline and render results.
 fpath = download(dataurl + 'office.binary.vtk')
 sgrid = loadStructuredGrid(fpath)
 ugrid = UnstructuredGrid(sgrid) # convert to unstructured grid which vedo supports

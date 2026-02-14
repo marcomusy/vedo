@@ -1,3 +1,4 @@
+"""Apply frequency-domain low-pass filtering to a volume."""
 from vedo import *
 
 # mode = 1 is maximum projection (default is 0=composite)

@@ -4,6 +4,7 @@ alpha channel for modulating the opacity"""
 from vedo import Image, show
 import numpy as np
 
+# Build the volumetric processing pipeline and render results.
 rgbaimage1 = np.random.rand(50, 50, 4) * 255
 alpharamp = np.linspace(0, 255, 50).astype(int)
 rgbaimage1[:, :, 3] = alpharamp

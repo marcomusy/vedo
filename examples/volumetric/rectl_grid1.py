@@ -5,6 +5,7 @@ lengths along each axis."""
 
 from vedo import *
 
+# Build the volumetric processing pipeline and render results.
 xcoords = 7 + np.sqrt(np.arange(0,900,25))
 ycoords = np.arange(0, 20)
 zcoords = np.arange(0, 20)

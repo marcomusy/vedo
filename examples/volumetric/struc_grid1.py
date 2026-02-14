@@ -1,9 +1,7 @@
-# A StructuredGrid is a dataset where edges of the hexahedrons are 
-# not necessarily parallel to the coordinate axes.
-# It can be thought of as a tessellation of a block of 3D space,
-# similar to a `RectilinearGrid`
-# except that the cells are not necessarily cubes, they can have different
-# orientations but are connected in the same way as a `RectilinearGrid`.
+"""Create, cut, and visualize a noisy structured grid dataset."""
+
+# A StructuredGrid is a dataset where hexahedral edges are not necessarily
+# parallel to coordinate axes. Connectivity is regular, geometry is not.
 
 from vedo import *
 

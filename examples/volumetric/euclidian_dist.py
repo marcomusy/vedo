@@ -5,7 +5,7 @@ from vedo import *
 
 e = Volume(dataurl+'embryo.tif')
 
+# Distance transform is returned as squared euclidean distance.
 edt = e.euclidean_distance()
 
 show([(e,__doc__), edt], N=2, viewup='z', axes=1, zoom=1.5).close()
-

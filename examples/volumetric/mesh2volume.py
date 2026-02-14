@@ -4,6 +4,7 @@ from vedo import Mesh, dataurl, Plotter
 
 surf = Mesh(dataurl+"bunny.obj").normalize().wireframe()
 
+# Rasterize surface occupancy into a binary volume.
 vol = surf.binarize()
 vol.alpha([0,0.75]).cmap('blue5')
 

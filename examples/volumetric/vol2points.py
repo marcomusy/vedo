@@ -3,6 +3,7 @@ from vedo import *
 
 v = Volume(dataurl+'vase.vti')
 
+# Convert every voxel to a point cloud sample.
 pts = v.topoints().print() # returns Points
 
 scalars = pts.pointdata[0]

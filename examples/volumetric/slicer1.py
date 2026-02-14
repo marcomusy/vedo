@@ -3,6 +3,7 @@
 from vedo import dataurl, Volume, Text2D
 from vedo.applications import Slicer3DPlotter
 
+# Build the volumetric processing pipeline and render results.
 vol = Volume(dataurl + "embryo.slc")
 
 plt = Slicer3DPlotter(

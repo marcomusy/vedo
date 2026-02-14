@@ -3,6 +3,7 @@ from vedo import Image, dataurl, Circle, Lines, show
 from vedo.pyplot import plot
 import numpy as np
 
+# Build the volumetric processing pipeline and render results.
 img = Image(dataurl+'images/spheroid.jpg')
 cpt = [580,600,0]
 circle = Circle(cpt, r=500, res=36).wireframe()

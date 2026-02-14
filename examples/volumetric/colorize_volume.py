@@ -2,6 +2,7 @@
 from vedo import Volume, dataurl, show
 from vedo.pyplot import CornerHistogram
 
+# Build the volumetric processing pipeline and render results.
 # Build a Volume object.
 # A set of color/transparency values - of any length - can be passed
 # to define the transfer function in the range of the scalar.

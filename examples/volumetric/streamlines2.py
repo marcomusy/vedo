@@ -2,6 +2,7 @@
 the streamlines of the velocity field"""
 from vedo import *
 
+# Build the volumetric processing pipeline and render results.
 ######################## vtk
 import vtk
 # Read the data and specify which scalars and vectors to read.

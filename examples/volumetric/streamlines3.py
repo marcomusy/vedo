@@ -1,6 +1,7 @@
 """Draw streamlines for the cavity case from OpenFOAM tutorial"""
 from vedo import *
 
+# Build the volumetric processing pipeline and render results.
 # Load an UnStructuredGrid
 ugrid = UnstructuredGrid(dataurl+"cavity.vtk").alpha(0.1)
 
