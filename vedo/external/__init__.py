@@ -2,10 +2,8 @@ from __future__ import annotations
 """Helpers integrating optional external libraries."""
 
 from .conversions import *
-from .dolfin import plot as dolfin_plot
 
 __all__ = [
-    "dolfin_plot",
     "vedo2trimesh",
     "trimesh2vedo",
     "vedo2meshlab",
