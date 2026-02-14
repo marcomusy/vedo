@@ -259,7 +259,7 @@ class Figure(Assembly):
         obj = utils.flatten(obj)
         return self.insert(*obj)
 
-    def _check_unpack_and_insert(self, fig: "Figure") -> Self:
+    def _check_unpack_and_insert(self, fig: Figure) -> Self:
 
         if fig.label:
             self.labels.append(fig.label)

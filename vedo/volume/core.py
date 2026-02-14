@@ -385,11 +385,11 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         ]
         return "\n".join(allt)
 
-    def copy(self, deep=True) -> "Volume":
+    def copy(self, deep=True) -> Volume:
         """Return a copy of the Volume. Alias of `clone()`."""
         return self.clone(deep=deep)
 
-    def clone(self, deep=True) -> "Volume":
+    def clone(self, deep=True) -> Volume:
         """Return a clone copy of the Volume. Alias of `copy()`."""
         if deep:
             newimg = vtki.vtkImageData()
@@ -961,7 +961,7 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         self.pipeline = utils.OperationNode(f"mirror {axis}", parents=[self], c="#4cc9f0")
         return self
 
-    def operation(self, operation: str, volume2=None) -> "Volume":
+    def operation(self, operation: str, volume2=None) -> Volume:
         """
         Perform operations with `Volume` objects.
         Keyword `volume2` can be a constant `float`.
@@ -1359,7 +1359,7 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         self.pipeline = utils.OperationNode("magnitude", parents=[self], c="#4cc9f0")
         return self
 
-    def topoints(self) -> "vedo.Points":
+    def topoints(self) -> vedo.Points:
         """
         Extract all image voxels as points.
         This function takes an input `Volume` and creates an `Mesh`
@@ -1375,7 +1375,7 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         mpts.pipeline = utils.OperationNode("topoints", parents=[self], c="#4cc9f0:#e9c46a")
         return mpts
 
-    def euclidean_distance(self, anisotropy=False, max_distance=None) -> "Volume":
+    def euclidean_distance(self, anisotropy=False, max_distance=None) -> Volume:
         """
         Implementation of the Euclidean DT (Distance Transform) using Saito's algorithm.
         The distance map produced contains the square of the Euclidean distance values.
@@ -1406,7 +1406,7 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         vol.pipeline = utils.OperationNode("euclidean_distance", parents=[self], c="#4cc9f0")
         return vol
 
-    def correlation_with(self, vol2: "Volume", dim=2) -> "Volume":
+    def correlation_with(self, vol2: Volume, dim=2) -> Volume:
         """
         Find the correlation between two volumetric data sets.
         Keyword `dim` determines whether the correlation will be 3D, 2D or 1D.

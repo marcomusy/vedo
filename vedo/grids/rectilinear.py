@@ -360,7 +360,7 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         result["status"] = res
         return result
 
-    def clone(self, deep=True) -> "RectilinearGrid":
+    def clone(self, deep=True) -> RectilinearGrid:
         """Return a clone copy of the RectilinearGrid. Alias of `copy()`."""
         if deep:
             newrg = vtki.vtkRectilinearGrid()
@@ -385,7 +385,7 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         # OVERRIDE CommonAlgorithms.bounds() which is too slow
         return np.array(self.dataset.GetBounds())
 
-    def isosurface(self, value=None) -> "vedo.Mesh":
+    def isosurface(self, value=None) -> vedo.Mesh:
         """
         Return a `Mesh` isosurface extracted from the object.
 
@@ -424,7 +424,7 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         )
         return out
 
-    def cut_with_plane(self, origin=(0, 0, 0), normal="x") -> "UnstructuredGrid":
+    def cut_with_plane(self, origin=(0, 0, 0), normal="x") -> UnstructuredGrid:
         """
         Cut the object with the plane defined by a point and a normal.
 
@@ -460,7 +460,7 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         ug.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
         return ug
 
-    def cut_with_mesh(self, mesh, invert=False, whole_cells=False, on_boundary=False) -> "UnstructuredGrid":
+    def cut_with_mesh(self, mesh, invert=False, whole_cells=False, on_boundary=False) -> UnstructuredGrid:
         """
         Cut a `RectilinearGrid` with a `Mesh`.
 

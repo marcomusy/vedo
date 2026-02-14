@@ -166,7 +166,7 @@ class CommonAlgorithms:
             scals.Modified()
         return cls
 
-    def box(cls, scale=1, padding=0) -> "vedo.Mesh":
+    def box(cls, scale=1, padding=0) -> vedo.Mesh:
         """
         Return the bounding box as a new `Mesh` object.
 
@@ -302,7 +302,7 @@ class CommonAlgorithms:
         """Retrieve the number of cells."""
         return cls.dataset.GetNumberOfCells()
 
-    def cell_centers(cls, copy_arrays=False) -> "vedo.Points":
+    def cell_centers(cls, copy_arrays=False) -> vedo.Points:
         """
         Get the coordinates of the cell centers as a `Points` object.
 
@@ -1067,7 +1067,7 @@ class CommonAlgorithms:
             shape="folder", c="#8a817c"
         )
 
-    def tomesh(cls, bounds=(), shrink=0) -> "vedo.Mesh":
+    def tomesh(cls, bounds=(), shrink=0) -> vedo.Mesh:
         """
         Extract boundary geometry from dataset (or convert data to polygonal type).
 
@@ -1105,7 +1105,7 @@ class CommonAlgorithms:
         msh.pipeline = utils.OperationNode("tomesh", parents=[cls], c="#9e2a2b")
         return msh
 
-    def signed_distance(cls, dims=(20, 20, 20), bounds=None, invert=False, max_radius=None) -> "vedo.Volume":
+    def signed_distance(cls, dims=(20, 20, 20), bounds=None, invert=False, max_radius=None) -> vedo.Volume:
         """
         Compute the `Volume` object whose voxels contains the signed distance from
         the object. The calling object must have "Normals" defined.
@@ -1155,7 +1155,7 @@ class CommonAlgorithms:
         return vol
 
     def unsigned_distance(
-            cls, dims=(25,25,25), bounds=(), max_radius=0, cap_value=0) -> "vedo.Volume":
+            cls, dims=(25,25,25), bounds=(), max_radius=0, cap_value=0) -> vedo.Volume:
         """
         Compute the `Volume` object whose voxels contains the unsigned distance
         from the input object.

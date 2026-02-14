@@ -46,7 +46,7 @@ def screenshot(plotter, filename="screenshot.png", scale=1, asarray=False) -> An
     """
     return vedo.file_io.screenshot(filename, scale, asarray)
 
-def toimage(plotter, scale=1) -> "vedo.image.Image":
+def toimage(plotter, scale=1) -> vedo.image.Image:
     """
     Generate a `Image` object from the current rendering window.
 

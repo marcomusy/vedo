@@ -21,7 +21,7 @@ class PointReconstructMixin:
             res=(50, 50, 50),
             bounds=(),
             maxdist=None,
-    ) -> "vedo.Mesh":
+    ) -> vedo.Mesh:
         """
         Generate the surface halo which sits at the specified distance from the input one.
 
@@ -197,7 +197,7 @@ class PointReconstructMixin:
         hole_filling=True,
         bounds=(),
         padding=0.05,
-    ) -> "vedo.Mesh":
+    ) -> vedo.Mesh:
         """
         Surface reconstruction from a scattered cloud of points.
 
@@ -299,7 +299,7 @@ class PointReconstructMixin:
         bounds=None,
         null_value=None,
         dims=(25, 25, 25),
-    ) -> "vedo.Volume":
+    ) -> vedo.Volume:
         """
         Generate a `Volume` by interpolating a scalar
         or vector field which is only known on a scattered set of points or mesh.
@@ -390,7 +390,7 @@ class PointReconstructMixin:
         )
         return vol
 
-    def generate_segments(self, istart=0, rmax=1e30, niter=3) -> "vedo.shapes.Lines":
+    def generate_segments(self, istart=0, rmax=1e30, niter=3) -> vedo.shapes.Lines:
         """
         Generate a line segments from a set of points.
         The algorithm is based on the closest point search.
@@ -453,7 +453,7 @@ class PointReconstructMixin:
         alpha=0.0,
         offset=0.0,
         transform=None,
-    ) -> "vedo.mesh.Mesh":
+    ) -> vedo.mesh.Mesh:
         """
         Create a mesh from points in the XY plane.
         If `mode='fit'` then the filter computes a best fitting
@@ -532,7 +532,7 @@ class PointReconstructMixin:
         )
         return msh
 
-    def generate_voronoi(self, padding=0.0, fit=False, method="vtk") -> "vedo.Mesh":
+    def generate_voronoi(self, padding=0.0, fit=False, method="vtk") -> vedo.Mesh:
         """
         Generate the 2D Voronoi convex tiling of the input points (z is ignored).
         The points are assumed to lie in a plane. The output is a Mesh. Each output cell is a convex polygon.
@@ -634,7 +634,7 @@ class PointReconstructMixin:
         m.name = "Voronoi"
         return m
 
-    def generate_delaunay3d(self, radius=0, tol=None) -> "vedo.TetMesh":
+    def generate_delaunay3d(self, radius=0, tol=None) -> vedo.TetMesh:
         """
         Create 3D Delaunay triangulation of input points.
 

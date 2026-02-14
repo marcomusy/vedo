@@ -312,7 +312,7 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
             return np.array(dims)
         return np.array(dims)
 
-    def clone(self, deep=True) -> "StructuredGrid":
+    def clone(self, deep=True) -> StructuredGrid:
         """Return a clone copy of the StructuredGrid. Alias of `copy()`."""
         if deep:
             newrg = vtki.vtkStructuredGrid()
@@ -350,7 +350,7 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
         result["status"] = res
         return result
 
-    def cut_with_plane(self, origin=(0, 0, 0), normal="x") -> "vedo.UnstructuredGrid":
+    def cut_with_plane(self, origin=(0, 0, 0), normal="x") -> vedo.UnstructuredGrid:
         """
         Cut the object with the plane defined by a point and a normal.
 
@@ -388,7 +388,7 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
         ug.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
         return ug
 
-    def cut_with_mesh(self, mesh: Mesh, invert=False, whole_cells=False, on_boundary=False) -> "UnstructuredGrid":
+    def cut_with_mesh(self, mesh: Mesh, invert=False, whole_cells=False, on_boundary=False) -> UnstructuredGrid:
         """
         Cut a `RectilinearGrid` with a `Mesh`.
 
@@ -431,7 +431,7 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
         out.pipeline = utils.OperationNode("cut_with_mesh", parents=[self], c="#9e2a2b")
         return out
 
-    def isosurface(self, value=None) -> "vedo.Mesh":
+    def isosurface(self, value=None) -> vedo.Mesh:
         """
         Return a `Mesh` isosurface extracted from the object.
 

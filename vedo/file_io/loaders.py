@@ -575,7 +575,7 @@ def loadPVD(filename: str | os.PathLike) -> list[Any] | None:
     return listofobjs
 
 ########################################################################
-def loadNeutral(filename: str | os.PathLike) -> "vedo.TetMesh":
+def loadNeutral(filename: str | os.PathLike) -> vedo.TetMesh:
     """
     Reads a `Neutral` tetrahedral file format.
 
@@ -782,7 +782,7 @@ def from_numpy(d: dict) -> Mesh:
     return msh
 
 #############################################################################
-def _import_npy(fileinput: str | os.PathLike) -> "vedo.Plotter":
+def _import_npy(fileinput: str | os.PathLike) -> vedo.Plotter:
     """Import a vedo scene from numpy format."""
     fileinput = str(fileinput)
 

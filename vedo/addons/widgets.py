@@ -196,7 +196,7 @@ class Button(vedo.shapes.Text2D):
         self.pos(pos, "center")
         self.pickable(1)
 
-    def status(self, s=None) -> "Button":
+    def status(self, s=None) -> Button:
         """Set/Get the status of the button."""
         if s is None:
             return self.states[self.status_idx]
@@ -210,7 +210,7 @@ class Button(vedo.shapes.Text2D):
         self.background(self.bcolors[s])
         return self
 
-    def switch(self) -> "Button":
+    def switch(self) -> Button:
         """Change/cycle button status to the next defined status in states list."""
         self.status_idx = (self.status_idx + 1) % len(self.states)
         self.status(self.status_idx)

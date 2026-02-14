@@ -16,7 +16,7 @@ from vedo.plotter.events import Event
 __docformat__ = "google"
 
 
-def fill_event(plotter, ename="", pos=(), enable_picking=True) -> "Event":
+def fill_event(plotter, ename="", pos=(), enable_picking=True) -> Event:
     """
     Create an Event object with information of what was clicked.
 
@@ -433,7 +433,7 @@ def compute_screen_coordinates(plotter, obj, full_window=False) -> np.ndarray:
             p2d.append(cs.GetComputedViewportValue(plotter.renderer))
     return np.array(p2d, dtype=int)
 
-def pick_area(plotter, pos1, pos2, at=None) -> "vedo.Mesh":
+def pick_area(plotter, pos1, pos2, at=None) -> vedo.Mesh:
     """
     Pick all objects within a box defined by two corner points in 2D screen coordinates.
 

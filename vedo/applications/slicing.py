@@ -591,7 +591,7 @@ class Slicer2DPlotter(Plotter):
                 self.usage.text(self.usage_txt)
             self.render()
 
-    def cmap(self, lut=None, fix_scalar_range=False) -> "Slicer2DPlotter":
+    def cmap(self, lut=None, fix_scalar_range=False) -> Slicer2DPlotter:
         """
         Assign a LUT (Look Up Table) to colorize the slice, leave it `None`
         to reuse an existing Volume color map.
@@ -606,17 +606,17 @@ class Slicer2DPlotter(Plotter):
         self.volume.properties.SetUseLookupTableScalarRange(fix_scalar_range)
         return self
 
-    def alpha(self, value: float) -> "Slicer2DPlotter":
+    def alpha(self, value: float) -> Slicer2DPlotter:
         """Set opacity to the slice"""
         self.volume.properties.SetOpacity(value)
         return self
 
-    def auto_adjust_quality(self, value=True) -> "Slicer2DPlotter":
+    def auto_adjust_quality(self, value=True) -> Slicer2DPlotter:
         """Automatically reduce the rendering quality for greater speed when interacting"""
         self.volume.mapper.SetAutoAdjustImageQuality(value)
         return self
 
-    def slab(self, thickness=0, mode=0, sample_factor=2) -> "Slicer2DPlotter":
+    def slab(self, thickness=0, mode=0, sample_factor=2) -> Slicer2DPlotter:
         """
         Make a thick slice (slab).
 
@@ -639,12 +639,12 @@ class Slicer2DPlotter(Plotter):
         self.volume.mapper.SetSlabSampleFactor(sample_factor)
         return self
 
-    def face_camera(self, value=True) -> "Slicer2DPlotter":
+    def face_camera(self, value=True) -> Slicer2DPlotter:
         """Make the slice always face the camera or not."""
         self.volume.mapper.SetSliceFacesCameraOn(value)
         return self
 
-    def jump_to_nearest_slice(self, value=True) -> "Slicer2DPlotter":
+    def jump_to_nearest_slice(self, value=True) -> Slicer2DPlotter:
         """
         This causes the slicing to occur at the closest slice to the focal point,
         instead of the default behavior where a new slice is interpolated between
@@ -654,7 +654,7 @@ class Slicer2DPlotter(Plotter):
         self.volume.mapper.SetJumpToNearestSlice(value)
         return self
 
-    def fill_background(self, value=True) -> "Slicer2DPlotter":
+    def fill_background(self, value=True) -> Slicer2DPlotter:
         """
         Instead of rendering only to the image border,
         render out to the viewport boundary with the background color.
@@ -664,7 +664,7 @@ class Slicer2DPlotter(Plotter):
         self.volume.mapper.SetBackground(value)
         return self
 
-    def lighting(self, window, level, ambient=1.0, diffuse=0.0) -> "Slicer2DPlotter":
+    def lighting(self, window, level, ambient=1.0, diffuse=0.0) -> Slicer2DPlotter:
         """Assign the values for window and color level."""
         self.volume.properties.SetColorWindow(window)
         self.volume.properties.SetColorLevel(level)

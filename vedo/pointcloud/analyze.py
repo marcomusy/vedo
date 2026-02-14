@@ -1060,7 +1060,7 @@ class PointAnalyzeMixin:
 
     def density(
         self, dims=(40, 40, 40), bounds=None, radius=None, compute_gradient=False, locator=None
-    ) -> "vedo.Volume":
+    ) -> vedo.Volume:
         """
         Generate a density field from a point cloud. Input can also be a set of 3D coordinates.
         Output is a `Volume`.

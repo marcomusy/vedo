@@ -438,11 +438,11 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         )
         return self
 
-    def copy(self, deep=True) -> "UnstructuredGrid":
+    def copy(self, deep=True) -> UnstructuredGrid:
         """Return a copy of the object. Alias of `clone()`."""
         return self.clone(deep=deep)
 
-    def clone(self, deep=True) -> "UnstructuredGrid":
+    def clone(self, deep=True) -> UnstructuredGrid:
         """Clone the UnstructuredGrid object to yield an exact copy."""
         ug = vtki.vtkUnstructuredGrid()
         if deep:
@@ -507,7 +507,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         th.Update()
         return self._update(th.GetOutput())
 
-    def isosurface(self, value=None, flying_edges=False) -> "vedo.mesh.Mesh":
+    def isosurface(self, value=None, flying_edges=False) -> vedo.mesh.Mesh:
         """
         Return an `Mesh` isosurface extracted from the `Volume` object.
 
@@ -572,7 +572,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         )
         return self
 
-    def tomesh(self, fill=False, shrink=1.0) -> "vedo.mesh.Mesh":
+    def tomesh(self, fill=False, shrink=1.0) -> vedo.mesh.Mesh:
         """
         Build a polygonal `Mesh` from the current object.
 
@@ -609,7 +609,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         uarr = self.dataset.GetCellTypesArray()
         return utils.vtk2numpy(uarr)
 
-    def extract_cells_by_type(self, ctype) -> "UnstructuredGrid":
+    def extract_cells_by_type(self, ctype) -> UnstructuredGrid:
         """Extract a specific cell type and return a new `UnstructuredGrid`."""
         if isinstance(ctype, str):
             try:
@@ -637,7 +637,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         )
         return ug
 
-    def extract_cells_by_id(self, idlist, use_point_ids=False) -> "UnstructuredGrid":
+    def extract_cells_by_id(self, idlist, use_point_ids=False) -> UnstructuredGrid:
         """Return a new `UnstructuredGrid` composed of the specified subset of indices."""
         selection_node = vtki.new("SelectionNode")
         if use_point_ids:
@@ -776,7 +776,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         self._update(bf.GetOutput())
         return self
 
-    def cut_with_plane(self, origin=(0, 0, 0), normal="x") -> "UnstructuredGrid":
+    def cut_with_plane(self, origin=(0, 0, 0), normal="x") -> UnstructuredGrid:
         """
         Cut the object with the plane defined by a point and a normal.
 
@@ -822,7 +822,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
             self.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
             return self
 
-    def cut_with_box(self, box: Any) -> "UnstructuredGrid":
+    def cut_with_box(self, box: Any) -> UnstructuredGrid:
         """
         Cut the grid with the specified bounding box.
 
@@ -858,7 +858,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         tm.pipeline = utils.OperationNode("cut_with_box", parents=[self], c="#9e2a2b")
         return tm
 
-    def cut_with_mesh(self, mesh: Mesh, invert=False, whole_cells=False, on_boundary=False) -> "UnstructuredGrid":
+    def cut_with_mesh(self, mesh: Mesh, invert=False, whole_cells=False, on_boundary=False) -> UnstructuredGrid:
         """
         Cut a `UnstructuredGrid` or `TetMesh` with a `Mesh`.
 

@@ -35,7 +35,7 @@ def pie_chart(
     alpha=1,
     labels=(),
     show_disc=False,
-) -> "Assembly":
+) -> Assembly:
     """
     Donut plot or pie chart.
 
@@ -131,7 +131,7 @@ def violin(
     centerline=True,
     lc="darkorchid",
     lw=3,
-) -> "Assembly":
+) -> Assembly:
     """
     Violin style histogram.
 
@@ -220,7 +220,7 @@ def violin(
     return asse
 
 
-def whisker(data, s=0.25, c="k", lw=2, bc="blue", alpha=0.25, r=5, jitter=True, horizontal=False) -> "Assembly":
+def whisker(data, s=0.25, c="k", lw=2, bc="blue", alpha=0.25, r=5, jitter=True, horizontal=False) -> Assembly:
     """
     Generate a "whisker" bar from a 1-dimensional dataset.
 
@@ -301,7 +301,7 @@ def matrix(
     lw=0,
     c="black",
     alpha=1,
-) -> "Assembly":
+) -> Assembly:
     """
     Generate a matrix, or a 2D color-coded plot with bin labels.
 

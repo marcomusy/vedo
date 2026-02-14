@@ -113,7 +113,7 @@ class Line(Mesh):
         self.top = top
         self.name = "Line"
 
-    def clone(self, deep=True) -> "Line":
+    def clone(self, deep=True) -> Line:
         """
         Return a copy of the ``Line`` object.
 
@@ -141,7 +141,7 @@ class Line(Mesh):
             "clone", parents=[self], shape="diamond", c="#edede9")
         return ln
 
-    def linecolor(self, lc=None) -> "Line":
+    def linecolor(self, lc=None) -> Line:
         """Assign a color to the line"""
         # overrides mesh.linecolor which would have no effect here
         return self.color(lc)
@@ -225,7 +225,7 @@ class Line(Mesh):
         t = a + np.linalg.norm(pts[a] - q) / d
         return t
 
-    def pattern(self, stipple, repeats=10) -> "Line":
+    def pattern(self, stipple, repeats=10) -> Line:
         """
         Define a stipple pattern for dashing the line.
         Pass the stipple pattern as a string like `'- - -'`.
@@ -339,7 +339,7 @@ class Line(Mesh):
         val[-1] = val[-2]
         return val
 
-    def compute_curvature(self, method=0) -> "Line":
+    def compute_curvature(self, method=0) -> Line:
         """
         Add a pointdata array named 'Curvatures' which contains
         the curvature value at each point.
@@ -362,7 +362,7 @@ class Line(Mesh):
             height=1.1,
             normal=(),
             camera=None,
-        ) -> "Line":
+        ) -> Line:
         """
         Generate a new `Line` which plots the active scalar along the line.
 
@@ -403,7 +403,7 @@ class Line(Mesh):
         vap.name = "ArcPlot"
         return vap
 
-    def sweep(self, direction=(1, 0, 0), res=1) -> "Mesh":
+    def sweep(self, direction=(1, 0, 0), res=1) -> Mesh:
         """
         Sweep the `Line` along the specified vector direction.
 

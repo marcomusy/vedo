@@ -31,7 +31,7 @@ class PointCloudWidget:
         self.representation.PlacePointCloud(self.points.dataset)
         self.representation.BuildRepresentation()
 
-    def add_to(self, plotter) -> "PointCloudWidget":
+    def add_to(self, plotter) -> PointCloudWidget:
         """Add the point cloud widget to a Plotter instance."""
         if not isinstance(plotter, vedo.Plotter):
             vedo.logger.error("PointCloudWidget: add_to() requires a Plotter instance")
@@ -41,13 +41,13 @@ class PointCloudWidget:
         self.widget.On()
         return self
 
-    def on(self) -> "PointCloudWidget":
+    def on(self) -> PointCloudWidget:
         """Activate/Enable the point cloud widget."""
         self.widget.On()
         self.widget.Render()
         return self
 
-    def off(self) -> "PointCloudWidget":
+    def off(self) -> PointCloudWidget:
         """Disactivate/Disable the point cloud widget."""
         self.widget.Off()
         self.widget.Render()
@@ -145,7 +145,7 @@ class SplineTool(vtki.vtkContourWidget):
         """Set the current interactor."""
         self.SetInteractor(iren)
 
-    def add_node(self, pt) -> "SplineTool":
+    def add_node(self, pt) -> SplineTool:
         """Add one point at a specified position in world/display coordinates."""
         if len(pt) == 2:
             self.representation.AddNodeAtDisplayPosition(int(pt[0]), int(pt[1]))
@@ -159,51 +159,51 @@ class SplineTool(vtki.vtkContourWidget):
         cid = self.AddObserver(event, func, priority)
         return cid
 
-    def remove_node(self, i: int) -> "SplineTool":
+    def remove_node(self, i: int) -> SplineTool:
         """Remove specific node by its index."""
         self.representation.DeleteNthNode(i)
         return self
 
-    def on(self) -> "SplineTool":
+    def on(self) -> SplineTool:
         """Activate/Enable the tool."""
         self.On()
         self.Render()
         return self
 
-    def off(self) -> "SplineTool":
+    def off(self) -> SplineTool:
         """Disactivate/Disable the tool."""
         self.Off()
         self.Render()
         return self
 
-    def toggle(self) -> "SplineTool":
+    def toggle(self) -> SplineTool:
         """Toggle the visibility of the tool."""
         self.SetEnabled(not self.GetEnabled())
         return self
 
-    def render(self) -> "SplineTool":
+    def render(self) -> SplineTool:
         """Render the spline."""
         self.Render()
         return self
 
-    def lw(self, lw: int) -> "SplineTool":
+    def lw(self, lw: int) -> SplineTool:
         """Set the line width of the spline."""
         self.representation.GetLinesProperty().SetLineWidth(lw)
         self.representation.GetActiveProperty().SetLineWidth(lw)
         return self
 
-    def ps(self, ps: int) -> "SplineTool":
+    def ps(self, ps: int) -> SplineTool:
         """Set the point size of the spline."""
         self.representation.GetProperty().SetPointSize(ps)
         return self
 
-    def point_color(self, c: str | tuple) -> "SplineTool":
+    def point_color(self, c: str | tuple) -> SplineTool:
         """Set the color of the spline points."""
         c = get_color(c)
         self.representation.GetProperty().SetColor(c)
         return self
 
-    def color(self, c: str | tuple) -> "SplineTool":
+    def color(self, c: str | tuple) -> SplineTool:
         """Set the color of the spline."""
         c = get_color(c)
         self.representation.GetProperty().SetColor(c)
@@ -211,7 +211,7 @@ class SplineTool(vtki.vtkContourWidget):
         self.representation.GetActiveProperty().SetColor(c)
         return self
 
-    def closed_loop(self, value: bool) -> "SplineTool":
+    def closed_loop(self, value: bool) -> SplineTool:
         """Set whether the spline is a closed loop."""
         self.closed = value
         self.representation.SetClosedLoop(value)
@@ -238,7 +238,7 @@ class SplineTool(vtki.vtkContourWidget):
             pts.append(p)
         return np.array(pts)
 
-    def node_position(self, i, pt, onscreen=False) -> "SplineTool":
+    def node_position(self, i, pt, onscreen=False) -> SplineTool:
         """Set the position of a specific node by index."""
         n = self.representation.GetNumberOfNodes()
         if i < 0 or i >= n:
@@ -250,7 +250,7 @@ class SplineTool(vtki.vtkContourWidget):
             self.representation.SetNthNodeWorldPosition(i, pt)
         return self
 
-    def set_nodes(self, pts: np.ndarray | list) -> "SplineTool":
+    def set_nodes(self, pts: np.ndarray | list) -> SplineTool:
         """Set all spline nodes from an array/list of points."""
         if isinstance(pts, list):
             pts = np.array(pts)

@@ -25,7 +25,7 @@ __all__ = ["Group", "Assembly", "procrustes_alignment"]
 
 
 #################################################
-def procrustes_alignment(sources: list["vedo.Mesh"], rigid=False) -> "Assembly":
+def procrustes_alignment(sources: list["vedo.Mesh"], rigid=False) -> Assembly:
     """
     Return an `Assembly` of aligned source meshes with the `Procrustes` algorithm.
     The output `Assembly` is normalized in size.
@@ -163,7 +163,7 @@ class Group:
                     self.objects.remove(a)
         return self
     
-    def rename(self, name: str) -> "Group":
+    def rename(self, name: str) -> Group:
         """Set a new name for the Group object."""
         self.name = name
         return self
@@ -203,34 +203,34 @@ class Group:
         """Unpack the group into its vedo objects."""
         return self.objects
 
-    def clear(self) -> "Group":
+    def clear(self) -> Group:
         """Remove all parts"""
         for a in self._unpack():
             self.actor.RemovePart(a)
         self.objects = []
         return self
 
-    def on(self) -> "Group":
+    def on(self) -> Group:
         """Switch on visibility"""
         self.actor.VisibilityOn()
         return self
 
-    def off(self) -> "Group":
+    def off(self) -> Group:
         """Switch off visibility"""
         self.actor.VisibilityOff()
         return self
 
-    def pickable(self, value=True) -> "Group":
+    def pickable(self, value=True) -> Group:
         """The pickability property of the Group."""
         self.actor.SetPickable(value)
         return self
 
-    def use_bounds(self, value=True) -> "Group":
+    def use_bounds(self, value=True) -> Group:
         """Set the use bounds property of the Group."""
         self.actor.SetUseBounds(value)
         return self
 
-    def print(self) -> "Group":
+    def print(self) -> Group:
         """Print info about the object."""
         print(self)
         return self
@@ -487,7 +487,7 @@ class Assembly(CommonVisual, Actor3DHelper):
                         self.actors.remove(a.actor)
         return self
 
-    def rename(self, name: str) -> "Assembly":
+    def rename(self, name: str) -> Assembly:
         """Set a new name for the Assembly object."""
         self.name = name
         return self
@@ -588,7 +588,7 @@ class Assembly(CommonVisual, Actor3DHelper):
 
         return list(_genflatten([self]))
 
-    def pickable(self, value=True) -> "Assembly":
+    def pickable(self, value=True) -> Assembly:
         """Set/get the pickability property of an assembly and its elements"""
         self.actor.SetPickable(value)
         # set property to each element
@@ -596,7 +596,7 @@ class Assembly(CommonVisual, Actor3DHelper):
             elem.pickable(value)
         return self
 
-    def clone(self) -> "Assembly":
+    def clone(self) -> Assembly:
         """Make a clone copy of the object. Same as `copy()`."""
         newlist = []
         for a in self.objects:
@@ -740,6 +740,6 @@ class Assembly(CommonVisual, Actor3DHelper):
         group.name = self.name
         return group
 
-    def copy(self) -> "Assembly":
+    def copy(self) -> Assembly:
         """Return a copy of the object. Alias of `clone()`."""
         return self.clone()

@@ -167,7 +167,7 @@ class LinearTransform:
     def __repr__(self):
         return self.__str__()
 
-    def print(self) -> "LinearTransform":
+    def print(self) -> LinearTransform:
         """Print transformation."""
         print(self.__str__())
         return self
@@ -291,7 +291,7 @@ class LinearTransform:
         self.inverse_flag = bool(self.T.GetInverseFlag())
         return self
 
-    def compute_inverse(self) -> "LinearTransform":
+    def compute_inverse(self) -> LinearTransform:
         """Compute the inverse."""
         t = self.clone()
         t.invert()
@@ -304,11 +304,11 @@ class LinearTransform:
         self.T.SetMatrix(M)
         return self
 
-    def copy(self) -> "LinearTransform":
+    def copy(self) -> LinearTransform:
         """Return a copy of the transformation. Alias of `clone()`."""
         return self.clone()
 
-    def clone(self) -> "LinearTransform":
+    def clone(self) -> LinearTransform:
         """Clone transformation to make an exact copy."""
         return LinearTransform(self.T)
 
@@ -361,7 +361,7 @@ class LinearTransform:
         """Pre-multiply 2 transfomations."""
         return self.concatenate(A, pre_multiply=True)
 
-    def get_concatenated_transform(self, i) -> "LinearTransform":
+    def get_concatenated_transform(self, i) -> LinearTransform:
         """Get intermediate matrix by concatenation index."""
         return LinearTransform(self.T.GetConcatenatedTransform(i))
 
@@ -898,7 +898,7 @@ class NonLinearTransform:
         else:
             warn('In NonLinearTransform mode can be either "2d" or "3d"', stacklevel=2)
 
-    def clone(self) -> "NonLinearTransform":
+    def clone(self) -> NonLinearTransform:
         """Clone transformation to make an exact copy."""
         return NonLinearTransform(self.T)
 
@@ -918,7 +918,7 @@ class NonLinearTransform:
             json.dump(dictionary, outfile, sort_keys=True, indent=2)
         return self
 
-    def invert(self) -> "NonLinearTransform":
+    def invert(self) -> NonLinearTransform:
         """Invert transformation."""
         self.T.Inverse()
         self.inverse_flag = bool(self.T.GetInverseFlag())
@@ -1058,7 +1058,7 @@ class TransformInterpolator:
         self.vtk_interpolator.InterpolateTransform(t, xform)
         return LinearTransform(xform)
 
-    def add(self, t, T) -> "TransformInterpolator":
+    def add(self, t, T) -> TransformInterpolator:
         """Add intermediate transformations."""
         try:
             # in case a vedo object is passed
@@ -1076,7 +1076,7 @@ class TransformInterpolator:
         self.vtk_interpolator.AddTransform(t, LT.T)
         return self
 
-    # def remove(self, t) -> "TransformInterpolator":
+    # def remove(self, t) -> TransformInterpolator:
     #     """Remove intermediate transformations."""
     #     self.TS.pop(t)
     #     self.vtk_interpolator.RemoveTransform(t)
@@ -1088,13 +1088,13 @@ class TransformInterpolator:
         tmax = self.vtk_interpolator.GetMaximumT()
         return np.array([tmin, tmax])
 
-    def clear(self) -> "TransformInterpolator":
+    def clear(self) -> TransformInterpolator:
         """Clear all intermediate transformations."""
         self.TS = []
         self.vtk_interpolator.Initialize()
         return self
 
-    def mode(self, m) -> "TransformInterpolator":
+    def mode(self, m) -> TransformInterpolator:
         """Set interpolation mode ('linear' or 'spline')."""
         if m == "linear":
             self.vtk_interpolator.SetInterpolationTypeToLinear()

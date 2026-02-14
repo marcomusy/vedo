@@ -1035,7 +1035,7 @@ class Plotter:
         show_value=True,
         delayed=False,
         **options,
-    ) -> "vedo.addons.Slider2D":
+    ) -> vedo.addons.Slider2D:
         """
         Add a `vedo.addons.Slider2D` which can call an external custom function.
 
@@ -1130,7 +1130,7 @@ class Plotter:
         rotation=0.0,
         c=None,
         show_value=True,
-    ) -> "vedo.addons.Slider3D":
+    ) -> vedo.addons.Slider3D:
         """
         Add a 3D slider widget which can call an external custom function.
 
@@ -1260,7 +1260,7 @@ class Plotter:
         closed=False,
         ontop=True,
         can_add_nodes=True,
-    ) -> "vedo.addons.SplineTool":
+    ) -> vedo.addons.SplineTool:
         """
         Add a spline tool to the current plotter.
         Nodes of the spline can be dragged in space with the mouse.
@@ -1303,7 +1303,7 @@ class Plotter:
         self.widgets.append(sw)
         return sw
 
-    def add_icon(self, icon, pos=3, size=0.08) -> "vedo.addons.Icon":
+    def add_icon(self, icon, pos=3, size=0.08) -> vedo.addons.Icon:
         """Add an inset icon mesh into the same renderer.
 
         Arguments:
@@ -1371,7 +1371,7 @@ class Plotter:
         addons.add_global_axes(axtype, c)
         return self
 
-    def add_legend_box(self, **kwargs) -> "vedo.addons.LegendBox":
+    def add_legend_box(self, **kwargs) -> vedo.addons.LegendBox:
         """Add a legend to the top right.
 
         Examples:
@@ -1605,7 +1605,7 @@ class Plotter:
 
     def add_renderer_frame(self, 
             c=None, alpha=None, lw=None, 
-            padding=None, pattern="brtl") -> "vedo.addons.RendererFrame":
+            padding=None, pattern="brtl") -> vedo.addons.RendererFrame:
         """
         Add a frame to the renderer subwindow.
 

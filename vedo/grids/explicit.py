@@ -233,7 +233,7 @@ class ExplicitStructuredGrid:
         """Return the number of points in the x, y and z directions."""
         return np.array(self.dataset.GetDimensions())
     
-    def clone(self, deep=True) -> "ExplicitStructuredGrid":
+    def clone(self, deep=True) -> ExplicitStructuredGrid:
         """Return a clone copy of the StructuredGrid. Alias of `copy()`."""
         if deep:
             newrg = vtki.vtkExplicitStructuredGrid()
@@ -250,7 +250,7 @@ class ExplicitStructuredGrid:
         newvol.pipeline = utils.OperationNode("clone", parents=[self], c="#bbd0ff", shape="diamond")
         return newvol
     
-    def cut_with_plane(self, origin=(0, 0, 0), normal="x") -> "vedo.UnstructuredGrid":
+    def cut_with_plane(self, origin=(0, 0, 0), normal="x") -> vedo.UnstructuredGrid:
         """
         Cut the object with the plane defined by a point and a normal.
 

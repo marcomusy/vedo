@@ -378,7 +378,7 @@ class TetMesh(UnstructuredGrid):
         self.pipeline = utils.OperationNode("subdivide", c="#edabab", parents=[self])
         return self
 
-    def generate_random_points(self, n, min_radius=0) -> "vedo.Points":
+    def generate_random_points(self, n, min_radius=0) -> vedo.Points:
         """
         Generate `n` uniformly distributed random points
         inside the tetrahedral mesh.
@@ -443,7 +443,7 @@ class TetMesh(UnstructuredGrid):
             "generate_random_points", c="#edabab", parents=[self])
         return vpts
 
-    def isosurface(self, value=True, flying_edges=None) -> "vedo.Mesh":
+    def isosurface(self, value=True, flying_edges=None) -> vedo.Mesh:
         """
         Return a `vedo.Mesh` isosurface.
         The "isosurface" is the surface of the region of points
@@ -482,7 +482,7 @@ class TetMesh(UnstructuredGrid):
         msh.pipeline = utils.OperationNode("isosurface", c="#edabab", parents=[self])
         return msh
 
-    def slice(self, origin=(0, 0, 0), normal=(1, 0, 0)) -> "vedo.Mesh":
+    def slice(self, origin=(0, 0, 0), normal=(1, 0, 0)) -> vedo.Mesh:
         """
         Return a 2D slice of the mesh by a plane passing through origin and assigned normal.
         """

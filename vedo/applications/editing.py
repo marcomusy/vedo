@@ -249,13 +249,13 @@ class FreeHandCutPlotter(Plotter):
                 fname = "mesh_edited.vtk"
             self.write(fname)
 
-    def write(self, filename="mesh_edited.vtk") -> "FreeHandCutPlotter":
+    def write(self, filename="mesh_edited.vtk") -> FreeHandCutPlotter:
         """Save the resulting mesh to file"""
         self.mesh.write(filename)
         vedo.logger.info(f"mesh saved to file {filename}")
         return self
 
-    def start(self, *args, **kwargs) -> "FreeHandCutPlotter":
+    def start(self, *args, **kwargs) -> FreeHandCutPlotter:
         """Start window interaction (with mouse and keyboard)"""
         acts = [self.txt2d, self.mesh, self.points, self.spline, self.jline]
         self.show(acts + list(args), **kwargs)
@@ -394,7 +394,7 @@ class SplinePlotter(Plotter):
             if self.verbose:
                 vedo.colors.printc("==== Cleared all points ====", c="r", invert=True)
 
-    def start(self) -> "SplinePlotter":
+    def start(self) -> SplinePlotter:
         """Start the interaction"""
         self.update()
         self.show(self.object, self.instructions, mode=self.mode)

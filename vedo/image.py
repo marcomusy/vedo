@@ -424,11 +424,11 @@ class Image(vedo.visual.ImageVisual):
         self.dataset.SetExtent(ext[0], ext[1], ext[2], ext[3], 0, 0)
         self.mapper.Modified()
 
-    def copy(self) -> "Image":
+    def copy(self) -> Image:
         """Return a copy of the image. Alias of `clone()`."""
         return self.clone()
 
-    def clone(self) -> "Image":
+    def clone(self) -> Image:
         """Return an exact copy of the input Image.
         If transform is True, it is given the same scaling and position."""
         img = vtki.vtkImageData()
@@ -443,7 +443,7 @@ class Image(vedo.visual.ImageVisual):
         pic.pipeline = utils.OperationNode("clone", parents=[self], c="#f7dada", shape="diamond")
         return pic
 
-    def clone2d(self, pos=(0, 0), size=1, justify="", ontop=False) -> "vedo.visual.Actor2D":
+    def clone2d(self, pos=(0, 0), size=1, justify="", ontop=False) -> vedo.visual.Actor2D:
         """
         Embed an image as a static 2D image in the canvas.
 
@@ -575,7 +575,7 @@ class Image(vedo.visual.ImageVisual):
         )
         return self
 
-    def tile(self, nx=4, ny=4, shift=(0, 0)) -> "Image":
+    def tile(self, nx=4, ny=4, shift=(0, 0)) -> Image:
         """
         Generate a tiling from the current image by mirroring and repeating it.
 
@@ -707,7 +707,7 @@ class Image(vedo.visual.ImageVisual):
         """Mirror image along x or y axis. Same as `mirror()`."""
         return self.mirror(axis=axis)
 
-    def select(self, component: int) -> "Image":
+    def select(self, component: int) -> Image:
         """Select one single component of the rgb image."""
         ec = vtki.new("ImageExtractComponents")
         ec.SetInputData(self.dataset)
@@ -849,7 +849,7 @@ class Image(vedo.visual.ImageVisual):
         self.pipeline = utils.OperationNode("enhance", parents=[self], c="#f28482")
         return self
 
-    def fft(self, mode="magnitude", logscale=12, center=True) -> "Image":
+    def fft(self, mode="magnitude", logscale=12, center=True) -> Image:
         """
         Fast Fourier transform of a image.
 
@@ -907,7 +907,7 @@ class Image(vedo.visual.ImageVisual):
         pic.pipeline = utils.OperationNode("FFT", parents=[self], c="#f28482")
         return pic
 
-    def rfft(self, mode="magnitude") -> "Image":
+    def rfft(self, mode="magnitude") -> Image:
         """Reverse Fast Fourier transform of a image."""
 
         ffti = vtki.new("ImageRFFT")
@@ -1151,7 +1151,7 @@ class Image(vedo.visual.ImageVisual):
         )
         return self
 
-    def threshold(self, value=None, flip=False) -> "vedo.Mesh":
+    def threshold(self, value=None, flip=False) -> vedo.Mesh:
         """
         Create a polygonal Mesh from a Image by filling regions with pixels
         luminosity above a specified value.
@@ -1278,14 +1278,17 @@ class Image(vedo.visual.ImageVisual):
         )
         return self
 
-    def tomesh(self) -> "vedo.shapes.Grid":
+    def tomesh(self) -> vedo.shapes.Grid:
         """
         Convert an image to polygonal data (quads),
         with each polygon vertex assigned a RGBA value.
         """
         dims = self.dataset.GetDimensions()
-        gr = vedo.shapes.Grid(s=dims[:2], res=(dims[0] - 1, dims[1] - 1))
-        gr.pos(int(dims[0] / 2), int(dims[1] / 2)).pickable(True).wireframe(False).lw(0)
+        gr = vedo.shapes.Grid(
+            s=(dims[0] - 1, dims[1] - 1),
+            res=(dims[0] - 1, dims[1] - 1),
+        )
+        gr.pos((dims[0] - 1) / 2, (dims[1] - 1) / 2).pickable(True).wireframe(False).lw(0)
         self.dataset.GetPointData().GetScalars().SetName("RGBA")
         gr.dataset.GetPointData().AddArray(self.dataset.GetPointData().GetScalars())
         gr.dataset.GetPointData().SetActiveScalars("RGBA")
@@ -1294,6 +1297,8 @@ class Image(vedo.visual.ImageVisual):
         gr.mapper.ScalarVisibilityOn()
         gr.name = self.name
         gr.filename = self.filename
+        # Preserve image pose (position/orientation/scale) on generated mesh.
+        gr.apply_transform(self.transform)
         gr.pipeline = utils.OperationNode("tomesh", parents=[self], c="#f28482:#e9c46a")
         return gr
 

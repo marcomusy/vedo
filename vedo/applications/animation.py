@@ -597,7 +597,7 @@ class AnimationPlayer(vedo.Plotter):
     def _handle_timer(self, _evt=None) -> None:
         self.set_frame(self.value + 1)
 
-    def stop(self) -> "AnimationPlayer":
+    def stop(self) -> AnimationPlayer:
         """
         Stop the animation timers, remove buttons and slider.
         Behave like a normal `Plotter` after this.
@@ -700,7 +700,7 @@ class Clock(vedo.Assembly):
         super().__init__([back1, labels, ore, minu, secs, txt])
         self.name = "Clock"
 
-    def update(self, h=None, m=None, s=None) -> "Clock":
+    def update(self, h=None, m=None, s=None) -> Clock:
         """Update clock with current or user time."""
         import time
         parts = self.unpack()

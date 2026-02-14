@@ -757,7 +757,7 @@ class Plane(Mesh):
         self.name = "Plane"
         self.variance = 0 # used by pointcloud.fit_plane()
 
-    def clone(self, deep=True) -> "Plane":
+    def clone(self, deep=True) -> Plane:
         newplane = Plane()
         if deep:
             newplane.dataset.DeepCopy(self.dataset)

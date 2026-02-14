@@ -1269,7 +1269,7 @@ def make3d(pts) -> np.ndarray:
     return pts
 
 
-def geometry(obj, extent=None) -> "vedo.Mesh":
+def geometry(obj, extent=None) -> vedo.Mesh:
     """
     Apply the `vtkGeometryFilter` to the input object.
     This is a general-purpose filter to extract geometry (and associated data)

@@ -1035,7 +1035,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         )
         return self
 
-    def generate_random_points(self, n: int, min_radius=0.0) -> "Points":
+    def generate_random_points(self, n: int, min_radius=0.0) -> Points:
         """
         Generate `n` uniformly distributed random points
         inside the polygonal mesh.
@@ -2464,7 +2464,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         spacing=None,
         dims=None,
         origin=None,
-    ) -> "vedo.Volume":
+    ) -> vedo.Volume:
         """
         Convert a `Mesh` into a `Volume` where
         the interior voxels value is set to `values[0]` (255 by default), while
@@ -2552,7 +2552,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         )
         return vol
 
-    def signed_distance(self, bounds=None, dims=(20, 20, 20), invert=False, maxradius=None) -> "vedo.Volume":
+    def signed_distance(self, bounds=None, dims=(20, 20, 20), invert=False, maxradius=None) -> vedo.Volume:
         """
         Compute the `Volume` object whose voxels contains
         the signed distance from the mesh.
@@ -2620,7 +2620,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         uniform=True,
         seed=0,
         debug=False,
-    ) -> "vedo.TetMesh":
+    ) -> vedo.TetMesh:
         """
         Tetralize a closed polygonal mesh. Return a `TetMesh`.
 

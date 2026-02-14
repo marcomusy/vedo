@@ -48,16 +48,10 @@ examples/advanced/measure_curvature2.py
 Examples that are not fully functional and need some fixing:
 ```
 advanced/warp4b.py (problem with picker?)
-sliders3d.py crashes when moving the scene
 interpolate_scalar4.py misplaced scalarbar
 markpoint.py (misplaced leader indicator)
 cut_and_cap.py (incomplete capping)
 tests/issues/discussion_800.py (incomplete capping of tube)
-
-lightings.py
-mousehighlight.py
-tensors.py
-examples/other/flag_labels2.py
 ```
 
 #### (Internal) Known issues
@@ -82,62 +76,6 @@ streamlines1.py
 
 
 
-
-
-
-light_sources.py
-
-
-Processing pca_ellipse.py script..
-Inside ellipse  : 517
-Inside ellipsoid: 516
-Processing pca_ellipsoid.py script..
-vedo.pointcloud.core.Points at (0x3e650a00)                                name          : Points
-elements      : vertices=10,000 polygons=0 lines=0
-position      : (30.0000, 40.0000, 50.0000)
-scaling       : (1.00000, 1.00000, 1.00000)
-size          : average=3.35180, diagonal=31.1912
-center of mass: (29.9953, 39.9868, 49.9816)
-bounds        : x=(20.1, 39.7), y=(27.5, 49.9), z=(45.4, 54.7)
-pointdata     : "IsInside" (uint8), dim=1, range=(0, 1)
-
-Processing cut_with_points1.py script..
-vedo.shapes.primitives_planar.Sphere at (0x1b650cd0)                       name          : Sphere
-color         : white, rgb=(1.00, 1.00, 1.00), alpha=0.25
-elements      : vertices=1,058 polygons=2,112 lines=0
-position      : (0, 0, 0)
-scaling       : (1.00000, 1.00000, 1.00000)
-size          : average=1.00000, diagonal=3.45872
-center of mass: (0, 0, 0)
-bounds        : x=(-0.998, 0.998), y=(-0.998, 0.998), z=(-1.00, 1.00)
-pointdata     : "Normals" (float32), dim=3
-pointdata *   : "myscalars" (float32), dim=1, range=(-0.998, 0.998)
-vedo.mesh.core.Mesh at (0x1b809090)                                        name          : Sphere
-elements      : vertices=96 polygons=141 lines=0
-position      : (0, 0, 0)
-scaling       : (1.01000, 1.01000, 1.01000)
-size          : average=0.429449, diagonal=1.47897
-center of mass: (0.796970, 0.382445, -0.191209)
-bounds        : x=(0.506, 1.01), y=(-0.0384, 0.785), z=(-0.783, 0.338)
-pointdata     : "Normals" (float32), dim=3
-pointdata *   : "myscalars" (float32), dim=1, range=(-0.0380, 0.777)
-pointdata     : "Selection" (float32), dim=1, range=(-0.373, 1.39e-17)
-
-
-
-
-lorenz.py pointq
-
-
-
-Processing rectl_grid1.py script..
-vedo.grids.rectilinear.RectilinearGrid at (0x319a100)                      name          : RectilinearGrid
-dimensions    : (36, 20, 20)
-center        : (21.7902, 9.50000, 9.50000)
-bounds        : x=(7.00, 36.6), y=(0, 19.0), z=(0, 19.0)
-memory size   : 2.9e-3 MB
-
-plot_spheric.py
 
 
 

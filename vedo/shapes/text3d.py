@@ -131,7 +131,7 @@ class Text3D(Mesh):
         italic=False,
         justify="",
         literal=False,
-    ) -> "Text3D":
+    ) -> Text3D:
         """
         Update the text and some of its properties.
 

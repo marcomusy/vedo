@@ -24,7 +24,7 @@ class VolumeAlgorithms(CommonAlgorithms):
         # OVERRIDE CommonAlgorithms.bounds() which is too slow
         return np.array(cls.dataset.GetBounds())
 
-    def isosurface(cls, value=None, flying_edges=False) -> "vedo.mesh.Mesh":
+    def isosurface(cls, value=None, flying_edges=False) -> vedo.mesh.Mesh:
         """
         Return an `Mesh` isosurface extracted from the `Volume` object.
 
@@ -77,7 +77,7 @@ class VolumeAlgorithms(CommonAlgorithms):
 
     def isosurface_discrete(
             cls, values, background_label=None, internal_boundaries=True, use_quads=False, nsmooth=0,
-        ) -> "vedo.mesh.Mesh":
+        ) -> vedo.mesh.Mesh:
         """
         Create boundary/isocontour surfaces from a label map (e.g., a segmented image) using a threaded,
         3D version of the multiple objects/labels Surface Nets algorithm.
@@ -174,7 +174,7 @@ class VolumeAlgorithms(CommonAlgorithms):
         invert=False,
         boundary=True,
         array_name="input_scalars",
-    ) -> "vedo.mesh.Mesh":
+    ) -> vedo.mesh.Mesh:
         """
         Represent an object - typically a `Volume` - as lego blocks (voxels).
         By default colors correspond to the volume's scalar.
@@ -235,7 +235,7 @@ class VolumeAlgorithms(CommonAlgorithms):
         )
         return m
 
-    def tomesh(cls, fill=True, shrink=1.0) -> "vedo.mesh.Mesh":
+    def tomesh(cls, fill=True, shrink=1.0) -> vedo.mesh.Mesh:
         """
         Build a polygonal Mesh from the current object.
 

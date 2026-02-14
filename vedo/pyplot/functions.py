@@ -686,7 +686,7 @@ def histogram(*args, **kwargs):
 
 def fit(
     points, deg=1, niter=0, nstd=3, xerrors=None, yerrors=None, vrange=None, res=250, lw=3, c="red4"
-) -> "vedo.shapes.Line":
+) -> vedo.shapes.Line:
     """
     Polynomial fitting with parameter error and error bands calculation.
     Errors bars in both x and y are supported.
@@ -1257,7 +1257,7 @@ def _histogram_quad_bin(x, y, **kwargs):
 
 def _histogram_hex_bin(
     xvalues, yvalues, bins=12, norm=1, fill=True, c=None, cmap="terrain_r", alpha=1
-) -> "Assembly":
+) -> Assembly:
     xmin, xmax = np.min(xvalues), np.max(xvalues)
     ymin, ymax = np.min(yvalues), np.max(yvalues)
     dx, dy = xmax - xmin, ymax - ymin

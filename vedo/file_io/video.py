@@ -52,14 +52,14 @@ class Video:
         self.get_filename = lambda x: os.path.join(self.tmp_dir.name, x)
         colors.printc(":video:  Video file", self.name, "is open... ", c="m", end="")
 
-    def add_frame(self) -> "Video":
+    def add_frame(self) -> Video:
         """Add frame to current video."""
         fr = self.get_filename(str(len(self.frames)) + ".png")
         screenshot(fr, scale=self.scale)
         self.frames.append(fr)
         return self
 
-    def pause(self, pause=0) -> "Video":
+    def pause(self, pause=0) -> Video:
         """Insert a `pause`, in seconds."""
         fr = self.frames[-1]
         n = int(self.fps * pause)
@@ -69,7 +69,7 @@ class Video:
             shutil.copyfile(fr, fr2)
         return self
 
-    def action(self, elevation=(0, 80), azimuth=(0, 359), cameras=(), resetcam=False) -> "Video":
+    def action(self, elevation=(0, 80), azimuth=(0, 359), cameras=(), resetcam=False) -> Video:
         """
         Automatic shooting of a static scene by specifying rotation and elevation ranges.
 
