@@ -1867,11 +1867,11 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         rf.Update()
 
         # convert triangle strips to polygonal data
-        tris = vtki.new("TriangleFilter")
-        tris.SetInputData(rf.GetOutput())
-        tris.Update()
+        # tris = vtki.new("TriangleFilter")
+        # tris.SetInputData(rf.GetOutput())
+        # tris.Update()
 
-        m = Mesh(tris.GetOutput())
+        m = Mesh(rf.GetOutput())
 
         if len(direction) > 1:
             p = self.pos()
@@ -1891,6 +1891,56 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             comment=f"#pts {m.dataset.GetNumberOfPoints()}"
         )
         m.name = "ExtrudedMesh"
+        return m
+
+    def extrude_linear(
+        self,
+        shift: float = 1.0,
+        direction: MutableSequence[float] = (0, 0, 1),
+        cap: bool = True,
+        use_normal: bool = False,
+    ) -> Self:
+        """
+        Linearly extrude polygonal data using ``vtkLinearExtrusionFilter``.
+
+        Arguments:
+            shift : (float)
+                Extrusion scale factor. With vector extrusion, the final displacement is
+                ``shift * direction``.
+            direction : (list)
+                Extrusion vector. Ignored when ``use_normal=True``.
+            cap : (bool)
+                Enable or disable capping.
+            use_normal : (bool)
+                If ``True``, extrude along point normals instead of a fixed vector.
+
+        Example:
+            - [extrude.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/extrude.py)
+        """
+        lf = vtki.new("LinearExtrusionFilter")
+        lf.SetInputData(self.dataset)  # must not be transformed
+        lf.SetCapping(cap)
+        lf.SetScaleFactor(shift)
+
+        if use_normal:
+            lf.SetExtrusionTypeToNormalExtrusion()
+        else:
+            lf.SetExtrusionTypeToVectorExtrusion()
+            if len(direction) != 3:
+                vedo.logger.error("in extrude_linear(), direction must have 3 components")
+                raise ValueError("direction must have 3 components")
+            lf.SetVector(direction[0], direction[1], direction[2])
+
+        lf.Update()
+
+        m = Mesh(lf.GetOutput())
+        m.copy_properties_from(self).flat().lighting("default")
+        m.pipeline = OperationNode(
+            "extrude_linear",
+            parents=[self],
+            comment=f"#pts {m.dataset.GetNumberOfPoints()}",
+        )
+        m.name = "LinearExtrudedMesh"
         return m
 
     def extrude_and_trim_with(
