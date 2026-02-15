@@ -544,8 +544,11 @@ class CommonAlgorithms:
             # valid for unstructured grid
             arr1d = _get_data_legacy_format(cls.dataset.GetCells())
         except AttributeError:
-            # valid for polydata
-            arr1d = _get_data_legacy_format(cls.dataset.GetPolys())
+            try:
+                # valid for polydata
+                arr1d = _get_data_legacy_format(cls.dataset.GetPolys())
+            except AttributeError:
+                return np.array([], dtype=int)
         return arr1d
 
     @property
@@ -563,8 +566,7 @@ class CommonAlgorithms:
                 # valid for polydata
                 arr1d = _get_data_legacy_format(cls.dataset.GetPolys())
             except AttributeError:
-                vedo.logger.error(f"Cannot get cells for {type(cls)}")
-                return np.array([], dtype=int)
+                return []
 
         # Get cell connettivity ids as a 1D array. vtk format is:
         # [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
