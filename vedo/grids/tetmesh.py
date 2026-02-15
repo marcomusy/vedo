@@ -128,14 +128,12 @@ class TetMesh(UnstructuredGrid):
             source_points.SetData(varr)
             self.dataset.SetPoints(source_points)
 
-            source_tets = vtki.vtkCellArray()
             for f in cells:
                 ele = vtki.vtkTetra()
                 pid = ele.GetPointIds()
                 for i, fi in enumerate(f):
                     pid.SetId(i, fi)
-                source_tets.InsertNextCell(ele)
-            self.dataset.SetCells(vtki.cell_types["TETRA"], source_tets)
+                self.dataset.InsertNextCell(vtki.cell_types["TETRA"], pid)
 
         if not self.dataset:
             vedo.logger.error(f"cannot understand input type {type(inputobj)}")
@@ -505,5 +503,4 @@ class TetMesh(UnstructuredGrid):
         msh.copy_properties_from(self)
         msh.pipeline = utils.OperationNode("slice", c="#edabab", parents=[self])
         return msh
-
 

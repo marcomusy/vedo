@@ -1399,7 +1399,12 @@ def buildPolyData(vertices, faces=None, lines=None, strips=None, index_offset=0)
                     hs[start:end] -= index_offset
                     i = end
             arr = numpy_to_vtkIdTypeArray(hs.astype(ast).ravel(), deep=True)
-            source_polygons.SetCells(nf, arr)
+            # VTK >= 9.6 deprecates vtkCellArray.SetCells(n, legacy_arr).
+            # Prefer ImportLegacyFormat when available and keep fallback for older VTK.
+            if hasattr(source_polygons, "ImportLegacyFormat"):
+                source_polygons.ImportLegacyFormat(arr)
+            else:
+                source_polygons.SetCells(nf, arr)
 
         else:
             ############################# manually add faces, SLOW
