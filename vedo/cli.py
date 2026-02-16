@@ -198,7 +198,6 @@ def exe_run(args):
         if (
             f2search in os.path.basename(s).lower()
             and "__" not in s
-            and "dolfin" not in s
             and "trimesh" not in s
         )
     ]
@@ -286,11 +285,9 @@ def exe_convert(args):
         "obj",
         "off",
         "byu",
-        "xml",
         "vti",
         "tif",
         "mhd",
-        "xml",
     ]
 
     humansort(args.convert)
@@ -324,8 +321,6 @@ def exe_search(args):
         pattern = pattern.lower()
     if len(pattern) > 3:
         for ifile in exfiles:
-            if "dolfin" in ifile:
-                continue
             if "trimesh" in ifile:
                 continue
             with open(ifile, "r", encoding="UTF-8") as file:
@@ -543,7 +538,6 @@ def exe_locate(args):
     class_names_seen = set()
     class_names_lower = set()
     skip_prefixes = (
-        "vedo.external.dolfin",
         "vedo.backends",
     )
     for module_info in pkgutil.walk_packages(vedo.__path__, prefix="vedo."):

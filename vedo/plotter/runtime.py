@@ -2003,11 +2003,6 @@ class Plotter:
                 else:
                     scanned_acts.append(vedo.external.meshlab2vedo(a))
 
-            elif "dolfin" in str(type(a)):  # assume a dolfin.Mesh object
-                import vedo.external.dolfin as vdlf # type: ignore[import]
-
-                scanned_acts.append(vdlf.IMesh(a).actor)
-
             elif "madcad" in str(type(a)):
                 scanned_acts.append(vedo.external.madcad2vedo(a).actor)
 

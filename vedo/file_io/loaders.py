@@ -134,10 +134,7 @@ def _load_file(filename, unpack):
     fl = str(filename).lower()
 
     ########################################################## other formats:
-    if fl.endswith(".xml") or fl.endswith(".xml.gz") or fl.endswith(".xdmf"):
-        # Fenics tetrahedral file
-        objt = loadDolfin(filename)
-    elif fl.endswith(".neutral") or fl.endswith(".neu"):  # neutral tets
+    if fl.endswith(".neutral") or fl.endswith(".neu"):  # neutral tets
         objt = loadNeutral(filename)
     elif fl.endswith(".gmsh"):  # gmesh file
         objt = loadGmesh(filename)
@@ -508,42 +505,6 @@ def loadGeoJSON(filename: str | os.PathLike) -> Mesh:
     jr.SetFileName(filename)
     jr.Update()
     return Mesh(jr.GetOutput())
-
-########################################################################
-def loadDolfin(filename: str | os.PathLike) -> Mesh | vedo.TetMesh | None:
-    """
-    Reads a `Fenics/Dolfin` file format (.xml or .xdmf).
-
-    Return a `Mesh` or a `TetMesh` object.
-    """
-    filename = str(filename)
-    try:
-        import dolfin
-    except ImportError:
-        vedo.logger.error("loadDolfin(): dolfin module not found. Install with:")
-        vedo.logger.error("  conda create -n fenics -c conda-forge fenics")
-        vedo.logger.error("  conda install conda-forge::mshr")
-        vedo.logger.error("  conda activate fenics")
-        return None
-
-    if filename.lower().endswith(".xdmf"):
-        f = dolfin.XDMFFile(filename)
-        m = dolfin.Mesh()
-        f.read(m)
-    else:
-        m = dolfin.Mesh(filename)
-
-    cells = m.cells()
-    verts = m.coordinates()
-
-    if cells.size and verts.size:
-        if len(cells[0]) == 4:  # tetrahedral mesh
-            return vedo.TetMesh([verts, cells])
-        elif len(cells[0]) == 3:  # triangular mesh
-            return Mesh([verts, cells])
-
-    return None
-
 
 ########################################################################
 def loadPVD(filename: str | os.PathLike) -> list[Any] | None:
@@ -1008,7 +969,6 @@ __all__ = [
     "loadOFF",
     "loadSTEP",
     "loadGeoJSON",
-    "loadDolfin",
     "loadPVD",
     "loadNeutral",
     "loadGmesh",

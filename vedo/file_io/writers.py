@@ -146,46 +146,6 @@ def write(objct: Any, fileoutput: str | os.PathLike, binary=True) -> Any:
                 outF.write(str(len(c)) + " " + " ".join([str(i) for i in c]) + "\n")
         return objct
 
-    elif fr.endswith(".xml"):  # write tetrahedral dolfin xml
-        vertices = objct.vertices.astype(str)
-        faces = np.array(objct.cells).astype(str)
-        ncoords = vertices.shape[0]
-        with open(fileoutput, "w", encoding="UTF-8") as outF:
-            outF.write('<?xml version="1.0" encoding="UTF-8"?>\n')
-            outF.write('<dolfin xmlns:dolfin="http://www.fenicsproject.org">\n')
-
-            if len(faces[0]) == 4:  # write tetrahedral mesh
-                ntets = faces.shape[0]
-                outF.write('  <mesh celltype="tetrahedron" dim="3">\n')
-                outF.write('    <vertices size="' + str(ncoords) + '">\n')
-                for i in range(ncoords):
-                    x, y, z = vertices[i]
-                    outF.write('      <vertex index="'+str(i)+'" x="'+x+'" y="'+y+'" z="'+z+'"/>\n')
-                outF.write('    </vertices>\n')
-                outF.write('    <cells size="' + str(ntets) + '">\n')
-                for i in range(ntets):
-                    v0, v1, v2, v3 = faces[i]
-                    outF.write('     <tetrahedron index="'+str(i)
-                               + '" v0="'+v0+'" v1="'+v1+'" v2="'+v2+'" v3="'+v3+'"/>\n')
-
-            elif len(faces[0]) == 3:  # write triangle mesh
-                ntri = faces.shape[0]
-                outF.write('  <mesh celltype="triangle" dim="2">\n')
-                outF.write('    <vertices size="' + str(ncoords) + '">\n')
-                for i in range(ncoords):
-                    x, y, _ = vertices[i]
-                    outF.write('      <vertex index="'+str(i)+'" x="'+x+'" y="'+y+'"/>\n')
-                outF.write('    </vertices>\n')
-                outF.write('    <cells size="' + str(ntri) + '">\n')
-                for i in range(ntri):
-                    v0, v1, v2 = faces[i]
-                    outF.write('     <triangle index="'+str(i)+'" v0="'+v0+'" v1="'+v1+'" v2="'+v2+'"/>\n')
-
-            outF.write("    </cells>\n")
-            outF.write("  </mesh>\n")
-            outF.write("</dolfin>\n")
-        return objct
-
     else:
         vedo.logger.error(f"Unknown format {fileoutput}, file not saved")
         return objct

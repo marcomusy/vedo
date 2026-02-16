@@ -13,13 +13,6 @@ cd pyplot;      ./run_all.sh; cd ..
 
 cd other;       ./run_all.sh; cd ..
 
-# other/dolfin
-if python3 -c 'import pkgutil; exit(not pkgutil.find_loader("dolfin"))'; then
-    cd other/dolfin; ./run_all.sh; cd ../..
-else
-    echo 'dolfin not found, skip.'
-fi
-
 # other/trimesh
 if python3 -c 'import pkgutil; exit(not pkgutil.find_loader("trimesh"))'; then
     cd other/trimesh; ./run_all.sh; cd ../..
@@ -63,5 +56,4 @@ vedo      --slicer3d ../data/embryo.tif
 echo '----------------------------'
 echo vedo --eog ../data/uv_grid.jpg
 vedo      --eog ../data/uv_grid.jpg
-
 

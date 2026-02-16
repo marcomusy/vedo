@@ -1,3 +1,0 @@
-"""Dolfin/FEniCS integration example."""
-#
-#
