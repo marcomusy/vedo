@@ -27,18 +27,19 @@ jobs:
             sudo apt-get update
             sudo apt install libgl1-mesa-dev xvfb -y
             python3 -m pip install --upgrade pip
-            python3 -m pip install pytest matplotlib scipy typing-extensions
+            python3 -m pip install vtk matplotlib scipy typing-extensions
             python3 -m pip install --no-deps .
 
       - run:
-          name: Run pytest
+          name: Run test scripts
           command: |
             cd ~/project
-            TEST_PATHS="tests/common/test_0_imports.py"
             if [ -d tests/unit ]; then
-              TEST_PATHS="tests/unit ${TEST_PATHS}"
+              for f in tests/unit/test_*.py; do
+                python3 "$f"
+              done
             fi
-            xvfb-run -a python3 -m pytest -q ${TEST_PATHS}
+            xvfb-run -a python3 tests/common/test_0_imports.py
 
       - store_artifacts:
           path: test-reports
@@ -52,5 +53,4 @@ workflows:
   build-stuff:
     jobs:
       - test-vedo
-
 
