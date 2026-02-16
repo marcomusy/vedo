@@ -7,6 +7,10 @@ from vedo import *
 
 mesh = Paraboloid()
 
+if settings.dry_run_mode:
+    printc('vedo is in dry_run_mode, skipping window interaction test', c='tomato', invert=1)
+    exit(0)
+
 plt1 = show(mesh, __doc__, title='First Plotter instance')
 # Now press 'q' to exit the window interaction,
 # windows stays open but not reactive anymore.

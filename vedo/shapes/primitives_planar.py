@@ -121,7 +121,7 @@ class Star(Mesh):
         If line is True then only build the outer line (no internal surface meshing).
 
         Example:
-            - [extrude.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/extrude.py)
+            - [extrude1.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/extrude1.py)
 
                 ![](https://vedo.embl.es/images/basic/extrude.png)
         """
@@ -907,4 +907,3 @@ class Rectangle(Mesh):
         self.pos(p1)
         self.properties.LightingOff()
         self.name = "Rectangle"
-

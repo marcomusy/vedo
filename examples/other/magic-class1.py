@@ -32,4 +32,7 @@ class ViewerUI:
 if __name__ == "__main__":
     ui = ViewerUI()
     ui.canvas.plotter.add(__doc__)
-    ui.show()
+    if vedo.settings.dry_run_mode:
+        print("vedo is in dry-run mode, skipping visualization.")
+    else:
+        ui.show()

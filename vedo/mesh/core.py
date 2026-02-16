@@ -713,12 +713,6 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         return self
 
 
-
-
-
-
-
-
     def laplacian_diffusion(self, array_name, dt, num_steps) -> Self:
         """
         Apply a diffusion process to a scalar array defined on the points of a mesh.
@@ -1852,7 +1846,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             in two separate surfaces if capping is on, or no surface if capping is off.
 
         Examples:
-            - [extrude.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/extrude.py)
+            - [extrude1.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/extrude1.py)
 
             ![](https://vedo.embl.es/images/basic/extrude.png)
         """
@@ -1915,7 +1909,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
                 If ``True``, extrude along point normals instead of a fixed vector.
 
         Example:
-            - [extrude.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/extrude.py)
+            - [extrude2.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/extrude2.py)
         """
         lf = vtki.new("LinearExtrusionFilter")
         lf.SetInputData(self.dataset)  # must not be transformed
