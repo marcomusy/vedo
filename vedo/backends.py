@@ -193,11 +193,11 @@ def start_k3d(actors2show):
 
     for ia in actors2show2:
 
-        if isinstance(ia, (vtki.vtkCornerAnnotation, vtki.vtkAssembly, vtki.vtkActor2D)):
+        if isinstance(ia, (vtki.vtkAssembly, vtki.vtkActor2D)):
             continue
 
         if hasattr(ia, "actor") and isinstance(
-            ia.actor, (vtki.vtkCornerAnnotation, vtki.vtkAssembly, vtki.vtkActor2D)
+            ia.actor, (vtki.vtkAssembly, vtki.vtkActor2D)
         ):
             continue
 

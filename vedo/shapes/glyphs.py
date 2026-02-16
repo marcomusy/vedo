@@ -191,7 +191,6 @@ class Tensors(Mesh):
         Examples:
             - [tensors.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/tensors.py)
             - [tensor_grid1.py](https://github.com/marcomusy/vedo/tree/master/examples/other/tensor_grid1.py)
-            - [tensor_grid2.py](https://github.com/marcomusy/vedo/tree/master/examples/other/tensor_grid2.py)
 
             ![](https://vedo.embl.es/images/volumetric/tensor_grid.png)
         """
@@ -252,4 +251,3 @@ class Tensors(Mesh):
 
         super().__init__(tgn.GetOutput(), c, alpha)
         self.name = "Tensors"
-
