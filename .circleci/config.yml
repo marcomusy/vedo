@@ -34,7 +34,11 @@ jobs:
           name: Run pytest
           command: |
             cd ~/project
-            xvfb-run -a pytest -q tests/unit tests/common/test_0_imports.py
+            TEST_PATHS="tests/common/test_0_imports.py"
+            if [ -d tests/unit ]; then
+              TEST_PATHS="tests/unit ${TEST_PATHS}"
+            fi
+            xvfb-run -a python3 -m pytest -q ${TEST_PATHS}
 
       - store_artifacts:
           path: test-reports
@@ -48,6 +52,5 @@ workflows:
   build-stuff:
     jobs:
       - test-vedo
-
 
 
