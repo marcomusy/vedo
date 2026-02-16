@@ -77,8 +77,7 @@ packages = [
     "vedo.examples.pyplot",
     "vedo.examples.simulations",
     "vedo.examples.volumetric",
-    "vedo.examples.other",
-    "vedo.examples.other.trimesh"
+    "vedo.examples.other"
 ]
 
 include-package-data = true
@@ -100,7 +99,6 @@ vedo = "vedo"
 "vedo.examples.simulations" = "examples/simulations"
 "vedo.examples.volumetric" = "examples/volumetric"
 "vedo.examples.other" = "examples/other"
-"vedo.examples.other.trimesh" = "examples/other/trimesh"
 
 [project.scripts]
 vedo = "vedo.cli:main"
