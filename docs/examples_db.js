@@ -1824,7 +1824,7 @@ vedo_example_db =
         imgsrc: 'images/other/iminuit1.jpg',
     },
     {
-        pyname: 'trimesh/section',
+        pyname: 'trimesh_section',
         kbd   : 'section',
         categ : 'other',
         short : 'trimesh library',

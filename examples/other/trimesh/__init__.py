@@ -1,4 +1,0 @@
-"""Trimesh interoperability example."""
-#
-#
-

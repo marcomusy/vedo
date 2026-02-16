@@ -13,13 +13,6 @@ cd pyplot;      ./run_all.sh; cd ..
 
 cd other;       ./run_all.sh; cd ..
 
-# other/trimesh
-if python3 -c 'import pkgutil; exit(not pkgutil.find_loader("trimesh"))'; then
-    cd other/trimesh; ./run_all.sh; cd ../..
-else
-    echo 'trimesh not found, skip.'
-fi
-
 #################################  command line tests
 echo '---------------------------- command line tests'
 echo vedo
@@ -56,4 +49,3 @@ vedo      --slicer3d ../data/embryo.tif
 echo '----------------------------'
 echo vedo --eog ../data/uv_grid.jpg
 vedo      --eog ../data/uv_grid.jpg
-
