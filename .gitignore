@@ -31,3 +31,9 @@ dev_*.py
 ??.???
 *.npy
 *.npz
+
+# Generated local artifacts
+examples/other/embryo.html
+examples/other/embryo.x3d
+output_vedo_test.txt
+test.v*

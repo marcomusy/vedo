@@ -1,1411 +1,0 @@
-Press Esc at anytime to skip example, F1 to interrupt
-Processing align1.py script..
-Average squared distance = 43.20515185350062
- vedo 2025.6.0+dev02 | vtk 9.6.0 | numpy 2.1.3 | python 3.12, press:       
-    i     print info about the last clicked object     
-    I     print color of the pixel under the mouse     
-    Y     show the pipeline for this object as a graph 
-    <- -> use arrows to reduce/increase opacity        
-    x     toggle mesh visibility                       
-    w     toggle wireframe/surface style               
-    l     toggle surface edges visibility              
-    p/P   hide surface faces and show only points      
-    1-3   cycle surface color (2=light, 3=dark)        
-    4     cycle color map (press shift-4 to go back)   
-    5-6   cycle point-cell arrays (shift to go back)   
-    7-8   cycle background and gradient color          
-    09+-  cycle axes styles (on keypad, or press +/-)  
-    k     cycle available lighting styles              
-    K     toggle shading as flat or phong              
-    A     toggle anti-aliasing                         
-    D     toggle depth-peeling (for transparencies)    
-    U     toggle perspective/parallel projection       
-    o/O   toggle extra light to scene and rotate it    
-    a     toggle interaction to Actor Mode             
-    n     toggle surface normals                       
-    r     reset camera position                        
-    R     reset camera to the closest orthogonal view  
-    .     fly camera to the last clicked point         
-    C     print the current camera parameters state    
-    X     invoke a cutter widget tool                  
-    S     save a screenshot of the current scene       
-    E/F   export 3D scene to numpy file or X3D         
-    q     return control to python script              
-    Esc   abort execution and exit python kernel       
- Check out the documentation at:  https://vedo.embl.es                     
- vedo 2025.6.0+dev02 | vtk 9.6.0 | numpy 2.1.3 | python 3.12, press:       
-    i     print info about the last clicked object     
-    I     print color of the pixel under the mouse     
-    Y     show the pipeline for this object as a graph 
-    <- -> use arrows to reduce/increase opacity        
-    x     toggle mesh visibility                       
-    w     toggle wireframe/surface style               
-    l     toggle surface edges visibility              
-    p/P   hide surface faces and show only points      
-    1-3   cycle surface color (2=light, 3=dark)        
-    4     cycle color map (press shift-4 to go back)   
-    5-6   cycle point-cell arrays (shift to go back)   
-    7-8   cycle background and gradient color          
-    09+-  cycle axes styles (on keypad, or press +/-)  
-    k     cycle available lighting styles              
-    K     toggle shading as flat or phong              
-    A     toggle anti-aliasing                         
-    D     toggle depth-peeling (for transparencies)    
-    U     toggle perspective/parallel projection       
-    o/O   toggle extra light to scene and rotate it    
-    a     toggle interaction to Actor Mode             
-    n     toggle surface normals                       
-    r     reset camera position                        
-    R     reset camera to the closest orthogonal view  
-    .     fly camera to the last clicked point         
-    C     print the current camera parameters state    
-    X     invoke a cutter widget tool                  
-    S     save a screenshot of the current scene       
-    E/F   export 3D scene to numpy file or X3D         
-    q     return control to python script              
-    Esc   abort execution and exit python kernel       
- Check out the documentation at:  https://vedo.embl.es                     
-Processing align2.py script..
-Processing align3.py script..
-Processing align4.py script..
-Processing align5.py script..
-Processing align6.py script..
-Processing background_image.py script..
-Processing boolean.py script..
-Processing boundaries.py script..
-Processing buildmesh.py script..
-vertices: [[50. 50. 50.]
- [70. 40. 50.]
- [50. 40. 80.]
- [80. 70. 50.]]
-faces   : [[0, 1, 2], [2, 1, 3], [1, 0, 3]]
-Processing buttons1.py script..
-Processing buttons2.py script..
-Processing buttons3.py script..
-button_func called
-Processing cartoony.py script..
-Processing cells_within_bounds.py script..
-IDs of cells within bounds:
- [562 572 573 561 575 564 565 576 566 563 574 577 567 578 267 266 268 269
- 270 271 262 263 264 265 571 560 569 579 568 581 580  76 570  75 251 250
-  79  78  77  82 255 254 253 252  81  80 307 311 312 309 310 331 332 329
- 327 328 330 308 350 354 353 349 351 352 314 313 333 334 306 305 325 348
- 347 346 326 358 357 356 355 275 274 273 272 249 248 247 246 678 166 167
- 169 680 444 446 467 468 463 464 465 456 244 245 453 454 455 452 448 451
- 683 676 682 681 677 679 688 670 684 685 686 687 674 671 673 672 675 466
- 260 287 286 261 256 257 258 259 731 726 729 730 711 479 723 712 289 480
- 725 714 713 724 458 457 728 727 715 716 717 720 719 718 447 459 460 461
- 462 320 318 317 316 315 304 303 491 490 319 489 488 495 494 493 492 340
- 338 337 336 335 323 505 504 500 501 502 503 339 345 344 343 342 341 515
- 514 484 301 302 485 486 487 322 321 324 498 497 496 499 506 507 508 509
- 510 511 512 513 517 518 519 359 516 360]
-Processing clustering.py script..
-vedo.pointcloud.core.Points at (0x2bc41ae0)                                [0m[32;1mname          : Points
-elements      : vertices=7,889 polygons=0 lines=0
-position      : (0, 0, 0)
-scaling       : (1.00000, 1.00000, 1.00000)
-size          : average=0.703288, diagonal=2.89068
-center of mass: (0.974927, 0.974892, 1.02736)
-bounds        : x=(4.19e-4, 1.60), y=(4.87e-4, 1.60), z=(6.43e-5, 1.80)
-pointdata     : "ClusterId" (int64), dim=1, range=(0, 3)[0m
-Processing colorcubes.py script..
-Show a cube for each available color name
-Processing colorlines.py script..
-Processing colormap_list.py script..
-Try picking a color by pressing Shift-i
-Processing colormaps.py script..
-
-Example usage of cmap() to assign a color to each mesh vertex
-by looking it up in matplotlib database of colormaps
-
-Processing color_mesh_cells1.py script..
-Mesh cell arrays: ['CellsRGBA'] shape: (486, 4)
-Processing color_mesh_cells2.py script..
-Processing connected_vtx.py script..
-Processing cut_freehand.py script..
-Processing cut_interactive.py script..
-break interaction
-Processing delaunay2d.py script..
-Processing delete_mesh_pts.py script..
-#points before: 867
-#points after : 648
-Processing distance2mesh.py script..
-Processing extrude1.py script..
-Processing extrude2.py script..
-Processing fillholes.py script..
-Processing flatarrow.py script..
-Processing glyphs1.py script..
-Processing glyphs2.py script..
-Processing glyphs3.py script..
-Processing hover_legend.py script..
-Processing input_box.py script..
-Processing interaction_modes1.py script..
-Processing interaction_modes2.py script..
-Selected objects: [<vtkmodules.vtkRenderingOpenGL2.vtkOpenGLActor(0x37627d50) at 0x7dbd43c85ea0>]
-Processing interaction_modes3.py script..
-Processing interaction_modes4.py script..
-Processing keypress.py script..
-point: [-0.02326821  0.115275    0.03551858]
-point: [-0.00443188  0.10605498  0.04386701]
-click mesh and press c
-Processing largestregion.py script..
-area1 = 257053519.10161185
-area2 = 160176142.31955236
-Processing legendbox.py script..
-Processing lightings.py script..
-Processing light_sources.py script..
-Processing lin_interpolate.py script..
-Processing manyspheres.py script..
-vedo.shapes.primitives_planar.Spheres at (0x4043b820)                      [0m[32;1mname          : Spheres
-elements      : vertices=1,600,000 polygons=3,000,000 lines=0
-position      : (-0.351725, 1.98916, -1.11744)
-scaling       : (1.00000, 1.00000, 1.00000)
-size          : average=2.20230, diagonal=22.9996
-center of mass: (7.79536e-3, -5.89926e-4, 1.42550e-3)
-bounds        : x=(-4.24, 4.37), y=(-10.2, 9.10), z=(-4.26, 4.83)
-pointdata     : "Normals" (float32), dim=3
-pointdata *   : "Colors" (uint8), dim=3
-clicked point : (2.00087, -1.23087, -1.53654), pointID=803937, cellID=1507391[0m
-vedo.shapes.primitives_planar.Spheres at (0x4043b820)                      [0m[32;1mname          : Spheres
-elements      : vertices=1,600,000 polygons=3,000,000 lines=0
-position      : (-0.351725, 1.98916, -1.11744)
-scaling       : (1.00000, 1.00000, 1.00000)
-size          : average=2.20230, diagonal=22.9996
-center of mass: (7.79536e-3, -5.89926e-4, 1.42550e-3)
-bounds        : x=(-4.24, 4.37), y=(-10.2, 9.10), z=(-4.26, 4.83)
-pointdata     : "Normals" (float32), dim=3
-pointdata *   : "Colors" (uint8), dim=3
-clicked point : (-0.768756, -1.74710, -2.40584), pointID=928991, cellID=1741858[0m
-Processing mesh_alphas.py script..
-vedo.mesh.core.Mesh at (0x168dfdd0)                                        [0m[32;1mname          : Mesh
-file name     : https://vedo.embl.es/examples/data/beethoven.ply
-elements      : vertices=2,521 polygons=5,030 lines=0
-position      : (0, 0, 0)
-scaling       : (1.00000, 1.00000, 1.00000)
-size          : average=2.92729, diagonal=16.2745
-center of mass: (0, -0.566737, 0.988630)
-bounds        : x=(-4.65, 4.65), y=(-6.03, 5.54), z=(-3.32, 3.35)
-pointdata *   : "Scalars" (float64), dim=1, range=(-6.03, 5.54)
-clicked point : (-0.176836, 2.32880, 2.65590), pointID=328, cellID=542[0m
-Processing mesh_coloring.py script..
-Processing mesh_custom.py script..
-Processing mesh_lut.py script..
-Processing mesh_map2cell.py script..
-Processing mesh_modify.py script..
-Processing mesh_sharemap.py script..
-Processing mesh_threshold.py script..
-Processing mirror.py script..
-Processing mouseclick1.py script..
-Click object to trigger a function call
-Left button pressed on [<vedo.mesh.core.Mesh object at 0x7262939bcfb0>]
-vedo.plotter.events.Event at (0x72628e606340)                              [0mname       : LeftButtonPressEvent[0m
-title      : vedo (2025.6.0+dev02)[0m
-id         : 118[0m
-timerid    : None[0m
-time       : 1771203194.0880818[0m
-priority   : 0.0[0m
-at         : 0[0m
-object     : vedo.mesh.core.Mesh at (0x3a870b60)[0m
-picked3d   : [0.46064148 0.51315212 0.37508811][0m
-keypress   : None[0m
-picked2d   : (458, 583)[0m
-delta2d    : (0, 0)[0m
-angle2d    : 0.0[0m
-speed2d    : 0.0[0m
-delta3d    : [0. 0. 0.][0m
-speed3d    : 0.0[0m
-isPoints   : [32;1mTrue[0m
-isMesh     : [32;1mTrue[0m
-isAssembly : [31;1mFalse[0m
-isVolume   : [31;1mFalse[0m
-isImage    : [31;1mFalse[0m
-isActor2D  : [31;1mFalse[0m
-Processing mouseclick2.py script..
-Text2D callback Actor2D PickEvent
-Text2D callback Actor2D PickEvent
-Processing mousehighlight.py script..
-Processing mousehover0.py script..
-Processing mousehover1.py script..
-Processing mousehover2.py script..
-Processing mousehover3.py script..
-Processing multirenderers.py script..
-Processing multiwindows1.py script..
-
-Example of drawing objects on different windows
-and/or subwindows within the same window.
-We split the main window in many subwindows and draw
-something on specific windows.
-Then open an independent window and draw a shape on it.
-
-Processing multiwindows2.py script..
-Processing pca_ellipse.py script..
-Inside ellipse  : 510
-Inside ellipsoid: 508
-Processing pca_ellipsoid.py script..
-vedo.pointcloud.core.Points at (0x44b2b60)                                 [0m[32;1mname          : Points
-elements      : vertices=10,000 polygons=0 lines=0
-position      : (30.0000, 40.0000, 50.0000)
-scaling       : (1.00000, 1.00000, 1.00000)
-size          : average=3.37062, diagonal=28.7903
-center of mass: (29.9338, 39.9916, 50.0245)
-bounds        : x=(19.6, 39.9), y=(31.1, 48.9), z=(45.5, 55.6)
-pointdata     : "IsInside" (uint8), dim=1, range=(0, 1)[0m
-inside  points  # 5006
-outside  points # 4994
-axis 1 size: 4.653692098017402
-axis 2 size: 3.0704220620386065
-axis 3 size: 1.553709739225644
-axis 1 direction: [-0.70954037 -0.66049921 -0.24554687]
-axis 2 direction: [ 0.70464956 -0.66730227 -0.2411984 ]
-axis 3 direction: [-0.00454349 -0.34416498  0.9388982 ]
-asphericity: 0.5320009225140127 +- 0.009605391494534127
-Processing record_play.py script..
-Events will be recorded in /home/musy/.cache/vedo/recorded_events.log
-Processing ribbon.py script..
-Processing rotate_image.py script..
-Processing scalarbars.py script..
-Processing shadow1.py script..
-Processing shadow2.py script..
-Processing shadow3.py script..
-Processing shrink.py script..
-Processing silhouette1.py script..
-Processing silhouette2.py script..
-Processing silhouette3.py script..
-Processing skybox.py script..
-reusing cached file: /home/musy/.cache/vedo/kloppenheim_06_4k.hdr
-Processing slider_browser.py script..
-Processing sliders1.py script..
-Processing sliders2.py script..
-Processing sliders3d.py script..
-Processing sliders_hsv.py script..
-Processing sliders_range.py script..
-Processing specular.py script..
-Processing spline_tool.py script..
-Spline changed! CM = [-0.0157041   0.1388028   0.21798221]
-	Number of points: 864
-Processing ssao.py script..
-Processing surf_intersect.py script..
-Processing texture_coords.py script..
-reusing cached file: /home/musy/.cache/vedo/dog.jpg
-Processing texturecubes.py script..
-
-Show a cube for each available texture name.
-Any jpg file can be used as texture.
-
-example textures: https://vedo.embl.es/examples/data/textures/
-Processing tube_radii.py script..
-Processing voronoi1.py script..
-
-Press Esc at anytime to skip example
-
-
-
-Processing capping_mesh.py script..
-..warping 434 points
-merged_msh is closed: False
-Processing contours2mesh.py script..
-Processing convex_hull.py script..
-Processing cut_and_cap.py script..
-Processing cut_with_mesh1.py script..
-Processing cut_with_points1.py script..
-vedo.shapes.primitives_planar.Sphere at (0xbb38560)                        [0m[32;1mname          : Sphere
-color         : white, rgb=(1.00, 1.00, 1.00), alpha=0.25
-elements      : vertices=1,058 polygons=2,112 lines=0
-position      : (0, 0, 0)
-scaling       : (1.00000, 1.00000, 1.00000)
-size          : average=1.00000, diagonal=3.45872
-center of mass: (0, 0, 0)
-bounds        : x=(-0.998, 0.998), y=(-0.998, 0.998), z=(-1.00, 1.00)
-pointdata     : "Normals" (float32), dim=3
-pointdata *   : "myscalars" (float32), dim=1, range=(-0.998, 0.998)[0m
-vedo.mesh.core.Mesh at (0xc50fb50)                                         [0m[32;1mname          : Sphere
-elements      : vertices=96 polygons=141 lines=0
-position      : (0, 0, 0)
-scaling       : (1.01000, 1.01000, 1.01000)
-size          : average=0.429449, diagonal=1.47897
-center of mass: (0.796970, 0.382445, -0.191209)
-bounds        : x=(0.506, 1.01), y=(-0.0384, 0.785), z=(-0.783, 0.338)
-pointdata     : "Normals" (float32), dim=3
-pointdata *   : "myscalars" (float32), dim=1, range=(-0.0380, 0.777)
-pointdata     : "Selection" (float32), dim=1, range=(-0.373, 1.39e-17)[0m
-Processing cut_with_points2.py script..
-Processing diffuse_data.py script..
-integrated over domain: {'pointdata': {'Normals': array([[0., 0., 1.]]), 'TextureCoordinates': array([[0.5, 0.5]]), 'scalars': array([0.00072165])}, 'celldata': {'Area': array([1.])}, 'metadata': {}}
-Processing fitline.py script..
-Line 0 Fit slope =  [0.53070432 0.54376094 0.65013611]
-Plane Fit normal = [-0.6308347   0.73395056 -0.25172243]
-Processing fitplanes.py script..
-Processing fitspheres1.py script..
-Processing fitspheres2.py script..
-Processing geodesic_curve.py script..
-Processing gyroid.py script..
-Please wait a few secs while I'm cutting your gyroid
-Processing interpolate_field.py script..
-Processing interpolate_scalar1.py script..
-Processing interpolate_scalar2.py script..
-Processing interpolate_scalar3.py script..
-Processing interpolate_scalar4.py script..
-Processing interpolate_scalar5.py script..
-Processing line2mesh_quads.py script..
-Processing line2mesh_tri.py script..
-Processing measure_curvature1.py script..
-Calculate the surface curvature of an object
-by fitting a sphere to each vertex.
-Processing measure_curvature2.py script..
- ━━[2m──────────────────── 15% eta: 3s (1681.3 it/s)  ━━━[2m─────────────────── 16% eta: 3s (1662.6 it/s)  ━━━[2m─────────────────── 17% eta: 3s (1643.4 it/s)  ━━━[2m─────────────────── 18% eta: 3s (1628.5 it/s)  ━━━[2m─────────────────── 19% eta: 3s (1608.8 it/s)  ━━━━[2m────────────────── 20% eta: 3s (1590.0 it/s)  ━━━━[2m────────────────── 21% eta: 3s (1578.1 it/s)  ━━━━[2m────────────────── 22% eta: 3s (1518.7 it/s)  ━━━━[2m────────────────── 23% eta: 3s (1482.9 it/s)  ━━━━━[2m───────────────── 24% eta: 3s (1469.7 it/s)  ━━━━━[2m───────────────── 25% eta: 3s (1464.0 it/s)  ━━━━━[2m───────────────── 26% eta: 3s (1460.7 it/s)  ━━━━━[2m───────────────── 27% eta: 3s (1457.5 it/s)  ━━━━━[2m───────────────── 28% eta: 3s (1456.9 it/s)  ━━━━━━[2m──────────────── 29% eta: 3s (1456.7 it/s)  ━━━━━━[2m──────────────── 30% eta: 3s (1432.3 it/s)  ━━━━━━[2m──────────────── 31% eta: 3s (1428.9 it/s)  ━━━━━━[2m──────────────── 32% eta: 3s (1367.7 it/s)  ━━━━━━━[2m─────────────── 33% eta: 3s (1364.9 it/s)  ━━━━━━━[2m─────────────── 34% eta: 3s (1349.3 it/s)  ━━━━━━━[2m─────────────── 35% eta: 3s (1349.7 it/s)  ━━━━━━━[2m─────────────── 36% eta: 3s (1350.9 it/s)  ━━━━━━━━[2m────────────── 37% eta: 3s (1346.1 it/s)  ━━━━━━━━[2m────────────── 38% eta: 3s (1347.6 it/s)  ━━━━━━━━[2m────────────── 39% eta: 3s (1351.7 it/s)  ━━━━━━━━[2m────────────── 40% eta: 2s (1341.0 it/s)  ━━━━━━━━[2m────────────── 41% eta: 2s (1340.2 it/s)  ━━━━━━━━━[2m───────────── 42% eta: 2s (1339.7 it/s)  ━━━━━━━━━[2m───────────── 43% eta: 2s (1330.1 it/s)  ━━━━━━━━━[2m───────────── 44% eta: 2s (1331.2 it/s)  ━━━━━━━━━[2m───────────── 45% eta: 2s (1332.1 it/s)  ━━━━━━━━━━[2m──────────── 46% eta: 2s (1324.0 it/s)  ━━━━━━━━━━[2m──────────── 47% eta: 2s (1326.3 it/s)  ━━━━━━━━━━[2m──────────── 48% eta: 2s (1319.6 it/s)  ━━━━━━━━━━[2m──────────── 49% eta: 2s (1320.2 it/s)  ━━━━━━━━━━━[2m─────────── 50% eta: 2s (1278.6 it/s)  ━━━━━━━━━━━[2m─────────── 51% eta: 2s (1279.1 it/s)  ━━━━━━━━━━━[2m─────────── 52% eta: 2s (1273.4 it/s)  ━━━━━━━━━━━[2m─────────── 53% eta: 2s (1269.0 it/s)  ━━━━━━━━━━━[2m─────────── 54% eta: 2s (1270.6 it/s)  ━━━━━━━━━━━━[2m────────── 55% eta: 2s (1257.2 it/s)  ━━━━━━━━━━━━[2m────────── 56% eta: 2s (1257.9 it/s)  ━━━━━━━━━━━━[2m────────── 57% eta: 2s (1254.7 it/s)  ━━━━━━━━━━━━[2m────────── 58% eta: 2s (1252.1 it/s)  ━━━━━━━━━━━━━[2m───────── 59% eta: 2s (1252.9 it/s)  ━━━━━━━━━━━━━[2m───────── 60% eta: 2s (1247.2 it/s)  ━━━━━━━━━━━━━[2m───────── 61% eta: 2s (1185.1 it/s)  ━━━━━━━━━━━━━[2m───────── 62% eta: 2s (1125.0 it/s)  ━━━━━━━━━━━━━[2m───────── 63% eta: 2s (1127.9 it/s)  ━━━━━━━━━━━━━━[2m──────── 64% eta: 2s (1126.3 it/s)  ━━━━━━━━━━━━━━[2m──────── 65% eta: 2s (1122.7 it/s)  ━━━━━━━━━━━━━━[2m──────── 66% eta: 2s (1124.9 it/s)  ━━━━━━━━━━━━━━[2m──────── 67% eta: 2s (1119.9 it/s)  ━━━━━━━━━━━━━━━[2m─────── 68% eta: 2s (1122.3 it/s)  ━━━━━━━━━━━━━━━[2m─────── 69% eta: 2s (1122.0 it/s)  ━━━━━━━━━━━━━━━[2m─────── 70% eta: 1s (1122.6 it/s)  ━━━━━━━━━━━━━━━[2m─────── 71% eta: 1s (1125.7 it/s)  ━━━━━━━━━━━━━━━━[2m────── 72% eta: 1s (1128.4 it/s)  ━━━━━━━━━━━━━━━━[2m────── 73% eta: 1s (1129.5 it/s)  ━━━━━━━━━━━━━━━━[2m────── 74% eta: 1s (1132.3 it/s)  ━━━━━━━━━━━━━━━━[2m────── 75% eta: 1s (1128.8 it/s)  ━━━━━━━━━━━━━━━━[2m────── 76% eta: 1s (1130.9 it/s)  ━━━━━━━━━━━━━━━━━[2m───── 77% eta: 1s (1132.3 it/s)  ━━━━━━━━━━━━━━━━━[2m───── 78% eta: 1s (1131.5 it/s)  ━━━━━━━━━━━━━━━━━[2m───── 79% eta: 1s (1133.4 it/s)  ━━━━━━━━━━━━━━━━━[2m───── 80% eta: 1s (1131.9 it/s)  ━━━━━━━━━━━━━━━━━━[2m──── 81% eta: 1s (1132.7 it/s)  ━━━━━━━━━━━━━━━━━━[2m──── 82% eta: 1s (1134.1 it/s)  ━━━━━━━━━━━━━━━━━━[2m──── 83% eta: 1s (1131.9 it/s)  ━━━━━━━━━━━━━━━━━━[2m──── 84% eta: 1s (1134.0 it/s)  ━━━━━━━━━━━━━━━━━━━[2m─── 85% eta: 1s (1135.3 it/s)  ━━━━━━━━━━━━━━━━━━━[2m─── 86% eta: 1s (1132.0 it/s)  ━━━━━━━━━━━━━━━━━━━[2m─── 87% eta: 1s (1134.1 it/s)  ━━━━━━━━━━━━━━━━━━━[2m─── 88% eta: 1s (1132.5 it/s)  ━━━━━━━━━━━━━━━━━━━[2m─── 89% eta: 1s (1132.5 it/s)  ━━━━━━━━━━━━━━━━━━━━[2m── 90% eta: 1s (1133.7 it/s)  ━━━━━━━━━━━━━━━━━━━━[2m── 91% elapsed: 4s (1130.7 it/s)     ━━━━━━━━━━━━━━━━━━━━[2m── 92% elapsed: 4s (1132.4 it/s)     ━━━━━━━━━━━━━━━━━━━━[2m── 93% elapsed: 4s (1130.8 it/s)     ━━━━━━━━━━━━━━━━━━━━━[2m─ 94% elapsed: 5s (1132.6 it/s)     ━━━━━━━━━━━━━━━━━━━━━[2m─ 95% elapsed: 5s (1134.4 it/s)     ━━━━━━━━━━━━━━━━━━━━━[2m─ 96% elapsed: 5s (1131.1 it/s)     ━━━━━━━━━━━━━━━━━━━━━[2m─ 97% elapsed: 5s (1133.4 it/s)     ━━━━━━━━━━━━━━━━━━━━━━[2m 98% elapsed: 5s (1134.4 it/s)     ━━━━━━━━━━━━━━━━━━━━━━[2m 99% elapsed: 5s (1135.8 it/s)     ━━━━━━━━━━━━━━━━━━━━━━[2m 100% elapsed: 5s (1139.3 it/s)     ━━━━━━━━━━━━━━━━━━━━━━[2m elapsed: 5s (1141.0 it/s)    
-Clicked point 3179 with 108 adjacent vertices -> curvatures: -0.286, 1.374
-Clicked point 2857 with 106 adjacent vertices -> curvatures: -2.610, 2.716
-Clicked point 2146 with 97 adjacent vertices -> curvatures: 0.405, 14.779
-Clicked point 1692 with 101 adjacent vertices -> curvatures: 0.002, 0.061
-Processing meshquality.py script..
-Processing mesh_smoother1.py script..
-Processing mesh_smoother2.py script..
-Processing moving_least_squares1D.py script..
-Processing moving_least_squares2D.py script..
-Use a variant of the Moving Least Squares (MLS)
-algorithm to project a cloud of points to become a smooth surface.
-In the second window we show the error estimated for
-each point in color scale (left) or in size scale (right).
-min and max of variances: 0.0 0.28885555
-Processing multi_viewer2.py script..
-Processing recosurface.py script..
-Nr of points before cleaning nr. points: 3435
-             after  cleaning nr. points: 3015
-Processing skeletonize.py script..
-Processing spline_draw1.py script..
-Added point: (120.8, 132.6, 7.564e-7)
-Added point: (148.7, 124.8, 7.564e-7)
-Added point: (183.4, 118.4, 7.564e-7)
-Added point: (185.4, 93.87, -7.885e-5)
-Deleted last point
-Npts = 3 NSpline = 30
-Processing spline_draw2.py script..
-vedo.shapes.curves_core.Line at (0x2b5d5740)                               [0m[32;1mname          : Line
-elements      : vertices=16 polygons=0 lines=15
-position      : (0, 0, 0)
-scaling       : (1.00000, 1.00000, 1.00000)
-size          : average=14.2202, diagonal=48.4265
-center of mass: (89.7754, 60.5374, -9.15909e-5)
-bounds        : x=(89.6, 90.3), y=(29.8, 78.2), z=(-9.16e-5, -9.16e-5)[0m
-Processing splitmesh.py script..
-Processing timer_callback0.py script..
-Processing timer_callback1.py script..
-Processing timer_callback2.py script..
-Processing timer_callback3.py script..
-Creating Timer Callbacks with IDs: 118 119
-Starting timers with IDs         : 2 3
-Processing voronoi2.py script..
-Processing warp1.py script..
-Processing warp2.py script..
-Processing warp3.py script..
-
-..minimizing with SLSQP
-new minimum -> 0.40193516
-Processing warp4a.py script..
-Processing warp4b.py script..
-Warning: this example works properly with VTK <= 9.3 (regression in newer VTK).
-Processing warp5.py script..
-
-Takes 2 shapes, source and target, and morphs source on target
-this is obtained by fitting 18 parameters of a non linear,
-quadratic, transformation defined in transform()
-The fitting minimizes the distance to the target surface
-using algorithms available in the scipy.optimize package.
-
-
-..minimizing with SLSQP
-Emin -> 10451.244854891132
-Emin -> 7430.29125904878
-Emin -> 5157.221768460674
-Emin -> 4257.208648589919
-Emin -> 3768.318629179689
-Emin -> 2879.0148212084755
-Emin -> 2323.620912682838
-Emin -> 2121.3834705192194
-Emin -> 1890.7048155254893
-Emin -> 1693.230356338349
-Emin -> 1114.2078782646702
-Emin -> 965.1377541208786
-Emin -> 730.9452090773966
-Emin -> 656.877639631977
-Emin -> 599.2293971024303
-Emin -> 571.4985559513653
-Emin -> 539.2941833364307
-Emin -> 516.1072442009253
-Emin -> 496.01418634343474
-Emin -> 480.40498101826523
-Emin -> 463.69157322546147
-Emin -> 441.11905474618067
-Emin -> 425.52036612403555
-Emin -> 417.34748485900724
-Emin -> 412.90028781612455
-Emin -> 406.13171393287723
-Emin -> 398.63481929555087
-Emin -> 390.12445686771025
-
-Final fit score 378.03914772107396
-Result of parameter fit:
- [-0.011671    0.0304518  -0.05165599  0.16558593  0.03970861  0.30125646
-  0.12741751 -0.00452652  0.05829503  0.31081506 -0.03018677 -0.09930412
- -0.01120991  0.00517408  0.04689497 -0.08603056 -0.09798181 -0.15499644
-  1.30148667]
-Processing warp6.py script..
-
-Press Esc at anytime to skip example
-
-
-
-Processing airplane1.py script..
-Processing airplane2.py script..
-Processing aspring1.py script..
-Processing aspring2_player.py script..
-Processing brownian2d.py script..
- [2m────────────────────── 6% eta: 8s (60.2 it/s)  ━[2m───────────────────── 7% eta: 8s (60.1 it/s)  ━[2m───────────────────── 8% eta: 8s (60.1 it/s)  ━[2m───────────────────── 9% eta: 8s (60.1 it/s)  ━[2m───────────────────── 10% eta: 8s (60.1 it/s)  ━━[2m──────────────────── 11% eta: 7s (60.1 it/s)  ━━[2m──────────────────── 12% eta: 7s (60.1 it/s)  ━━[2m──────────────────── 13% eta: 7s (59.9 it/s)  ━━[2m──────────────────── 14% eta: 7s (59.9 it/s)  ━━[2m──────────────────── 15% eta: 7s (59.9 it/s)  ━━━[2m─────────────────── 16% eta: 7s (59.9 it/s)  ━━━[2m─────────────────── 17% eta: 7s (59.9 it/s)  ━━━[2m─────────────────── 18% eta: 7s (59.9 it/s)  ━━━[2m─────────────────── 19% eta: 7s (59.9 it/s)  ━━━━[2m────────────────── 20% eta: 7s (59.9 it/s)  ━━━━[2m────────────────── 21% eta: 7s (59.7 it/s)  ━━━━[2m────────────────── 22% eta: 7s (59.9 it/s)  ━━━━[2m────────────────── 23% eta: 6s (59.9 it/s)  ━━━━━[2m───────────────── 24% eta: 6s (59.9 it/s)  ━━━━━[2m───────────────── 25% eta: 6s (59.8 it/s)  ━━━━━[2m───────────────── 26% eta: 6s (59.8 it/s)  ━━━━━[2m───────────────── 27% eta: 6s (59.8 it/s)  ━━━━━[2m───────────────── 28% eta: 6s (59.8 it/s)  ━━━━━━[2m──────────────── 29% eta: 6s (59.8 it/s)  ━━━━━━[2m──────────────── 30% eta: 6s (59.8 it/s)  ━━━━━━[2m──────────────── 31% eta: 6s (59.8 it/s)  ━━━━━━[2m──────────────── 32% eta: 6s (59.8 it/s)  ━━━━━━━[2m─────────────── 33% eta: 6s (59.0 it/s)  ━━━━━━━[2m─────────────── 34% eta: 6s (59.0 it/s)  ━━━━━━━[2m─────────────── 35% eta: 6s (59.1 it/s)  ━━━━━━━[2m─────────────── 36% eta: 8s (39.0 it/s)  ━━━━━━━━[2m────────────── 37% eta: 8s (39.2 it/s)  ━━━━━━━━[2m────────────── 38% eta: 8s (39.4 it/s)  ━━━━━━━━[2m────────────── 39% eta: 8s (39.8 it/s)  ━━━━━━━━[2m────────────── 40% eta: 8s (40.1 it/s)  ━━━━━━━━[2m────────────── 41% eta: 7s (40.3 it/s)  ━━━━━━━━━[2m───────────── 42% eta: 7s (40.6 it/s)  ━━━━━━━━━[2m───────────── 43% eta: 7s (40.6 it/s)  ━━━━━━━━━[2m───────────── 44% eta: 7s (41.0 it/s)  ━━━━━━━━━[2m───────────── 45% eta: 7s (41.1 it/s)  ━━━━━━━━━━[2m──────────── 46% eta: 7s (41.4 it/s)  ━━━━━━━━━━[2m──────────── 47% eta: 6s (41.6 it/s)  ━━━━━━━━━━[2m──────────── 48% eta: 6s (42.0 it/s)  ━━━━━━━━━━[2m──────────── 49% eta: 6s (42.1 it/s)  ━━━━━━━━━━━[2m─────────── 50% eta: 6s (42.4 it/s)  ━━━━━━━━━━━[2m─────────── 51% eta: 6s (42.6 it/s)  ━━━━━━━━━━━[2m─────────── 52% eta: 6s (42.9 it/s)  ━━━━━━━━━━━[2m─────────── 53% eta: 6s (43.1 it/s)  ━━━━━━━━━━━[2m─────────── 54% eta: 5s (43.3 it/s)  ━━━━━━━━━━━━[2m────────── 55% eta: 5s (43.5 it/s)  ━━━━━━━━━━━━[2m────────── 56% eta: 5s (43.8 it/s)  ━━━━━━━━━━━━[2m────────── 57% eta: 5s (44.0 it/s)  ━━━━━━━━━━━━[2m────────── 58% eta: 5s (44.1 it/s)  ━━━━━━━━━━━━━[2m───────── 59% eta: 5s (44.3 it/s)  ━━━━━━━━━━━━━[2m───────── 60% eta: 5s (44.5 it/s)  ━━━━━━━━━━━━━[2m───────── 61% eta: 4s (44.7 it/s)  ━━━━━━━━━━━━━[2m───────── 62% eta: 4s (44.9 it/s)  ━━━━━━━━━━━━━[2m───────── 63% eta: 4s (45.1 it/s)  ━━━━━━━━━━━━━━[2m──────── 64% eta: 4s (45.3 it/s)  ━━━━━━━━━━━━━━[2m──────── 65% eta: 4s (45.4 it/s)  ━━━━━━━━━━━━━━[2m──────── 66% eta: 4s (45.6 it/s)  ━━━━━━━━━━━━━━[2m──────── 67% eta: 4s (45.8 it/s)  ━━━━━━━━━━━━━━━[2m─────── 68% eta: 4s (45.9 it/s)  ━━━━━━━━━━━━━━━[2m─────── 69% eta: 3s (46.1 it/s)  ━━━━━━━━━━━━━━━[2m─────── 70% eta: 3s (46.2 it/s)  ━━━━━━━━━━━━━━━[2m─────── 71% eta: 3s (46.4 it/s)  ━━━━━━━━━━━━━━━━[2m────── 72% eta: 3s (46.5 it/s)  ━━━━━━━━━━━━━━━━[2m────── 73% eta: 3s (46.7 it/s)  ━━━━━━━━━━━━━━━━[2m────── 74% eta: 3s (46.8 it/s)  ━━━━━━━━━━━━━━━━[2m────── 75% eta: 3s (46.9 it/s)  ━━━━━━━━━━━━━━━━[2m────── 76% eta: 3s (47.1 it/s)  ━━━━━━━━━━━━━━━━━[2m───── 77% eta: 2s (47.2 it/s)  ━━━━━━━━━━━━━━━━━[2m───── 78% eta: 2s (47.3 it/s)  ━━━━━━━━━━━━━━━━━[2m───── 79% eta: 2s (47.5 it/s)  ━━━━━━━━━━━━━━━━━[2m───── 80% eta: 2s (47.6 it/s)  ━━━━━━━━━━━━━━━━━━[2m──── 81% eta: 2s (47.6 it/s)  ━━━━━━━━━━━━━━━━━━[2m──── 82% eta: 2s (47.8 it/s)  ━━━━━━━━━━━━━━━━━━[2m──── 83% eta: 2s (47.9 it/s)  ━━━━━━━━━━━━━━━━━━[2m──── 84% eta: 2s (47.9 it/s)  ━━━━━━━━━━━━━━━━━━━[2m─── 85% eta: 2s (48.2 it/s)  ━━━━━━━━━━━━━━━━━━━[2m─── 86% eta: 1s (48.3 it/s)  ━━━━━━━━━━━━━━━━━━━[2m─── 87% eta: 1s (48.3 it/s)  ━━━━━━━━━━━━━━━━━━━[2m─── 88% eta: 1s (48.5 it/s)  ━━━━━━━━━━━━━━━━━━━[2m─── 89% eta: 1s (48.5 it/s)  ━━━━━━━━━━━━━━━━━━━━[2m── 90% eta: 1s (48.6 it/s)  ━━━━━━━━━━━━━━━━━━━━[2m── 91% eta: 1s (48.7 it/s)  ━━━━━━━━━━━━━━━━━━━━[2m── 92% eta: 1s (48.8 it/s)  ━━━━━━━━━━━━━━━━━━━━[2m── 93% eta: 1s (48.9 it/s)  ━━━━━━━━━━━━━━━━━━━━━[2m─ 94% eta: 1s (49.0 it/s)  ━━━━━━━━━━━━━━━━━━━━━[2m─ 95% eta: 1s (49.1 it/s)  ━━━━━━━━━━━━━━━━━━━━━[2m─ 96% elapsed: 10s (49.2 it/s)     ━━━━━━━━━━━━━━━━━━━━━[2m─ 97% elapsed: 10s (49.3 it/s)     ━━━━━━━━━━━━━━━━━━━━━━[2m 98% elapsed: 10s (49.3 it/s)     ━━━━━━━━━━━━━━━━━━━━━━[2m 99% elapsed: 10s (49.4 it/s)     ━━━━━━━━━━━━━━━━━━━━━━[2m 100% elapsed: 10s (49.5 it/s)     ━━━━━━━━━━━━━━━━━━━━━━[2m elapsed: 10s (49.6 it/s)    
-Processing doubleslit.py script..
-Processing drag_chain.py script..
-Processing fourier_epicycles.py script..
-Processing gas.py script..
-Processing grayscott.py script..
-Du, Dv, F, k, name = 0.16 0.08 0.035 0.06 Zebrafish
-Processing gyroscope1.py script..
-Processing koch_fractal.py script..
-Processing lorenz.py script..
-Processing mag_field1.py script..
-Processing multiple_pendulum.py script..
-Processing optics_base.py script..
-Processing optics_main1.py script..
-Processing optics_main2.py script..
-Processing optics_main3.py script..
-Processing particle_simulator.py script..
-Processing pendulum_3d.py script..
-reusing cached file: /home/musy/.cache/vedo/3Dpen.npy
-Processing pendulum_ode.py script..
- [2m────────────────────── 4% eta: 12s (54.6 it/s)  [2m────────────────────── 5% eta: 12s (55.1 it/s)  [2m────────────────────── 6% eta: 11s (55.6 it/s)  ━[2m───────────────────── 7% eta: 11s (56.3 it/s)  ━[2m───────────────────── 8% eta: 11s (55.6 it/s)  ━[2m───────────────────── 9% eta: 11s (57.2 it/s)  ━[2m───────────────────── 10% eta: 10s (57.5 it/s)  ━━[2m──────────────────── 11% eta: 10s (57.7 it/s)  ━━[2m──────────────────── 12% eta: 10s (57.9 it/s)  ━━[2m──────────────────── 13% eta: 10s (58.1 it/s)  ━━[2m──────────────────── 14% eta: 10s (58.2 it/s)  ━━[2m──────────────────── 15% eta: 10s (58.3 it/s)  ━━━[2m─────────────────── 16% eta: 10s (58.2 it/s)  ━━━[2m─────────────────── 17% eta: 10s (58.3 it/s)  ━━━[2m─────────────────── 18% eta: 9s (58.3 it/s)  ━━━[2m─────────────────── 19% eta: 9s (58.5 it/s)  ━━━━[2m────────────────── 20% eta: 9s (58.5 it/s)  ━━━━[2m────────────────── 21% eta: 9s (58.5 it/s)  ━━━━[2m────────────────── 22% eta: 9s (58.7 it/s)  ━━━━[2m────────────────── 23% eta: 9s (57.9 it/s)  ━━━━━[2m───────────────── 24% eta: 9s (58.4 it/s)  ━━━━━[2m───────────────── 25% eta: 9s (58.2 it/s)  ━━━━━[2m───────────────── 26% eta: 9s (58.2 it/s)  ━━━━━[2m───────────────── 27% eta: 8s (58.2 it/s)  ━━━━━[2m───────────────── 28% eta: 8s (58.6 it/s)  ━━━━━━[2m──────────────── 29% eta: 8s (58.5 it/s)  ━━━━━━[2m──────────────── 30% eta: 8s (58.7 it/s)  ━━━━━━[2m──────────────── 31% eta: 8s (58.6 it/s)  ━━━━━━[2m──────────────── 32% eta: 8s (58.7 it/s)  ━━━━━━━[2m─────────────── 33% eta: 8s (58.8 it/s)  ━━━━━━━[2m─────────────── 34% eta: 8s (58.8 it/s)  ━━━━━━━[2m─────────────── 35% eta: 7s (58.8 it/s)  ━━━━━━━[2m─────────────── 36% eta: 7s (58.8 it/s)  ━━━━━━━━[2m────────────── 37% eta: 7s (58.9 it/s)  ━━━━━━━━[2m────────────── 38% eta: 7s (58.9 it/s)  ━━━━━━━━[2m────────────── 39% eta: 7s (58.8 it/s)  ━━━━━━━━[2m────────────── 40% eta: 7s (59.0 it/s)  ━━━━━━━━[2m────────────── 41% eta: 7s (58.9 it/s)  ━━━━━━━━━[2m───────────── 42% eta: 7s (59.0 it/s)  ━━━━━━━━━[2m───────────── 43% eta: 6s (59.0 it/s)  ━━━━━━━━━[2m───────────── 44% eta: 6s (59.0 it/s)  ━━━━━━━━━[2m───────────── 45% eta: 6s (59.0 it/s)  ━━━━━━━━━━[2m──────────── 46% eta: 6s (59.1 it/s)  ━━━━━━━━━━[2m──────────── 47% eta: 6s (59.1 it/s)  ━━━━━━━━━━[2m──────────── 48% eta: 6s (59.1 it/s)  ━━━━━━━━━━[2m──────────── 49% eta: 6s (59.1 it/s)  ━━━━━━━━━━━[2m─────────── 50% eta: 6s (59.0 it/s)  ━━━━━━━━━━━[2m─────────── 51% eta: 6s (59.1 it/s)  ━━━━━━━━━━━[2m─────────── 52% eta: 6s (58.4 it/s)  ━━━━━━━━━━━[2m─────────── 53% eta: 5s (58.5 it/s)  ━━━━━━━━━━━[2m─────────── 54% eta: 5s (58.5 it/s)  ━━━━━━━━━━━━[2m────────── 55% eta: 5s (58.6 it/s)  ━━━━━━━━━━━━[2m────────── 56% eta: 5s (58.6 it/s)  ━━━━━━━━━━━━[2m────────── 57% eta: 5s (58.6 it/s)  ━━━━━━━━━━━━[2m────────── 58% eta: 5s (58.6 it/s)  ━━━━━━━━━━━━━[2m───────── 59% eta: 5s (58.7 it/s)  ━━━━━━━━━━━━━[2m───────── 60% eta: 5s (58.7 it/s)  ━━━━━━━━━━━━━[2m───────── 61% eta: 4s (58.7 it/s)  ━━━━━━━━━━━━━[2m───────── 62% eta: 4s (58.7 it/s)  ━━━━━━━━━━━━━[2m───────── 63% eta: 4s (58.7 it/s)  ━━━━━━━━━━━━━━[2m──────── 64% eta: 4s (58.8 it/s)  ━━━━━━━━━━━━━━[2m──────── 65% eta: 4s (58.8 it/s)  ━━━━━━━━━━━━━━[2m──────── 66% eta: 4s (58.8 it/s)  ━━━━━━━━━━━━━━[2m──────── 67% eta: 4s (58.8 it/s)  ━━━━━━━━━━━━━━━[2m─────── 68% eta: 4s (58.8 it/s)  ━━━━━━━━━━━━━━━[2m─────── 69% eta: 4s (58.8 it/s)  ━━━━━━━━━━━━━━━[2m─────── 70% eta: 3s (58.7 it/s)  ━━━━━━━━━━━━━━━[2m─────── 71% eta: 3s (58.8 it/s)  ━━━━━━━━━━━━━━━━[2m────── 72% eta: 3s (58.6 it/s)  ━━━━━━━━━━━━━━━━[2m────── 73% eta: 3s (58.7 it/s)  ━━━━━━━━━━━━━━━━[2m────── 74% eta: 3s (58.6 it/s)  ━━━━━━━━━━━━━━━━[2m────── 75% eta: 3s (58.7 it/s)  ━━━━━━━━━━━━━━━━[2m────── 76% eta: 3s (58.7 it/s)  ━━━━━━━━━━━━━━━━━[2m───── 77% eta: 3s (58.7 it/s)  ━━━━━━━━━━━━━━━━━[2m───── 78% eta: 3s (58.7 it/s)  ━━━━━━━━━━━━━━━━━[2m───── 79% eta: 2s (58.8 it/s)  ━━━━━━━━━━━━━━━━━[2m───── 80% eta: 2s (58.8 it/s)  ━━━━━━━━━━━━━━━━━━[2m──── 81% eta: 2s (58.8 it/s)  ━━━━━━━━━━━━━━━━━━[2m──── 82% eta: 2s (58.8 it/s)  ━━━━━━━━━━━━━━━━━━[2m──── 83% eta: 2s (58.8 it/s)  ━━━━━━━━━━━━━━━━━━[2m──── 84% eta: 2s (58.8 it/s)  ━━━━━━━━━━━━━━━━━━━[2m─── 85% eta: 2s (58.9 it/s)  ━━━━━━━━━━━━━━━━━━━[2m─── 86% eta: 2s (58.9 it/s)  ━━━━━━━━━━━━━━━━━━━[2m─── 87% eta: 2s (58.9 it/s)  ━━━━━━━━━━━━━━━━━━━[2m─── 88% eta: 1s (58.9 it/s)  ━━━━━━━━━━━━━━━━━━━[2m─── 89% eta: 1s (58.9 it/s)  ━━━━━━━━━━━━━━━━━━━━[2m── 90% eta: 1s (58.9 it/s)  ━━━━━━━━━━━━━━━━━━━━[2m── 91% eta: 1s (58.8 it/s)  ━━━━━━━━━━━━━━━━━━━━[2m── 92% eta: 1s (58.9 it/s)  ━━━━━━━━━━━━━━━━━━━━[2m── 93% eta: 1s (59.0 it/s)  ━━━━━━━━━━━━━━━━━━━━━[2m─ 94% eta: 1s (59.0 it/s)  ━━━━━━━━━━━━━━━━━━━━━[2m─ 95% eta: 1s (59.0 it/s)  ━━━━━━━━━━━━━━━━━━━━━[2m─ 96% eta: 1s (58.8 it/s)  ━━━━━━━━━━━━━━━━━━━━━[2m─ 97% elapsed: 11s (58.8 it/s)     ━━━━━━━━━━━━━━━━━━━━━━[2m 98% elapsed: 11s (58.8 it/s)     ━━━━━━━━━━━━━━━━━━━━━━[2m 99% elapsed: 11s (58.9 it/s)     ━━━━━━━━━━━━━━━━━━━━━━[2m 100% elapsed: 11s (58.9 it/s)     ━━━━━━━━━━━━━━━━━━━━━━[2m elapsed: 11s (58.9 it/s)    
-Processing self_org_maps2d.py script..
- ━━━━━[2m───────────────── 28% eta: 1s (2179.7 it/s)  ━━━━━━[2m──────────────── 29% eta: 1s (2178.8 it/s)  ━━━━━━[2m──────────────── 30% eta: 1s (2119.6 it/s)  ━━━━━━[2m──────────────── 31% eta: 1s (2068.7 it/s)  ━━━━━━[2m──────────────── 32% eta: 1s (2020.5 it/s)  ━━━━━━━[2m─────────────── 33% eta: 1s (1981.0 it/s)  ━━━━━━━[2m─────────────── 34% eta: 1s (1940.3 it/s)  ━━━━━━━[2m─────────────── 35% eta: 1s (1908.6 it/s)  ━━━━━━━[2m─────────────── 36% eta: 1s (1876.0 it/s)  ━━━━━━━━[2m────────────── 37% eta: 1s (1848.4 it/s)  ━━━━━━━━[2m────────────── 38% eta: 1s (1821.3 it/s)  ━━━━━━━━[2m────────────── 39% eta: 1s (1797.9 it/s)  ━━━━━━━━[2m────────────── 40% eta: 1s (1774.1 it/s)  ━━━━━━━━[2m────────────── 41% eta: 1s (1754.7 it/s)  ━━━━━━━━━[2m───────────── 42% eta: 1s (1734.3 it/s)  ━━━━━━━━━[2m───────────── 43% eta: 1s (1716.8 it/s)  ━━━━━━━━━[2m───────────── 44% eta: 1s (1699.6 it/s)  ━━━━━━━━━[2m───────────── 45% eta: 1s (1675.5 it/s)  ━━━━━━━━━━[2m──────────── 46% eta: 1s (1668.6 it/s)  ━━━━━━━━━━[2m──────────── 47% eta: 1s (1655.5 it/s)  ━━━━━━━━━━[2m──────────── 48% eta: 1s (1640.7 it/s)  ━━━━━━━━━━[2m──────────── 49% eta: 1s (1624.6 it/s)  ━━━━━━━━━━━[2m─────────── 50% eta: 1s (1617.2 it/s)  ━━━━━━━━━━━[2m─────────── 51% eta: 1s (1607.3 it/s)  ━━━━━━━━━━━[2m─────────── 52% eta: 1s (1595.8 it/s)  ━━━━━━━━━━━[2m─────────── 53% eta: 1s (1572.1 it/s)  ━━━━━━━━━━━[2m─────────── 54% eta: 1s (1575.7 it/s)  ━━━━━━━━━━━━[2m────────── 55% eta: 1s (1568.1 it/s)  ━━━━━━━━━━━━[2m────────── 56% eta: 1s (1558.2 it/s)  ━━━━━━━━━━━━[2m────────── 57% eta: 1s (1537.2 it/s)  ━━━━━━━━━━━━[2m────────── 58% eta: 1s (1540.1 it/s)  ━━━━━━━━━━━━━[2m───────── 59% eta: 1s (1533.4 it/s)  ━━━━━━━━━━━━━[2m───────── 60% eta: 1s (1521.4 it/s)  ━━━━━━━━━━━━━[2m───────── 61% eta: 1s (1519.4 it/s)  ━━━━━━━━━━━━━[2m───────── 62% eta: 1s (1512.3 it/s)  ━━━━━━━━━━━━━[2m───────── 63% eta: 1s (1505.7 it/s)  ━━━━━━━━━━━━━━[2m──────── 64% eta: 1s (1499.1 it/s)  ━━━━━━━━━━━━━━[2m──────── 65% eta: 1s (1490.0 it/s)  ━━━━━━━━━━━━━━[2m──────── 66% eta: 1s (1488.4 it/s)  ━━━━━━━━━━━━━━[2m──────── 67% eta: 1s (1482.7 it/s)  ━━━━━━━━━━━━━━━[2m─────── 68% eta: 1s (1467.5 it/s)  ━━━━━━━━━━━━━━━[2m─────── 69% eta: 1s (1472.8 it/s)  ━━━━━━━━━━━━━━━[2m─────── 70% eta: 1s (1468.0 it/s)  ━━━━━━━━━━━━━━━[2m─────── 71% eta: 1s (1463.9 it/s)  ━━━━━━━━━━━━━━━━[2m────── 72% eta: 1s (1450.1 it/s)  ━━━━━━━━━━━━━━━━[2m────── 73% eta: 1s (1453.2 it/s)  ━━━━━━━━━━━━━━━━[2m────── 74% eta: 1s (1450.3 it/s)  ━━━━━━━━━━━━━━━━[2m────── 75% eta: 1s (1443.4 it/s)  ━━━━━━━━━━━━━━━━[2m────── 76% eta: 1s (1442.3 it/s)  ━━━━━━━━━━━━━━━━━[2m───── 77% eta: 1s (1439.0 it/s)  ━━━━━━━━━━━━━━━━━[2m───── 78% eta: 1s (1434.2 it/s)  ━━━━━━━━━━━━━━━━━[2m───── 79% eta: 1s (1430.5 it/s)  ━━━━━━━━━━━━━━━━━[2m───── 80% eta: 1s (1425.5 it/s)  ━━━━━━━━━━━━━━━━━━[2m──── 81% eta: 1s (1424.7 it/s)  ━━━━━━━━━━━━━━━━━━[2m──── 82% eta: 1s (1420.4 it/s)  ━━━━━━━━━━━━━━━━━━[2m──── 83% elapsed: 2s (1416.6 it/s)     ━━━━━━━━━━━━━━━━━━[2m──── 84% elapsed: 2s (1414.7 it/s)     ━━━━━━━━━━━━━━━━━━━[2m─── 85% elapsed: 2s (1412.0 it/s)     ━━━━━━━━━━━━━━━━━━━[2m─── 86% elapsed: 2s (1408.8 it/s)     ━━━━━━━━━━━━━━━━━━━[2m─── 87% elapsed: 2s (1398.6 it/s)     ━━━━━━━━━━━━━━━━━━━[2m─── 88% elapsed: 2s (1400.6 it/s)     ━━━━━━━━━━━━━━━━━━━[2m─── 89% elapsed: 3s (1398.3 it/s)     ━━━━━━━━━━━━━━━━━━━━[2m── 90% elapsed: 3s (1388.1 it/s)     ━━━━━━━━━━━━━━━━━━━━[2m── 91% elapsed: 3s (1392.5 it/s)     ━━━━━━━━━━━━━━━━━━━━[2m── 92% elapsed: 3s (1390.4 it/s)     ━━━━━━━━━━━━━━━━━━━━[2m── 93% elapsed: 3s (1387.9 it/s)     ━━━━━━━━━━━━━━━━━━━━━[2m─ 94% elapsed: 3s (1382.5 it/s)     ━━━━━━━━━━━━━━━━━━━━━[2m─ 95% elapsed: 3s (1379.7 it/s)     ━━━━━━━━━━━━━━━━━━━━━[2m─ 96% elapsed: 3s (1381.0 it/s)     ━━━━━━━━━━━━━━━━━━━━━[2m─ 97% elapsed: 3s (1379.1 it/s)     ━━━━━━━━━━━━━━━━━━━━━━[2m 98% elapsed: 3s (1368.7 it/s)     ━━━━━━━━━━━━━━━━━━━━━━[2m 99% elapsed: 3s (1367.0 it/s)     ━━━━━━━━━━━━━━━━━━━━━━[2m 100% elapsed: 3s (1364.5 it/s)     ━━━━━━━━━━━━━━━━━━━━━━[2m elapsed: 3s (1360.5 it/s)    
-Processing spline_ease.py script..
-Processing springs_fem.py script..
-Processing trail.py script..
-Processing tunnelling1.py script..
-Processing tunnelling2.py script..
-Processing value_iteration.py script..
-Processing volterra.py script..
-Processing wave_equation1d.py script..
- visualize the result ━[2m───────────────────── 8% eta: 6s (322.0 it/s)  visualize the result ━[2m───────────────────── 9% eta: 5s (339.8 it/s)  visualize the result ━[2m───────────────────── 10% eta: 5s (338.9 it/s)  visualize the result ━━[2m──────────────────── 11% eta: 5s (339.3 it/s)  visualize the result ━━[2m──────────────────── 12% eta: 5s (338.2 it/s)  visualize the result ━━[2m──────────────────── 13% eta: 5s (339.4 it/s)  visualize the result ━━[2m──────────────────── 14% eta: 5s (339.2 it/s)  visualize the result ━━[2m──────────────────── 15% eta: 5s (339.9 it/s)  visualize the result ━━━[2m─────────────────── 16% eta: 5s (339.7 it/s)  visualize the result ━━━[2m─────────────────── 17% eta: 5s (341.1 it/s)  visualize the result ━━━[2m─────────────────── 18% eta: 5s (340.3 it/s)  visualize the result ━━━[2m─────────────────── 19% eta: 5s (337.7 it/s)  visualize the result ━━━━[2m────────────────── 20% eta: 5s (336.8 it/s)  visualize the result ━━━━[2m────────────────── 21% eta: 5s (336.4 it/s)  visualize the result ━━━━[2m────────────────── 22% eta: 5s (335.9 it/s)  visualize the result ━━━━[2m────────────────── 23% eta: 5s (334.6 it/s)  visualize the result ━━━━━[2m───────────────── 24% eta: 5s (334.2 it/s)  visualize the result ━━━━━[2m───────────────── 25% eta: 5s (333.5 it/s)  visualize the result ━━━━━[2m───────────────── 26% eta: 4s (333.3 it/s)  visualize the result ━━━━━[2m───────────────── 27% eta: 4s (331.9 it/s)  visualize the result ━━━━━[2m───────────────── 28% eta: 4s (327.0 it/s)  visualize the result ━━━━━━[2m──────────────── 29% eta: 4s (328.6 it/s)  visualize the result ━━━━━━[2m──────────────── 30% eta: 4s (326.3 it/s)  visualize the result ━━━━━━[2m──────────────── 31% eta: 4s (327.3 it/s)  visualize the result ━━━━━━[2m──────────────── 32% eta: 4s (323.3 it/s)  visualize the result ━━━━━━━[2m─────────────── 33% eta: 4s (324.6 it/s)  visualize the result ━━━━━━━[2m─────────────── 34% eta: 4s (322.7 it/s)  visualize the result ━━━━━━━[2m─────────────── 35% eta: 4s (323.6 it/s)  visualize the result ━━━━━━━[2m─────────────── 36% eta: 4s (320.2 it/s)  visualize the result ━━━━━━━━[2m────────────── 37% eta: 4s (321.2 it/s)  visualize the result ━━━━━━━━[2m────────────── 38% eta: 4s (319.8 it/s)  visualize the result ━━━━━━━━[2m────────────── 39% eta: 4s (319.0 it/s)  visualize the result ━━━━━━━━[2m────────────── 40% eta: 4s (316.8 it/s)  visualize the result ━━━━━━━━[2m────────────── 41% eta: 4s (316.3 it/s)  visualize the result ━━━━━━━━━[2m───────────── 42% eta: 4s (316.4 it/s)  visualize the result ━━━━━━━━━[2m───────────── 43% eta: 4s (313.3 it/s)  visualize the result ━━━━━━━━━[2m───────────── 44% eta: 4s (313.7 it/s)  visualize the result ━━━━━━━━━[2m───────────── 45% eta: 4s (313.0 it/s)  visualize the result ━━━━━━━━━━[2m──────────── 46% eta: 4s (309.9 it/s)  visualize the result ━━━━━━━━━━[2m──────────── 47% eta: 3s (311.0 it/s)  visualize the result ━━━━━━━━━━[2m──────────── 48% eta: 3s (309.3 it/s)  visualize the result ━━━━━━━━━━[2m──────────── 49% eta: 3s (309.5 it/s)  visualize the result ━━━━━━━━━━━[2m─────────── 50% eta: 3s (305.8 it/s)  visualize the result ━━━━━━━━━━━[2m─────────── 51% eta: 3s (303.0 it/s)  visualize the result ━━━━━━━━━━━[2m─────────── 52% eta: 3s (303.2 it/s)  visualize the result ━━━━━━━━━━━[2m─────────── 53% eta: 3s (303.0 it/s)  visualize the result ━━━━━━━━━━━[2m─────────── 54% eta: 3s (303.5 it/s)  visualize the result ━━━━━━━━━━━━[2m────────── 55% eta: 3s (302.5 it/s)  visualize the result ━━━━━━━━━━━━[2m────────── 56% eta: 3s (302.8 it/s)  visualize the result ━━━━━━━━━━━━[2m────────── 57% eta: 3s (303.2 it/s)  visualize the result ━━━━━━━━━━━━[2m────────── 58% eta: 3s (302.5 it/s)  visualize the result ━━━━━━━━━━━━━[2m───────── 59% eta: 3s (302.8 it/s)  visualize the result ━━━━━━━━━━━━━[2m───────── 60% eta: 3s (302.1 it/s)  visualize the result ━━━━━━━━━━━━━[2m───────── 61% eta: 3s (303.1 it/s)  visualize the result ━━━━━━━━━━━━━[2m───────── 62% eta: 3s (302.5 it/s)  visualize the result ━━━━━━━━━━━━━[2m───────── 63% eta: 2s (303.3 it/s)  visualize the result ━━━━━━━━━━━━━━[2m──────── 64% eta: 2s (302.7 it/s)  visualize the result ━━━━━━━━━━━━━━[2m──────── 65% eta: 2s (303.6 it/s)  visualize the result ━━━━━━━━━━━━━━[2m──────── 66% eta: 2s (303.1 it/s)  visualize the result ━━━━━━━━━━━━━━[2m──────── 67% eta: 2s (303.8 it/s)  visualize the result ━━━━━━━━━━━━━━━[2m─────── 68% eta: 2s (303.3 it/s)  visualize the result ━━━━━━━━━━━━━━━[2m─────── 69% eta: 2s (304.1 it/s)  visualize the result ━━━━━━━━━━━━━━━[2m─────── 70% eta: 2s (302.9 it/s)  visualize the result ━━━━━━━━━━━━━━━[2m─────── 71% eta: 2s (303.6 it/s)  visualize the result ━━━━━━━━━━━━━━━━[2m────── 72% eta: 2s (303.0 it/s)  visualize the result ━━━━━━━━━━━━━━━━[2m────── 73% eta: 2s (303.8 it/s)  visualize the result ━━━━━━━━━━━━━━━━[2m────── 74% eta: 2s (302.5 it/s)  visualize the result ━━━━━━━━━━━━━━━━[2m────── 75% eta: 2s (303.2 it/s)  visualize the result ━━━━━━━━━━━━━━━━[2m────── 76% eta: 2s (302.8 it/s)  visualize the result ━━━━━━━━━━━━━━━━━[2m───── 77% eta: 2s (302.8 it/s)  visualize the result ━━━━━━━━━━━━━━━━━[2m───── 78% eta: 1s (303.0 it/s)  visualize the result ━━━━━━━━━━━━━━━━━[2m───── 79% eta: 1s (302.9 it/s)  visualize the result ━━━━━━━━━━━━━━━━━[2m───── 80% eta: 1s (302.8 it/s)  visualize the result ━━━━━━━━━━━━━━━━━━[2m──── 81% eta: 1s (302.7 it/s)  visualize the result ━━━━━━━━━━━━━━━━━━[2m──── 82% eta: 1s (302.9 it/s)  visualize the result ━━━━━━━━━━━━━━━━━━[2m──── 83% eta: 1s (302.6 it/s)  visualize the result ━━━━━━━━━━━━━━━━━━[2m──── 84% eta: 1s (302.9 it/s)  visualize the result ━━━━━━━━━━━━━━━━━━━[2m─── 85% eta: 1s (302.9 it/s)  visualize the result ━━━━━━━━━━━━━━━━━━━[2m─── 86% eta: 1s (303.0 it/s)  visualize the result ━━━━━━━━━━━━━━━━━━━[2m─── 87% eta: 1s (303.0 it/s)  visualize the result ━━━━━━━━━━━━━━━━━━━[2m─── 88% eta: 1s (302.9 it/s)  visualize the result ━━━━━━━━━━━━━━━━━━━[2m─── 89% eta: 1s (302.1 it/s)  visualize the result ━━━━━━━━━━━━━━━━━━━━[2m── 90% eta: 1s (301.2 it/s)  visualize the result ━━━━━━━━━━━━━━━━━━━━[2m── 91% eta: 1s (301.6 it/s)  visualize the result ━━━━━━━━━━━━━━━━━━━━[2m── 92% eta: 1s (301.2 it/s)  visualize the result ━━━━━━━━━━━━━━━━━━━━[2m── 93% elapsed: 6s (301.8 it/s)     visualize the result ━━━━━━━━━━━━━━━━━━━━━[2m─ 94% elapsed: 6s (301.3 it/s)     visualize the result ━━━━━━━━━━━━━━━━━━━━━[2m─ 95% elapsed: 6s (302.0 it/s)     visualize the result ━━━━━━━━━━━━━━━━━━━━━[2m─ 96% elapsed: 6s (301.1 it/s)     visualize the result ━━━━━━━━━━━━━━━━━━━━━[2m─ 97% elapsed: 6s (301.6 it/s)     visualize the result ━━━━━━━━━━━━━━━━━━━━━━[2m 98% elapsed: 6s (300.7 it/s)     visualize the result ━━━━━━━━━━━━━━━━━━━━━━[2m 99% elapsed: 7s (301.2 it/s)     visualize the result ━━━━━━━━━━━━━━━━━━━━━━[2m 100% elapsed: 7s (300.0 it/s)     visualize the result ━━━━━━━━━━━━━━━━━━━━━━[2m elapsed: 7s (300.0 it/s)    
-Processing wave_equation2d.py script..
-
-Press Esc at anytime to skip example
-
-
-
-Processing app_isobrowser.py script..
-Processing app_raycaster.py script..
-Processing colorize_volume.py script..
-Processing delaunay3d.py script..
-# of points inside the sphere: 478
-Processing densifycloud.py script..
-nr. points increased 50 :rightarrow: 293
-Processing earth_model.py script..
-Processing erode_dilate.py script..
-Processing euclidian_dist.py script..
-Processing image_editor.py script..
-Using default image: https://vedo.embl.es/examples/data/e3_EGFP.jpg
-Processing image_false_colors.py script..
-Processing image_fft.py script..
-Processing image_probe.py script..
-[2m[1m[7mPoint Data in Lines contains 2 array(s)[0m
-[1m[4mArray name    : JPEGImage[0m
-index         : 0
-type          : float32
-shape         : (1836, 3)
-range         : [ 21. 183.]
-max id        : 5507
-look up table : False
-in-memory size: 22 KB
-[1m[4mArray name    : Texture Coordinates[0m
-index         : 1
-type          : float32
-shape         : (1836, 2)
-range         : [0. 1.]
-max id        : 3671
-look up table : False
-in-memory size: 15 KB
-Processing image_rgba.py script..
-Processing image_to_mesh.py script..
-Processing interpolate_volume.py script..
-Processing isosurfaces1.py script..
-Get the cut mesh:
- vedo.mesh.core.Mesh at (0x560c530)                                         [0m[32;1mname          : Mesh
-elements      : vertices=25,360 polygons=49,114 lines=0
-position      : (0, 0, 0)
-scaling       : (1.00000, 1.00000, 1.00000)
-size          : average=0.978861, diagonal=3.38427
-center of mass: (0, -0.0834951, -4.10614e-3)
-bounds        : x=(-1.00, 1.00), y=(-1.00, 0.858), z=(-1.00, 1.00)
-pointdata *   : "scalars" (float32), dim=1, range=(0.100, 0.900)
-pointdata     : "Normals" (float32), dim=3
-metadata      : "isovalue" (6 values)[0m
-Processing isosurfaces2.py script..
-Processing legosurface.py script..
-Processing lowpassfilter.py script..
-Processing mesh2volume.py script..
-Processing multiscalars.py script..
-Arrays in Volume are: ['SLCImage', 'myscalars1', 'myscalars2']
-Processing numpy2volume0.py script..
-Processing numpy2volume1.py script..
-numpy array from Volume: (22, 30, 30)
-Processing numpy2volume2.py script..
-Processing numpy_imread.py script..
-voxel size is [104.0386667 104.0386667 104.0386667]
-Processing off_furniture.py script..
-Processing office.py script..
-reusing cached file: /home/musy/.cache/vedo/office.binary.vtk
-vedo.shapes.curves_core.Lines at (0x3e2e3650)                              [0m[32;1mname          : StreamLines
-elements      : vertices=15,212 polygons=0 lines=12
-position      : (0, 0, 0)
-scaling       : (1.00000, 1.00000, 1.00000)
-size          : average=1.47850, diagonal=6.10244
-center of mass: (1.55946, 2.34198, 1.50920)
-bounds        : x=(0.0102, 3.74), y=(0.224, 4.47), z=(0.178, 2.49)
-pointdata *   : "scalars" (float32), dim=1, range=(-3.64, 0.567)
-pointdata **  : "vectors" (float32), dim=3
-pointdata     : "IntegrationTime" (float64), dim=1, range=(0, 550)
-celldata      : "ReasonForTermination" (int32), dim=1, range=(1, 4)
-celldata      : "SeedIds" (int32), dim=1, range=(0, 11)[0m
-Processing probe_line1.py script..
-vedo.mesh.core.Mesh at (0x38767880)                                        [0m[32;1mname          : Mesh
-elements      : vertices=6,000 polygons=0 lines=60
-position      : (0, 0, 0)
-scaling       : (1.00000, 1.00000, 1.00000)
-size          : average=71.2691, diagonal=260.477
-center of mass: (127.500, 126.500, 126.500)
-bounds        : x=(27.5, 228), y=(67.5, 186), z=(67.5, 186)
-pointdata *   : "SLCImage" (uint8), dim=1, range=(0, 131)
-pointdata     : "ValidPointMask" (int8), dim=1, range=(1, 1)
-pointdata     : "Texture Coordinates" (float32), dim=2[0m
-Processing probe_line2.py script..
-Processing probe_points.py script..
-vedo.pointcloud.core.Points at (0x3715e030)                                [0m[32;1mname          : Points
-elements      : vertices=5,000 polygons=0 lines=0
-position      : (0, 0, 0)
-scaling       : (1.00000, 1.00000, 1.00000)
-size          : average=123.048, diagonal=443.211
-center of mass: (126.894, 129.200, 126.175)
-bounds        : x=(0.0231, 256), y=(0.0483, 256), z=(0.0787, 256)
-pointdata *   : "SLCImage" (uint8), dim=1, range=(0, 124)
-pointdata     : "ValidPointMask" (int8), dim=1, range=(1, 1)[0m
-Processing read_volume1.py script..
-Processing read_volume2.py script..
-Processing read_volume3.py script..
-Processing rectl_grid1.py script..
-vedo.grids.rectilinear.RectilinearGrid at (0x1c9763f0)                     [0m[36;1mname          : RectilinearGrid
-dimensions    : (36, 20, 20)
-center        : (21.7902, 9.50000, 9.50000)
-bounds        : x=(7.00, 36.6), y=(0, 19.0), z=(0, 19.0)
-memory size   : 2.9e-3 MB[0m
-Processing slab_vol.py script..
-Processing slice_mesh.py script..
-vedo.shapes.primitives_solids.Paraboloid at (0x3f517900)                   [0m[32;1mname          : Paraboloid
-elements      : vertices=36,288 polygons=72,166 lines=0
-position      : (100.000, 100.000, 200.000)
-scaling       : (200.000, 200.000, 200.000)
-size          : average=94.4280, diagonal=355.575
-center of mass: (100.000, 100.000, 87.4409)
-bounds        : x=(-1.97, 202), y=(-1.97, 202), z=(0, 208)
-pointdata *   : "SLCImage" (uint8), dim=1, range=(0, 145)
-pointdata     : "ValidPointMask" (int8), dim=1, range=(0, 1)
-pointdata     : "Normals" (float32), dim=3
-pointdata     : "scalars" (float32), dim=1, range=(0.0100, 0.0100)
-celldata      : "Normals" (float32), dim=3[0m
-Processing slice_plane1.py script..
-slice shape : [362 256]
-slice bounds: [-127.5        127.5       -180.3122292  180.6877708    0.
-    0.       ]
-Processing slice_plane2.py script..
-Processing slice_plane3.py script..
-Processing slicer1.py script..
-Processing slicer2.py script..
-Processing streamlines1.py script..
-vedo.shapes.curves_core.Lines at (0x3eae2b90)                              [0m[32;1mname          : StreamLines
-elements      : vertices=5,364 polygons=0 lines=8
-position      : (0, 0, 0)
-scaling       : (1.00000, 1.00000, 1.00000)
-size          : average=9.20122, diagonal=45.0680
-center of mass: (-1.77791, 0.799999, -1.22696)
-bounds        : x=(-17.5, 9.29), y=(-10.3, 12.8), z=(-15.5, 12.4)
-pointdata **  : "Wind" (float64), dim=3
-pointdata     : "IntegrationTime" (float64), dim=1, range=(0, 924)
-pointdata *   : "wind_intensity" (float64), dim=1, range=(3.85e-3, 1.87)
-celldata      : "ReasonForTermination" (int32), dim=1, range=(1, 4)
-celldata      : "SeedIds" (int32), dim=1, range=(0, 7)[0m
-vedo.shapes.curves_core.Tubes at (0x406a9ca0)                              [0m[32;1mname          : Tubes
-elements      : vertices=64,560 polygons=0 lines=0, strips=112
-position      : (0, 0, 0)
-scaling       : (1.00000, 1.00000, 1.00000)
-size          : average=9.22454, diagonal=46.8614
-center of mass: (-1.77924, 0.801929, -1.22322)
-bounds        : x=(-18.0, 10.1), y=(-10.8, 13.2), z=(-15.9, 13.0)
-pointdata **  : "Wind" (float64), dim=3
-pointdata     : "IntegrationTime" (float64), dim=1, range=(0, 924)
-pointdata *   : "wind_intensity" (float64), dim=1, range=(3.85e-3, 1.87)
-pointdata     : "TubeNormals" (float32), dim=3
-celldata      : "ReasonForTermination" (int32), dim=1, range=(1, 4)
-celldata      : "SeedIds" (int32), dim=1, range=(0, 7)[0m
-Processing streamlines2.py script..
-reusing cached file: /home/musy/.cache/vedo/combxyz.bin
-reusing cached file: /home/musy/.cache/vedo/combq.bin
-vedo.shapes.curves_core.Lines at (0x1950d090)                              [0m[32;1mname          : StreamLines
-elements      : vertices=41,275 polygons=0 lines=49
-position      : (0, 0, 0)
-scaling       : (1.00000, 1.00000, 1.00000)
-size          : average=3.77537, diagonal=18.5851
-center of mass: (8.19338, 0.976376, 29.8719)
-bounds        : x=(1.62, 16.5), y=(-3.19, 5.32), z=(26.3, 33.5)
-pointdata *   : "Density" (float32), dim=1, range=(0.200, 0.588)
-pointdata **  : "Momentum" (float32), dim=3
-pointdata     : "StagnationEnergy" (float32), dim=1, range=(0, 0)
-pointdata     : "IntegrationTime" (float64), dim=1, range=(0, 0.186)
-celldata      : "ReasonForTermination" (int32), dim=1, range=(1, 1)
-celldata *    : "SeedIds" (int32), dim=1, range=(0, 48)
-metadata      : "Properties" (5 values)[0m
-Processing streamlines3.py script..
-vedo.grids.unstructured.UnstructuredGrid at (0x345af6c0)                   [0m[35mnr. of verts  : 882
-nr. of cells  : 400
-cell types    : ['HEXAHEDRON']
-size          : average=0.0405346, diagonal=0.141774
-center of mass: (0.0500000, 0.0500000, 5.00000e-3)
-bounds        : x=(0, 0.100), y=(0, 0.100), z=(0, 0.0100)
-pointdata **  : "U" (float32), ndim=2, range=(-0.351, 1.00)
-celldata      : "cellID" (int32), ndim=1, range=(0, 399)
-celldata      : "U" (float32), ndim=2, range=(-0.369, 0.853)[0m
-Processing streamlines4.py script..
-reusing cached file: /home/musy/.cache/vedo/domain_unstruct.vtk.gz
-Processing struc_grid1.py script..
-vedo.grids.structured.StructuredGrid at (0x15784f00)                       [0m[36;1mname          : StructuredGrid
-dimensions    : [20 10 30]
-center        : (14.9940, 35.0017, 44.9943)
-bounds        : x=(9.96, 20.0), y=(30.0, 40.0), z=(40.0, 50.0)
-memory size   : 0.18 MB
-pointdata *   : "Scalars" (float64), ndim=1, range=(8.99, 21.0)[0m
-Processing tensors.py script..
-vedo.volume.core.Volume at (0x283b80c0)                                    [0m[36;1mname          : Volume
-dimensions    : [6 6 6]
-origin        : (-10.0000, -10.0000, -10.0000)
-center        : (0, 0, 0)
-spacing       : (4.00000, 4.00000, 4.00000)
-bounds        : x=(-10.0, 10.0), y=(-10.0, 10.0), z=(-10.0, 10.0)
-memory size   : 0 MB
-scalar size   : 4 bytes (float)
-scalar range  : (0.007634508889168501, 0.4873100221157074)[0m
-vedo.shapes.glyphs.Tensors at (0x2943e090)                                 [0m[32;1mname          : Tensors
-elements      : vertices=462,848 polygons=912,384 lines=0
-position      : (0, 0, 0)
-scaling       : (1.00000, 1.00000, 1.00000)
-size          : average=11.4337, diagonal=35.4434
-center of mass: (0, 0, 0.0915376)
-bounds        : x=(-10.3, 10.3), y=(-10.3, 10.3), z=(-10.3, 10.0)
-pointdata *   : "MaxEigenvalue" (float32), dim=1, range=(0.0254, 5.97)
-pointdata     : "Normals" (float32), dim=3[0m
-vedo.shapes.glyphs.Tensors at (0x29449e50)                                 [0m[32;1mname          : Tensors
-elements      : vertices=76,912 polygons=152,064 lines=0
-position      : (0, 0, 0)
-scaling       : (1.00000, 1.00000, 1.00000)
-size          : average=9.19586, diagonal=30.4186
-center of mass: (0, 0, 2.00000)
-bounds        : x=(-10.6, 10.6), y=(-10.6, 10.6), z=(-0.946, 4.95)
-pointdata *   : "MaxEigenvalue" (float32), dim=1, range=(0.0726, 0.614)
-pointdata     : "Normals" (float32), dim=3[0m
-Processing tet_astyle.py script..
-vedo.grids.tetmesh.TetMesh at (0x4e77c30)                                  [0m[36mnr. of verts  : 10926
-nr. of tetras : 58977
-size          : average=519.331, diagonal=2393.30
-center of mass: (582.387, 18.0611, -251.652)
-bounds        : x=(0, 1.42e+3), y=(-711, 700), z=(-852, 464)
-pointdata *   : "Scalars" (float64), ndim=1, range=(0.0255, 1.00)
-celldata      : "chem_0" (float64), ndim=1, range=(0.0828, 1.00)
-celldata      : "Length" (float64), ndim=1, range=(0, 0)
-celldata      : "Area" (float64), ndim=1, range=(0, 0)
-celldata      : "Volume" (float64), ndim=1, range=(-5.07e+4, 4.87e+4)[0m
-Processing tet_build.py script..
-vedo.grids.tetmesh.TetMesh at (0x3d3a3be0)                                 [0m[36mnr. of verts  : 12
-nr. of tetras : 3
-size          : average=2.71452, diagonal=8.77496
-center of mass: (2.16667, 3.08333, 2.41667)
-bounds        : x=(0, 4.00), y=(0, 6.00), z=(0, 5.00)
-pointdata *   : "myvector" (float64), ndim=1, range=(0.176, 0.960)
-celldata      : "myscalar1" (float64), ndim=1, range=(10.0, 30.0)
-celldata *    : "myscalar2" (float64), ndim=1, range=(-3.00, -1.00)[0m
-Processing tet_cut1.py script..
-vedo.grids.tetmesh.TetMesh at (0x3ac7cf30)                                 [0m[36mnr. of verts  : 10926
-nr. of tetras : 58977
-size          : average=519.331, diagonal=2393.30
-center of mass: (582.387, 18.0611, -251.652)
-bounds        : x=(0, 1.42e+3), y=(-711, 700), z=(-852, 464)
-pointdata *   : "Scalars" (float64), ndim=1, range=(0.0255, 1.00)
-celldata      : "chem_0" (float64), ndim=1, range=(0.0828, 1.00)[0m
-vedo.grids.unstructured.UnstructuredGrid at (0x3acbf620)                   [0m[35mnr. of verts  : 9275
-nr. of cells  : 33507
-cell types    : ['TETRA', 'WEDGE']
-size          : average=546.433, diagonal=2393.30
-center of mass: (624.158, 27.0635, -317.542)
-bounds        : x=(0, 1.42e+3), y=(-711, 700), z=(-852, 464)
-pointdata     : "Scalars" (float64), ndim=1, range=(0.0255, 1.00)
-pointdata *   : "SignedDistance" (float32), ndim=1, range=(-3.83e-15, 768)
-celldata      : "chem_0" (float64), ndim=1, range=(0.0828, 1.00)[0m
-Processing tet_cut2.py script..
-vedo.grids.unstructured.UnstructuredGrid at (0x1ae215f0)                   [0m[35mnr. of verts  : 9275
-nr. of cells  : 33507
-cell types    : ['TETRA', 'WEDGE']
-size          : average=546.433, diagonal=2393.30
-center of mass: (624.158, 27.0635, -317.542)
-bounds        : x=(0, 1.42e+3), y=(-711, 700), z=(-852, 464)
-pointdata     : "Scalars" (float64), ndim=1, range=(0.0255, 1.00)
-pointdata     : "ProximoDistal" (float64), ndim=1, range=(-852, 464)
-pointdata *   : "SignedDistance" (float32), ndim=1, range=(-3.83e-15, 768)
-celldata      : "chem_0" (float64), ndim=1, range=(0.0828, 1.00)[0m
-vedo.grids.tetmesh.TetMesh at (0x1add2880)                                 [0m[36mnr. of verts  : 5955
-nr. of tetras : 28643
-size          : average=527.947, diagonal=2393.30
-center of mass: (766.281, 26.2552, -399.047)
-bounds        : x=(0, 1.42e+3), y=(-711, 700), z=(-852, 464)
-pointdata     : "Scalars" (float64), ndim=1, range=(0.0255, 1.00)
-pointdata *   : "ProximoDistal" (float64), ndim=1, range=(-852, 464)
-celldata      : "chem_0" (float64), ndim=1, range=(0.0828, 1.00)[0m
-vedo.grids.tetmesh.TetMesh at (0x1adcf820)                                 [0m[36mnr. of verts  : 1814
-nr. of tetras : 4864
-size          : average=461.955, diagonal=1736.06
-center of mass: (369.333, 29.6140, -165.392)
-bounds        : x=(0, 927), y=(-547, 550), z=(-542, 433)
-pointdata     : "Scalars" (float64), ndim=1, range=(0.0873, 0.983)
-pointdata *   : "ProximoDistal" (float64), ndim=1, range=(-542, 433)
-celldata *    : "chem_0" (float64), ndim=1, range=(0.0951, 0.999)[0m
-Processing tet_explode.py script..
-Processing tet_isos_slice.py script..
-vedo.grids.tetmesh.TetMesh at (0x3a215670)                                 [0m[36mnr. of verts  : 10926
-nr. of tetras : 58977
-size          : average=519.331, diagonal=2393.30
-center of mass: (582.387, 18.0611, -251.652)
-bounds        : x=(0, 1.42e+3), y=(-711, 700), z=(-852, 464)
-pointdata     : "Scalars" (float64), ndim=1, range=(0.0255, 1.00)
-pointdata *   : "chem_0" (float64), ndim=1, range=(0.0892, 1.00)
-celldata *    : "chem_0" (float64), ndim=1, range=(0.0828, 1.00)[0m
-Processing tetralize_surface.py script..
-.. tetralize(): subsampling and cleaning
-.. edges min, max 0.001036324968712336 0.02673467797729743
-.. thresholding
-.. tetralize() completed, ntets = 41817
-Processing tet_threshold.py script..
-Processing ugrid1.py script..
-vedo.grids.unstructured.UnstructuredGrid at (0x11e05140)                   [0m[35mnr. of verts  : 16
-nr. of cells  : 3
-cell types    : ['HEXAHEDRON']
-size          : average=4.42939, diagonal=13.4907
-center of mass: (5.50000, 1.00000, 1.50000)
-bounds        : x=(0, 13.0), y=(0, 2.00), z=(0, 3.00)
-celldata *    : "elem_val" (float32), ndim=1, range=(1.00, 3.00)[0m
-Processing ugrid2.py script..
-Processing vol2points.py script..
-vedo.pointcloud.core.Points at (0x83da200)                                 [0m[32;1mname          : Points
-elements      : vertices=871,125 polygons=0 lines=0
-position      : (0, 0, 0)
-scaling       : (1.00000, 1.00000, 1.00000)
-size          : average=47.0803, diagonal=168.736
-center of mass: (57.0000, 50.0000, 37.0000)
-bounds        : x=(0, 114), y=(0, 100), z=(0, 74.0)
-pointdata *   : "SLCImage" (uint8), dim=1, range=(0, 239)[0m
-Processing volume_from_mesh.py script..
-Processing volume_operations.py script..
-
-Perform other simple mathematical operation between 3D Volumes.
-Possible operations are: +, -, /, 1/x, sin, cos, exp, log, abs, **2, sqrt,
-  min, max, atan, atan2, median, mag, dot, gradient, divergence, laplacian.
-Alphas defines the opacity transfer function in the scalar range.
-
-[2m[1m[7mPoint Data in Volume contains 2 array(s)[0m
-[1m[4mArray name    : ImageScalarsGradient[0m
-index         : 0
-type          : float64
-shape         : (8000, 3)
-range         : [-0.99946372  0.99946402]
-max id        : 23999
-look up table : False
-in-memory size: 188 KB
-[1m[4mArray name    : ImageScalars[0m
-index         : 1
-type          : float32
-shape         : (8000, 1)
-range         : [-0.49856672  0.        ]
-max id        : 7999
-look up table : False
-in-memory size: 32 KB
-Processing volume_sharemap.py script..
-Processing warp_scalars.py script..
-
-Press Esc at anytime to skip example
-
-
-
-Processing andrews_cluster.py script..
-Processing anim_lines.py script..
-Processing caption.py script..
-Processing custom_axes1.py script..
-Processing custom_axes2.py script..
-Processing custom_axes3.py script..
-Processing custom_axes4.py script..
-Processing earthquake_browser.py script..
-reading 2.5_month.csv from earthquake.usgs.gov ... done.
-libpng warning: iCCP: known incorrect sRGB profile
-libpng warning: iCCP: known incorrect sRGB profile
- ━━[2m──────────────────── 13% eta: 3s (433.7 it/s)  ━━[2m──────────────────── 14% eta: 3s (435.6 it/s)  ━━[2m──────────────────── 15% eta: 3s (434.9 it/s)  ━━━[2m─────────────────── 16% eta: 3s (435.8 it/s)  ━━━[2m─────────────────── 17% eta: 3s (436.9 it/s)  ━━━[2m─────────────────── 18% eta: 3s (437.7 it/s)  ━━━[2m─────────────────── 19% eta: 3s (437.9 it/s)  ━━━━[2m────────────────── 20% eta: 3s (439.7 it/s)  ━━━━[2m────────────────── 21% eta: 3s (439.9 it/s)  ━━━━[2m────────────────── 22% eta: 3s (438.7 it/s)  ━━━━[2m────────────────── 23% eta: 3s (437.9 it/s)  ━━━━━[2m───────────────── 24% eta: 3s (438.1 it/s)  ━━━━━[2m───────────────── 25% eta: 3s (438.7 it/s)  ━━━━━[2m───────────────── 26% eta: 3s (437.8 it/s)  ━━━━━[2m───────────────── 27% eta: 3s (438.3 it/s)  ━━━━━[2m───────────────── 28% eta: 3s (436.3 it/s)  ━━━━━━[2m──────────────── 29% eta: 3s (436.8 it/s)  ━━━━━━[2m──────────────── 30% eta: 3s (436.9 it/s)  ━━━━━━[2m──────────────── 31% eta: 3s (435.8 it/s)  ━━━━━━[2m──────────────── 32% eta: 3s (435.9 it/s)  ━━━━━━━[2m─────────────── 33% eta: 3s (436.2 it/s)  ━━━━━━━[2m─────────────── 34% eta: 3s (435.5 it/s)  ━━━━━━━[2m─────────────── 35% eta: 3s (436.2 it/s)  ━━━━━━━[2m─────────────── 36% eta: 3s (436.0 it/s)  ━━━━━━━━[2m────────────── 37% eta: 2s (436.1 it/s)  ━━━━━━━━[2m────────────── 38% eta: 2s (434.1 it/s)  ━━━━━━━━[2m────────────── 39% eta: 2s (433.6 it/s)  ━━━━━━━━[2m────────────── 40% eta: 2s (433.7 it/s)  ━━━━━━━━[2m────────────── 41% eta: 2s (432.6 it/s)  ━━━━━━━━━[2m───────────── 42% eta: 2s (432.1 it/s)  ━━━━━━━━━[2m───────────── 43% eta: 2s (431.7 it/s)  ━━━━━━━━━[2m───────────── 44% eta: 2s (431.4 it/s)  ━━━━━━━━━[2m───────────── 45% eta: 2s (423.6 it/s)  ━━━━━━━━━━[2m──────────── 46% eta: 2s (422.2 it/s)  ━━━━━━━━━━[2m──────────── 47% eta: 2s (421.9 it/s)  ━━━━━━━━━━[2m──────────── 48% eta: 2s (422.9 it/s)  ━━━━━━━━━━[2m──────────── 49% eta: 2s (422.8 it/s)  ━━━━━━━━━━━[2m─────────── 50% eta: 2s (423.7 it/s)  ━━━━━━━━━━━[2m─────────── 51% eta: 2s (424.9 it/s)  ━━━━━━━━━━━[2m─────────── 52% eta: 2s (424.6 it/s)  ━━━━━━━━━━━[2m─────────── 53% eta: 2s (425.4 it/s)  ━━━━━━━━━━━[2m─────────── 54% eta: 2s (424.2 it/s)  ━━━━━━━━━━━━[2m────────── 55% eta: 2s (422.6 it/s)  ━━━━━━━━━━━━[2m────────── 56% eta: 2s (421.7 it/s)  ━━━━━━━━━━━━[2m────────── 57% eta: 2s (422.5 it/s)  ━━━━━━━━━━━━[2m────────── 58% eta: 2s (421.9 it/s)  ━━━━━━━━━━━━━[2m───────── 59% eta: 2s (422.2 it/s)  ━━━━━━━━━━━━━[2m───────── 60% eta: 2s (422.6 it/s)  ━━━━━━━━━━━━━[2m───────── 61% eta: 2s (422.8 it/s)  ━━━━━━━━━━━━━[2m───────── 62% eta: 2s (423.7 it/s)  ━━━━━━━━━━━━━[2m───────── 63% eta: 2s (424.5 it/s)  ━━━━━━━━━━━━━━[2m──────── 64% eta: 1s (425.2 it/s)  ━━━━━━━━━━━━━━[2m──────── 65% eta: 1s (425.1 it/s)  ━━━━━━━━━━━━━━[2m──────── 66% eta: 1s (425.5 it/s)  ━━━━━━━━━━━━━━[2m──────── 67% eta: 1s (426.1 it/s)  ━━━━━━━━━━━━━━━[2m─────── 68% eta: 1s (426.2 it/s)  ━━━━━━━━━━━━━━━[2m─────── 69% eta: 1s (426.6 it/s)  ━━━━━━━━━━━━━━━[2m─────── 70% eta: 1s (427.0 it/s)  ━━━━━━━━━━━━━━━[2m─────── 71% eta: 1s (426.9 it/s)  ━━━━━━━━━━━━━━━━[2m────── 72% eta: 1s (427.5 it/s)  ━━━━━━━━━━━━━━━━[2m────── 73% eta: 1s (427.8 it/s)  ━━━━━━━━━━━━━━━━[2m────── 74% eta: 1s (428.0 it/s)  ━━━━━━━━━━━━━━━━[2m────── 75% eta: 1s (428.4 it/s)  ━━━━━━━━━━━━━━━━[2m────── 76% eta: 1s (429.0 it/s)  ━━━━━━━━━━━━━━━━━[2m───── 77% eta: 1s (429.5 it/s)  ━━━━━━━━━━━━━━━━━[2m───── 78% eta: 1s (429.3 it/s)  ━━━━━━━━━━━━━━━━━[2m───── 79% eta: 1s (429.6 it/s)  ━━━━━━━━━━━━━━━━━[2m───── 80% eta: 1s (430.2 it/s)  ━━━━━━━━━━━━━━━━━━[2m──── 81% eta: 1s (430.0 it/s)  ━━━━━━━━━━━━━━━━━━[2m──── 82% eta: 1s (430.5 it/s)  ━━━━━━━━━━━━━━━━━━[2m──── 83% eta: 1s (431.0 it/s)  ━━━━━━━━━━━━━━━━━━[2m──── 84% eta: 1s (431.2 it/s)  ━━━━━━━━━━━━━━━━━━━[2m─── 85% eta: 1s (430.8 it/s)  ━━━━━━━━━━━━━━━━━━━[2m─── 86% eta: 1s (430.9 it/s)  ━━━━━━━━━━━━━━━━━━━[2m─── 87% eta: 1s (431.4 it/s)  ━━━━━━━━━━━━━━━━━━━[2m─── 88% elapsed: 3s (431.1 it/s)     ━━━━━━━━━━━━━━━━━━━[2m─── 89% elapsed: 4s (431.6 it/s)     ━━━━━━━━━━━━━━━━━━━━[2m── 90% elapsed: 4s (432.1 it/s)     ━━━━━━━━━━━━━━━━━━━━[2m── 91% elapsed: 4s (432.1 it/s)     ━━━━━━━━━━━━━━━━━━━━[2m── 92% elapsed: 4s (432.4 it/s)     ━━━━━━━━━━━━━━━━━━━━[2m── 93% elapsed: 4s (432.6 it/s)     ━━━━━━━━━━━━━━━━━━━━━[2m─ 94% elapsed: 4s (432.6 it/s)     ━━━━━━━━━━━━━━━━━━━━━[2m─ 95% elapsed: 4s (432.9 it/s)     ━━━━━━━━━━━━━━━━━━━━━[2m─ 96% elapsed: 4s (433.3 it/s)     ━━━━━━━━━━━━━━━━━━━━━[2m─ 97% elapsed: 4s (433.7 it/s)     ━━━━━━━━━━━━━━━━━━━━━━[2m 98% elapsed: 4s (433.2 it/s)     ━━━━━━━━━━━━━━━━━━━━━━[2m 99% elapsed: 4s (433.3 it/s)     ━━━━━━━━━━━━━━━━━━━━━━[2m 100% elapsed: 4s (433.7 it/s)     ━━━━━━━━━━━━━━━━━━━━━━[2m elapsed: 4s (433.3 it/s)    
-Processing embed_matplotlib1.py script..
-Processing embed_matplotlib2.py script..
-Processing explore5d.py script..
-reusing cached file: /home/musy/.cache/vedo/genes.csv
-Print first 5 rows:
- ['gene0', 'gene1', 'gene2', 'gene3', 'gene4\n']
-[[0.9146 0.7526 0.0939 1.108  0.8248]
- [0.6748 0.3917 0.1339 1.1854 0.7257]
- [0.9386 0.8199 0.3241 1.2511 0.9362]
- [0.8589 0.7689 0.2915 1.1239 0.9179]
- [0.5031 0.2392 0.0774 1.0881 0.5873]]
-Number of rows: 10001
-after selection nr. of points is 5056
-Processing fill_gap.py script..
-Processing fit_circle.py script..
-Processing fit_curve1.py script..
-true params =  [20, 2, 8, 3]
-fit  params =  [20.23593085  1.65412939  7.92303481  2.84193394]
-Processing fit_curve2.py script..
-Processing fit_erf.py script..
-Processing fit_polynomial1.py script..
-Processing fit_polynomial2.py script..
-Processing fonts3d.py script..
-Bongas - available characters:                          
-! " # $ % & ' ( ) * + , - . / 0 1 2 3 4 5 6 7 8 9 : ; < = > ? @ A B C D E F G H I J K L M N O P Q R S T U V W X Y Z [ \ ] ^ _ ` a b c d e f g h i j k l m n o p q r s t u v w x y z { | } ~ ¡ ¢ £ ¤ § ¨ © ª « ¬ ­ ® ¯ ° ± ² ³ ´ µ · ¸ ¹ º » ¼ ½ ¾ ¿ À Á Â Ã Ä Å Æ Ç È É Ê Ë Ì Í Î Ï Ð Ñ Ò Ó Ô Õ Ö × Ø Ù Ú Û Ü Ý ß à á â ã ä å æ ç è é ê ë ì í î ï ð ñ ò ó ô õ ö ÷ ø ù ú û ü Ω μ π “ ” † … ‰ € ∂ ∆ ∏ ∑ − √ ∞ ∫ ≈ ≠ ≤ ≥ 
-Calco - available characters:                          
-! " # $ % & ' ( ) * + , - . / 0 1 2 3 4 5 6 7 8 9 : ; < = > ? @ A B C D E F G H I J K L M N O P Q R S T U V W X Y Z [ \ ] ^ _ ` a b c d e f g h i j k l m n o p q r s t u v w x y z { | } ~ ¡ ¢ £ ¤ § ¨ © ª « ¬ ­ ® ¯ ° ± ² ³ ´ µ · ¸ ¹ º » ¼ ½ ¾ ¿ À Á Â Ã Ä Å Æ Ç È É Ê Ë Ì Í Î Ï Ð Ñ Ò Ó Ô Õ Ö × Ø Ù Ú Û Ü Ý ß à á â ã ä å æ ç è é ê ë ì í î ï ð ñ ò ó ô õ ö ÷ ø ù ú û ü Δ Ω μ π “ ” † … ‰ € ← ↑ → ↓ ↔ ∂ ∅ ∆ ∏ ∑ − ∕ ∙ √ ∞ ∫ ≈ ≠ ≤ ≥   
-Comae - available characters:                          
-! " # $ % & ' ( ) * + , - . / 0 1 2 3 4 5 6 7 8 9 : ; < = > ? @ A B C D E F G H I J K L M N O P Q R S T U V W X Y Z [ \ ] ^ _ ` a b c d e f g h i j k l m n o p q r s t u v w x y z { | } ~ ¡ ¢ £ ¤ § ¨ © ª « ¬ ­ ® ¯ ° ± ² ³ ´ µ · ¸ ¹ º » ¼ ½ ¾ ¿ À Á Â Ã Ä Å Æ Ç È É Ê Ë Ì Í Î Ï Ð Ñ Ò Ó Ô Õ Ö × Ø Ù Ú Û Ü Ý ß à á â ã ä å æ ç è é ê ë ì í î ï ð ñ ò ó ô õ ö ÷ ø ù ú û ü Α Β Γ Δ Ε Ζ Η Θ Ι Κ Λ Μ Ν Ξ Ο Π Ρ Σ Τ Υ Φ Χ Ψ Ω ά έ ή ί α β γ δ ε ζ η θ ι κ λ μ ν ξ ο π ρ ς σ τ υ φ χ ψ ω А Б В Г Д Е Ж З И Й К Л М Н О П Р С Т У Ф Х Ц Ч Ш Щ Ъ Ы Ь Э Ю Я а б в г д е ж з и й к л м н о п р с т у ф х ц ч ш щ ъ ы ь э ю я “ ” † … ‰ € ∆ ← ↑ → ↓ ↔ ∂ ∏ ∑ − ∕ ∙ √ ∞ ∩ ∫ ≈ ≠ ≡ ≤ ≥   
-Glasgo - available characters:                          
-! " # $ % & ' ( ) * + , - . / 0 1 2 3 4 5 6 7 8 9 : ; < = > ? @ A B C D E F G H I J K L M N O P Q R S T U V W X Y Z [ \ ] ^ _ ` a b c d e f g h i j k l m n o p q r s t u v w x y z { | } ~ ¡ ¢ £ ¤ § ¨ © ª « ¬ ® ¯ ° ± ² ³ ´ µ · ¸ ¹ º » ¼ ½ ¾ ¿ À Á Â Ã Ä Å Æ Ç È É Ê Ë Ì Í Î Ï Ð Ñ Ò Ó Ô Õ Ö × Ø Ù Ú Û Ü Ý ß à á â ã ä å æ ç è é ê ë ì í î ï ð ñ ò ó ô õ ö ÷ ø ù ú û ü “ ” † … ‰ € 
-Kanopus - available characters:                          
-! " # $ % & ' ( ) * + , - . / 0 1 2 3 4 5 6 7 8 9 : ; < = > ? @ A B C D E F G H I J K L M N O P Q R S T U V W X Y Z [ \ ] ^ _ ` a b c d e f g h i j k l m n o p q r s t u v w x y z { | } ~ ¡ ¢ £ ¤ § ¨ © ª « ¬ ­ ® ¯ ° ± ² ³ ´ µ · ¸ ¹ º » ¼ ½ ¾ ¿ À Á Â Ã Ä Å Æ Ç È É Ê Ë Ì Í Î Ï Ð Ñ Ò Ó Ô Õ Ö × Ø Ù Ú Û Ü Ý ß à á â ã ä å æ ç è é ê ë ì í î ï ð ñ ò ó ô õ ö ÷ ø ù ú û ü Α Β Γ Δ Ε Ζ Η Θ Ι Κ Λ Μ Ν Ξ Ο Π Ρ Σ Τ Υ Φ Χ Ψ Ω ά έ ή ί α β γ δ ε ζ η θ ι κ λ μ ν ξ ο π ρ ς σ τ υ φ χ ψ ω А Б В Г Д Е Ж З И Й К Л М Н О П Р С Т У Ф Х Ц Ч Ш Щ Ъ Ы Ь Э Ю Я а б в г д е ж з и й к л м н о п р с т у ф х ц ч ш щ ъ ы ь э ю я ѐ “ ” † … ‰ € ← ↑ → ↓ ↔ ∀ ∁ ∂ ∃ ∄ ∅ ∆ ∇ ∈ ∉ ∊ ∋ ∌ ∍ ∎ ∏ ∐ ∑ − ∓ ∕ ∖ ∗ ∘ ∙ √ ∛ ∜ ∝ ∞ ∣ ∧ ∨ ∩ ∪ ∫ ∬ ∭ ∮ ∯ ∰ ∱ ∲ ∳ ∻ ∼ ∽ ∾ ∿ ≀ ≁ ≂ ≃ ≄ ≅ ≆ ≇ ≈ ≉ ≊ ≋ ≌ ≍ ≎ ≏ ≐ ≑ ≒ ≓ ≔ ≕ ≖ ≗ ≘ ≙ ≚ ≛ ≜ ≝ ≞ ≟ ≠ ≡ ≢ ≣ ≤ ≥ ❶ ❷ ❸ ❹ ❺ ❻ ❼ ❽ ❾ ❿ ➀ ➁ ➂ ➃ ➄ ➅ ➆ ➇ ➈ ➉ ➊ ➋ ➌ ➍ ➎ ➏ ➐ ➑ ➒ ➓ ➔ 〘 〙 𝄞 𝄢 
-Normografo - available characters:                          
-! " # $ % & ' ( ) * + , - . / 0 1 2 3 4 5 6 7 8 9 : ; < = > ? @ A B C D E F G H I J K L M N O P Q R S T U V W X Y Z [ \ ] ^ _ ` a b c d e f g h i j k l m n o p q r s t u v w x y z { | } ~ ¡ ¦ ¨ © ª « ¬ ® ° ± ² ³ ´ · ¸ ¹ º » ¼ ½ ¾ ¿ À Á Â Ä Ç È É Ê Ë Ì Í Î Ï Ñ Ò Ó Ô Ö × Ù Ú Û Ü à á â ä ç è é ê ë ì í î ï ñ ò ó ô ö ÷ ù ú û ü ƒ Α Β Γ Δ Ε Ζ Η Θ Ι Κ Λ Μ Ν Ξ Ο Π Ρ Σ Τ Υ Φ Χ Ψ Ω α β γ δ ε ζ η θ ι κ λ μ ν ξ ο π ρ σ τ υ φ χ ψ ω ‘ ’ “ ” • … ‰ ′ ″ ‹ › € ™ ← ↑ → ↓ ↔ ∀ ∂ ∅ ∇ √ ∝ ∞ ∠ ∫ ∴ ≅ ≈ ≠ ≡ ≤ ≥ ⊥   
-Quikhand - available characters:                          
-! " # $ % & ' ( ) * + , - . / 0 1 2 3 4 5 6 7 8 9 : ; < = > ? @ A B C D E F G H I J K L M N O P Q R S T U V W X Y Z _ ` a b c d e f g h i j k l m n o p q r s t u v w x y z { | } ~ £ ¤ ¥ ¦ § ¨ © « ¬ ­ ® ° ´ ¶ · ¸ » × ÷ ı ˆ ˉ ˘ ˙ ˚ ˛ ˜ ˝ ; – — ‘ ’ ‚ “ ” „ † ‡ • … ‹ › ⁄ ₣ ₤ ₧ € ∂ ∆ ∏ ∑ − ∕ ∙ √ ∞ ∫ ≈ ≤ ≥ 
-SmartCouric - available characters:                          
-! " # $ % & ' ( ) * + , - . / 0 1 2 3 4 5 6 7 8 9 : ; < = > ? @ A B C D E F G H I J K L M N O P Q R S T U V W X Y Z [ \ ] ^ _ ` a b c d e f g h i j k l m n o p q r s t u v w x y z { | } ~ ¡ ¢ £ § ¨ © ª « ¬ ® ¯ ° ± ² ³ ´ · ¸ ¹ º » ¼ ½ ¾ ¿ À Á Â Ã Ä Å Æ Ç È É Ê Ë Ì Í Î Ï Ð Ñ Ò Ó Ô Õ Ö × Ø Ù Ú Û Ü Ý ß à á â ã ä å æ ç è é ê ë ì í î ï ð ñ ò ó ô õ ö ÷ ø ù ú û ü “ ” † … ‰ € ∆ ∑ − ∫ ≈ ≠ ≤ ≥ 
-Theemim - available characters:                          
-! " # $ % & ' ( ) * + , - . / 0 1 2 3 4 5 6 7 8 9 : ; < = > ? @ A B C D E F G H I J K L M N O P Q R S T U V W X Y Z [ \ ] ^ _ ` a b c d e f g h i j k l m n o p q r s t u v w x y z { | } ~ ¡ ¢ £ ¤ § ¨ © ª « ¬ ­ ® ¯ ° ± ² ³ ´ µ · ¸ ¹ º » ¼ ½ ¾ ¿ À Á Â Ã Ä Å Æ Ç È É Ê Ë Ì Í Î Ï Ð Ñ Ò Ó Ô Õ Ö × Ø Ù Ú Û Ü Ý ß à á â ã ä å æ ç è é ê ë ì í î ï ð ñ ò ó ô õ ö ÷ ø ù ú û ü Α Β Γ Δ Ε Ζ Η Θ Ι Κ Λ Μ Ν Ξ Ο Π Ρ Σ Τ Υ Φ Χ Ψ Ω ά έ ή ί α β γ δ ε ζ η θ ι κ λ μ ν ξ ο π ρ ς σ τ υ φ χ ψ ω “ ” † … ‰ € ∂ ∆ ∏ ∑ − √ ∞ ∫ ≈ ≠ ≤ ≥   
-VictorMono - available characters:                          
-! " # $ % & ' ( ) * + , - . / 0 1 2 3 4 5 6 7 8 9 : ; < = > ? @ A B C D E F G H I J K L M N O P Q R S T U V W X Y Z [ \ ] ^ _ ` a b c d e f g h i j k l m n o p q r s t u v w x y z { | } ~ ¡ ¢ £ ¤ § ¨ © ª « ¬ ­ ® ¯ ° ± ² ³ ´ µ · ¸ ¹ º » ¼ ½ ¾ ¿ À Á Â Ã Ä Å Æ Ç È É Ê Ë Ì Í Î Ï Ð Ñ Ò Ó Ô Õ Ö × Ø Ù Ú Û Ü Ý ß à á â ã Α Β Γ Δ Ε Ζ Η Θ Ι Κ Λ Μ Ν Ξ Ο Π Ρ Σ Τ Υ Φ Χ Ψ Ω ά έ ή ί α β γ δ ε ζ η θ ι κ λ μ ν ξ ο π ρ ς σ τ υ φ χ ψ ω А Б В Г Д Е Ж З И Й К Л М Н О П Р С Т У Ф Х Ц Ч Ш Щ Ъ Ы Ь Э Ю Я а б в г д е ж з и й к л м н о п р с т у ф х ц ч ш щ ъ ы ь э ю я ѐ “ ” † … ‰ € ← ↑ → ↓ ↔ ∀ ∂ ∃ ∅ ∇ ∈ ∉ ∏ ∑ − √ ∞ ∧ ∨ ∩ ∪ ∫ ≈   
-
-(use the above to copy&paste any char into your python script!)
-Symbols ~ ^ _ are reserved modifiers:
- use ~ to add a short space, 1/4 of the default size,
- use ^ and _ to start up/sub scripting, space terminates them.
-
-[1m[33;20m[vedo.text3d:323] WARNING: unavailable characters in font name 'Theemim': {'∇'}.
-Type "vedo -r fonts" for a demo.[0m
-Processing goniometer.py script..
-Processing graph_lineage.py script..
-Processing graph_network.py script..
-Processing histo_1d_a.py script..
-Processing histo_1d_b.py script..
-Processing histo_1d_c.py script..
-Processing histo_1d_d.py script..
-Processing histo_1d_e.py script..
-Processing histo_2d_a.py script..
-Processing histo_2d_b.py script..
-[[ 0.  0.  0.  1.  0.  1.  0.  0.  0.  0.]
- [ 0.  0.  0.  0.  0.  1.  0.  1.  0.  0.]
- [ 0.  0.  0.  0.  6.  4.  1.  1.  0.  0.]
- [ 0.  0.  1.  5. 11. 10.  4.  3.  0.  0.]
- [ 0.  1.  7. 15. 29. 25. 11. 12.  4.  2.]
- [ 0.  3. 10. 20. 42. 49. 41. 12.  2.  3.]
- [ 0.  4. 18. 35. 56. 45. 45. 17.  9.  2.]
- [ 2.  1. 11. 31. 49. 48. 51. 21.  4.  1.]
- [ 0.  2.  6. 15. 31. 32. 23. 10.  4.  0.]
- [ 0.  1.  4.  3. 19. 18. 10.  8.  1.  0.]
- [ 0.  0.  0.  3.  2.  4.  6.  1.  2.  0.]
- [ 0.  0.  0.  1.  1.  1.  1.  2.  0.  1.]]
-Processing histo_3d.py script..
-Processing histo_gauss.py script..
-Processing histo_hexagonal.py script..
-Processing histo_manual.py script..
-Processing histo_pca.py script..
-Processing histo_polar.py script..
-Processing histo_spheric.py script..
-Processing histo_violin.py script..
-Processing intersect2d.py script..
-Processing isolines.py script..
-Mesh point arrays: ['Normals', 'Scalars']
-Mesh cell arrays : ['Normals', 'Scalars']
-Processing latex.py script..
-Processing lines_intersect.py script..
-Processing markers.py script..
-Processing markpoint.py script..
-Processing np_matrix.py script..
-Processing pie_chart.py script..
-Processing plot_bars.py script..
-Processing plot_density2d.py script..
-Processing plot_density3d.py script..
-Processing plot_density4d.py script..
- ━━[2m──────────────────── 12% eta: 4s (5.7 it/s)   ━━━[2m─────────────────── 16% eta: 4s (5.4 it/s)   ━━━━[2m────────────────── 20% eta: 4s (5.4 it/s)   ━━━━━[2m───────────────── 24% eta: 4s (5.2 it/s)   ━━━━━[2m───────────────── 28% eta: 3s (5.3 it/s)   ━━━━━━[2m──────────────── 32% eta: 3s (5.3 it/s)   ━━━━━━━[2m─────────────── 36% eta: 3s (5.3 it/s)   ━━━━━━━━[2m────────────── 40% eta: 3s (5.3 it/s)   ━━━━━━━━━[2m───────────── 44% eta: 3s (5.3 it/s)   ━━━━━━━━━━[2m──────────── 48% eta: 2s (5.3 it/s)   ━━━━━━━━━━━[2m─────────── 52% eta: 2s (5.3 it/s)   ━━━━━━━━━━━━[2m────────── 56% eta: 2s (5.3 it/s)   ━━━━━━━━━━━━━[2m───────── 60% eta: 2s (5.3 it/s)   ━━━━━━━━━━━━━━[2m──────── 64% eta: 2s (5.3 it/s)   ━━━━━━━━━━━━━━━[2m─────── 68% eta: 2s (5.3 it/s)   ━━━━━━━━━━━━━━━━[2m────── 72% eta: 1s (5.2 it/s)   ━━━━━━━━━━━━━━━━[2m────── 76% eta: 1s (5.2 it/s)   ━━━━━━━━━━━━━━━━━[2m───── 80% eta: 1s (5.2 it/s)   ━━━━━━━━━━━━━━━━━━[2m──── 84% eta: 1s (5.2 it/s)   ━━━━━━━━━━━━━━━━━━━[2m─── 88% eta: 1s (5.2 it/s)   ━━━━━━━━━━━━━━━━━━━━[2m── 92% elapsed: 4s (5.2 it/s)     ━━━━━━━━━━━━━━━━━━━━━[2m─ 96% elapsed: 5s (5.2 it/s)     ━━━━━━━━━━━━━━━━━━━━━━[2m elapsed: 5s (5.2 it/s)    
-Processing plot_empty.py script..
-Processing plot_errband.py script..
-Processing plot_errbars.py script..
-Processing plot_extra_yaxis.py script..
-Processing plot_fxy0.py script..
-Processing plot_fxy1.py script..
-Processing plot_fxy2.py script..
-Processing plot_hexcells.py script..
-Processing plot_multi.py script..
-Processing plot_pip.py script..
-Processing plot_polar.py script..
-Processing plot_spheric.py script..
-Processing plot_stream.py script..
-Processing quiver.py script..
-Processing scatter1.py script..
-Processing scatter2.py script..
-Processing scatter3.py script..
-Processing scatter_large.py script..
-Processing triangulate2d.py script..
-Traceback (most recent call last):
-  File "/home/musy/Projects/vedo/examples/pyplot/triangulate2d.py", line 13, in <module>
-    show([(s1,s2,__doc__), sm], N=2, axes=8).close()
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/musy/Projects/vedo/vedo/plotter/runtime.py", line 317, in show
-    plt.interactor.GetRenderWindow().Finalize()
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AttributeError: 'NoneType' object has no attribute 'GetRenderWindow'
-Processing whiskers.py script..
-Press Esc at anytime to skip example, F1 to interrupt
-Processing: examples/other/chemistry1.py
-vedo.chemistry.PeriodicTable at (0x7f639fc75df0)                           [0mNumber of elements  : 118
-Atomic number       : 12 (example entry)
-Element name        : Magnesium
-Element symbol      : Mg
-Covalent radius     : 1.3899999856948853
-Van der Waals radius: 2.200000047683716[0m
-
-Atomic number of Co: 27
-reusing cached file: /home/musy/.cache/vedo/3gea.pdb
-reusing cached file: /home/musy/.cache/vedo/caffeine.pdb
-Number of atoms: 24
-Number of bonds: 25
-Atom positions:
-[[  5.03999996   1.94400001  -8.32400036]
- [  6.46899986   2.09200001  -7.91499996]
- [  7.43100023   0.86500001  -8.07199955]
- [  6.91599989  -0.391       -8.54399967]
- [  5.53200006  -0.54100001  -8.90100002]
- [  4.59000015   0.523       -8.39400005]
- [  4.04500008   3.04099989  -8.00500011]
- [  4.45300007   4.03800011  -8.26399994]
- [  3.10100007   2.90700006  -8.56999969]
- [  3.79500008   3.04999995  -6.92600012]
- [  6.87900019   3.18099999  -7.50299978]
- [  4.90700006  -1.65900004  -9.6960001 ]
- [  4.39699984  -1.273      -10.59899998]
- [  5.66900015  -2.39100003 -10.02799988]
- [  4.16099977  -2.20900011  -9.08899975]
- [  3.47000003   0.208       -7.98600006]
- [  8.80700016   0.80900002  -7.79899979]
- [  7.98199987  -1.28499997  -8.60400009]
- [  9.01500034  -0.5         -8.15200043]
- [ 10.00699997  -0.926       -8.07900047]
- [  9.75599957   1.83500004  -7.29899979]
- [ 10.77600002   1.41900003  -7.19899988]
- [  9.43700027   2.20700002  -6.30900002]
- [  9.80099964   2.69300008  -7.99399996]]
-Atomic numbers: {8, 1, 6, 7}
-Bond 0: (20, 23, 1)
-Processing: examples/other/clone2d.py
-Processing: examples/other/ellipt_fourier_desc.py
-Processing: examples/other/export_numpy.py
-Window exported to numpy file: scene.npz
-
-Try also:
-> vedo scene.npz
-Processing: examples/other/export_x3d.py
-Type: 
- firefox embryo.html
-Processing: examples/other/fast_simpl.py
-Processing: examples/other/flag_labels1.py
-Processing: examples/other/flag_labels2.py
-Processing: examples/other/icon.py
-Processing: examples/other/iminuit1.py
-Last optimization output:
-┌─────────────────────────────────────────────────────────────────────────┐
-│                                Migrad                                   │
-├──────────────────────────────────┬──────────────────────────────────────┤
-│ FCN = 4.82e-05                   │              Nfcn = 95               │
-│ EDM = 4.21e-05 (Goal: 0.0002)    │                                      │
-├──────────────────────────────────┼──────────────────────────────────────┤
-│          Valid Minimum           │   Below EDM threshold (goal x 10)    │
-├──────────────────────────────────┼──────────────────────────────────────┤
-│      No parameters at limit      │           Below call limit           │
-├──────────────────────────────────┼──────────────────────────────────────┤
-│             Hesse ok             │         Covariance accurate          │
-└──────────────────────────────────┴──────────────────────────────────────┘
-┌───┬──────┬───────────┬───────────┬────────────┬────────────┬─────────┬─────────┬───────┐
-│   │ Name │   Value   │ Hesse Err │ Minos Err- │ Minos Err+ │ Limit-  │ Limit+  │ Fixed │
-├───┼──────┼───────────┼───────────┼────────────┼────────────┼─────────┼─────────┼───────┤
-│ 0 │ x    │     4     │     6     │            │            │         │         │       │
-│ 1 │ y    │     3     │    12     │            │            │         │         │       │
-│ 2 │ z    │     2     │     1     │            │            │         │         │       │
-└───┴──────┴───────────┴───────────┴────────────┴────────────┴─────────┴─────────┴───────┘
-┌───┬────────────────┐
-│   │    x    y    z │
-├───┼────────────────┤
-│ x │ 40.7    0 -0.0 │
-│ y │    0  140  0.0 │
-│ z │ -0.0  0.0    1 │
-└───┴────────────────┘
-Processing: examples/other/iminuit2.py
-┌─────────────────────────────────────────────────────────────────────────┐
-│                                Migrad                                   │
-├──────────────────────────────────┬──────────────────────────────────────┤
-│ FCN = 681.2                      │              Nfcn = 199              │
-│ EDM = 3.69e-05 (Goal: 0.0002)    │                                      │
-├──────────────────────────────────┼──────────────────────────────────────┤
-│          Valid Minimum           │   Below EDM threshold (goal x 10)    │
-├──────────────────────────────────┼──────────────────────────────────────┤
-│      No parameters at limit      │           Below call limit           │
-├──────────────────────────────────┼──────────────────────────────────────┤
-│             Hesse ok             │     Covariance FORCED pos. def.      │
-└──────────────────────────────────┴──────────────────────────────────────┘
-┌───┬──────┬───────────┬───────────┬────────────┬────────────┬─────────┬─────────┬───────┐
-│   │ Name │   Value   │ Hesse Err │ Minos Err- │ Minos Err+ │ Limit-  │ Limit+  │ Fixed │
-├───┼──────┼───────────┼───────────┼────────────┼────────────┼─────────┼─────────┼───────┤
-│ 0 │ x0   │  0.0152   │  0.0013   │            │            │         │         │       │
-│ 1 │ x1   │   0.059   │   0.012   │            │            │         │         │       │
-│ 2 │ x2   │    197    │    22     │            │            │         │         │       │
-│ 3 │ x3   │    432    │    19     │            │            │         │         │       │
-│ 4 │ x4   │   0.5e3   │   0.4e3   │            │            │         │         │       │
-└───┴──────┴───────────┴───────────┴────────────┴────────────┴─────────┴─────────┴───────┘
-┌────┬────────────────────────────────────────────────────────┐
-│    │         x0         x1         x2         x3         x4 │
-├────┼────────────────────────────────────────────────────────┤
-│ x0 │    1.7e-06    -4.8e-6  1.2007e-3  3.4905e-3 -2.3493e-3 │
-│ x1 │    -4.8e-6    0.00015   -7.62e-3  -46.52e-3 -432.95e-3 │
-│ x2 │  1.2007e-3   -7.62e-3        465          0      7.8e3 │
-│ x3 │  3.4905e-3  -46.52e-3          0        360      0.1e3 │
-│ x4 │ -2.3493e-3 -432.95e-3      7.8e3      0.1e3   1.34e+05 │
-└────┴────────────────────────────────────────────────────────┘
-Processing: examples/other/inset.py
-Processing: examples/other/madcad1.py
-vedo.mesh.core.Mesh at (0x1d8bff10)                                        [0m[32;1mname          : Mesh
-elements      : vertices=148 polygons=276 lines=0
-position      : (0, 0, 0)
-scaling       : (1.00000, 1.00000, 1.00000)
-size          : average=9.59908, diagonal=37.4165
-center of mass: (10.0000, 0, 0)
-bounds        : x=(-5.00, 25.0), y=(-5.00, 5.00), z=(-10.0, 10.0)
-celldata *    : "tracks" (uint16), dim=1, range=(0, 2)[0m
-Processing: examples/other/madcad2.py
-Warning: Ignoring XDG_SESSION_TYPE=wayland on Gnome. Use QT_QPA_PLATFORM=wayland to run on Wayland anyway.
-Processing: examples/other/magic-class1.py
-Warning: Ignoring XDG_SESSION_TYPE=wayland on Gnome. Use QT_QPA_PLATFORM=wayland to run on Wayland anyway.
-Processing: examples/other/meshio_read.py
-reusing cached file: /home/musy/.cache/vedo/shuttle.obj
-vedo.mesh.core.Mesh at (0xe1a0960)                                         [0m[32;1mname          : Mesh
-color         : tomato, rgb=(1.00, 0.388, 0.278), alpha=1.0
-elements      : vertices=310 polygons=393 lines=0
-position      : (0, 0, 0)
-scaling       : (1.00000, 1.00000, 1.00000)
-size          : average=4.10214, diagonal=18.2740
-center of mass: (2.67405, 8.87100e-7, 0.0972128)
-bounds        : x=(-7.65, 7.04), y=(-4.68, 4.68), z=(-1.35, 4.16)[0m
-Processing: examples/other/meshlib1.py
-Skipping example: optional dependency 'meshlib' is not installed.
-Install with: pip install meshlib
-Processing: examples/other/morphomatics_riemann.py
-0: 0.0004069507122039795
-1: 0.00019963085651397705
-2: 0.00015094876289367676
-3: 0.00012610852718353271
-4: 0.00011083483695983887
-5: 0.00010001659393310547
-6: 9.18954610824585e-05
-7: 8.55475664138794e-05
-8: 8.028745651245117e-05
-9: 7.584691047668457e-05
-10: 7.228553295135498e-05
-11: 6.906688213348389e-05
-12: 6.628036499023438e-05
-13: 6.380677223205566e-05
-14: 6.158649921417236e-05
-15: 5.94407320022583e-05
-16: 5.7578086853027344e-05
-17: 5.583465099334717e-05
-18: 5.3942203521728516e-05
-19: 5.266070365905762e-05
-20: 5.0961971282958984e-05
-21: 4.9591064453125e-05
-22: 4.83393669128418e-05
-23: 4.6834349632263184e-05
-24: 4.564225673675537e-05
-25: 4.4465065002441406e-05
-26: 4.322826862335205e-05
-27: 4.2110681533813477e-05
-28: 4.096329212188721e-05
-29: 3.993511199951172e-05
-30: 3.889203071594238e-05
-31: 3.781914710998535e-05
-32: 3.6850571632385254e-05
-33: 3.594160079956055e-05
-34: 3.4943222999572754e-05
-35: 3.406405448913574e-05
-36: 3.3214688301086426e-05
-37: 3.2320618629455566e-05
-38: 3.14861536026001e-05
-39: 3.065168857574463e-05
-40: 2.987682819366455e-05
-41: 2.9161572456359863e-05
-42: 2.835690975189209e-05
-43: 2.7641654014587402e-05
-44: 2.6747584342956543e-05
-45: 2.6360154151916504e-05
-46: 2.5585293769836426e-05
-47: 2.5004148483276367e-05
-48: 2.4110078811645508e-05
-49: 2.378225326538086e-05
-50: 2.3111701011657715e-05
-51: 2.230703830718994e-05
-52: 2.205371856689453e-05
-53: 2.117455005645752e-05
-54: 2.0965933799743652e-05
-55: 2.0205974578857422e-05
-56: 1.9684433937072754e-05
-57: 1.9431114196777344e-05
-58: 1.8715858459472656e-05
-59: 1.823902130126953e-05
-60: 1.800060272216797e-05
-61: 1.7344951629638672e-05
-62: 1.7121434211730957e-05
-63: 1.6480684280395508e-05
-64: 1.6123056411743164e-05
-65: 1.5869736671447754e-05
-66: 1.519918441772461e-05
-67: 1.4930963516235352e-05
-68: 1.4603137969970703e-05
-69: 1.4394521713256836e-05
-70: 1.3813376426696777e-05
-71: 1.3455748558044434e-05
-72: 1.3232231140136719e-05
-73: 1.2919306755065918e-05
-74: 1.2606382369995117e-05
-75: 1.2293457984924316e-05
-76: 1.1935830116271973e-05
-77: 1.169741153717041e-05
-78: 1.1369585990905762e-05
-79: 1.1116266250610352e-05
-80: 1.0892748832702637e-05
-81: 1.0624527931213379e-05
-82: 1.0371208190917969e-05
-83: 1.0058283805847168e-05
-84: 9.894371032714844e-06
-Processing: examples/other/morphomatics_tube.py
-7.727761194837445
-0.08070465320024588
-0.006717486804439291
-0.0007734839881848106
-5.9745863881011334e-05
-tol 0.0007593360528326603 reached
-Processing: examples/other/nelder-mead.py
-Computing Hessian: 1/4 for diagonal
-Computing Hessian: 2/4 for diagonal
-Computing Hessian: 3/4 for diagonal
-Computing Hessian: 4/4 for diagonal
-Computing Hessian: 1/4 for off-diagonal
-Computing Hessian: 2/4 for off-diagonal
-Computing Hessian: 3/4 for off-diagonal
-Computing Hessian: 4/4 for off-diagonal
-Computing Hessian: 1/4 for diagonal
-Computing Hessian: 2/4 for diagonal
-Computing Hessian: 3/4 for diagonal
-Computing Hessian: 4/4 for diagonal
-Computing Hessian: 1/4 for off-diagonal
-Computing Hessian: 2/4 for off-diagonal
-Computing Hessian: 3/4 for off-diagonal
-Computing Hessian: 4/4 for off-diagonal
-vedo.utils.Minimizer at (0x72a937275fa0)                                   Function name       func()
--------- parameters initial value -----------
-Name                Value               Scale
-x                   4.0                 1.0
-y                   -3.0                1.0
-z                   1.0                 1.0
-w                   1.0                 1.0
--------- parameters final value --------------
-x                   3.999975 ± 2.0000
-y                   -1.999999 ± 0.5000
-z                   0.000005 ± 0.5000
-w                   6.000002 ± 0.5000
-Value at minimum    3.0000000000673963
-Iterations          242
-Max iterations      10000
-Convergence flag    True
-Tolerance           1e-05
-Hessian Matrix:
-[[ 0.125,  0.   ,  0.   ,  0.   ],
- [ 0.   ,  2.   , -0.   , -0.   ],
- [ 0.   , -0.   ,  2.   ,  0.   ],
- [ 0.   , -0.   ,  0.   ,  2.   ]]
-Processing: examples/other/nevergrad_opt.py
-Minimum at: [1.00438304 1.002349  ]
-Processing: examples/other/printc.py
-:world: 1- Change the world by being yourself - Amy Poehler
-:smile: 2- Never regret anything that made you smile - Mark Twain
-:construction: 3- Every moment is a fresh beginning - T.S Eliot
-:thumbup: 4- Die with memories, not dreams - Unknown
-:pin: 5- When words fail, music speaks - Shakespeare
-:rocket: 6- Everything you can imagine is real - Pablo Picasso
-:idea: 7- Simplicity is the ultimate sophistication - Leonardo da Vinci
-:rainbow: 8- Whatever you do, do it well - Walt Disney
-:target: 9- What we think, we become - Buddha
-:sparks:10- All limitations are self-imposed - Oliver Wendell Holmes
-:checked:11- If you tell the truth you don't have to remember anything - Mark Twain
-💥 	 :bomb:
-✨ 	 :sparks:
-👍 	 :thumbup:
-🎯 	 :target:
-💾 	 :save:
-⛔ 	 :noentry:
-📽 	 :video:
-⚡ 	 :lightning:
-📸 	 :camera:
-❌ 	 :times:
-🌍 	 :world:
-🌈 	 :rainbow:
-💡 	 :idea:
-📌 	 :pin:
-🚧 	 :construction:
-🚀 	 :rocket:
-⏳ 	 :hourglass:
-🚫 	 :prohibited:
-✅ 	 :checked:
-🙂 	 :smile:
-😒 	 :sad:
-⭐ 	 :star:
-💤 	 :zzz:
-μ 	 :mu:
-π 	 :pi:
-σ 	 :sigma:
-➡ 	 :rightarrow:
-Processing: examples/other/pygeodesic1.py
-Processing: examples/other/pygmsh_cut.py
-Info    : [  0%] Union                                                                                  Info    : [ 10%] Union                                                                                  Info    : [ 20%] Union                                                                                  Info    : [ 30%] Union - Repeat intersection                                                                                Info    : [ 40%] Union                                                                                  Info    : [ 50%] Union                                                                                  Info    : [ 70%] Union - Filling splits of edges                                                                                Info    : [ 80%] Union                                                                                  Info    : [ 90%] Union                                                                                  Info    : Cannot bind existing OpenCASCADE surface 1 to second tag 2
-Info    : Could not preserve tag of 2D object 2 (->1)
-Info    : Cannot bind existing OpenCASCADE surface 1 to second tag 3
-Info    : Could not preserve tag of 2D object 3 (->1)
-Info    : [  0%] Union                                                                                  Info    : [ 10%] Union - Performing intersection of shapes                                                                                Info    : [ 80%] Union - Building splits of containers                                                                                Info    : [  0%] Difference                                                                                  Info    : [ 10%] Difference                                                                                  Info    : [ 20%] Difference                                                                                  Info    : [ 30%] Difference                                                                                  Info    : [ 40%] Difference                                                                                  Info    : [ 60%] Difference                                                                                  Info    : [ 70%] Difference                                                                                  Info    : [ 80%] Difference                                                                                  Info    : [ 90%] Difference - Making faces                                                                                                                                                                Processing: examples/other/pymeshlab1.py
-reusing cached file: /home/musy/.cache/vedo/bunny.obj
-We can also convert it back to pymeshlab.MeshSet: <class 'pymeshlab.pmeshlab.Mesh'>
-Processing: examples/other/pymeshlab2.py
-Processing: examples/other/pysr_regression.py
-Skipping example: optional dependency 'pysr' is not installed.
-Install with: pip install pysr
-Processing: examples/other/remesh_ACVD.py
-Skipping example: optional dependency 'pyacvd' is not installed.
-Install with: pip install pyacvd
-Processing: examples/other/remesh_meshfix.py
-Skipping example: optional dependency 'pymeshfix' is not installed.
-Install with: pip install pymeshfix
-Processing: examples/other/spherical_harmonics1.py
-Processing: examples/other/tensor_grid1.py
-vedo.shapes.glyphs.Tensors at (0x396a4b60)                                 [0m[32;1mname          : Tensors
-elements      : vertices=78,200 polygons=152,064 lines=0
-position      : (0, 0, 0)
-scaling       : (1.00000, 1.00000, 1.00000)
-size          : average=0.455753, diagonal=1.62105
-center of mass: (3.69309e-3, 7.46803e-4, 0)
-bounds        : x=(-0.562, 0.571), y=(-0.570, 0.579), z=(-0.0805, 0.0805)
-pointdata *   : "MaxEigenvalue" (float32), dim=1, range=(0.0713, 0.230)
-pointdata     : "Normals" (float32), dim=3
-metadata      : "RandomFieldArray" = [][0m
-Processing: examples/other/tensor_grid2.py
-Processing: examples/other/tetgen1.py
-Delaunizing vertices...
-Delaunay seconds:  5.6e-05
-Creating surface mesh ...
-Surface mesh seconds:  6.2e-05
-Recovering boundaries...
-Boundary recovery seconds:  9.2e-05
-Removing exterior tetrahedra ...
-Exterior tets removal seconds:  6e-06
-Recovering Delaunayness...
-Delaunay recovery seconds:  2.9e-05
-Refining mesh...
-  10 insertions, added 4 points, 50 tetrahedra in queue.
-Refinement seconds:  0.000341
-Smoothing vertices...
-Mesh smoothing seconds:  1.1e-05
-Improving mesh...
-Mesh improvement seconds:  2.6e-05
-
-Writing nodes.
-Writing elements.
-Writing faces.
-Writing edges.
-
-Output seconds:  8e-06
-Total running seconds:  0.000713
-
-Statistics:
-
-  Input points: 8
-  Input facets: 6
-  Input segments: 12
-  Input holes: 0
-  Input regions: 0
-
-  Mesh points: 14
-  Mesh tetrahedra: 24
-  Mesh faces: 60
-  Mesh faces on exterior boundary: 24
-  Mesh faces on input facets: 24
-  Mesh edges on input segments: 12
-  Steiner points on input facets:  6
-
-Processing: examples/other/trimesh_nearest.py
-reusing cached file: /home/musy/.cache/vedo/cycloidal.ply
-Processing: examples/other/trimesh_ray.py
-The rays hit the mesh at coordinates:
- [[ 0.  0. -1.]
- [ 0.  0.  1.]]
-The rays with index: [0 0] hit triangles stored at mesh.faces[[1178 1018]]
-Processing: examples/other/trimesh_section.py
-reusing cached file: /home/musy/.cache/vedo/featuretype.STL
-nr. of sections: 11
-Processing: examples/other/trimesh_shortest.py
----------------------------- command line tests
-vedo
-vedo version      : 2025.6.0+dev02  (https://vedo.embl.es)       
-vtk version       : 9.6.0
-numpy version     : 2.1.3
-python version    : 3.12.3 (main, Jan 22 2026, 20:57:42) [GCC 13.3.0]
-python interpreter: /home/musy/vedoenv/bin/python3
-installation point: /home/musy/Projects/vedo
-system            : Linux 6.17.0-14-generic posix x86_64
-k3d version       : 2.16.1
-:idea: No input files? Try:
- vedo https://vedo.embl.es/examples/data/panther.stl.gz
-----------------------------
-vedo ../data/250.vtk ../data/270_flank.vtk ../data/270_rim.vtk ../data/270.vtk ../data/290.vtk
-----------------------------
-vedo ../data/250.vtk ../data/270_flank.vtk ../data/270_rim.vtk ../data/270.vtk ../data/290.vtk
-----------------------------
-vedo -s ../data/2??.vtk
-----------------------------
-vedo ../data/embryo.tif
-----------------------------
-vedo -g ../data/embryo.slc
-----------------------------
-vedo --slicer2d ../data/embryo.tif
-----------------------------
-vedo --slicer3d ../data/embryo.tif
-----------------------------
-vedo --eog ../data/uv_grid.jpg
