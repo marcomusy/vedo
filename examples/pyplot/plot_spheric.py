@@ -7,6 +7,7 @@ from vedo import *
 from vedo.pyplot import plot
 import numpy as np
 
+# plot spheric example.
 def rhofunc(theta, phi):
     if theta < 0.2:
         return np.nan # make some points invalid

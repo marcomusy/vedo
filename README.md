@@ -127,9 +127,8 @@ for a wide range of functionalities
 <i>
 
 - Integration with the [Qt5](https://www.qt.io/) framework.
-- Support for [FEniCS/Dolfin](https://fenicsproject.org/) platform for visualization of PDE/FEM solutions.
 - Interoperability with the [trimesh](https://trimsh.org/), [pyvista](https://github.com/pyvista/pyvista) and [pymeshlab](https://github.com/cnr-isti-vclab/PyMeshLab) libraries.
-- Export 3D scenes and embed them into a [web page](https://vedo.embl.es/examples/fenics_elasticity.html).
+- Export 3D scenes and embed them into a [web page](https://vedo.embl.es/examples/export_x3d.html).
 - Embed 3D scenes in *jupyter* notebooks with [K3D](https://github.com/K3D-tools/K3D-jupyter) (can export an interactive 3D-snapshot page [here](https://vedo.embl.es/examples/geo_scene.html)).
 
 </i>
@@ -264,4 +263,3 @@ Zenodo, 2021, <a href="https://doi.org/10.5281/zenodo.7019968">doi: 10.5281/zeno
 
 <img src="https://user-images.githubusercontent.com/32848391/58046204-e9157180-7b44-11e9-81c9-e916cdf9ba84.gif" alt="EMBL Logo" width="200"/>
 <img src="https://www.prototypesforhumanity.com/wp-content/uploads/2021/01/Logo-Elisava-UVic-UCC-horizontal-negro.png" alt="Elisava Logo" width="500"/>
-

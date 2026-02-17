@@ -1,3 +1,4 @@
+"""Interactively draw and edit a spline over an image."""
 from vedo import dataurl, Image, Mesh
 from vedo.applications import SplinePlotter  # ready to use class!
 

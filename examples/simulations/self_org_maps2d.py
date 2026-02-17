@@ -20,6 +20,7 @@ class SOM:
         self.samples  = []
 
     def learn(self, n_epoch=10000, sigma=(0.25,0.01), lrate=(0.5,0.01)):
+        # Exponential schedules for learning rate and neighborhood size.
 
         t = np.linspace(0, 1, n_epoch)
         lrate = lrate[0] * (lrate[1] / lrate[0]) ** t

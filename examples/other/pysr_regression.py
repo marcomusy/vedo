@@ -7,10 +7,19 @@ The script then shows the true function and learned function on a 2D grid."""
 # install with: 
 #   pip install pysr
 #
+from pathlib import Path
+import sys
+
 import numpy as np
-from pysr import PySRRegressor
 import vedo
 
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from _optional import require_module
+
+require_module("pysr")
+from pysr import PySRRegressor
+
+# Configure inputs and run the visualization workflow.
 
 model = PySRRegressor(
     maxsize=20,

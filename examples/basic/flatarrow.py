@@ -2,6 +2,7 @@
 from vedo import sin, cos, FlatArrow, show
 from numpy import arange
 
+# Build a stack of flat arrows from two nearby parametric polylines.
 arrs = []
 for i in range(10):
     s, c = sin(i), cos(i)

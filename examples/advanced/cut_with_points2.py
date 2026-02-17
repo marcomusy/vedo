@@ -3,6 +3,7 @@ from vedo import *
 
 mesh = Mesh(dataurl + "dolfin_fine.vtk").lw(1)
 
+# 2D loop coordinates in the mesh plane.
 pts = [
     [0.85382618, 0.1909104],
     [0.85585967, 0.8721275],

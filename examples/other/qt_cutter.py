@@ -1,3 +1,4 @@
+"""Qt integration example."""
 import sys
 from PyQt5 import Qt
 from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor

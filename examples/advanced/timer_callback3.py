@@ -41,6 +41,7 @@ printc("Creating Timer Callbacks with IDs:", id1, id2)
 # Start two timers, one with a delay of 1s and the other with a delay of 2.3s
 ida = plt.timer_callback("start", dt=1000)
 idb = plt.timer_callback("start", dt=2300)
+# Two independent periods drive two different animation callbacks.
 printc("Starting timers with IDs         :", ida, idb)
 
 # Stop the first timer using its ID

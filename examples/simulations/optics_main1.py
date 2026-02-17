@@ -1,3 +1,4 @@
+"""Show several optics scenarios using lenses, mirrors, and ray tracing."""
 import numpy as np
 import vedo
 from optics_base import Lens, Ray, Mirror, Detector, Screen  # see file ./optics_base.py
@@ -72,4 +73,3 @@ detector.count().cmap("Reds", on='cells', vmax=10).add_scalarbar("Counts")
 
 vedo.show(mirror, detector, lines, "A Mesh mirror and a spherical detector",
           elevation=-90, axes=1, bg='bb', bg2='blue9').close()
-

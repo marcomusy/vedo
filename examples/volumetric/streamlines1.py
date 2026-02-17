@@ -3,6 +3,7 @@ subjected to a vectorial field defined on a small set of points."""
 from vedo import *
 import pandas as pd
 
+# Build the volumetric processing pipeline and render results.
 data = "https://raw.githubusercontent.com/plotly/datasets/master/vortex.csv"
 df = pd.read_csv(data)
 pts  = np.c_[df['x'], df['y'], df['z']]

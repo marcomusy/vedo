@@ -5,6 +5,7 @@ except ImportError:
     print("tetgenpy not installed, try: pip install tetgenpy")
 import vedo
 
+# Configure inputs and run the visualization workflow.
 # Tetrahedralize unit cube, define points
 points = [
     [0.0, 0.0, 0.0],

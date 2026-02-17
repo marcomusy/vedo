@@ -11,6 +11,7 @@ pts1, pts2, vals = [], [], []
 
 msh_points = msh.points
 for i in range(0, msh.npoints, 10):
+    # Fit a local sphere from a 12-point neighborhood.
     p = msh_points[i]
     pts = msh.closest_point(p, n=12)  # find the n-closest points to p
     sph = fit_sphere(pts)             # find the fitting sphere

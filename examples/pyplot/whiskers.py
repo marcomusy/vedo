@@ -3,6 +3,7 @@
 from vedo import np, settings, Axes, Brace, Line, Ribbon, show
 from vedo.pyplot import whisker
 
+# whiskers example.
 settings.default_font = "Theemim"
 
 # build some theoretical expectation to be shown as a grey band

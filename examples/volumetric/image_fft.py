@@ -1,4 +1,4 @@
-# 2D Fast Fourier Transform of a image
+"""Compute and visualize a 2D FFT of an image."""
 from vedo import Image, show
 
 url = 'https://vedo.embl.es/examples/data/images/dog.jpg'
@@ -14,5 +14,4 @@ show([
      ],
      N=3, bg='gray7', axes=1,
 ).close()
-
 

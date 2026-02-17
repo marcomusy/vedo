@@ -4,21 +4,20 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vedo"
-
-dynamic = ["version"]
+version = "2025.6.1"
 
 description = "A python module for scientific visualization, analysis of 3D objects and point clouds."
 
 authors = [
-    {name = "Marco Musy", email = "marco.musy@embl.es"}
+    {name = "Marco Musy", email = "mmusy@elisava.net"}
 ]
 
 maintainers = [
-    {name = "Marco Musy", email = "marco.musy@embl.es"}
+    {name = "Marco Musy", email = "mmusy@elisava.net"}
 ]
 
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.10"
 license = {file = "LICENSE"}
 
 keywords = ["vtk", "numpy", "3d", "visualization", "mesh", "volume", "point-cloud"]
@@ -28,11 +27,9 @@ classifiers = [
     "Development Status :: 5 - Production/Stable",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Visualization",
     "Topic :: Scientific/Engineering :: Physics",
     "Topic :: Scientific/Engineering :: Medical Science Apps."
@@ -42,7 +39,8 @@ dependencies = [
     "vtk",
     "numpy",
     "typing-extensions",
-    "Pygments"
+    "Pygments",
+    "matplotlib"
 ]
 
 [project.optional-dependencies]
@@ -61,15 +59,25 @@ Changelog = "https://github.com/marcomusy/vedo/blob/master/docs/changes.md"
 
 packages = [
     "vedo",
-    "vedo.fonts",
+    "vedo.core",
+    "vedo.applications",
+    "vedo.addons",
+    "vedo.external",
+    "vedo.file_io",
+    "vedo.grids",
+    "vedo.mesh",
+    "vedo.plotter",
+    "vedo.pointcloud",
+    "vedo.pyplot",
+    "vedo.shapes",
+    "vedo.visual",
+    "vedo.volume",
     "vedo.examples.basic",
     "vedo.examples.advanced",
     "vedo.examples.pyplot",
     "vedo.examples.simulations",
     "vedo.examples.volumetric",
-    "vedo.examples.other",
-    "vedo.examples.other.dolfin",
-    "vedo.examples.other.trimesh"
+    "vedo.examples.other"
 ]
 
 include-package-data = true
@@ -91,12 +99,6 @@ vedo = "vedo"
 "vedo.examples.simulations" = "examples/simulations"
 "vedo.examples.volumetric" = "examples/volumetric"
 "vedo.examples.other" = "examples/other"
-"vedo.examples.other.dolfin" = "examples/other/dolfin"
-"vedo.examples.other.trimesh" = "examples/other/trimesh"
-
-
-[tool.setuptools.dynamic]
-version = {attr = "vedo.version._version"}
 
 [project.scripts]
 vedo = "vedo.cli:main"

@@ -18,6 +18,7 @@ elements = list(zip(nodes[:-1], nodes[1:]))
 # Assemble global stiffness matrix and force vector
 K = np.zeros((num_nodes, num_nodes))
 for element in elements:
+    # Local 2-node spring contribution to global stiffness matrix.
     i, j = element
     K[i, i] += k
     K[j, j] += k
@@ -68,5 +69,4 @@ show(
     vnodes1, vnodes2, vline1, vline2, arr_disp, arr_force, springs,
     axes=8, size=(1900, 490), zoom=3.6,
 ).close()
-
 

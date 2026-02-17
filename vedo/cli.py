@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """
 Command Line Interface module
 -----------------------------
@@ -21,22 +22,19 @@ The library includes a handy Command Line Interface.
 """
 import argparse
 import glob
+import importlib
+import inspect
 import os
+import pkgutil
+import subprocess
 import sys
 import numpy as np
 
 from vedo.utils import humansort
 from vedo.colors import get_color, printc
-from vedo.mesh import Mesh
-from vedo.image import Image
-from vedo.plotter import Plotter
-from vedo.grids import UnstructuredGrid, TetMesh
-from vedo.volume import Volume
 
 import vedo
 from vedo import __version__
-from vedo import file_io, load, settings
-from vedo import applications
 
 __all__ = []
 
@@ -60,24 +58,35 @@ def execute_cli():
 
     if args.info is not None:
         system_info()
+        return 0
 
     elif args.run:
         exe_run(args)
+        return 0
 
     elif args.search:
         exe_search(args)
+        return 0
 
     elif args.search_vtk:
         exe_search_vtk(args)
+        return 0
 
     elif args.search_code:
         exe_search_code(args)
+        return 0
+
+    elif args.locate:
+        exe_locate(args)
+        return 0
 
     elif args.convert:
         exe_convert(args)
+        return 0
 
     elif args.eog:
         exe_eog(args)
+        return 0
 
     elif len(args.files) == 0:
         system_info()
@@ -85,9 +94,11 @@ def execute_cli():
             ":idea: No input files? Try:\n vedo https://vedo.embl.es/examples/data/panther.stl.gz",
             c="y",
         )
+        return 0
 
     else:
         draw_scene(args)
+        return 0
 
 
 ##############################################################################################
@@ -96,7 +107,10 @@ def get_parser():
     descr = f"version {__version__}"
     descr += " - check out home page at https://vedo.embl.es"
 
-    pr = argparse.ArgumentParser(description=descr)
+    pr = argparse.ArgumentParser(
+        description=descr,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
     pr.add_argument('files', nargs='*',             help="input filename(s)")
     pr.add_argument("-c", "--color", type=str,      help="mesh color [integer or color name]", default=None, metavar='')
     pr.add_argument("-a", "--alpha",    type=float, help="alpha value [0-1]", default=1, metavar='')
@@ -127,6 +141,7 @@ def get_parser():
     pr.add_argument("--search",           type=str, help="search/grep for word in vedo examples", default='', metavar='')
     pr.add_argument("--search-vtk",       type=str, help="search examples for the input vtk class", default='', metavar='')
     pr.add_argument("--search-code",      type=str, help="search keyword in source code", default='', metavar='')
+    pr.add_argument("--locate",           type=str, help="locate module path of a vedo class", default='', metavar='')
     pr.add_argument("--reload",                     help="reload the file, ignoring any previous download", action="store_true")
     pr.add_argument("--info", nargs='*',            help="get an info printout of the current installation")
     pr.add_argument("--convert", nargs='*',         help="input file(s) to be converted")
@@ -183,7 +198,6 @@ def exe_run(args):
         if (
             f2search in os.path.basename(s).lower()
             and "__" not in s
-            and "dolfin" not in s
             and "trimesh" not in s
         )
     ]
@@ -208,8 +222,9 @@ def exe_run(args):
                 lline = "".join(fm.readlines(60))
                 maxidx1 = lline.find("import ")
                 maxidx2 = lline.find("from vedo")
-                maxid = min(maxidx1, maxidx2)
-                lline = lline[:maxid]  # cut where the code starts
+                cut_points = [idx for idx in (maxidx1, maxidx2) if idx >= 0]
+                if cut_points:
+                    lline = lline[: min(cut_points)]  # cut where the code starts
                 lline = lline.replace("\n", " ").replace("'", "").replace('"', "")
                 lline = lline.replace("#", "").replace("-", "").replace("  ", " ")
                 line = lline[:68]  # cut long lines
@@ -248,7 +263,12 @@ def exe_run(args):
         print(result, end="")
 
     printc("(" + matching[0] + ")", c="y", bold=0, italic=1)
-    os.system(f"python {matching[0]} || python3 {matching[0]}")
+    cmd = [sys.executable, matching[0]]
+    try:
+        subprocess.run(cmd, check=False)
+    except OSError:
+        # Last-resort fallback for unusual interpreter setups.
+        subprocess.run(["python3", matching[0]], check=False)
 
 
 ################################################################################################
@@ -265,11 +285,9 @@ def exe_convert(args):
         "obj",
         "off",
         "byu",
-        "xml",
         "vti",
         "tif",
         "mhd",
-        "xml",
     ]
 
     humansort(args.convert)
@@ -289,7 +307,7 @@ def exe_convert(args):
         if target_ext == source_ext:
             continue
 
-        a = load(f)
+        a = vedo.load(f)
         newf = f.replace("." + source_ext, "") + "." + target_ext
         a.write(newf, binary=True)
 
@@ -303,8 +321,6 @@ def exe_search(args):
         pattern = pattern.lower()
     if len(pattern) > 3:
         for ifile in exfiles:
-            if "dolfin" in ifile:
-                continue
             if "trimesh" in ifile:
                 continue
             with open(ifile, "r", encoding="UTF-8") as file:
@@ -501,9 +517,82 @@ def exe_search_vtk(args):
         print(f"No examples for the VTK Class: {vtk_class} and language: {language}")
 
 
+##############################################################################################
+def exe_locate(args):
+    """Locate the fully qualified module path for a vedo class name."""
+    target = (args.locate or "").strip()
+    if not target:
+        printc(":sad: Please provide a class name, e.g. `vedo --locate Paraboloid`", c="y")
+        return
+
+    matches = set()
+
+    # Fast path: check top-level vedo namespace first.
+    try:
+        obj = getattr(vedo, target)
+    except AttributeError:
+        obj = None
+    if inspect.isclass(obj):
+        matches.add(f"{obj.__module__}.{obj.__name__}")
+
+    class_names_seen = set()
+    class_names_lower = set()
+    skip_prefixes = (
+        "vedo.backends",
+    )
+    for module_info in pkgutil.walk_packages(vedo.__path__, prefix="vedo."):
+        module_name = module_info.name
+        if module_name.startswith(skip_prefixes):
+            continue
+        try:
+            module = importlib.import_module(module_name)
+        except Exception:
+            # Optional dependencies or side effects may make some modules unavailable.
+            continue
+
+        for cname, cls in inspect.getmembers(module, inspect.isclass):
+            if cls.__module__ != module_name:
+                continue
+            class_names_seen.add(cname)
+            class_names_lower.add(cname.lower())
+            if cname == target:
+                matches.add(f"{module_name}.{cname}")
+
+    if matches:
+        for match in sorted(matches):
+            print(match)
+        return
+
+    # Case-insensitive fallback and friendly hint.
+    target_lower = target.lower()
+    fuzzy = sorted(name for name in class_names_seen if target_lower in name.lower())[:20]
+    if target_lower in class_names_lower:
+        for module_info in pkgutil.walk_packages(vedo.__path__, prefix="vedo."):
+            module_name = module_info.name
+            if module_name.startswith(skip_prefixes):
+                continue
+            try:
+                module = importlib.import_module(module_name)
+            except Exception:
+                continue
+            for cname, cls in inspect.getmembers(module, inspect.isclass):
+                if cls.__module__ != module_name:
+                    continue
+                if cname.lower() == target_lower:
+                    print(f"{module_name}.{cname}")
+        return
+
+    printc(f":sad: No vedo class found with name '{target}'.", c="y")
+    if fuzzy:
+        printc(":idea: Similar class names:", c="c")
+        for name in fuzzy:
+            print(" ", name)
+
+
 #################################################################################################################
 def exe_eog(args):
     # print("EOG emulator")
+    settings = vedo.settings
     if settings.dry_run_mode >= 2:
         print(f"EOG emulator in dry run mode {settings.dry_run_mode}. Skip.")
         return
@@ -518,13 +607,7 @@ def exe_eog(args):
     if args.background_grad:
         args.background_grad = get_color(args.background_grad)
 
-    files = []
-    for s in sys.argv:
-        if "--" in s or s.endswith(".py") or s.endswith("vedo"):
-            continue
-        if s.endswith(".gif"):
-            continue
-        files.append(s)
+    files = [f for f in args.files if not f.endswith(".gif")]
 
     def vfunc(event):
         # print(event.keypress)
@@ -584,7 +667,7 @@ def exe_eog(args):
     for f in files:
         if os.path.isfile(f):
             try:
-                pic = Image(f)
+                pic = vedo.Image(f)
                 if pic:
                     pics.append(pic)
             except:
@@ -601,7 +684,7 @@ def exe_eog(args):
 
     if n > 1:
 
-        plt = Plotter(N=n, sharecam=True, bg=args.background, bg2=args.background_grad)
+        plt = vedo.Plotter(N=n, sharecam=True, bg=args.background, bg2=args.background_grad)
         plt.add_callback("key press", vfunc)
         for i in range(n):
             p = pics[i].pickable(True)
@@ -626,7 +709,7 @@ def exe_eog(args):
             shape[0] = shape[0] / shape[1] * 1200
             shape[1] = 1200
 
-        plt = Plotter(title=files[0], size=shape, bg=args.background, bg2=args.background_grad)
+        plt = vedo.Plotter(title=files[0], size=shape, bg=args.background, bg2=args.background_grad)
         plt.add_callback("key press", vfunc)
         plt.add_hover_legend(c="k8", bg="k2", alpha=0.4)
         plt.show(pic, mode="image", interactive=False)
@@ -640,6 +723,7 @@ def exe_eog(args):
 
 #################################################################################################################
 def draw_scene(args):
+    settings = vedo.settings
     if settings.dry_run_mode >= 2:
         print(f"draw_scene called in dry run mode {settings.dry_run_mode}. Skip.")
         return
@@ -665,8 +749,8 @@ def draw_scene(args):
         args.background_grad = get_color(args.background_grad)
 
     if nfiles == 1 and args.files[0].endswith(".gif"):  ###can be improved
-        frames = load(args.files[0])
-        applications.Browser(frames).show(bg=args.background, bg2=args.background_grad)
+        frames = vedo.load(args.files[0])
+        vedo.applications.Browser(frames).show(bg=args.background, bg2=args.background_grad)
         return  ##########################################################
 
     if args.sequence_mode:
@@ -686,7 +770,7 @@ def draw_scene(args):
         if N > 4:
             settings.use_depth_peeling = False
 
-        plt = Plotter(
+        plt = vedo.Plotter(
             size=wsize,
             N=N,
             bg=args.background,
@@ -701,7 +785,7 @@ def draw_scene(args):
             plt.axes = 0
     else:
         N = nfiles
-        plt = Plotter(size=wsize, bg=args.background, bg2=args.background_grad)
+        plt = vedo.Plotter(size=wsize, bg=args.background, bg2=args.background_grad)
         plt.axes = args.axes_type
         plt.add_hover_legend()
 
@@ -710,16 +794,16 @@ def draw_scene(args):
     if args.ray_cast_mode:
         # print('DEBUG special case of SLC/TIFF volumes with -g option')
 
-        vol = file_io.load(args.files[0], force=args.reload)
+        vol = vedo.file_io.load(args.files[0], force=args.reload)
 
-        if not isinstance(vol, Volume):
+        if not isinstance(vol, vedo.Volume):
             vedo.logger.error(f"expected a Volume but loaded a {type(vol)} object")
             return
 
         sp = vol.spacing()
         vol.spacing([sp[0] * args.x_spacing, sp[1] * args.y_spacing, sp[2] * args.z_spacing])
         vol.mode(int(args.mode)).color(args.cmap).jittering(True)
-        plt = applications.RayCastPlotter(vol)
+        plt = vedo.applications.RayCastPlotter(vol)
         plt.show(viewup="z", interactive=True).close()
         return
 
@@ -735,14 +819,14 @@ def draw_scene(args):
             args.axes_type = 1
             useSlider3D = True
 
-        vol = file_io.load(args.files[0], force=args.reload)
+        vol = vedo.file_io.load(args.files[0], force=args.reload)
 
         sp = vol.spacing()
         vol.spacing([sp[0] * args.x_spacing, sp[1] * args.y_spacing, sp[2] * args.z_spacing])
 
-        vedo.plotter_instance = None  # reset
+        vedo.set_current_plotter(None)  # reset
 
-        plt = applications.Slicer3DPlotter(
+        plt = vedo.applications.Slicer3DPlotter(
             vol,
             bg="white",
             bg2="lb",
@@ -758,18 +842,18 @@ def draw_scene(args):
     ########################################################################
     elif args.edit:
         # print('edit mode for meshes and pointclouds')
-        vedo.plotter_instance = None  # reset
+        vedo.set_current_plotter(None)  # reset
         settings.use_parallel_projection = True
 
         try:
-            m = Mesh(args.files[0], alpha=args.alpha / 2, c=args.color)
+            m = vedo.Mesh(args.files[0], alpha=args.alpha / 2, c=args.color)
         except AttributeError:
             vedo.logger.critical(
                 "In edit mode, input file must be a point cloud or polygonal mesh."
             )
             return
 
-        plt = applications.FreeHandCutPlotter(m, splined=True)
+        plt = vedo.applications.FreeHandCutPlotter(m, splined=True)
         plt.add_hover_legend()
         if not args.background_grad:
             args.background_grad = None
@@ -778,14 +862,14 @@ def draw_scene(args):
     ########################################################################
     elif args.slicer2d:
         # print('DEBUG special case of SLC/TIFF/DICOM volumes with --slicer2d option')
-        vol = file_io.load(args.files[0], force=args.reload)
+        vol = vedo.file_io.load(args.files[0], force=args.reload)
         if not vol:
             return
         vol.cmap("bone_r")
         sp = vol.spacing()
         vol.spacing([sp[0] * args.x_spacing, sp[1] * args.y_spacing, sp[2] * args.z_spacing])
-        vedo.plotter_instance = applications.Slicer2DPlotter(vol)
-        vedo.plotter_instance.show().close()
+        plt = vedo.set_current_plotter(vedo.applications.Slicer2DPlotter(vol))
+        plt.show().close()
         return
 
     ########################################################################
@@ -799,7 +883,7 @@ def draw_scene(args):
         or ".dem" in args.files[0].lower()
     ):
         # print('DEBUG normal mode for single VOXEL file with Isosurface Slider mode')
-        vol = file_io.load(args.files[0], force=args.reload)
+        vol = vedo.file_io.load(args.files[0], force=args.reload)
 
         if vol.shape[2] == 1:
             # print('DEBUG It is a 2D image!')
@@ -814,7 +898,7 @@ def draw_scene(args):
                      sp[2] * args.z_spacing])
         if not args.color:
             args.color = "gold"
-        plt = applications.IsosurfaceBrowser(
+        plt = vedo.applications.IsosurfaceBrowser(
             vol, c=args.color, cmap=args.cmap, precompute=False, use_gpu=True
         )
         plt.show(zoom=args.zoom, viewup="z").close()
@@ -833,7 +917,7 @@ def draw_scene(args):
         # loading a full scene or list of objects
         if ".npy" in args.files[0] or ".npz" in args.files[0]:
             try: # full scene
-                plt = file_io.import_window(args.files[0])
+                plt = vedo.file_io.import_window(args.files[0])
                 plt.show(mode=interactor_mode).close()
                 return
             except KeyError: # list of objects, create Assembly
@@ -841,7 +925,7 @@ def draw_scene(args):
                 for i, ob in enumerate(objs):
                     if ob:
                         ob.c(i)
-                plt = Plotter()
+                plt = vedo.Plotter()
                 plt.show(objs, mode=interactor_mode).close()
                 return
         #########################################################
@@ -856,9 +940,9 @@ def draw_scene(args):
             if args.color is None and N > 1:
                 colb = i
 
-            obj = load(f, force=args.reload)
+            obj = vedo.load(f, force=args.reload)
 
-            if isinstance(obj, (TetMesh, UnstructuredGrid)):
+            if isinstance(obj, (vedo.TetMesh, vedo.UnstructuredGrid)):
                 # obj = obj#.shrink(0.95)
                 obj.c(colb).alpha(args.alpha)
 
@@ -934,7 +1018,7 @@ def draw_scene(args):
         if plt.axes == 4:
             plt.axes = 1
 
-        acts = load(args.files, force=args.reload)
+        acts = vedo.load(args.files, force=args.reload)
         plt += acts
         for a in acts:
             if hasattr(a, "c"):  # Image doesnt have it
@@ -960,5 +1044,5 @@ def draw_scene(args):
 
             a.alpha(args.alpha)
 
-        plt = applications.Browser(acts, axes=1)
+        plt = vedo.applications.Browser(acts, axes=1)
         plt.show(zoom=args.zoom).close()

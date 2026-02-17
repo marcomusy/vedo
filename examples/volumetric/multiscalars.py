@@ -3,6 +3,7 @@ scalars associated to each voxel"""
 from vedo import dataurl, Volume, printc, show
 import numpy as np
 
+# Build the volumetric processing pipeline and render results.
 vol = Volume(dataurl+'vase.vti')
 nx, ny, nz = vol.dimensions()
 r0,r1 = vol.scalar_range()

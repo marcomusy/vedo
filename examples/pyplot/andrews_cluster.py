@@ -6,6 +6,7 @@ from vedo.pyplot import Figure, plot
 
 iris = datasets.load_iris()  # loading iris data set
 
+# Map each sample to its Andrews curve.
 AC = andrews_curves(iris.data)
 theta = np.linspace(-np.pi, np.pi, 100)
 

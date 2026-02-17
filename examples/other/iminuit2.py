@@ -3,6 +3,7 @@ You can rotate the scene by dragging with the left mouse button."""
 from iminuit import Minuit
 from vedo import Points, Arrows2D, show, dataurl, printc, settings
 
+# Configure inputs and run the visualization workflow.
 
 def func(x, y, *pars):
     # the actual surface model to fit

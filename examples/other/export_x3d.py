@@ -2,6 +2,7 @@
 in a webpage with x3d"""
 from vedo import dataurl, Plotter, Volume, Text3D
 
+# Configure inputs and run the visualization workflow.
 plt = Plotter(size=(800,600), bg='GhostWhite')
 
 embryo = Volume(dataurl+'embryo.tif').isosurface().decimate(0.5)

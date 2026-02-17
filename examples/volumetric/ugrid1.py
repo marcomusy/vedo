@@ -4,6 +4,7 @@ from vedo import *
 ug1 = UnstructuredGrid(dataurl+'ugrid.vtk')
 print(ug1)
 
+# Clip the unstructured grid with a geometric mesh.
 cyl = Cylinder(r=3, height=7).x(3).wireframe()
 ug2 = ug1.clone().cut_with_mesh(cyl)
 

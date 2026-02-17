@@ -1,6 +1,7 @@
 """Slice multiple datasets"""
 from vedo import Plotter, Text2D, load, dataurl, ScalarBar3D
 
+# Build the volumetric processing pipeline and render results.
 volumes = [dataurl+'vase.vti', dataurl+'embryo.slc', dataurl+'head.vti']
 volumes = load(volumes)
 cmaps = ['hot_r', 'gist_ncar_r', 'bone_r']

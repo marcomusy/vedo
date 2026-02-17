@@ -43,7 +43,7 @@ class Morpher:
 
     def _func(self, pars):
         self.params = pars
-        #calculate chi2
+        # Calculate mean squared distance to target surface.
         d2sum, n = 0.0, self.source.npoints
         srcpts = self.source.vertices
         rng = range(0, n, int(n / self.subsample))

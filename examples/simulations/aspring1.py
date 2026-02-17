@@ -15,6 +15,7 @@ xr = vector(L, 0, 0)
 
 def loop_func(event):
     global v, x
+    # Mass-spring-damper explicit integration.
     F = -k * (x - xr) - b * v       # force and friction
     a = F / m                       # acceleration
     v = v + a*dt                    # velocity

@@ -1,6 +1,7 @@
 """Visualization of a discretized Earth model"""
 import vedo
 
+# Build the volumetric processing pipeline and render results.
 vedo.settings.default_font = 'Kanopus'
 
 tet = vedo.TetMesh(vedo.dataurl+'earth_model.vtu')

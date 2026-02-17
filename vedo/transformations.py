@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from typing import List
+from __future__ import annotations
 from typing_extensions import Self
+from warnings import warn
 import numpy as np
 
 import vedo.vtkclasses as vtki # a wrapper for lazy imports
@@ -166,7 +167,7 @@ class LinearTransform:
     def __repr__(self):
         return self.__str__()
 
-    def print(self) -> "LinearTransform":
+    def print(self) -> LinearTransform:
         """Print transformation."""
         print(self.__str__())
         return self
@@ -290,7 +291,7 @@ class LinearTransform:
         self.inverse_flag = bool(self.T.GetInverseFlag())
         return self
 
-    def compute_inverse(self) -> "LinearTransform":
+    def compute_inverse(self) -> LinearTransform:
         """Compute the inverse."""
         t = self.clone()
         t.invert()
@@ -303,11 +304,11 @@ class LinearTransform:
         self.T.SetMatrix(M)
         return self
 
-    def copy(self) -> "LinearTransform":
+    def copy(self) -> LinearTransform:
         """Return a copy of the transformation. Alias of `clone()`."""
         return self.clone()
 
-    def clone(self) -> "LinearTransform":
+    def clone(self) -> LinearTransform:
         """Clone transformation to make an exact copy."""
         return LinearTransform(self.T)
 
@@ -351,10 +352,8 @@ class LinearTransform:
 
         if pre_multiply:
             self.T.PreMultiply()
-        try:
-            self.T.Concatenate(T)
-        except:
-            self.T.Concatenate(T.T)
+        transform = T.T if hasattr(T, "T") else T
+        self.T.Concatenate(transform)
         self.T.PostMultiply()
         return self
 
@@ -362,7 +361,7 @@ class LinearTransform:
         """Pre-multiply 2 transfomations."""
         return self.concatenate(A, pre_multiply=True)
 
-    def get_concatenated_transform(self, i) -> "LinearTransform":
+    def get_concatenated_transform(self, i) -> LinearTransform:
         """Get intermediate matrix by concatenation index."""
         return LinearTransform(self.T.GetConcatenatedTransform(i))
 
@@ -423,16 +422,18 @@ class LinearTransform:
             ```
             ![](https://vedo.embl.es/images/feats/rotate_axis.png)
         """
-        if np.all(axis == 0):
-            return self
         if not angle:
+            return self
+        axis = np.asarray(axis, dtype=float)
+        axis_norm = np.linalg.norm(axis)
+        if axis_norm == 0:
             return self
         if rad:
             anglerad = angle
         else:
             anglerad = np.deg2rad(angle)
 
-        axis = np.asarray(axis) / np.linalg.norm(axis)
+        axis = axis / axis_norm
         a = np.cos(anglerad / 2)
         b, c, d = -axis * np.sin(anglerad / 2)
         aa, bb, cc, dd = a * a, b * b, c * c, d * d
@@ -597,7 +598,7 @@ class LinearTransform:
             return self
 
         if not np.any(initaxis + newaxis):
-            print("Warning: in reorient() initaxis and newaxis are parallel")
+            warn("In reorient() initaxis and newaxis are parallel", stacklevel=2)
             newaxis += np.array([0.0000001, 0.0000002, 0.0])
             angleth = np.pi
         else:
@@ -715,7 +716,7 @@ class NonLinearTransform:
             elif mode == "3d":
                 T.SetBasisToR()
             else:
-                print(f'In {filename} mode can be either "2d" or "3d"')
+                warn(f'In {filename} mode can be either "2d" or "3d"', stacklevel=2)
 
         elif len(kwargs) > 0:
             T = kwargs.copy()
@@ -726,8 +727,10 @@ class NonLinearTransform:
             mode = T.pop("mode", "3d")
             sigma = T.pop("sigma", 1.0)
             if len(T) > 0:
-                print("Warning: NonLinearTransform got unexpected keyword arguments:")
-                print(T)
+                warn(
+                    f"NonLinearTransform got unexpected keyword arguments: {sorted(T.keys())}",
+                    stacklevel=2,
+                )
 
             T = vtki.vtkThinPlateSplineTransform()
             vptss = vtki.vtkPoints()
@@ -748,7 +751,7 @@ class NonLinearTransform:
             elif mode == "3d":
                 T.SetBasisToR()
             else:
-                print(f'Warning: mode can be either "2d" or "3d"')
+                warn('Mode can be either "2d" or "3d"', stacklevel=2)
 
         self.T = T
         self.inverse_flag = False
@@ -766,8 +769,14 @@ class NonLinearTransform:
         s += f"sigma".ljust(9) + f": {self.sigma}\n"
         p = self.source_points
         q = self.target_points
-        s += f"sources".ljust(9) + f": {len(p)}, bounds {np.min(p, axis=0)}, {np.max(p, axis=0)}\n"
-        s += f"targets".ljust(9) + f": {len(q)}, bounds {np.min(q, axis=0)}, {np.max(q, axis=0)}"
+        if len(p):
+            s += f"sources".ljust(9) + f": {len(p)}, bounds {np.min(p, axis=0)}, {np.max(p, axis=0)}\n"
+        else:
+            s += f"sources".ljust(9) + ": 0\n"
+        if len(q):
+            s += f"targets".ljust(9) + f": {len(q)}, bounds {np.min(q, axis=0)}, {np.max(q, axis=0)}"
+        else:
+            s += f"targets".ljust(9) + ": 0"
         return s
 
     def __repr__(self):
@@ -811,6 +820,8 @@ class NonLinearTransform:
         if pts:
             for i in range(pts.GetNumberOfPoints()):
                 vpts.append(pts.GetPoint(i))
+        if not vpts:
+            return np.empty((0, 3), dtype=np.float32)
         return np.array(vpts, dtype=np.float32)
 
     @source_points.setter
@@ -832,8 +843,11 @@ class NonLinearTransform:
         """Get the target points."""
         pts = self.T.GetTargetLandmarks()
         vpts = []
-        for i in range(pts.GetNumberOfPoints()):
-            vpts.append(pts.GetPoint(i))
+        if pts:
+            for i in range(pts.GetNumberOfPoints()):
+                vpts.append(pts.GetPoint(i))
+        if not vpts:
+            return np.empty((0, 3), dtype=np.float32)
         return np.array(vpts, dtype=np.float32)
 
     @target_points.setter
@@ -871,7 +885,7 @@ class NonLinearTransform:
         elif m == 1:
             return "3d"
         else:
-            print("Warning: NonLinearTransform has no valid mode.")
+            warn("NonLinearTransform has no valid mode.", stacklevel=2)
             return ""
 
     @mode.setter
@@ -882,9 +896,9 @@ class NonLinearTransform:
         elif m == "2d":
             self.T.SetBasisToR2LogR()
         else:
-            print('In NonLinearTransform mode can be either "2d" or "3d"')
+            warn('In NonLinearTransform mode can be either "2d" or "3d"', stacklevel=2)
 
-    def clone(self) -> "NonLinearTransform":
+    def clone(self) -> NonLinearTransform:
         """Clone transformation to make an exact copy."""
         return NonLinearTransform(self.T)
 
@@ -904,7 +918,7 @@ class NonLinearTransform:
             json.dump(dictionary, outfile, sort_keys=True, indent=2)
         return self
 
-    def invert(self) -> "NonLinearTransform":
+    def invert(self) -> NonLinearTransform:
         """Invert transformation."""
         self.T.Inverse()
         self.inverse_flag = bool(self.T.GetInverseFlag())
@@ -1034,7 +1048,7 @@ class TransformInterpolator:
         """
         self.vtk_interpolator = vtki.new("TransformInterpolator")
         self.mode(mode)
-        self.TS: List[LinearTransform] = []
+        self.TS: list[LinearTransform] = []
 
     def __call__(self, t):
         """
@@ -1044,18 +1058,25 @@ class TransformInterpolator:
         self.vtk_interpolator.InterpolateTransform(t, xform)
         return LinearTransform(xform)
 
-    def add(self, t, T) -> "TransformInterpolator":
+    def add(self, t, T) -> TransformInterpolator:
         """Add intermediate transformations."""
         try:
             # in case a vedo object is passed
             T = T.transform
         except AttributeError:
             pass
-        self.TS.append(T)
-        self.vtk_interpolator.AddTransform(t, T.T)
+        if isinstance(T, LinearTransform):
+            LT = T
+        elif isinstance(T, vtki.vtkLinearTransform):
+            LT = LinearTransform(T)
+        else:
+            raise TypeError("TransformInterpolator.add() expects LinearTransform or vtkLinearTransform")
+
+        self.TS.append(LT)
+        self.vtk_interpolator.AddTransform(t, LT.T)
         return self
 
-    # def remove(self, t) -> "TransformInterpolator":
+    # def remove(self, t) -> TransformInterpolator:
     #     """Remove intermediate transformations."""
     #     self.TS.pop(t)
     #     self.vtk_interpolator.RemoveTransform(t)
@@ -1067,20 +1088,20 @@ class TransformInterpolator:
         tmax = self.vtk_interpolator.GetMaximumT()
         return np.array([tmin, tmax])
 
-    def clear(self) -> "TransformInterpolator":
+    def clear(self) -> TransformInterpolator:
         """Clear all intermediate transformations."""
         self.TS = []
         self.vtk_interpolator.Initialize()
         return self
 
-    def mode(self, m) -> "TransformInterpolator":
+    def mode(self, m) -> TransformInterpolator:
         """Set interpolation mode ('linear' or 'spline')."""
         if m == "linear":
             self.vtk_interpolator.SetInterpolationTypeToLinear()
         elif m == "spline":
             self.vtk_interpolator.SetInterpolationTypeToSpline()
         else:
-            print('In TransformInterpolator mode can be either "linear" or "spline"')
+            warn('In TransformInterpolator mode can be either "linear" or "spline"', stacklevel=2)
         return self
 
     @property

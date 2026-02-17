@@ -2,6 +2,7 @@
 import meshio
 from vedo import download, show, Mesh
 
+# Configure inputs and run the visualization workflow.
 fpath = download('https://vedo.embl.es/examples/data/shuttle.obj')
 mesh = meshio.read(fpath)
 

@@ -4,6 +4,7 @@
 import numpy as np
 from vedo import settings, Line, show
 
+
 settings.default_font = "Theemim"
 
 # Generate random data

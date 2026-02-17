@@ -11,6 +11,7 @@ g1.rotate_z(20)  # let's rotate it a bit so it's visible
 
 # Interpolate first mesh onto a new triangular mesh
 eps = 0.01
+# Slight offset avoids exact overlap with the source grid.
 g2 = Grid(res=(50,50)).pos(0.2, 0.2, 0.1).wireframe(0).lw(0)
 g2.triangulate()
 

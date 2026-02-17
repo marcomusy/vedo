@@ -1,6 +1,7 @@
 """Probe a Volume (voxel dataset) with lines"""
 from vedo import *
 
+# Build the volumetric processing pipeline and render results.
 vol = Volume(dataurl + "embryo.slc")
 
 lines = []

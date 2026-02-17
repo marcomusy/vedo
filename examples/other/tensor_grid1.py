@@ -1,3 +1,4 @@
+"""External-tools interoperability example."""
 from vedo import Grid, Tensors, show
 
 domain = Grid(res=[5,5])

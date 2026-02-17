@@ -3,6 +3,7 @@ as seen along a specified direction
 """
 from vedo import *
 
+# 3D object and orthogonal 2D projections.
 s = Hyperboloid().rotate_x(20)
 
 sx = s.clone().project_on_plane('x').c('r').x(-3) # sx is 2d

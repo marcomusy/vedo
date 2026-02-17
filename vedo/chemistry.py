@@ -1,3 +1,4 @@
+from __future__ import annotations
 import numpy as np
 from vtkmodules.util.numpy_support import vtk_to_numpy
 from vtkmodules.vtkCommonDataModel import vtkMolecule
@@ -16,6 +17,7 @@ It wraps the VTK's vtkPeriodicTable class to provide a more Pythonic interface.
 """
 
 __docformat__ = "google"
+__all__ = ["PeriodicTable", "Atom", "Molecule", "Protein", "append_molecules"]
 
 class PeriodicTable:
     """
@@ -216,6 +218,8 @@ def append_molecules(molecules):
 
     # Add each molecule's vtkMolecule to the append filter
     for mol in molecules:
+        if not isinstance(mol, Molecule):
+            raise TypeError("append_molecules() expects an iterable of Molecule objects.")
         append_filter.AddInputData(mol.molecule)
 
     # Update the filter to generate the combined molecule
@@ -324,7 +328,11 @@ class Atom:
         return self.molecule
 
     def __repr__(self):
-        return f"Atom(ID={self.atom_id}, AtomicNumber={self.atomic_number}, Position={self.position})"
+        return (
+            f"Atom(ID={self.atom_id}, "
+            f"AtomicNumber={self.get_atomic_number()}, "
+            f"Position={self.get_position().tolist()})"
+        )
 
 
 class Molecule:
@@ -411,7 +419,7 @@ class Molecule:
         if position is None:
             position = [0, 0, 0]
         pos = np.asarray(position, dtype=float)
-        vtk_atom = self.molecule.AppendAtom(atomic_number, pos[0], pos[1], pos[2])
+        self.molecule.AppendAtom(atomic_number, pos[0], pos[1], pos[2])
         atom_id = (
             self.molecule.GetNumberOfAtoms() - 1
         )  # The ID will be the index of the last added atom
@@ -427,7 +435,7 @@ class Molecule:
         Returns:
             The atom object.
         """
-        if atom_id >= self.get_number_of_atoms():
+        if atom_id < 0 or atom_id >= self.get_number_of_atoms():
             raise ValueError(f"Atom ID {atom_id} exceeds number of atoms.")
         return Atom(self.molecule, atom_id)
 
@@ -437,7 +445,7 @@ class Molecule:
         Arguments:
             atom_id (int): The ID of the atom to remove.
         """
-        if atom_id >= self.get_number_of_atoms():
+        if atom_id < 0 or atom_id >= self.get_number_of_atoms():
             raise ValueError(f"Atom ID {atom_id} exceeds number of atoms.")
         self.molecule.RemoveAtom(atom_id)
         # Update the mapper to reflect the changes
@@ -446,9 +454,7 @@ class Molecule:
         # Update the actor to reflect the changes
         self.actor.SetMapper(self.mapper)
         self.actor.Update()
-        # Update the property to reflect the changes
-        self.property.SetColor(1.0, 0.8, 0.6)  # Reset to default color
-        self.property.SetOpacity(1.0)
+        # Keep user-defined visual properties unchanged after topology edits.
 
     def get_array(self, name):
         """Get a point data array by name.
@@ -491,6 +497,13 @@ class Molecule:
         """
         atom1_id = atom1.atom_id if isinstance(atom1, Atom) else atom1
         atom2_id = atom2.atom_id if isinstance(atom2, Atom) else atom2
+        if not isinstance(atom1_id, int) or not isinstance(atom2_id, int):
+            raise TypeError("append_bond() atom references must be Atom or int IDs.")
+        n_atoms = self.get_number_of_atoms()
+        if atom1_id < 0 or atom1_id >= n_atoms or atom2_id < 0 or atom2_id >= n_atoms:
+            raise ValueError(f"Atom IDs must be in [0, {n_atoms - 1}]")
+        if int(order) < 1:
+            raise ValueError("Bond order must be >= 1.")
         self.molecule.AppendBond(atom1_id, atom2_id, order)
 
     def get_number_of_atoms(self):
@@ -519,7 +532,7 @@ class Molecule:
         Returns:
             (atom1_id, atom2_id, order).
         """
-        if bond_id >= self.get_number_of_bonds():
+        if bond_id < 0 or bond_id >= self.get_number_of_bonds():
             raise ValueError(f"Bond ID {bond_id} exceeds number of bonds.")
         bond = self.molecule.GetBond(bond_id)
         return (bond.GetBeginAtomId(), bond.GetEndAtomId(), bond.GetOrder())

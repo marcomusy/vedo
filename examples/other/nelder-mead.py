@@ -3,6 +3,7 @@ F = (x/4-1)**2 + (y+2)**2 + z**2 + (w-6)**2 + 3"""
 from vedo import Minimizer, Line, show
 from vedo.pyplot import plot
 
+# Configure inputs and run the visualization workflow.
 def func(pars):
     x, y, z, w = pars  # unpack parameters for convenience
     F = (x/4-1)**2 + (y+2)**2 + z**2 + (w-6)**2 + 3

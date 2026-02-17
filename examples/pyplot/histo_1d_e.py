@@ -4,6 +4,7 @@ threshold the sphere and create continents."""
 from vedo import *
 from vedo.pyplot import histogram
 
+
 # Download the oceans mesh
 oceans = Mesh(dataurl + "oceans.vtk").c("blue9")
 size = oceans.average_size()

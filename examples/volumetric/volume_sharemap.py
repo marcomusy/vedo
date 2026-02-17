@@ -3,6 +3,7 @@ mapping across different volumes"""
 from vedo import Volume, show
 import numpy as np
 
+# Build the volumetric processing pipeline and render results.
 arr = np.zeros(shape=(50,60,70))
 for i in range(50):
     for j in range(60):

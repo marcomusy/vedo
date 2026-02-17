@@ -3,6 +3,7 @@ three different distributions"""
 from vedo import *
 from numpy.random import randn
 
+# scatter3 example.
 ### first cloud in blue, place it at z=0:
 x = randn(2000) * 3
 y = randn(2000) * 2

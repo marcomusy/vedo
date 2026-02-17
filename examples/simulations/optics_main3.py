@@ -17,6 +17,7 @@ detector = Detector(sd)
 
 
 def slider(widget, event):         ### callback to shift the beam along x
+    # Re-trace one laser beam after changing source offset.
     dx = widget.value
     ray = Ray([dx,-1.2,-0.1], direction=(0,1,0.02))
     ray.maxiterations = 1000       # max nr. of reflections
@@ -29,4 +30,3 @@ plt = Plotter(axes=1, bg='peachpuff', bg2='blue9')
 plt.add_slider(slider, -0.07, 0.07, value=0, pos=5, title="beam shift")
 plt.show(mirror, detector, __doc__, elevation=-30)
 plt.close()
-

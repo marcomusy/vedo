@@ -8,7 +8,7 @@ U = sin(x)*cos(y) + sin(y)*cos(z) + sin(z)*cos(x)
 # Create a Volume, take the isosurface at 0, smooth and subdivide it
 gyr = Volume(U).isosurface(0).smooth().subdivide()
 
-# Intersect it with a sphere made of quads
+# Intersect with a sphere to expose the inner gyroid structure.
 sph = Sphere(pos=(15,15,15), r=14, quads=True, res=30).triangulate()
 printc("Please wait a few secs while I'm cutting your gyroid", c='y')
 gxs = gyr.boolean('intersect', sph)
@@ -19,4 +19,3 @@ plt.add_ambient_occlusion(10)
 plt.show(gxs, __doc__, zoom=1.4)
 # Video('gyroid.mp4').action().close().interactive() # shoot video
 plt.close()
-

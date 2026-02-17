@@ -1,3 +1,4 @@
+"""GPU ray-casting viewer for interactive volume rendering."""
 from vedo import Volume, dataurl
 from vedo.applications import RayCastPlotter
 

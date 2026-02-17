@@ -3,6 +3,7 @@ The size of each cube is proportional to the value at that point"""
 import numpy as np
 from vedo import Volume, Cube, Glyph, show
 
+
 # Make up some arbitrary data
 X, Y, Z = np.mgrid[:10, :6, :4]
 counts = 50 - ( (X-4)**2 + (Y-4)**2 + (Z-4)**2 )

@@ -3,6 +3,7 @@ import numpy as np
 from vedo import Line, settings
 from vedo.pyplot import histogram
 
+
 settings.default_font = "DejavuSansMono"
 
 data = np.random.rand(10000)

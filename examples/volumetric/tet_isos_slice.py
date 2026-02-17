@@ -1,4 +1,4 @@
-# Thresholding and slicing a TetMesh
+"""Extract isosurfaces and slices from a tetrahedral mesh."""
 from vedo import TetMesh, dataurl, show
 
 tmsh = TetMesh(dataurl+'limb.vtu')

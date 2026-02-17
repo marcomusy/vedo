@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 #
 ##### To generate documentation
 # cd ~/Projects/vedo/docs/pdoc
@@ -13,6 +14,8 @@
 import os
 import sys
 import logging
+import importlib
+from importlib.metadata import PackageNotFoundError, version as pkg_version
 import numpy as np
 from numpy import sin, cos, sqrt, exp, log, dot, cross  # just because handy
 
@@ -24,7 +27,12 @@ except ModuleNotFoundError:
     sys.exit(1)
 
 #################################################
-from vedo.version import _version as __version__
+try:
+    __version__ = pkg_version("vedo")
+except PackageNotFoundError:
+    __version__ = "2025.6.0"  # fallback version if package metadata is not available
+
+from vedo.plotter import session as _session
 
 from vedo.settings import Settings
 settings = Settings()
@@ -45,13 +53,10 @@ from vedo.addons import *
 from vedo.plotter import *
 from vedo.visual import *
 
-from vedo import applications
-from vedo import interactor_modes
-
 try:
     import platform
     sys_platform = platform.system()
-except (ModuleNotFoundError, AttributeError) as e:
+except (ModuleNotFoundError, AttributeError):
     sys_platform = ""
 
 ######################################################################### GLOBALS
@@ -77,17 +82,28 @@ notebook_plotter = None
 notebook_backend = None
 
 ## fonts
-fonts_path = os.path.join(installdir, "fonts/")
+_fonts_dir_candidates = [
+    os.path.join(installdir, "fonts"),
+    os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), "fonts"),
+    os.path.join(os.getcwd(), "fonts"),
+]
+fonts_path = ""
+for _candidate in _fonts_dir_candidates:
+    if os.path.isdir(_candidate):
+        fonts_path = _candidate
+        break
 
-# Note:
-# a fatal error occurs when compiling to exe,
-# developer needs to copy the fonts folder to the same location as the exe file
-# to solve this problem
-if not os.path.exists(fonts_path):
-    fonts_path = "fonts/"
-
-fonts = [_f.split(".")[0] for _f in os.listdir(fonts_path) if '.npz' not in _f]
-fonts = list(sorted(fonts))
+if fonts_path:
+    # Keep a unique, sorted list while supporting both source and packaged layouts.
+    fonts = sorted(
+        {
+            os.path.splitext(_f)[0]
+            for _f in os.listdir(fonts_path)
+            if _f.endswith((".ttf", ".npz"))
+        }
+    )
+else:
+    fonts = []
 
 # pyplot module to remember last figure format
 last_figure = None
@@ -120,14 +136,80 @@ class _LoggingCustomFormatter(logging.Formatter):
 
 logger = logging.getLogger("vedo")
 
-_chsh = logging.StreamHandler()
-if sys.stdout is None:
-    sys.stdout = open(os.devnull, "w")
-if sys.stderr is None:
-    sys.stderr = open(os.devnull, "w")
-_chsh.flush = sys.stdout.flush
+_log_stream = sys.stdout if sys.stdout is not None else sys.__stdout__
+if _log_stream is None:
+    _log_stream = open(os.devnull, "w")
+_chsh = logging.StreamHandler(_log_stream)
 _chsh.setLevel(logging.DEBUG)
 _chsh.setFormatter(_LoggingCustomFormatter())
-logger.addHandler(_chsh)
+# Avoid duplicate handlers when vedo is re-imported/reloaded.
+if not any(
+    isinstance(h, logging.StreamHandler)
+    and getattr(h, "_vedo_default_handler", False)
+    for h in logger.handlers
+):
+    _chsh._vedo_default_handler = True  # type: ignore[attr-defined]
+    logger.addHandler(_chsh)
 logger.setLevel(logging.INFO)
+logger.propagate = False
 
+
+def current_plotter():
+    """Return the active plotter instance for the current runtime session."""
+    return _session.get_plotter(plotter_instance)
+
+
+def set_current_plotter(plotter):
+    """Set the active plotter instance for the current runtime session."""
+    global plotter_instance
+    plotter_instance = plotter
+    _session.set_plotter(plotter)
+    return plotter
+
+
+def current_notebook_plotter():
+    """Return the active notebook plotter object for the current runtime session."""
+    return _session.get_notebook_plotter(notebook_plotter)
+
+
+def set_current_notebook_plotter(plotter):
+    """Set the active notebook plotter object for the current runtime session."""
+    global notebook_plotter
+    notebook_plotter = plotter
+    _session.set_notebook_plotter(plotter)
+    return plotter
+
+
+def current_notebook_backend():
+    """Return the active notebook backend for the current runtime session."""
+    return _session.get_notebook_backend(notebook_backend)
+
+
+def set_current_notebook_backend(backend):
+    """Set the active notebook backend for the current runtime session."""
+    global notebook_backend
+    notebook_backend = backend
+    _session.set_notebook_backend(backend)
+    return backend
+
+
+def current_last_figure():
+    """Return the last pyplot figure format remembered in this runtime session."""
+    return _session.get_last_figure(last_figure)
+
+
+def set_last_figure(figure):
+    """Set the last pyplot figure format remembered in this runtime session."""
+    global last_figure
+    last_figure = figure
+    _session.set_last_figure(figure)
+    return figure
+
+
+def __getattr__(name):
+    """Lazy-load selected heavy optional modules while preserving public API."""
+    if name in {"applications", "external", "pyplot", "backends"}:
+        module = importlib.import_module(f"vedo.{name}")
+        globals()[name] = module
+        return module
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

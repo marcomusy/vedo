@@ -2,6 +2,7 @@
 Make low values of the scalar completely transparent"""
 from vedo import *
 
+# Build the volumetric processing pipeline and render results.
 vol = Volume(dataurl+'embryo.slc')
 vol.cmap('bone').alpha([0,0,0.5])
 

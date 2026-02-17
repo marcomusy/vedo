@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 import os
 import time
 import re
-# import shutil
 
-from typing import Union, Tuple, MutableSequence, List
+from collections.abc import MutableSequence
 import numpy as np
 
 from vtkmodules.util.numpy_support import numpy_to_vtk, vtk_to_numpy
@@ -49,12 +49,6 @@ __all__ = [
     "camera_from_dict",
     "camera_to_dict",
     "oriented_camera",
-    "vedo2trimesh",
-    "trimesh2vedo",
-    "vedo2meshlab",
-    "meshlab2vedo",
-    "vedo2open3d",
-    "open3d2vedo",
     "vtk2numpy",
     "numpy2vtk",
     "get_uv",
@@ -192,8 +186,10 @@ class OperationNode:
             tree.create_node(self.operation_plain, self.operation_plain + str(self.time))
             _build_tree(self)
             out = tree.show(stdout=False)
-        except:
-            out = f"Sorry treelib failed to build the tree for '{self.operation_plain}()'."
+        except Exception as e:
+            out = (
+                f"Sorry treelib failed to build the tree for '{self.operation_plain}()': {e}."
+            )
         return out
 
     def print(self) -> None:
@@ -934,8 +930,7 @@ class Minimizer:
             ihess = np.linalg.inv(hessian)
             cov = ihess / 2
             self.results["parameter_errors"] = np.sqrt(np.diag(cov))
-            print(self.results["parameter_errors"])
-        except:
+        except (np.linalg.LinAlgError, ValueError):
             vedo.logger.warning("Cannot compute hessian for parameter errors")
             self.results["parameter_errors"] = np.zeros(n)
         return hessian
@@ -969,7 +964,7 @@ class Minimizer:
                 separator=', ', precision=6, suppress_small=True,
             )
             out += "Hessian Matrix:\n" + arr
-        except:
+        except Exception:
             out += "Hessian Matrix: (not available)"
         return out
 
@@ -1057,10 +1052,8 @@ def compute_hessian(func, params, bounds=None, epsilon=1e-5, verbose=True) -> np
     # Off-diagonal elements (mixed partial derivatives)
     for i in range(n):
         if verbose:
-            print(f"Computing Hessian: {i+1}/{n} for off-diagonal ", end='')
+            vedo.printc(f"Computing Hessian: {i+1}/{n} for off-diagonal", delay=0)
         for j in range(i + 1, n):
-            if verbose:
-                print(f".", end='')
             if bounds:
                 lb_i, ub_i = bounds[i]
                 lb_j, ub_j = bounds[j]
@@ -1103,8 +1096,6 @@ def compute_hessian(func, params, bounds=None, epsilon=1e-5, verbose=True) -> np
             # Central difference for off-diagonal
             hessian[i, j] = (f_pp - f_pm - f_mp + f_mm) / (4 * h_i * h_j)
             hessian[j, i] = hessian[i, j]  # Symmetric
-        if verbose:
-            print()
     return hessian
 
 
@@ -1204,7 +1195,15 @@ def numpy2vtk(arr, dtype=None, deep=True, name="", as_image=False, dims=None):
         varr.SetName("input_scalars")
 
         img = vtki.vtkImageData()
-        img.SetDimensions(*dims[:3])
+        dims3 = tuple(int(d) for d in dims[:3])
+        expected = int(np.prod(dims3))
+        n_tuples = varr.GetNumberOfTuples()
+        if n_tuples != expected:
+            raise ValueError(
+                f"numpy2vtk(as_image=True): scalar tuple count ({n_tuples}) "
+                f"does not match image dimensions product ({expected})"
+            )
+        img.SetDimensions(*dims3)
         img.GetPointData().AddArray(varr)
         img.GetPointData().SetActiveScalars(varr.GetName())
 
@@ -1270,7 +1269,7 @@ def make3d(pts) -> np.ndarray:
     return pts
 
 
-def geometry(obj, extent=None) -> "vedo.Mesh":
+def geometry(obj, extent=None) -> vedo.Mesh:
     """
     Apply the `vtkGeometryFilter` to the input object.
     This is a general-purpose filter to extract geometry (and associated data)
@@ -1341,14 +1340,35 @@ def buildPolyData(vertices, faces=None, lines=None, strips=None, index_offset=0)
                         vline.GetPointIds().SetId(0, i1)
                         vline.GetPointIds().SetId(1, i2)
                         linesarr.InsertNextCell(vline)
-        else:  # assume format [id0,id1,...]
-            # print("buildPolyData: assuming lines format [id0,id1,...]", lines)
-            # TODO CORRECT THIS CASE, MUST BE [2, id0,id1,...]
-            for i in range(0, len(lines) - 1):
-                vline = vtki.vtkLine()
-                vline.GetPointIds().SetId(0, lines[i])
-                vline.GetPointIds().SetId(1, lines[i + 1])
-                linesarr.InsertNextCell(vline)
+        else:
+            # VTK-style connectivity stream format:
+            # [n0, p0, p1, ..., n1, q0, q1, ...]
+            # For n==2 we insert a line segment, for n>2 a polyline.
+            i = 0
+            nvals = len(lines)
+            while i < nvals:
+                npts = int(lines[i])
+                if npts < 2:
+                    raise ValueError("buildPolyData(lines): each cell must have at least 2 points")
+                end = i + 1 + npts
+                if end > nvals:
+                    raise ValueError(
+                        "buildPolyData(lines): malformed connectivity stream, "
+                        f"expected {npts} ids after position {i}"
+                    )
+                ids = [int(pid) for pid in lines[i + 1 : end]]
+                if npts == 2:
+                    vline = vtki.vtkLine()
+                    vline.GetPointIds().SetId(0, ids[0])
+                    vline.GetPointIds().SetId(1, ids[1])
+                    linesarr.InsertNextCell(vline)
+                else:
+                    pline = vtki.vtkPolyLine()
+                    pline.GetPointIds().SetNumberOfIds(npts)
+                    for k, pid in enumerate(ids):
+                        pline.GetPointIds().SetId(k, pid)
+                    linesarr.InsertNextCell(pline)
+                i = end
         poly.SetLines(linesarr)
 
     if faces is not None:
@@ -1365,12 +1385,26 @@ def buildPolyData(vertices, faces=None, lines=None, strips=None, index_offset=0)
 
             if faces.ndim > 1:
                 nf, nc = faces.shape
-                hs = np.hstack((np.zeros(nf)[:, None] + nc, faces))
+                hs = np.hstack((np.zeros(nf)[:, None] + nc, faces - index_offset))
             else:
                 nf = faces.shape[0]
-                hs = faces
+                hs = faces.copy()
+                # Flat packed format: [n0, p0, p1, ..., n1, q0, q1, ...]
+                # Apply index_offset only to point-id entries.
+                i = 0
+                while i < len(hs):
+                    nids = int(hs[i])
+                    start = i + 1
+                    end = start + nids
+                    hs[start:end] -= index_offset
+                    i = end
             arr = numpy_to_vtkIdTypeArray(hs.astype(ast).ravel(), deep=True)
-            source_polygons.SetCells(nf, arr)
+            # VTK >= 9.6 deprecates vtkCellArray.SetCells(n, legacy_arr).
+            # Prefer ImportLegacyFormat when available and keep fallback for older VTK.
+            if hasattr(source_polygons, "ImportLegacyFormat"):
+                source_polygons.ImportLegacyFormat(arr)
+            else:
+                source_polygons.SetCells(nf, arr)
 
         else:
             ############################# manually add faces, SLOW
@@ -1435,7 +1469,7 @@ def get_font_path(font: str) -> str:
         else:
             try:
                 fl = vedo.file_io.download(f"https://vedo.embl.es/fonts/{font}.ttf", verbose=False)
-            except:
+            except Exception:
                 vedo.logger.warning(f"Could not download https://vedo.embl.es/fonts/{font}.ttf")
                 fl = os.path.join(vedo.fonts_path, "Normografo.ttf")
     else:
@@ -1544,7 +1578,7 @@ def sort_by_column(arr, nth, invert=False) -> np.ndarray:
     return arr
 
 
-def point_in_triangle(p, p1, p2, p3) -> Union[bool, None]:
+def point_in_triangle(p, p1, p2, p3) -> bool | None:
     """
     Return True if a point is inside (or above/below)
     a triangle defined by 3 points in space.
@@ -1567,7 +1601,7 @@ def point_in_triangle(p, p1, p2, p3) -> Union[bool, None]:
     return False
 
 
-def intersection_ray_triangle(P0, P1, V0, V1, V2) -> Union[bool, None, np.ndarray]:
+def intersection_ray_triangle(P0, P1, V0, V1, V2) -> bool | None | np.ndarray:
     """
     Fast intersection between a directional ray defined by `P0,P1`
     and triangle `V0, V1, V2`.
@@ -1764,7 +1798,7 @@ def point_line_distance(p, p1, p2) -> float:
     """
     return np.sqrt(vtki.vtkLine.DistanceToLine(p, p1, p2))
 
-def line_line_distance(p1, p2, q1, q2) -> Tuple[float, np.ndarray, np.ndarray, float, float]:
+def line_line_distance(p1, p2, q1, q2) -> tuple[float, np.ndarray, np.ndarray, float, float]:
     """
     Compute the distance of a line to a line (not the segment)
     defined by `p1` and `p2` and `q1` and `q2`.
@@ -2102,7 +2136,7 @@ def precision(x, p: int, vrange=None, delimiter="e") -> str:
             try:
                 if np.isnan(ix):
                     return "NaN"
-            except:
+            except Exception:
                 # cannot handle list of list
                 continue
 
@@ -2395,7 +2429,10 @@ def print_table(*columns, headers=None, c="g") -> None:
     corner = "─"
     if headers is None:
         headers = [f"Column {i}" for i in range(1, len(columns) + 1)]
-    assert len(headers) == len(columns)
+    if len(headers) != len(columns):
+        raise ValueError(
+            f"print_table(headers=...) expected {len(columns)} headers, got {len(headers)}"
+        )
 
     # Find the maximum length of the elements in each column and header
     max_lens = [max(len(str(x)) for x in column) for column in columns]
@@ -2677,7 +2714,7 @@ def make_ticks(
         digits=None,
         logscale=False,
         useformat="",
-    ) -> Tuple[np.ndarray, List[str]]:
+    ) -> tuple[np.ndarray, list[str]]:
     """
     Generate numeric labels for the `[x0, x1]` range.
 
@@ -2819,7 +2856,7 @@ def make_ticks(
     return np.array(ticks_float), ticks_str
 
 
-def grid_corners(i: int, nm: list, size: list, margin=0, yflip=True) -> Tuple[np.ndarray, np.ndarray]:
+def grid_corners(i: int, nm: list, size: list, margin=0, yflip=True) -> tuple[np.ndarray, np.ndarray]:
     """
     Compute the 2 corners coordinates of the i-th box in a grid of shape n*m.
     The top-left square is square number 1.
@@ -2865,381 +2902,6 @@ def grid_corners(i: int, nm: list, size: list, margin=0, yflip=True) -> Tuple[np
     c1 = (dx * nx + margin, dy * ny + margin)
     c2 = (dx * (nx + 1) - margin, dy * (ny + 1) - margin)
     return np.array(c1), np.array(c2)
-
-
-############################################################################
-# Trimesh support
-#
-# Install trimesh with:
-#
-#    sudo apt install python3-rtree
-#    pip install rtree shapely
-#    conda install trimesh
-#
-# Check the example gallery in: examples/other/trimesh>
-###########################################################################
-def vedo2trimesh(mesh):
-    """
-    Convert `vedo.mesh.Mesh` to `Trimesh.Mesh` object.
-    """
-    if is_sequence(mesh):
-        tms = []
-        for a in mesh:
-            tms.append(vedo2trimesh(a))
-        return tms
-
-    try:
-        from trimesh import Trimesh # type: ignore
-    except (ImportError, ModuleNotFoundError):
-        vedo.logger.error("Need trimesh to run:\npip install trimesh")
-        return None
-
-    tris = mesh.cells
-    carr = mesh.celldata["CellIndividualColors"]
-    ccols = carr
-
-    points = mesh.coordinates
-    varr = mesh.pointdata["VertexColors"]
-    vcols = varr
-
-    if len(tris) == 0:
-        tris = None
-
-    return Trimesh(vertices=points, faces=tris, face_colors=ccols, vertex_colors=vcols, process=False)
-
-
-def trimesh2vedo(inputobj):
-    """
-    Convert a `Trimesh` object to `vedo.Mesh` or `vedo.Assembly` object.
-    """
-    if is_sequence(inputobj):
-        vms = []
-        for ob in inputobj:
-            vms.append(trimesh2vedo(ob))
-        return vms
-
-    inputobj_type = str(type(inputobj))
-
-    if "Trimesh" in inputobj_type or "primitives" in inputobj_type:
-        faces = inputobj.faces
-        poly = buildPolyData(inputobj.vertices, faces)
-        tact = vedo.Mesh(poly)
-        if inputobj.visual.kind == "face":
-            trim_c = inputobj.visual.face_colors
-        elif inputobj.visual.kind == "texture":
-            trim_c = inputobj.visual.to_color().vertex_colors
-        else:
-            trim_c = inputobj.visual.vertex_colors
-
-        if is_sequence(trim_c):
-            if is_sequence(trim_c[0]):
-                same_color = len(np.unique(trim_c, axis=0)) < 2  # all vtxs have same color
-
-                if same_color:
-                    tact.c(trim_c[0, [0, 1, 2]]).alpha(trim_c[0, 3])
-                else:
-                    if inputobj.visual.kind == "face":
-                        tact.cellcolors = trim_c
-        return tact
-
-    if "PointCloud" in inputobj_type:
-
-        vdpts = vedo.shapes.Points(inputobj.vertices, r=8, c='k')
-        if hasattr(inputobj, "vertices_color"):
-            vcols = (inputobj.vertices_color * 1).astype(np.uint8)
-            vdpts.pointcolors = vcols
-        return vdpts
-
-    if "path" in inputobj_type:
-
-        lines = []
-        for e in inputobj.entities:
-            # print('trimesh entity', e.to_dict())
-            l = vedo.shapes.Line(inputobj.vertices[e.points], c="k", lw=2)
-            lines.append(l)
-        return vedo.Assembly(lines)
-
-    return None
-
-
-def vedo2meshlab(vmesh):
-    """Convert a `vedo.Mesh` to a Meshlab object."""
-    try:
-        import pymeshlab as mlab # type: ignore
-    except ModuleNotFoundError:
-        vedo.logger.error("Need pymeshlab to run:\npip install pymeshlab")
-
-    vertex_matrix = vmesh.vertices.astype(np.float64)
-
-    try:
-        face_matrix = np.asarray(vmesh.cells, dtype=np.float64)
-    except:
-        print("WARNING: in vedo2meshlab(), need to triangulate mesh first!")
-        face_matrix = np.array(vmesh.clone().triangulate().cells, dtype=np.float64)
-
-    # v_normals_matrix = vmesh.normals(cells=False, recompute=False)
-    v_normals_matrix = vmesh.vertex_normals
-    if not v_normals_matrix.shape[0]:
-        v_normals_matrix = np.empty((0, 3), dtype=np.float64)
-
-    # f_normals_matrix = vmesh.normals(cells=True, recompute=False)
-    f_normals_matrix = vmesh.cell_normals
-    if not f_normals_matrix.shape[0]:
-        f_normals_matrix = np.empty((0, 3), dtype=np.float64)
-
-    v_color_matrix = vmesh.pointdata["RGBA"]
-    if v_color_matrix is None:
-        v_color_matrix = np.empty((0, 4), dtype=np.float64)
-    else:
-        v_color_matrix = v_color_matrix.astype(np.float64) / 255
-        if v_color_matrix.shape[1] == 3:
-            v_color_matrix = np.c_[
-                v_color_matrix, np.ones(v_color_matrix.shape[0], dtype=np.float64)
-            ]
-
-    f_color_matrix = vmesh.celldata["RGBA"]
-    if f_color_matrix is None:
-        f_color_matrix = np.empty((0, 4), dtype=np.float64)
-    else:
-        f_color_matrix = f_color_matrix.astype(np.float64) / 255
-        if f_color_matrix.shape[1] == 3:
-            f_color_matrix = np.c_[
-                f_color_matrix, np.ones(f_color_matrix.shape[0], dtype=np.float64)
-            ]
-
-    m = mlab.Mesh(
-        vertex_matrix=vertex_matrix,
-        face_matrix=face_matrix,
-        v_normals_matrix=v_normals_matrix,
-        f_normals_matrix=f_normals_matrix,
-        v_color_matrix=v_color_matrix,
-        f_color_matrix=f_color_matrix,
-    )
-
-    for k in vmesh.pointdata.keys():
-        data = vmesh.pointdata[k]
-        if data is not None:
-            if data.ndim == 1:  # scalar
-                m.add_vertex_custom_scalar_attribute(data.astype(np.float64), k)
-            elif data.ndim == 2:  # vectorial data
-                if "tcoord" not in k.lower() and k not in ["Normals", "TextureCoordinates"]:
-                    m.add_vertex_custom_point_attribute(data.astype(np.float64), k)
-
-    for k in vmesh.celldata.keys():
-        data = vmesh.celldata[k]
-        if data is not None:
-            if data.ndim == 1:  # scalar
-                m.add_face_custom_scalar_attribute(data.astype(np.float64), k)
-            elif data.ndim == 2 and k != "Normals":  # vectorial data
-                m.add_face_custom_point_attribute(data.astype(np.float64), k)
-
-    m.update_bounding_box()
-    return m
-
-
-def meshlab2vedo(mmesh, pointdata_keys=(), celldata_keys=()):
-    """Convert a Meshlab object to `vedo.Mesh`."""
-    inputtype = str(type(mmesh))
-
-    if "MeshSet" in inputtype:
-        mmesh = mmesh.current_mesh()
-
-    mpoints, mcells = mmesh.vertex_matrix(), mmesh.face_matrix()
-    if len(mcells) > 0:
-        polydata = buildPolyData(mpoints, mcells)
-    else:
-        polydata = buildPolyData(mpoints, None)
-
-    if mmesh.has_vertex_scalar():
-        parr = mmesh.vertex_scalar_array()
-        parr_vtk = numpy_to_vtk(parr)
-        parr_vtk.SetName("MeshLabScalars")
-        polydata.GetPointData().AddArray(parr_vtk)
-        polydata.GetPointData().SetActiveScalars("MeshLabScalars")
-
-    if mmesh.has_face_scalar():
-        carr = mmesh.face_scalar_array()
-        carr_vtk = numpy_to_vtk(carr)
-        carr_vtk.SetName("MeshLabScalars")
-        polydata.GetCellData().AddArray(carr_vtk)
-        polydata.GetCellData().SetActiveScalars("MeshLabScalars")
-
-    for k in pointdata_keys:
-        parr = mmesh.vertex_custom_scalar_attribute_array(k)
-        parr_vtk = numpy_to_vtk(parr)
-        parr_vtk.SetName(k)
-        polydata.GetPointData().AddArray(parr_vtk)
-        polydata.GetPointData().SetActiveScalars(k)
-
-    for k in celldata_keys:
-        carr = mmesh.face_custom_scalar_attribute_array(k)
-        carr_vtk = numpy_to_vtk(carr)
-        carr_vtk.SetName(k)
-        polydata.GetCellData().AddArray(carr_vtk)
-        polydata.GetCellData().SetActiveScalars(k)
-
-    pnorms = mmesh.vertex_normal_matrix()
-    if len(pnorms) > 0:
-        polydata.GetPointData().SetNormals(numpy2vtk(pnorms, name="Normals"))
-
-    cnorms = mmesh.face_normal_matrix()
-    if len(cnorms) > 0:
-        polydata.GetCellData().SetNormals(numpy2vtk(cnorms, name="Normals"))
-    return vedo.Mesh(polydata)
-
-
-def open3d2vedo(o3d_mesh):
-    """Convert `open3d.geometry.TriangleMesh` to a `vedo.Mesh`."""
-    m = vedo.Mesh([np.array(o3d_mesh.vertices), np.array(o3d_mesh.triangles)])
-    # TODO: could also check whether normals and color are present in
-    # order to port with the above vertices/faces
-    return m
-
-
-def vedo2open3d(vedo_mesh):
-    """
-    Return an `open3d.geometry.TriangleMesh` version of the current mesh.
-    """
-    try:
-        import open3d as o3d  # type: ignore
-    except RuntimeError:
-        vedo.logger.error("Need open3d to run:\npip install open3d")
-
-    # create from numpy arrays
-    o3d_mesh = o3d.geometry.TriangleMesh(
-        vertices=o3d.utility.Vector3dVector(vedo_mesh.vertices),
-        triangles=o3d.utility.Vector3iVector(vedo_mesh.cells),
-    )
-    # TODO: need to add some if check here in case color and normals
-    #  info are not existing
-    # o3d_mesh.vertex_colors = o3d.utility.Vector3dVector(vedo_mesh.pointdata["RGB"]/255)
-    # o3d_mesh.vertex_normals= o3d.utility.Vector3dVector(vedo_mesh.pointdata["Normals"])
-    return o3d_mesh
-
-def vedo2madcad(vedo_mesh):
-    """
-    Convert a `vedo.Mesh` to a `madcad.Mesh`.
-    """
-    try:
-        import madcad # type: ignore
-        import numbers
-    except ModuleNotFoundError:
-        vedo.logger.error("Need madcad to run:\npip install pymadcad")
-
-    points = [madcad.vec3(*pt) for pt in vedo_mesh.vertices]
-    faces = [madcad.vec3(*fc) for fc in vedo_mesh.cells]
-
-    options = {}
-    for key, val in vedo_mesh.pointdata.items():
-        vec_type = f"vec{val.shape[-1]}"
-        is_float = np.issubdtype(val.dtype, np.floating)
-        madcad_dtype = getattr(madcad, f"f{vec_type}" if is_float else vec_type)
-        options[key] = [madcad_dtype(v) for v in val]
-
-    madcad_mesh = madcad.Mesh(points=points, faces=faces, options=options)
-
-    return madcad_mesh
-
-
-def madcad2vedo(madcad_mesh):
-    """
-    Convert a `madcad.Mesh` to a `vedo.Mesh`.
-
-    A pointdata or celldata array named "tracks" is added to the output mesh, indicating
-    the mesh region each point belongs to.
-
-    A metadata array named "madcad_groups" is added to the output mesh, indicating
-    the mesh groups.
-
-    See [pymadcad website](https://pymadcad.readthedocs.io/en/latest/index.html)
-    for more info.
-    """
-    try:
-        madcad_mesh = madcad_mesh["part"]
-    except:
-        pass
-
-    madp = []
-    for p in madcad_mesh.points:
-        madp.append([float(p[0]), float(p[1]), float(p[2])])
-    madp = np.array(madp)
-
-    madf = []
-    try:
-        for f in madcad_mesh.faces:
-            madf.append([int(f[0]), int(f[1]), int(f[2])])
-        madf = np.array(madf).astype(np.uint16)
-    except AttributeError:
-        # print("no faces")
-        pass
-
-    made = []
-    try:
-        edges = madcad_mesh.edges
-        for e in edges:
-            made.append([int(e[0]), int(e[1])])
-        made = np.array(made).astype(np.uint16)
-    except (AttributeError, TypeError):
-        # print("no edges")
-        pass
-
-    try:
-        line = np.array(madcad_mesh.indices).astype(np.uint16)
-        made.append(line)
-    except AttributeError:
-        # print("no indices")
-        pass
-
-    madt = []
-    try:
-        for t in madcad_mesh.tracks:
-            madt.append(int(t))
-        madt = np.array(madt).astype(np.uint16)
-    except AttributeError:
-        # print("no tracks")
-        pass
-
-    ###############################
-    poly = vedo.utils.buildPolyData(madp, madf, made)
-    if len(madf) == 0 and len(made) == 0:
-        m = vedo.Points(poly)
-    else:
-        m = vedo.Mesh(poly)
-
-    if len(madt) == len(madf):
-        m.celldata["tracks"] = madt
-        maxt = np.max(madt)
-        m.mapper.SetScalarRange(0, np.max(madt))
-        if maxt==0: m.mapper.SetScalarVisibility(0)
-    elif len(madt) == len(madp):
-        m.pointdata["tracks"] = madt
-        maxt = np.max(madt)
-        m.mapper.SetScalarRange(0, maxt)
-        if maxt==0: m.mapper.SetScalarVisibility(0)
-
-    try:
-        m.info["madcad_groups"] = madcad_mesh.groups
-    except AttributeError:
-        # print("no groups")
-        pass
-
-    try:
-        options = dict(madcad_mesh.options)
-        if "display_wire" in options and options["display_wire"]:
-            m.lw(1).lc(madcad_mesh.c())
-        if "display_faces" in options and not options["display_faces"]:
-            m.alpha(0.2)
-        if "color" in options:
-            m.c(options["color"])
-
-        for key, val in options.items():
-            m.pointdata[key] = val
-
-    except AttributeError:
-        # print("no options")
-        pass
-
-    return m
 
 
 def vtk_version_at_least(major, minor=0, build=0) -> bool:
@@ -3356,7 +3018,6 @@ def get_vtk_name_event(name: str) -> str:
             f"Error: '{name}' is not a valid event name.", c='r')
         vedo.printc("Check the list of events here:", c='r')
         vedo.printc("\thttps://vtk.org/doc/nightly/html/classvtkCommand.html", c='r')
-        # raise RuntimeError
+        raise ValueError(f"Invalid VTK event name: {name!r}")
 
     return event_name
-

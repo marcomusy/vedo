@@ -1,8 +1,6 @@
-# Morph one shape into another interactively
-# (can work in 3d too! see example warp4b.py)
-#
-from vedo import Plotter, Axes, dataurl, Assembly, printc, merge
-from vedo.shapes import Text2D, Points, Lines, Arrows2D, Grid
+"""Morph one 2D shape into another interactively using landmark arrows."""
+from vedo import Plotter, Axes, dataurl, Assembly, printc, merge, Points, Lines
+from vedo.shapes import Text2D, Arrows2D, Grid
 
 class Morpher:
 
@@ -148,5 +146,3 @@ if __name__ == "__main__":
     mesh2 = outlines[35].scale(1.3).shift(-2,0,0)
     morpher = Morpher(mesh1, mesh2, 10)  # generate 10 intermediate outlines
     morpher.start()
-
-

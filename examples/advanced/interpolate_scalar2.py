@@ -10,7 +10,7 @@ from scipy.interpolate import Rbf, NearestNDInterpolator as Near
 mesh = Mesh(dataurl+"bunny.obj").normalize()
 pts = mesh.vertices
 
-# pick a subset of 100 points where a scalar descriptor is known
+# pick a subset of points where descriptor values are known
 ptsubset = pts[:100]
 
 # assume the descriptor value is some function of the point coord y

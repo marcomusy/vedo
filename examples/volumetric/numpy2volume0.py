@@ -3,6 +3,7 @@ from vedo import Volume, dataurl, show
 
 vol = Volume(dataurl+"embryo.tif")
 
+# `tonumpy()` exposes the voxel buffer for in-place edits.
 arr = vol.tonumpy()
 arr[:] = arr/5 + 15  # modify the array in-place with [:]
 

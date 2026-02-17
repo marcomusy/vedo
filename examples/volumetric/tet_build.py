@@ -2,6 +2,7 @@
 by manually defining vertices and cells"""
 from vedo import *
 
+# Build the volumetric processing pipeline and render results.
 points = [ 
     (0, 0, 0), # first tet
     (1, 0, 0),

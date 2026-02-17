@@ -1,7 +1,9 @@
+"""Interactive 1D function viewer with a parameter slider."""
 import numpy as np
 import vedo
 
 def update_plot(widget=None, evt=""):
+    # Use slider value during interaction, default value at startup.
     k = widget.value if evt else kinit
     #################################################
     y = 2 * k * x / (1 + (k * x)**2)  # hill function
@@ -47,4 +49,3 @@ plt.add_slider(
 update_plot()  # update initial plot
 plt.show("1D Function Viewer\nMove the slider to modify the parameter",
          mode="2d", zoom="tight").close()
-

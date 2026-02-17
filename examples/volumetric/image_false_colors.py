@@ -2,6 +2,7 @@
 import numpy as np
 from vedo import Image, dataurl, show
 
+# Build the volumetric processing pipeline and render results.
 
 def mandelbrot(h=400, w=400, maxit=20, r=2):
     # Returns an image of the Mandelbrot fractal of size (h,w)

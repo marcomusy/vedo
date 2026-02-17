@@ -11,6 +11,7 @@ s.pointdata['myscalars'] = s.coordinates[:,1]
 print(s)
 
 # Pick a few points on the sphere
+# These points define the closed loop for selection.
 sv = s.points[[10, 15, 129, 165]]
 pts = Points(sv).ps(12)
 

@@ -1,10 +1,12 @@
 """Cut a mesh with an other mesh and cap the holes"""
 from vedo import dataurl, Plotter, Mesh, Sphere
 
+# Cutting tool and source mesh.
 msh1 = Mesh(dataurl+'motor.byu')
 cutmesh = Sphere().y(-0.4).scale(0.4).wireframe().alpha(0.1)
 
 msh2 = msh1.clone().cut_with_mesh(cutmesh)
+# Cap the newly opened boundary.
 redcap = msh2.cap(return_cap=True).color("r4")
 
 plt = Plotter(N=2, axes=1)

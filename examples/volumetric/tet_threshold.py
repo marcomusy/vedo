@@ -1,6 +1,7 @@
 """Threshold a TetMesh with a scalar array"""
 from vedo import *
 
+# Build the volumetric processing pipeline and render results.
 tetm = TetMesh(dataurl + "limb.vtu")
 
 # Threshold the tetrahedral mesh for values in the range:

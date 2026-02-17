@@ -7,6 +7,7 @@ from vedo import Points, settings, show
 from vedo.pyplot import streamplot
 import numpy as np
 
+# plot stream example.
 settings.default_font = "DejavuSansMono"
 
 # a grid with a vector field (U,V):

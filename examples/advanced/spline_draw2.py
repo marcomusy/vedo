@@ -1,12 +1,14 @@
 """Draw a continuous line on an image with the DrawingWidget."""
 from vedo import DrawingWidget, Plotter, Image, dataurl
 
+# Background image used by the drawing widget.
 img = Image(dataurl + "embryo.jpg").resize(0.5)
 
 plt = Plotter(axes=1)
 
 drw = DrawingWidget(img)
 drw.on()
+# Print the resulting polyline at the end of each interaction.
 cid = drw.add_observer("end interaction", lambda w, e: print(drw.line))
 
 plt.show(img, __doc__, zoom=1.2)

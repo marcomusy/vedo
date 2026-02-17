@@ -1,4 +1,4 @@
-# A plot(mode="bars") example. Useful to plot categories.
+"""Use `plot(mode="bars")` for categorical counts."""
 from vedo import precision, Text3D, color_map, settings
 from vedo.pyplot import plot
 

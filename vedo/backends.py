@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 import os
 import numpy as np
 
@@ -22,24 +23,17 @@ __all__ = []
 def get_notebook_backend(actors2show=()):
     """Return the appropriate notebook viewer"""
 
-    #########################################
-    if settings.default_backend == "2d":
+    backend = settings.default_backend
+
+    if backend == "2d":
         return start_2d()
-
-    #########################################
-    if settings.default_backend == "k3d":
+    if backend == "k3d":
         return start_k3d(actors2show)
-
-    #########################################
-    if settings.default_backend.startswith("trame"):
+    if backend.startswith("trame"):
         return start_trame()
-
-    #########################################
-    if settings.default_backend.startswith("ipyvtk"):
+    if backend.startswith("ipyvtk"):
         return start_ipyvtklink()
-
-    #########################################
-    if settings.default_backend.startswith("panel"):
+    if backend.startswith("panel"):
         return start_panel()
 
     vedo.logger.error(f"Unknown jupyter backend: {settings.default_backend}")
@@ -56,7 +50,10 @@ def start_2d():
         print("PIL or IPython not available")
         return
 
-    plt = vedo.plotter_instance
+    plt = vedo.current_plotter()
+    if not plt:
+        vedo.logger.error("No active Plotter found for the 2d backend.")
+        return None
 
     if hasattr(plt, "window") and plt.window:
         try:
@@ -66,7 +63,7 @@ def start_2d():
             return
 
         # IPython.display.display(pil_img)
-        vedo.notebook_plotter = pil_img
+        vedo.set_current_notebook_plotter(pil_img)
         if settings.backend_autoclose and plt.renderer == plt.renderers[-1]:
             plt.close()
         return pil_img
@@ -86,7 +83,10 @@ def start_panel():
         return None
 
     print("panel backend NOT YET FUNCTIONAL")
-    plt = vedo.plotter_instance
+    plt = vedo.current_plotter()
+    if not plt:
+        vedo.logger.error("No active Plotter found for the panel backend.")
+        return None
 
     if hasattr(plt, "window") and plt.window:
         plt.renderer.ResetCamera()
@@ -97,8 +97,8 @@ def start_panel():
             orientation_widget=True,
             enable_keybindings=True,
         )
-        vedo.notebook_plotter = vtkpan
-        return vedo.notebook_plotter
+        vedo.set_current_notebook_plotter(vtkpan)
+        return vedo.current_notebook_plotter()
 
 ####################################################################################
 def start_k3d(actors2show):
@@ -110,9 +110,42 @@ def start_k3d(actors2show):
         print("\nCannot find k3d, install with:  pip install k3d")
         return None
 
-    plt = vedo.plotter_instance
+    plt = vedo.current_plotter()
     if not plt:
+        vedo.logger.error("No active Plotter found for the k3d backend.")
         return None
+
+    def _setup_scalar_metadata(polydata, mapper):
+        """Build scalar metadata for k3d color mapping."""
+        vtkdata = polydata.GetPointData()
+        vtkscals = vtkdata.GetScalars()
+
+        if vtkscals is None:
+            vtkdata = polydata.GetCellData()
+            vtkscals = vtkdata.GetScalars()
+            if vtkscals is not None:
+                c2p = vtki.new("CellDataToPointData")
+                c2p.SetInputData(polydata)
+                c2p.Update()
+                polydata = c2p.GetOutput()
+                vtkdata = polydata.GetPointData()
+                vtkscals = vtkdata.GetScalars()
+
+        if vtkscals is None:
+            return polydata, None, None, None, None
+
+        if not vtkscals.GetName():
+            vtkscals.SetName("scalars")
+        scals_min, scals_max = mapper.GetScalarRange()
+        color_attribute = (vtkscals.GetName(), scals_min, scals_max)
+        lut = mapper.GetLookupTable()
+        lut.Build()
+        kcmap = []
+        nlut = lut.GetNumberOfTableValues()
+        for i in range(nlut):
+            r, g, b, _ = lut.GetTableValue(i)
+            kcmap += [i / (nlut - 1), r, g, b]
+        return polydata, vtkscals, color_attribute, kcmap, (scals_min, scals_max)
 
     already_has_axes = False
     actors2show2 = []
@@ -131,7 +164,7 @@ def start_k3d(actors2show):
         else:
             actors2show2.append(ia)
 
-    vedo.notebook_plotter = k3d.plot(
+    nbplot = k3d.plot(
         axes=["x", "y", "z"],
         menu_visibility=settings.k3d_menu_visibility,
         height=settings.k3d_plot_height,
@@ -145,25 +178,26 @@ def start_k3d(actors2show):
     )
 
     # set k3d camera
-    vedo.notebook_plotter.camera_auto_fit = settings.k3d_camera_autofit
-    vedo.notebook_plotter.axes_helper = settings.k3d_axes_helper
-    vedo.notebook_plotter.grid_auto_fit = settings.k3d_grid_autofit
+    vedo.set_current_notebook_plotter(nbplot)
+    nbplot.camera_auto_fit = settings.k3d_camera_autofit
+    nbplot.axes_helper = settings.k3d_axes_helper
+    nbplot.grid_auto_fit = settings.k3d_grid_autofit
 
     if already_has_axes:
-        vedo.notebook_plotter.grid_visible = False
+        nbplot.grid_visible = False
     if settings.k3d_grid_visible is not None: # override if set
-        vedo.notebook_plotter.grid_visible = settings.k3d_grid_visible
+        nbplot.grid_visible = settings.k3d_grid_visible
 
     if plt.camera:
-        vedo.notebook_plotter.camera = utils.vtkCameraToK3D(plt.camera)
+        nbplot.camera = utils.vtkCameraToK3D(plt.camera)
 
     for ia in actors2show2:
 
-        if isinstance(ia, (vtki.vtkCornerAnnotation, vtki.vtkAssembly, vtki.vtkActor2D)):
+        if isinstance(ia, (vtki.vtkAssembly, vtki.vtkActor2D)):
             continue
 
         if hasattr(ia, "actor") and isinstance(
-            ia.actor, (vtki.vtkCornerAnnotation, vtki.vtkAssembly, vtki.vtkActor2D)
+            ia.actor, (vtki.vtkAssembly, vtki.vtkActor2D)
         ):
             continue
 
@@ -193,34 +227,11 @@ def start_k3d(actors2show):
                 iapoly = ia.dataset
 
             if ia.mapper.GetScalarVisibility() and ia.mapper.GetColorMode() > 0:
-
-                vtkdata = iapoly.GetPointData()
-                vtkscals = vtkdata.GetScalars()
-
-                if vtkscals is None:
-                    vtkdata = iapoly.GetCellData()
-                    vtkscals = vtkdata.GetScalars()
-                    if vtkscals is not None:
-                        c2p = vtki.new("CellDataToPointData")
-                        c2p.SetInputData(iapoly)
-                        c2p.Update()
-                        iapoly = c2p.GetOutput()
-                        vtkdata = iapoly.GetPointData()
-                        vtkscals = vtkdata.GetScalars()
-
-                else:
-
-                    if not vtkscals.GetName():
-                        vtkscals.SetName("scalars")
-                    scals_min, scals_max = ia.mapper.GetScalarRange()
-                    color_attribute = (vtkscals.GetName(), scals_min, scals_max)
-                    lut = ia.mapper.GetLookupTable()
-                    lut.Build()
-                    kcmap = []
-                    nlut = lut.GetNumberOfTableValues()
-                    for i in range(nlut):
-                        r, g, b, _ = lut.GetTableValue(i)
-                        kcmap += [i / (nlut - 1), r, g, b]
+                iapoly, vtkscals, color_attribute, kcmap, scal_range = _setup_scalar_metadata(
+                    iapoly, ia.mapper
+                )
+                if scal_range is not None:
+                    scals_min, scals_max = scal_range
 
             else:
                 color_attribute = ia.color()
@@ -250,7 +261,7 @@ def start_k3d(actors2show):
                 bounds=kbounds,
                 name=name,
             )
-            vedo.notebook_plotter += kobj
+            nbplot += kobj
 
         ################################################################ Text2D
         elif isinstance(ia, vedo.Text2D):
@@ -266,7 +277,7 @@ def start_k3d(actors2show):
                 label_box=bool(ia.properties.GetFrame()),
                 # reference_point='bl',
             )
-            vedo.notebook_plotter += kobj
+            nbplot += kobj
 
         ################################################################# Lines
         elif (
@@ -293,7 +304,7 @@ def start_k3d(actors2show):
                     width=aves.astype(float),
                     name=name,
                 )
-                vedo.notebook_plotter += kobj
+                nbplot += kobj
 
         ################################################################## Mesh
         elif isinstance(ia, Mesh) and ia.npoints and ia.dataset.GetNumberOfPolys():
@@ -354,7 +365,7 @@ def start_k3d(actors2show):
             if iap.GetInterpolation() == 0:
                 kobj.flat_shading = True
 
-            vedo.notebook_plotter += kobj
+            nbplot += kobj
 
         #####################################################################Points
         elif isinstance(ia, Points):
@@ -377,7 +388,7 @@ def start_k3d(actors2show):
                 point_size=aves.astype(float),
                 name=name,
             )
-            vedo.notebook_plotter += kobj
+            nbplot += kobj
 
         #####################################################################
         elif isinstance(ia, vedo.Image):
@@ -385,7 +396,7 @@ def start_k3d(actors2show):
 
     if plt and settings.backend_autoclose:
         plt.close()
-    return vedo.notebook_plotter
+    return nbplot
 
 
 #####################################################################################
@@ -399,7 +410,10 @@ def start_trame():
         print("trame is not installed, try:\n> pip install trame==2.5.2")
         return
 
-    plt = vedo.plotter_instance
+    plt = vedo.current_plotter()
+    if not plt:
+        vedo.logger.error("No active Plotter found for the trame backend.")
+        return None
     if hasattr(plt, "window") and plt.window:
         plt.renderer.ResetCamera()
         server = get_server("jupyter-1")
@@ -433,13 +447,17 @@ def start_ipyvtklink():
         print("ipyvtklink is not installed, try:\n> pip install ipyvtklink")
         return None
 
-    plt = vedo.plotter_instance
+    plt = vedo.current_plotter()
+    if not plt:
+        vedo.logger.error("No active Plotter found for the ipyvtklink backend.")
+        return None
     if hasattr(plt, "window") and plt.window:
         plt.renderer.ResetCamera()
-        vedo.notebook_plotter = ViewInteractiveWidget(
+        nbplot = ViewInteractiveWidget(
             plt.window, allow_wheel=True, quality=100, quick_quality=50
         )
-        return vedo.notebook_plotter
+        vedo.set_current_notebook_plotter(nbplot)
+        return nbplot
     vedo.logger.error("No window present for the ipyvtklink backend.")
     return None
 

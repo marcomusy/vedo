@@ -2,7 +2,7 @@
 move along with camera position"""
 from vedo import *
 
-# Need to create a Plotter instance to access the camera
+# Silhouette is camera-dependent, so create plotter first.
 plt = Plotter(bg='blue4', bg2='white')
 
 s = Mesh(dataurl+'shark.ply').c('gray',0.1).lw(1).lc('k')

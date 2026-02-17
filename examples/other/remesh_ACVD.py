@@ -1,11 +1,21 @@
 """Remesh a surface mesh using the ACVD algorithm."""
 # Needs PyACVD: pip install pyacvd
 # See: https://github.com/akaszynski/pyacvd
+from pathlib import Path
+import sys
+
 from vedo import Sphere, Mesh, show
 from vedo.pyplot import histogram
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from _optional import require_module
+
+pyvista = require_module("pyvista")
+require_module("pyacvd")
 from pyvista import wrap
 from pyacvd import Clustering
 
+# Configure inputs and run the visualization workflow.
 msh1 = Sphere(res=50).cut_with_plane()
 msh1.compute_quality().cmap('RdYlGn', on='cells', vmin=0, vmax=70).linewidth(1)
 

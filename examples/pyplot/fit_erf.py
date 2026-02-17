@@ -1,3 +1,4 @@
+"""Fit an error-function curve to binomial-like observations."""
 from scipy import special
 from scipy.optimize import curve_fit
 from vedo import np, settings, Marker
@@ -45,5 +46,4 @@ fig.add_label(':mu', marker='*', mc="r4")
 fig.add_legend("top-left", vspace=2.5)
 
 fig.show(size=(900, 650), zoom='tight').close()
-
 

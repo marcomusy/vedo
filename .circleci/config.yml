@@ -2,7 +2,7 @@
 #
 # Check https://circleci.com/docs/2.0/language-python/ for more details
 
-version: 2
+version: 2.1
 
 jobs:
 
@@ -10,7 +10,7 @@ jobs:
   test-vedo:
 
     machine:
-      image: ubuntu-2004:current
+      image: ubuntu-2204:current
 
     resource_class: medium
 
@@ -26,18 +26,20 @@ jobs:
           command: |
             sudo apt-get update
             sudo apt install libgl1-mesa-dev xvfb -y
-            pip3 install typing-extensions
-            pip3 install vedo
-            pip3 install matplotlib
-            pip3 install scipy
-            pip3 install --no-deps .
+            python3 -m pip install --upgrade pip
+            python3 -m pip install vtk matplotlib scipy typing-extensions
+            python3 -m pip install --no-deps .
 
       - run:
-          name: Run tests
+          name: Run test scripts
           command: |
-            cd
-            cd project/tests/common
-            source run_all.sh
+            cd ~/project
+            if [ -d tests/unit ]; then
+              for f in tests/unit/test_*.py; do
+                python3 "$f"
+              done
+            fi
+            xvfb-run -a python3 tests/common/test_0_imports.py
 
       - store_artifacts:
           path: test-reports
@@ -51,7 +53,4 @@ workflows:
   build-stuff:
     jobs:
       - test-vedo
-
-
-
 

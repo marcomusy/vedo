@@ -1,3 +1,4 @@
+"""Build polar histograms and place them on a 3D surface."""
 from vedo import Hyperboloid, show
 from vedo.pyplot import histogram
 import numpy as np

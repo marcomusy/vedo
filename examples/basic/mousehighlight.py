@@ -2,6 +2,7 @@
 from vedo import Text2D, Sphere, Plotter
 import numpy as np
 
+# Create a cloud of selectable spheres.
 spheres = []
 for i in range(25):
     p = np.random.rand(2)
@@ -10,6 +11,7 @@ for i in range(25):
     spheres.append(s)
 
 def func(evt):
+    """Highlight clicked sphere with a silhouette outline."""
     if not evt.object:
         return
     sil = evt.object.silhouette().linewidth(6).c('red5')

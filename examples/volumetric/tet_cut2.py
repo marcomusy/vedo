@@ -2,6 +2,7 @@
 to generate an UnstructuredGrid"""
 from vedo import *
 
+# Build the volumetric processing pipeline and render results.
 settings.default_font = 'Calco'
 
 sphere = Sphere(r=500).x(400).c('green', 0.1)

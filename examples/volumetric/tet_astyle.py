@@ -1,6 +1,7 @@
 """Load a tetrahedral mesh and show it in different styles."""
 from vedo import TetMesh, show, dataurl
 
+# Build the volumetric processing pipeline and render results.
 # Load a tetrahedral mesh from file
 tetm = TetMesh(dataurl + 'limb.vtu')
 tetm.compute_cell_size()

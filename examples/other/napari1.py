@@ -1,3 +1,4 @@
+"""Napari integration example."""
 import numpy as np
 import napari
 import vedo

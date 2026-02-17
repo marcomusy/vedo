@@ -6,6 +6,7 @@ from vedo import *
 from vedo.pyplot import plot
 import nevergrad as ng # install with: pip install nevergrad
 
+# Configure inputs and run the visualization workflow.
 
 def f(x,y):
     z = (x-1)**2 + (y-1)**2 + 9*sin(y-1)**2 + 1

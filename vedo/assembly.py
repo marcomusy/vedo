@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 from weakref import ref as weak_ref_to
-from typing import List, Union, Any
 from typing_extensions import Self
 
 import numpy as np
@@ -25,7 +25,7 @@ __all__ = ["Group", "Assembly", "procrustes_alignment"]
 
 
 #################################################
-def procrustes_alignment(sources: List["vedo.Mesh"], rigid=False) -> "Assembly":
+def procrustes_alignment(sources: list["vedo.Mesh"], rigid=False) -> Assembly:
     """
     Return an `Assembly` of aligned source meshes with the `Procrustes` algorithm.
     The output `Assembly` is normalized in size.
@@ -128,9 +128,10 @@ class Group:
                 out+= f", legend='{self.info['legend']}'"
             out += "\n"
 
-        n = len(self.unpack())
+        parts = self.unpack()
+        n = len(parts)
         out += "n. of objects".ljust(14) + ": " + str(n) + " "
-        names = [a.name for a in self.unpack() if a.name]
+        names = [a.name for a in parts if hasattr(a, "name") and a.name]
         if names:
             out += str(names).replace("'","")[:56]
         return out.rstrip() + "\x1b[0m"
@@ -158,10 +159,11 @@ class Group:
                     self.actor.RemovePart(a)
                 except TypeError:
                     self.actor.RemovePart(a.actor)
-                    self.objects.append(a)
+                if a in self.objects:
+                    self.objects.remove(a)
         return self
     
-    def rename(self, name: str) -> "Group":
+    def rename(self, name: str) -> Group:
         """Set a new name for the Group object."""
         self.name = name
         return self
@@ -179,8 +181,8 @@ class Group:
     def _unpack(self):
         """Unpack the group into its elements"""
         elements = []
-        self.InitPathTraversal()
-        parts = self.GetParts()
+        self.actor.InitPathTraversal()
+        parts = self.actor.GetParts()
         parts.InitTraversal()
         for i in range(parts.GetNumberOfItems()):
             ele = parts.GetItemAsObject(i)
@@ -197,34 +199,38 @@ class Group:
 
         return elements
 
-    def clear(self) -> "Group":
+    def unpack(self):
+        """Unpack the group into its vedo objects."""
+        return self.objects
+
+    def clear(self) -> Group:
         """Remove all parts"""
         for a in self._unpack():
             self.actor.RemovePart(a)
         self.objects = []
         return self
 
-    def on(self) -> "Group":
+    def on(self) -> Group:
         """Switch on visibility"""
-        self.VisibilityOn()
+        self.actor.VisibilityOn()
         return self
 
-    def off(self) -> "Group":
+    def off(self) -> Group:
         """Switch off visibility"""
-        self.VisibilityOff()
+        self.actor.VisibilityOff()
         return self
 
-    def pickable(self, value=True) -> "Group":
+    def pickable(self, value=True) -> Group:
         """The pickability property of the Group."""
         self.actor.SetPickable(value)
         return self
 
-    def use_bounds(self, value=True) -> "Group":
+    def use_bounds(self, value=True) -> Group:
         """Set the use bounds property of the Group."""
         self.actor.SetUseBounds(value)
         return self
 
-    def print(self) -> "Group":
+    def print(self) -> Group:
         """Print info about the object."""
         print(self)
         return self
@@ -472,12 +478,16 @@ class Assembly(CommonVisual, Actor3DHelper):
                 try:
                     self.actor.RemovePart(a)
                     self.objects.remove(a)
+                    if a in self.actors:
+                        self.actors.remove(a)
                 except TypeError:
                     self.actor.RemovePart(a.actor)
                     self.objects.remove(a)
+                    if a.actor in self.actors:
+                        self.actors.remove(a.actor)
         return self
 
-    def rename(self, name: str) -> "Assembly":
+    def rename(self, name: str) -> Assembly:
         """Set a new name for the Assembly object."""
         self.name = name
         return self
@@ -535,7 +545,7 @@ class Assembly(CommonVisual, Actor3DHelper):
     #         obj.SetScale(1, 1, 1)
     #     raise NotImplementedError()
 
-    def unpack(self, i=None) -> Union[List["vedo.Mesh"], "vedo.Mesh"]:
+    def unpack(self, i=None) -> list[vedo.Mesh] | vedo.Mesh:
         """Unpack the list of objects from a `Assembly`.
 
         If `i` is given, get `i-th` object from a `Assembly`.
@@ -555,7 +565,7 @@ class Assembly(CommonVisual, Actor3DHelper):
                     return m
         return []
 
-    def recursive_unpack(self) -> List["vedo.Mesh"]:
+    def recursive_unpack(self) -> list["vedo.Mesh"]:
         """Flatten out an Assembly."""
 
         def _genflatten(lst):
@@ -578,7 +588,7 @@ class Assembly(CommonVisual, Actor3DHelper):
 
         return list(_genflatten([self]))
 
-    def pickable(self, value=True) -> "Assembly":
+    def pickable(self, value=True) -> Assembly:
         """Set/get the pickability property of an assembly and its elements"""
         self.actor.SetPickable(value)
         # set property to each element
@@ -586,7 +596,7 @@ class Assembly(CommonVisual, Actor3DHelper):
             elem.pickable(value)
         return self
 
-    def clone(self) -> "Assembly":
+    def clone(self) -> Assembly:
         """Make a clone copy of the object. Same as `copy()`."""
         newlist = []
         for a in self.objects:
@@ -710,7 +720,7 @@ class Assembly(CommonVisual, Actor3DHelper):
                 a2d = b.clone2d(size=s, offset=offset)
             else:
                 if rotation:
-                    a.rotate_z(rotation, around=cm)
+                    a = a.clone().rotate_z(rotation, around=cm)
                 a2d = a.clone2d(size=s, offset=offset)
             a2d.pos(position).ontop(ontop)
             group += a2d
@@ -730,6 +740,6 @@ class Assembly(CommonVisual, Actor3DHelper):
         group.name = self.name
         return group
 
-    def copy(self) -> "Assembly":
+    def copy(self) -> Assembly:
         """Return a copy of the object. Alias of `clone()`."""
         return self.clone()

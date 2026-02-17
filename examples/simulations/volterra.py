@@ -9,6 +9,7 @@ import numpy as np
 from scipy.integrate import odeint
 
 def rhs(y0, t, a):
+    # Predator-prey ODE right-hand side.
     x, y = y0[0], y0[1]
     return [x-x*y, a*(x*y-y)]
 

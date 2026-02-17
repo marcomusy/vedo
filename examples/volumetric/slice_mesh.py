@@ -1,6 +1,7 @@
 """Probe a Volume with a Mesh"""
 from vedo import *
 
+# Build the volumetric processing pipeline and render results.
 # Load a Volume
 vol = Volume(dataurl + 'embryo.slc')
 vol.cmap('bone').mode(1)

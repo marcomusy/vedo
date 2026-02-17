@@ -2,6 +2,7 @@
 (which can be dragged)"""
 from vedo import *
 
+# Configure inputs and run the visualization workflow.
 plt = Plotter(bg2='bisque', size=(1000,800), interactive=False)
 
 e = Volume(dataurl+"embryo.tif").isosurface()

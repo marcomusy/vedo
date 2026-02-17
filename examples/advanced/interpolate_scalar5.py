@@ -5,6 +5,7 @@ from vedo import Grid, Points, Lines, show
 np.random.seed(1)
 
 def harmonic_shepard(pts, vals, radius):
+    # Harmonic weights with a small radius term for numerical stability.
     dists = distance_matrix(pts, pts) + radius
     rdists = 1.0 / dists
     sum_vals = np.sum(rdists * vals, axis=1)
@@ -42,4 +43,3 @@ warped.color("b4").lc('lightblue').wireframe(False).lw(1)
 lines = Lines(pts1, pts2, lw=2)
 
 show(pts1, pts2, lines, warped, __doc__, axes=1, viewup="z").close()
-

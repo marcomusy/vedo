@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 import os
 import sys
+from functools import lru_cache
 from time import time, ctime
 
 import numpy as np
@@ -27,19 +29,28 @@ __all__ = [
 ]
 
 #########################################################
-try:
-    import matplotlib
+matplotlib = None
+_has_matplotlib = None
+_named_colors = None
+_colors_rgb_cache = None
+
+
+def _setup_colormaps():
+    """Initialize colormap backends lazily to keep import time low."""
+    global matplotlib, _has_matplotlib
+    if _has_matplotlib is not None:
+        return
+
     try:
-        matplotlib.colormaps # v3.4 will fail this
+        import matplotlib as _mpl
+        _ = _mpl.colormaps  # matplotlib >=3.5
+        matplotlib = _mpl
         _has_matplotlib = True
-        cmaps = {}
-    except AttributeError:
-        _has_matplotlib = False
-except ModuleNotFoundError:
-    from vedo.cmaps import cmaps
-    _has_matplotlib = False
-    # see below, this is dealt with in color_map()
-# print("colors.py: _has_matplotlib", _has_matplotlib)
+    except (ModuleNotFoundError, AttributeError):
+        raise RuntimeError(
+            "matplotlib is required for vedo color maps. "
+            "Install it with `pip install matplotlib`."
+        )
 
 _printc_delay_timestamp = [0]
 
@@ -569,9 +580,10 @@ emoji = {
 # terminal or notebook can do color print
 def _has_colors(stream):
     try:
-        import IPython
-        return True
-    except:
+        # Avoid importing IPython at module import time: this slows down startup.
+        from builtins import get_ipython
+        return get_ipython() is not None
+    except Exception:
         pass
 
     if not hasattr(stream, "isatty"):
@@ -583,14 +595,53 @@ _terminal_has_colors = _has_colors(sys.stdout)
 
 
 def _is_sequence(arg):
-    # Check if input is iterable.
-    if hasattr(arg, "strip"):
+    """Check if input is an iterable sequence but not a text scalar."""
+    if isinstance(arg, (str, bytes)):
         return False
-    if hasattr(arg, "__getslice__"):
-        return True
-    if hasattr(arg, "__iter__"):
-        return True
-    return False
+    return hasattr(arg, "__iter__")
+
+
+def _get_named_colors():
+    """Lazily create a vtkNamedColors instance."""
+    global _named_colors
+    if _named_colors is None:
+        _named_colors = vtki.new("NamedColors")
+    return _named_colors
+
+
+@lru_cache(maxsize=1024)
+def _hex_to_rgb_cached(hx: str) -> tuple:
+    """Convert a valid #RRGGBB hex string to normalized RGB tuple."""
+    h = hx.lstrip("#")
+    if len(h) != 6:
+        raise ValueError(f"Invalid hex color '{hx}'")
+    rgb255 = [int(h[i : i + 2], 16) for i in (0, 2, 4)]
+    return (rgb255[0] / 255.0, rgb255[1] / 255.0, rgb255[2] / 255.0)
+
+
+@lru_cache(maxsize=4096)
+def _get_color_from_string(name: str) -> tuple:
+    """Resolve a string color name/nickname/hex to normalized RGB tuple."""
+    c = name.replace("grey", "gray").replace(" ", "").lower()
+    if 0 < len(c) < 3:
+        c = color_nicks.get(c, "")
+        if not c:
+            return (0.5, 0.5, 0.5)
+
+    if c in colors:
+        c = colors[c]
+
+    if c.startswith("#"):
+        try:
+            return _hex_to_rgb_cached(c)
+        except ValueError:
+            vedo.logger.error(f"in get_color(): Wrong hex color {name}")
+            return (0.5, 0.5, 0.5)
+
+    named_colors = _get_named_colors()
+    rgba = [0, 0, 0, 0]
+    named_colors.GetColor(c, rgba)
+    return (rgba[0] / 255.0, rgba[1] / 255.0, rgba[2] / 255.0)
 
 
 def get_color(rgb=None, hsv=None):
@@ -617,67 +668,45 @@ def get_color(rgb=None, hsv=None):
             ![](https://vedo.embl.es/images/basic/colorcubes.png)
     """
     # recursion, return a list if input is list of colors:
-    if _is_sequence(rgb) and (len(rgb) > 3 or _is_sequence(rgb[0])):
-        seqcol = []
-        for sc in rgb:
-            seqcol.append(get_color(sc))
-        return seqcol
+    if _is_sequence(rgb):
+        try:
+            if len(rgb) == 0:
+                return (0.5, 0.5, 0.5)
+            if _is_sequence(rgb[0]) or isinstance(rgb[0], str) or len(rgb) > 4:
+                return [get_color(sc) for sc in rgb]
+        except (TypeError, IndexError):
+            pass
 
     # because they are most common:
     if isinstance(rgb, str):
         if rgb == "r":
             return (0.9960784313725, 0.11764705882352, 0.121568627450980)
-        elif rgb == "g":
+        if rgb == "g":
             return (0.0156862745098, 0.49803921568627, 0.062745098039215)
-        elif rgb == "b":
+        if rgb == "b":
             return (0.0588235294117, 0.0, 0.984313725490196)
 
-    if str(rgb).isdigit():
+    if isinstance(rgb, str) and rgb.isdigit():
         rgb = int(rgb)
 
-    if hsv:
-        c = hsv2rgb(hsv)
-    else:
-        c = rgb
+    c = hsv2rgb(hsv) if hsv is not None else rgb
 
     if _is_sequence(c):
-        if c[0] <= 1 and c[1] <= 1 and c[2] <= 1:
-            return c  # already rgb
-        if len(c) == 3:
-            return list(np.array(c) / 255.0)  # RGB
-        return (c[0] / 255.0, c[1] / 255.0, c[2] / 255.0, c[3])  # RGBA
+        arr = np.asarray(c, dtype=float)
+        if arr.size < 3:
+            return (0.5, 0.5, 0.5)
+        if np.max(arr[:3]) <= 1:
+            return tuple(arr.tolist())
+        if arr.size == 3:
+            return tuple((arr / 255.0).tolist())
+        rgba = arr.copy()
+        rgba[:3] /= 255.0
+        return tuple(rgba.tolist())
 
-    elif isinstance(c, str):  # is string
-        c = c.replace("grey", "gray").replace(" ", "")
-        if 0 < len(c) < 3:  # single/double letter color
-            if c.lower() in color_nicks:
-                c = color_nicks[c.lower()]
-            else:
-                # vedo.logger.warning(
-                #     f"Unknown color nickname {c}\nAvailable abbreviations: {color_nicks}"
-                # )
-                return (0.5, 0.5, 0.5)
+    if isinstance(c, str):
+        return _get_color_from_string(c)
 
-        if c.lower() in colors:  # matplotlib name color
-            c = colors[c.lower()]
-            # from now format is hex!
-
-        if c.startswith("#"):  # hex to rgb
-            h = c.lstrip("#")
-            rgb255 = list(int(h[i : i + 2], 16) for i in (0, 2, 4))
-            rgbh = np.array(rgb255) / 255.0
-            if np.sum(rgbh) > 3:
-                vedo.logger.error(f"in get_color(): Wrong hex color {c}")
-                return (0.5, 0.5, 0.5)
-            return tuple(rgbh)
-
-        else:  # vtk name color
-            namedColors = vtki.new("NamedColors")
-            rgba = [0, 0, 0, 0]
-            namedColors.GetColor(c, rgba)
-            return (rgba[0] / 255.0, rgba[1] / 255.0, rgba[2] / 255.0)
-
-    elif isinstance(c, (int, float)):  # color number
+    if isinstance(c, (int, float)):  # color number
         return palettes[vedo.settings.palette % len(palettes)][abs(int(c)) % 10]
 
     return (0.5, 0.5, 0.5)
@@ -685,11 +714,16 @@ def get_color(rgb=None, hsv=None):
 
 def get_color_name(c) -> str:
     """Find the name of the closest color."""
-    c = np.array(get_color(c))  # reformat to rgb
+    global _colors_rgb_cache
+    c = np.array(get_color(c))[:3]  # reformat to rgb
+    if _colors_rgb_cache is None:
+        _colors_rgb_cache = {
+            key: np.array(_get_color_from_string(key))[:3]
+            for key in colors
+        }
     mdist = 99.0
     kclosest = ""
-    for key in colors:
-        ci = np.array(get_color(key))
+    for key, ci in _colors_rgb_cache.items():
         d = np.linalg.norm(c - ci)
         if d < mdist:
             mdist = d
@@ -715,15 +749,13 @@ def rgb2hsv(rgb: list) -> list:
 
 def rgb2hex(rgb: list) -> str:
     """Convert RGB to Hex color."""
-    h = "#%02x%02x%02x" % (int(rgb[0] * 255), int(rgb[1] * 255), int(rgb[2] * 255))
-    return h
+    arr = np.clip(np.asarray(rgb, dtype=float)[:3], 0, 1)
+    return "#%02x%02x%02x" % (int(arr[0] * 255), int(arr[1] * 255), int(arr[2] * 255))
 
 
 def hex2rgb(hx: str) -> list:
     """Convert Hex to rgb color."""
-    h = hx.lstrip("#")
-    rgb255 = [int(h[i : i + 2], 16) for i in (0, 2, 4)]
-    return (rgb255[0] / 255.0, rgb255[1] / 255.0, rgb255[2] / 255.0)
+    return _hex_to_rgb_cached(hx)
 
 
 def color_map(value, name="jet", vmin=None, vmax=None):
@@ -765,13 +797,17 @@ def color_map(value, name="jet", vmin=None, vmax=None):
     cut = _is_sequence(value)  # to speed up later
 
     if cut:
-        values = np.asarray(value)
+        values = np.asarray(value, dtype=float)
         if vmin is None:
             vmin = np.min(values)
         if vmax is None:
             vmax = np.max(values)
         values = np.clip(values, vmin, vmax)
-        values = (values - vmin) / (vmax - vmin)
+        denom = vmax - vmin
+        if denom == 0:
+            values = np.zeros_like(values)
+        else:
+            values = (values - vmin) / denom
     else:
         if vmin is None:
             vedo.logger.warning("in color_map() you must specify vmin! Assume 0.")
@@ -784,36 +820,18 @@ def color_map(value, name="jet", vmin=None, vmax=None):
         else:
             values = [(value - vmin) / (vmax - vmin)]
 
-    if _has_matplotlib:
-        # matplotlib is available, use it! ###########################
-        if isinstance(name, str):
-            mp = matplotlib.colormaps[name]
-        else:
-            mp = name  # assume matplotlib.colors.LinearSegmentedColormap
-        result = mp(values)[:, [0, 1, 2]]
+    _setup_colormaps()
 
-    else:
-        # matplotlib not available ###################################
-        invert = False
-        if name.endswith("_r"):
-            invert = True
-            name = name.replace("_r", "")
+    if isinstance(name, str):
         try:
-            cmap = cmaps[name]
+            mp = matplotlib.colormaps[name]
         except KeyError:
-            vedo.logger.error(f"in color_map(), no color map with name {name} or {name}_r")
-            vedo.logger.error(f"Available color maps are:\n{cmaps.keys()}")
-            return np.array([0.5, 0.5, 0.5])
-
-        result = []
-        n = len(cmap) - 1
-        for v in values:
-            iv = int(v * n)
-            if invert:
-                iv = n - iv
-            rgb = hex2rgb(cmap[iv])
-            result.append(rgb)
-        result = np.array(result)
+            vedo.logger.error(f"in color_map(), no color map with name '{name}'")
+            vedo.logger.error(f"Available color maps are:\n{list(matplotlib.colormaps.keys())}")
+            return np.array([0.5, 0.5, 0.5]) if not cut else np.full((len(values), 3), 0.5)
+    else:
+        mp = name  # assume matplotlib.colors.LinearSegmentedColormap
+    result = mp(values)[:, [0, 1, 2]]
 
     if cut:
         return result
@@ -1037,7 +1055,7 @@ def printc(
 
     if not vedo.settings.enable_print_color or not _terminal_has_colors:
         if return_string:
-            return ''.join(strings)
+            return "".join(map(str, strings))
         else:
             print(*strings, end=end, flush=flush)
             return ''
@@ -1148,7 +1166,7 @@ def printc(
     except:  # --------------------------------------------------- fallback
 
         if return_string:
-            return ''.join(strings)
+            return "".join(map(str, strings))
 
         try:
             print(*strings, end=end)

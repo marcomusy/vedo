@@ -1,3 +1,4 @@
+"""External-tools interoperability example."""
 from vedo import *
 
 m1 = Mesh(dataurl+'bunny.obj').c('g').normalize().rotate_x(+90)

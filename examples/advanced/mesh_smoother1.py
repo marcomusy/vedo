@@ -1,7 +1,8 @@
+"""Compare a mesh before and after iterative smoothing."""
 from vedo import dataurl, Plotter, Volume
 
 
-# Load a mesh and show it
+# Build mesh from an isosurface.
 vol = Volume(dataurl + "embryo.tif")
 m0 = vol.isosurface(flying_edges=False).normalize()
 m0.lw(1).c("violet")

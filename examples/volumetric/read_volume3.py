@@ -1,3 +1,4 @@
+"""Open a 2D slicer application for interactive volume inspection."""
 from vedo import Volume, dataurl
 from vedo.applications import Slicer2DPlotter
 

@@ -8,6 +8,7 @@ order = 20  # restrict to this nr of fourier coefficients in reconstruction
 
 
 def DFT(x):
+    # Discrete Fourier transform returning sorted coefficients by amplitude.
     X = []
     N = len(x)
     for freq in range(N):
@@ -71,4 +72,3 @@ for time in times:
     points.append([x, y])
 
 plt.interactive().close()
-

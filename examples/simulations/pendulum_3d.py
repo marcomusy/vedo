@@ -30,6 +30,7 @@ plt.show(ball1, ball2, rod1, rod2, axes, __doc__, viewup='z')
 
 i = 0
 for b1, b2 in zip(p1,p2):
+    # Advance one stored trajectory sample.
     ball1.pos(b1)
     ball2.pos(b2)
     ball1.update_trail().update_shadows()

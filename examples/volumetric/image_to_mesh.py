@@ -1,4 +1,4 @@
-# Transform a image into a mesh
+"""Convert an image into a height-mapped polygonal mesh."""
 from vedo import Image, dataurl, show
 import numpy as np
 

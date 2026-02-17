@@ -12,6 +12,7 @@ surf = Grid([0,0,0], res=[25,25])
 ids = np.random.randint(0, surf.npoints, 10)  # pick 10 indices
 pts = surf.points[ids]
 
+# Create source/target landmark pairs by perturbing selected points in z.
 ptsource, pttarget = [], []
 for pt in pts:
     pt1 = pt + [0, 0, np.random.randn() * 0.1]

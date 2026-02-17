@@ -10,6 +10,7 @@ plt += apple.alpha(0.1)
 
 variances = []
 for i, p in enumerate(apple.points):
+    # Fit a local plane on the nearest-neighbor patch around point p.
     pts = apple.closest_point(p, n=12) # find the N closest points to p
     plane = fit_plane(pts)             # find the fitting plane
     variances.append(plane.variance)
@@ -20,4 +21,3 @@ for i, p in enumerate(apple.points):
 
 plt += __doc__ + "\nNr. of fits performed: "+str(len(variances))
 plt.show().close()
-

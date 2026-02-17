@@ -1,6 +1,6 @@
-'''Draw a z = f(x,y) surface specified as
+"""Draw a z = f(x,y) surface specified as
 a string or as a reference to an external function.
-Red points indicate where the function does not exist!'''
+Red points indicate where the function does not exist!"""
 from vedo import dataurl, sin, cos, log, show, Text2D
 from vedo.pyplot import plot
 

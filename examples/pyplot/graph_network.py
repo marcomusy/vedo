@@ -3,6 +3,7 @@
 from vedo import Points, show, sin
 from vedo.pyplot import DirectedGraph
 
+
 # Create some graph with nodes and edges
 # layouts: [2d, fast2d, clustering2d, circular, circular3d, cone, force, tree]
 g = DirectedGraph(layout='fast2d')

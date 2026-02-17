@@ -1,3 +1,4 @@
+"""Hexagonal-binned 2D histogram with a LaTeX annotation."""
 from vedo import Latex, show
 from vedo.pyplot import histogram
 import numpy as np

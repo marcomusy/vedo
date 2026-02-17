@@ -2,6 +2,7 @@
 from vedo import Marker, Points, np
 from vedo.pyplot import histogram
 
+
 n = 10_000
 x = np.random.randn(n) + 20
 y = x + np.random.randn(n) + 10

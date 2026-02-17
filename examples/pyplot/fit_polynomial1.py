@@ -4,6 +4,7 @@ from vedo.pyplot import plot, fit
 import numpy as np
 # np.random.seed(0)
 
+
 # Generate some noisy data points along a line
 a, b = (np.random.rand(2)-0.5)*10 # choose a and b
 

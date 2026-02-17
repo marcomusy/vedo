@@ -3,6 +3,7 @@
 Title font: """
 from vedo import Box, Lines, Points, Spline, show, settings
 
+
 settings.default_font = 'Theemim'
 
 # an invisible box:

@@ -1,3 +1,4 @@
+"""Interactive browser for exploring isovalues of a scalar volume."""
 from vedo import dataurl, Volume
 from vedo.applications import IsosurfaceBrowser
 

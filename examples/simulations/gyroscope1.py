@@ -38,6 +38,7 @@ plt += Box(pos=(0, 0.5, 0), size=(2.6, 3, 2.6)).wireframe().c("gray",0.2)
 # ############################################################ the physics
 def loop_func(event):
     global  t, Lrot, precess, cm, gpos
+    # Update rotational and translational state from torque/forces.
     t += dt
     Fspring = -ks * versor(gpos - top) * (mag(gpos - top) - Lrest)
     torque = cross(-1/2 * Ls * versor(Lrot), Fspring)  # torque about center of mass

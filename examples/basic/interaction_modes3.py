@@ -6,8 +6,9 @@
 - "." and "," will rotate azimuth to the right or left.
 - "r" will reset the camera to the default position."""
 from vedo import settings, ParametricShape, Text2D, Axes, Plotter
-from vedo.interactor_modes import FlyOverSurface
+from vedo.plotter.modes import FlyOverSurface
 
+# Disable default callbacks to let the custom fly-over mode own interactions.
 settings.enable_default_keyboard_callbacks = False
 settings.enable_default_mouse_callbacks = False
 

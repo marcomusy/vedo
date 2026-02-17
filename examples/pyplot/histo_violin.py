@@ -1,9 +1,11 @@
+"""Compare violin plots for different random distributions."""
 from vedo import *
 from vedo.pyplot import violin
 import numpy as np
 
 n = 1000
 
+# One violin per distribution with custom styling.
 acts = [
     Text3D('gaussian', pos=(0,4.5), s=0.3, c='k', justify='center'),
     violin(np.random.randn(n)),

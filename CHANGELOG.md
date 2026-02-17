@@ -6,6 +6,9 @@ All notable changes to the project will be documented in this file.
 # Development Version 
 
 
+===================================================================================
+# Version 2026.6.1
+
 ## Changes and Fixes
 - added example with embedding matplotlib figures in a scene
 - add `Line.eval2d()` useful for plotting
@@ -39,25 +42,14 @@ examples/volumetric/image_editor.py
 examples/advanced/measure_curvature2.py
 ```
 
-
-## To Do
-- fix trasform in `image.tomesh()` is not transmitted to mesh
-
-
 #### (Internal) Broken Examples
 Examples that are not fully functional and need some fixing:
 ```
 advanced/warp4b.py (problem with picker?)
-sliders3d.py crashes when moving the scene
 interpolate_scalar4.py misplaced scalarbar
 markpoint.py (misplaced leader indicator)
 cut_and_cap.py (incomplete capping)
 tests/issues/discussion_800.py (incomplete capping of tube)
-
-lightings.py
-mousehighlight.py
-tensors.py
-examples/other/flag_labels2.py
 ```
 
 #### (Internal) Known issues
@@ -88,20 +80,8 @@ streamlines1.py
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 ===================================================================================
-# Version 2024.5.4
+# Version 2025.5.4
 
 ## Changes and Fixes
 - general code cleanup with pylint.

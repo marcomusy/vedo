@@ -3,6 +3,7 @@ from vedo import np, precision, Text3D, DashedLine, show
 from vedo.pyplot import plot, fit, histogram
 # np.random.seed(0)
 
+
 n   = 25 # nr of data points to generate
 deg = 3  # degree of the fitting polynomial
 

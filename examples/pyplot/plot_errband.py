@@ -2,6 +2,7 @@
 from vedo import np, Rectangle, Text3D, Marker, Line
 from vedo.pyplot import plot
 
+
 # Make up same dummy data
 x = np.arange(0, 6, 0.05)
 y = 2+2*np.sin(2*x)/(x+1)

@@ -23,7 +23,7 @@ radius = 1.5
 curvature = np.zeros(msh2.npoints)
 residues = np.zeros(msh2.npoints)
 
-# iterate over surface points and fit sphere
+# Iterate over points and estimate local curvature via sphere fit.
 for idx in range(msh2.npoints):
     patch = msh2.closest_point(msh2.coordinates[idx], radius=radius)
     s = fit_sphere(patch)
@@ -42,4 +42,3 @@ msh3.cmap('jet', 'Spherefit_Curvature_Residue').add_scalarbar()
 plt.at(3).show(msh3, 'Sphere-fitted curvature\nFit residues')
 
 plt.interactive().close()
-

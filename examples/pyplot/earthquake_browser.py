@@ -5,6 +5,7 @@ import pandas
 from vedo import *
 
 num = 50  # nr of earthquakes to be visualized at once
+# Download latest USGS CSV feed.
 path = download("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_month.csv", force=True)
 usecols = ['time', 'place', 'latitude', 'longitude', 'depth', 'mag']
 data = pandas.read_csv(path, usecols=usecols)[usecols][::-1].reset_index(drop=True) # reverse list
@@ -31,6 +32,7 @@ for i, d in progressbar(data.iterrows()):
 
 
 def sliderfunc(widget, event):
+    # Keep only earthquakes in a moving time window.
     val = widget.value                                 # get the slider current value
     widget.title = f"{data['time'][int(val)][:10]}"
     for ce in centers:

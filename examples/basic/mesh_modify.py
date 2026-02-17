@@ -7,7 +7,7 @@ plt = Plotter(interactive=False, axes=1)
 plt.show(disc, Point(), __doc__)
 
 for i in range(100):
-    # Modify vertex positions
+    # Apply a smooth per-frame displacement to all vertices.
     disc.vertices += [0.01, 0.01*sin(i/20), 0]
     plt.reset_camera().render()
 

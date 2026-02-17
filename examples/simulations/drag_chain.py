@@ -5,6 +5,7 @@ n = 15  # number of points
 l =  3  # length of one segment
 
 def func(evt):
+    """Anchor first node at mouse hit and propagate fixed-length segments."""
     if not evt.object:
         return
     coords = line.points

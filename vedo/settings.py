@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 import os
+import subprocess
+import time
 
 __docformat__ = "google"
 
@@ -85,7 +88,7 @@ class Settings:
     renderer_frame_color = None
     renderer_frame_alpha = 0.5
     renderer_frame_width = 0.5
-    renderer_frame_padding = 0.001
+    renderer_frame_padding = 0.0001
 
     # In multirendering mode, set the position of the horizontal of vertical splitting [0,1]
     window_splitting_position = None
@@ -114,7 +117,7 @@ class Settings:
     alpha_bit_planes  = True   # options only active if useDepthPeeling=True
     multi_samples     = 8      # antialiasing multisample buffer
     max_number_of_peels= 4     # maximum number of rendering passes
-    occlusion_ratio   = 0.0    # occlusion ratio, 0 = exact image.
+    occlusion_ratio   = 0.1    # occlusion ratio, 0 = exact image.
 
     # Turn on/off nvidia FXAA post-process anti-aliasing, if supported
     use_fxaa = False           # either True or False
@@ -124,7 +127,7 @@ class Settings:
     preserve_depth_buffer = False
 
     # Use a polygon/edges offset to possibly resolve conflicts in rendering
-    use_polygon_offset    = False
+    use_polygon_offset    = True
     polygon_offset_factor = 0.1
     polygon_offset_units  = 0.1
 
@@ -145,7 +148,7 @@ class Settings:
     annotated_cube_color      = (0.75, 0.75, 0.75)
     annotated_cube_text_color = None # use default, otherwise specify a single color
     annotated_cube_text_scale = 0.2
-    annotated_cube_texts      = ["right","left ", "front","back ", " top ", "bttom"]
+    annotated_cube_texts      = ["right","left ", "front","back ", " top ", "bottom"]
     annotated_cube_text_rotations  = [0, 0, 90]
 
     # Set the default backend for plotting in jupyter notebooks.
@@ -164,7 +167,7 @@ class Settings:
     k3d_camera_autofit= True
     k3d_grid_visible  = None    # None (default behavior) or True, False
     k3d_grid_autofit  = True
-    k3d_axes_color    = "gray4"
+    k3d_axes_color    = "k4"
     k3d_axes_helper   = 1.0     # size of the small triad of axes on the bottom right
     k3d_point_shader  = "mesh"  # others are '3d', '3dSpecular', 'dot', 'flat'
     k3d_line_shader   = "thick" # others are 'flat', 'mesh'
@@ -313,7 +316,7 @@ class Settings:
         self.annotated_cube_color = (0.75, 0.75, 0.75)
         self.annotated_cube_text_color = None
         self.annotated_cube_text_scale = 0.2
-        self.annotated_cube_texts = ["right", "left ", "front", "back ", " top ", "bttom"]
+        self.annotated_cube_texts = ["right", "left ", "front", "back ", " top ", "bottom"]
         self.annotated_cube_text_rotations = [0, 0, 90]
 
         self.enable_print_color = True
@@ -681,6 +684,13 @@ class Settings:
         """Make the class work like a dictionary too"""
         setattr(self, key, value)
 
+    def __setattr__(self, key, value):
+        """Keep dry_run_mode settable from the global settings instance."""
+        if key == "dry_run_mode":
+            type(self).dry_run_mode = value
+            return
+        super().__setattr__(key, value)
+
     def __str__(self) -> str:
         """Return a string representation of the object"""
         s = Settings.__doc__.replace("   ", "")
@@ -770,15 +780,15 @@ class Settings:
         without showing any screen output.
         """
         print("starting xvfb (can take a minute) ...", end="")
-        res = os.system("which Xvfb")
-        if res:
-            os.system("apt-get install xvfb")
-        os.system("set -x")
-        os.system("export DISPLAY=:99.0")
-        os.system("Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &")
-        os.system("sleep 3")
-        os.system("set +x")
-        os.system('exec "$@"')
+        if subprocess.run(["which", "Xvfb"], capture_output=True, text=True).returncode != 0:
+            subprocess.run(["apt-get", "install", "-y", "xvfb"], check=False)
+        os.environ["DISPLAY"] = ":99.0"
+        subprocess.Popen(
+            ["Xvfb", ":99", "-screen", "0", "1024x768x24"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        time.sleep(3)
         print(" xvfb started.")
 
     ############################################################
@@ -804,4 +814,6 @@ class Settings:
             1: vtkLogger.VERBOSITY_WARNING,
             2: vtkLogger.VERBOSITY_INFO,
         }
+        if level not in levels:
+            raise ValueError("Invalid VTK verbosity level. Allowed values are 0, 1, 2.")
         vtkLogger.SetStderrVerbosity(levels[level])

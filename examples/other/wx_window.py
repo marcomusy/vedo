@@ -1,3 +1,4 @@
+"""wxPython integration example."""
 import wx
 from vtk.wx.wxVTKRenderWindowInteractor import wxVTKRenderWindowInteractor
 import vedo

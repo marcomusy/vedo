@@ -6,6 +6,7 @@ X, Y, Z = np.mgrid[:30, :30, :30]
 # Distance from the center at (15, 15, 15)
 scalar_field = ((X-15)**2 + (Y-15)**2 + (Z-15)**2) /225
 
+# Construct a volume directly from synthetic scalar field values.
 vol = Volume(scalar_field).crop(0.3)
 vol.add_scalarbar3d()
 print('numpy array from Volume:', vol.tonumpy().shape)

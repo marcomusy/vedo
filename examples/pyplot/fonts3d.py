@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""Show available local/remote fonts in 2D and 3D."""
 import os
 from vedo import printc, Text2D, Text3D, show, Plotter
 from vedo import fonts, fonts_path, settings

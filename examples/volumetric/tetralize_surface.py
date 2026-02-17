@@ -2,6 +2,7 @@
 Click on the mesh and press ↓ or x to toggle a piece"""
 from vedo import dataurl, Sphere, TessellatedBox, settings, Mesh, show
 
+# Build the volumetric processing pipeline and render results.
 settings.use_depth_peeling = True
 
 # surf = Sphere(quads=True, res=15)

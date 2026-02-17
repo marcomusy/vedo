@@ -7,6 +7,7 @@ from vedo import Plotter
 phi = np.random.rand(1000)*np.pi*2
 the = np.random.rand(1000)*np.pi
 
+# Polar-angle histogram rendered on spherical coordinates.
 h = histogram(the, phi, mode='spheric').add_scalarbar()
 
 plt = Plotter(axes=12).add_ambient_occlusion(0.05)

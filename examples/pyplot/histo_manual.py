@@ -3,6 +3,7 @@
 from vedo import np, settings, Rectangle, Text3D, Line, DashedLine
 from vedo.pyplot import Figure
 
+
 settings.default_font = "Theemim"
 
 #################################################################### First plot

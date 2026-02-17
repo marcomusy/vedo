@@ -12,7 +12,7 @@ for i in range(500):
     z = np.linspace(-5, 3, 20)
     data = np.stack((x,y,z), axis=1)
     data+= np.random.normal(size=data.shape) * 0.8  # add gauss noise
-    plt += fit_line(data).lw(4).alpha(0.04).c("violet")  # fit a line
+    plt += fit_line(data).lw(4).alpha(0.04).c("violet")  # visualize fit stability
 
 # 'data' still contains the last iteration points
 plt += Points(data).color("yellow").ps(10)

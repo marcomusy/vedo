@@ -6,7 +6,7 @@ from vedo.pyplot import histogram
 
 mesh = Mesh(dataurl + "panther.stl").compute_normals().linewidth(0.1).flat()
 
-# generate a numpy array for mesh quality
+# Compute per-cell triangle quality metric.
 mesh.compute_quality(metric=6)
 mesh.cmap("RdYlBu")
 

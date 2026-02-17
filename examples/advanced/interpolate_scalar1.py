@@ -5,6 +5,7 @@ import numpy as np
 
 mesh = Mesh(dataurl+"bunny.obj")
 
+# Sparse samples carrying known scalar values.
 # pick 100 points where we assume that some scalar value is known
 # (can be ANY points, not necessarily taken from the mesh)
 pts2 = mesh.points[:100]

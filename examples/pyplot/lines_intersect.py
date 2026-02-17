@@ -2,6 +2,7 @@
 import numpy as np
 from vedo import *
 
+
 p1, p2 = (-1,-1,0), (10,2,0)
 
 x = np.linspace(0,10, 50)

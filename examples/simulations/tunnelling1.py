@@ -19,6 +19,7 @@ def f(psi):
 
 
 def d_dt(psi):  # find Psi(t+dt)-Psi(t) /dt with 4th order Runge-Kutta method
+    # RK4 integration for the complex wavefunction field.
     k1 = f(psi)
     k2 = f(psi + dt / 2 * k1)
     k3 = f(psi + dt / 2 * k2)

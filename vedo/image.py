@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
+import os
 from weakref import ref as weak_ref_to
-from typing import Tuple, List, Union, Any
+from typing import Any
 from typing_extensions import Self
 
 import numpy as np
@@ -26,13 +28,13 @@ __all__ = [
 
 
 #################################################
-def _get_img(obj: Union[np.ndarray, str], flip=False, translate=()) -> vtki.vtkImageData:
+def _get_img(obj: np.ndarray | str, flip=False, translate=()) -> vtki.vtkImageData:
     # compute vtkImageData from numpy array or filename
     img = None
 
-    if isinstance(obj, str) or "PosixPath" in str(type(obj)):
+    if isinstance(obj, (str, os.PathLike)):
+        obj = os.fspath(obj)
         if "https://" in obj:
-            obj = str(obj)
             obj = vedo.file_io.download(obj, verbose=False)
 
         fname = obj.lower()
@@ -46,11 +48,12 @@ def _get_img(obj: Union[np.ndarray, str], flip=False, translate=()) -> vtki.vtkI
             picr = vtki.new("TIFFReader")
             picr.SetOrientationType(vedo.settings.tiff_orientation_type)
         else:
-            colors.printc("Cannot understand image format", obj, c="r")
-            return vtki.vtkImageData()
+            raise ValueError(f"Cannot understand image format: {obj}")
         picr.SetFileName(obj)
         picr.Update()
         img = picr.GetOutput()
+        if not img or not img.GetPointData() or not img.GetPointData().GetScalars():
+            raise ValueError(f"Could not read image: {obj}")
 
     else:
         obj = np.asarray(obj)
@@ -85,6 +88,11 @@ def _get_img(obj: Union[np.ndarray, str], flip=False, translate=()) -> vtki.vtkI
 
             img.GetPointData().AddArray(varb)
             img.GetPointData().SetActiveScalars("RGBA")
+        else:
+            raise ValueError(f"Cannot build image from array with shape {obj.shape}")
+
+    if not img or not img.GetPointData() or not img.GetPointData().GetScalars():
+        raise ValueError("Image has no scalar data")
 
     if len(translate) > 0:
         translate_extent = vtki.new("ImageTranslateExtent")
@@ -163,7 +171,21 @@ class Image(vedo.visual.ImageVisual):
             channels :  (int, list)
                 only select these specific rgba channels (useful to remove alpha)
         """
-        assert channels in [1, 3, 4], "in Image: channels must be 1, 3 or 4"
+        channels_is_int = isinstance(channels, int)
+        if channels_is_int:
+            if channels not in (1, 3, 4):
+                raise ValueError("in Image: channels must be 1, 3 or 4")
+            channel_ids = list(range(channels))
+        elif utils.is_sequence(channels):
+            channel_ids = [int(c) for c in channels]
+            if len(channel_ids) == 0:
+                raise ValueError("in Image: channels sequence cannot be empty")
+            if len(set(channel_ids)) != len(channel_ids):
+                raise ValueError("in Image: channels sequence contains duplicates")
+            if min(channel_ids) < 0 or max(channel_ids) > 3:
+                raise ValueError("in Image: channels ids must be in [0, 3]")
+        else:
+            raise ValueError("in Image: channels must be int or sequence of channel ids")
         self.name = "Image"
         self.filename = ""
         self.file_size = 0
@@ -184,8 +206,8 @@ class Image(vedo.visual.ImageVisual):
         elif isinstance(obj, vtki.vtkImageData):
             img = obj
 
-        elif isinstance(obj, str) or "PosixPath" in str(type(obj)):
-            obj = str(obj)
+        elif isinstance(obj, (str, os.PathLike)):
+            obj = os.fspath(obj)
             img = _get_img(obj)
             self.filename = obj
 
@@ -203,29 +225,35 @@ class Image(vedo.visual.ImageVisual):
                 fig.canvas.buffer_rgba(),
                 dtype=np.uint8
             ).reshape((int(height), int(width), 4))
-            self.array = self.array[:, :, :channels]
             img = _get_img(self.array)
 
         else:
-            img = vtki.vtkImageData()
+            # lenient default: create a valid 1x1 black image
+            img = _get_img(np.zeros((1, 1, 3), dtype=np.uint8))
 
         ############# select channels
-        if isinstance(channels, int):
-            channels = list(range(channels))
-
-        nchans = len(channels)
+        if not img or not img.GetPointData() or not img.GetPointData().GetScalars():
+            raise ValueError("Image has no scalar data (failed read or empty image)")
+        nchans = len(channel_ids)
         n = img.GetPointData().GetScalars().GetNumberOfComponents()
+        if channels_is_int and n < nchans:
+            # Keep backward-compatible behavior for grayscale inputs:
+            # channels as int indicates a preferred max number of channels.
+            channel_ids = list(range(n))
+            nchans = len(channel_ids)
+        if max(channel_ids) >= n:
+            raise ValueError(f"in Image: requested channels {channel_ids} not available for {n}-component image")
         if nchans and n > nchans:
             pec = vtki.new("ImageExtractComponents")
             pec.SetInputData(img)
             if nchans == 4:
-                pec.SetComponents(channels[0], channels[1], channels[2], channels[3])
+                pec.SetComponents(channel_ids[0], channel_ids[1], channel_ids[2], channel_ids[3])
             elif nchans == 3:
-                pec.SetComponents(channels[0], channels[1], channels[2])
+                pec.SetComponents(channel_ids[0], channel_ids[1], channel_ids[2])
             elif nchans == 2:
-                pec.SetComponents(channels[0], channels[1])
+                pec.SetComponents(channel_ids[0], channel_ids[1])
             elif nchans == 1:
-                pec.SetComponents(channels[0])
+                pec.SetComponents(channel_ids[0])
             pec.Update()
             img = pec.GetOutput()
 
@@ -386,21 +414,21 @@ class Image(vedo.visual.ImageVisual):
         return self.dataset.GetPointData().GetScalars().GetNumberOfComponents()
 
     @property
-    def extent(self) -> Tuple[int, int, int, int]:
+    def extent(self) -> tuple[int, int, int, int]:
         """Return the physical extent that the image spans."""
         return self.dataset.GetExtent()
 
     @extent.setter
-    def extent(self, ext: Tuple[int, int, int, int]):
+    def extent(self, ext: tuple[int, int, int, int]):
         """Set the physical extent that the image spans."""
         self.dataset.SetExtent(ext[0], ext[1], ext[2], ext[3], 0, 0)
         self.mapper.Modified()
 
-    def copy(self) -> "Image":
+    def copy(self) -> Image:
         """Return a copy of the image. Alias of `clone()`."""
         return self.clone()
 
-    def clone(self) -> "Image":
+    def clone(self) -> Image:
         """Return an exact copy of the input Image.
         If transform is True, it is given the same scaling and position."""
         img = vtki.vtkImageData()
@@ -415,7 +443,7 @@ class Image(vedo.visual.ImageVisual):
         pic.pipeline = utils.OperationNode("clone", parents=[self], c="#f7dada", shape="diamond")
         return pic
 
-    def clone2d(self, pos=(0, 0), size=1, justify="", ontop=False) -> "vedo.visual.Actor2D":
+    def clone2d(self, pos=(0, 0), size=1, justify="", ontop=False) -> vedo.visual.Actor2D:
         """
         Embed an image as a static 2D image in the canvas.
 
@@ -547,7 +575,7 @@ class Image(vedo.visual.ImageVisual):
         )
         return self
 
-    def tile(self, nx=4, ny=4, shift=(0, 0)) -> "Image":
+    def tile(self, nx=4, ny=4, shift=(0, 0)) -> Image:
         """
         Generate a tiling from the current image by mirroring and repeating it.
 
@@ -679,7 +707,7 @@ class Image(vedo.visual.ImageVisual):
         """Mirror image along x or y axis. Same as `mirror()`."""
         return self.mirror(axis=axis)
 
-    def select(self, component: int) -> "Image":
+    def select(self, component: int) -> Image:
         """Select one single component of the rgb image."""
         ec = vtki.new("ImageExtractComponents")
         ec.SetInputData(self.dataset)
@@ -821,7 +849,7 @@ class Image(vedo.visual.ImageVisual):
         self.pipeline = utils.OperationNode("enhance", parents=[self], c="#f28482")
         return self
 
-    def fft(self, mode="magnitude", logscale=12, center=True) -> "Image":
+    def fft(self, mode="magnitude", logscale=12, center=True) -> Image:
         """
         Fast Fourier transform of a image.
 
@@ -879,7 +907,7 @@ class Image(vedo.visual.ImageVisual):
         pic.pipeline = utils.OperationNode("FFT", parents=[self], c="#f28482")
         return pic
 
-    def rfft(self, mode="magnitude") -> "Image":
+    def rfft(self, mode="magnitude") -> Image:
         """Reverse Fast Fourier transform of a image."""
 
         ffti = vtki.new("ImageRFFT")
@@ -1123,7 +1151,7 @@ class Image(vedo.visual.ImageVisual):
         )
         return self
 
-    def threshold(self, value=None, flip=False) -> "vedo.Mesh":
+    def threshold(self, value=None, flip=False) -> vedo.Mesh:
         """
         Create a polygonal Mesh from a Image by filling regions with pixels
         luminosity above a specified value.
@@ -1250,14 +1278,17 @@ class Image(vedo.visual.ImageVisual):
         )
         return self
 
-    def tomesh(self) -> "vedo.shapes.Grid":
+    def tomesh(self) -> vedo.shapes.Grid:
         """
         Convert an image to polygonal data (quads),
         with each polygon vertex assigned a RGBA value.
         """
         dims = self.dataset.GetDimensions()
-        gr = vedo.shapes.Grid(s=dims[:2], res=(dims[0] - 1, dims[1] - 1))
-        gr.pos(int(dims[0] / 2), int(dims[1] / 2)).pickable(True).wireframe(False).lw(0)
+        gr = vedo.shapes.Grid(
+            s=(dims[0] - 1, dims[1] - 1),
+            res=(dims[0] - 1, dims[1] - 1),
+        )
+        gr.pos((dims[0] - 1) / 2, (dims[1] - 1) / 2).pickable(True).wireframe(False).lw(0)
         self.dataset.GetPointData().GetScalars().SetName("RGBA")
         gr.dataset.GetPointData().AddArray(self.dataset.GetPointData().GetScalars())
         gr.dataset.GetPointData().SetActiveScalars("RGBA")
@@ -1266,6 +1297,8 @@ class Image(vedo.visual.ImageVisual):
         gr.mapper.ScalarVisibilityOn()
         gr.name = self.name
         gr.filename = self.filename
+        # Preserve image pose (position/orientation/scale) on generated mesh.
+        gr.apply_transform(self.transform)
         gr.pipeline = utils.OperationNode("tomesh", parents=[self], c="#f28482:#e9c46a")
         return gr
 
@@ -1300,7 +1333,7 @@ class Image(vedo.visual.ImageVisual):
         narray = np.flip(narray, axis=0).astype(np.uint8)
         return narray.squeeze()
 
-    def add_rectangle(self, xspan: List[float], yspan: List[float], c="green5", alpha=1.0) -> Self:
+    def add_rectangle(self, xspan: list[float], yspan: list[float], c="green5", alpha=1.0) -> Self:
         """Draw a rectangle box on top of current image. Units are pixels.
 
         Example:
@@ -1353,7 +1386,7 @@ class Image(vedo.visual.ImageVisual):
         self.pipeline = utils.OperationNode("rectangle", parents=[self], c="#f28482")
         return self
 
-    def add_line(self, p1: List[float], p2: List[float], lw=2, c="k2", alpha=1.0) -> Self:
+    def add_line(self, p1: list[float], p2: list[float], lw=2, c="k2", alpha=1.0) -> Self:
         """Draw a line on top of current image. Units are pixels."""
         x1, x2 = p1
         y1, y2 = p2
@@ -1394,7 +1427,7 @@ class Image(vedo.visual.ImageVisual):
         self.pipeline = utils.OperationNode("line", parents=[self], c="#f28482")
         return self
 
-    def add_triangle(self, p1: List[float], p2: List[float], p3: List[float], c="red3", alpha=1.0) -> Self:
+    def add_triangle(self, p1: list[float], p2: list[float], p3: list[float], c="red3", alpha=1.0) -> Self:
         """Draw a triangle on top of current image. Units are pixels."""
         x1, y1 = p1
         x2, y2 = p2

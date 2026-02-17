@@ -3,18 +3,19 @@ by hovering the mouse on a mesh
 Press c to clear the path"""
 from vedo import precision, Arrow, Text2D, ParametricShape, Plotter
 
-def func(evt):                       ### called every time mouse moves!
-    msh = evt.object                 # get the mesh that triggered the event
+def func(evt):
+    """Display local scalar and motion information while hovering."""
+    msh = evt.object
     if not msh:
         return                       # mouse hits nothing, return.
-    pt  = evt.picked3d               # 3d coords of point under mouse
+    pt = evt.picked3d
     pid = msh.closest_point(pt, return_point_id=True)
     txt =(
         f"Point:  {precision(pt[:2]  ,2)}\n"
         f"Height: {precision(arr[pid],3)}\n"
         f"Ground speed: {precision(evt.speed3d*100,2)}"
     )
-    msg.text(txt)                    # update text message
+    msg.text(txt)
 
     ar = Arrow(pt - evt.delta3d, pt, s=0.001, c='orange5')
     fp = msh.flagpole(
@@ -24,13 +25,12 @@ def func(evt):                       ### called every time mouse moves!
     plt.remove("FlagPole").add(ar, fp) # remove the old flagpole, add the new
     plt.render()
 
-msg = Text2D(pos='bottom-left', font="VictorMono") # an empty text
+msg = Text2D(pos='bottom-left', font="VictorMono")
 hil = ParametricShape('RandomHills').cmap('terrain').add_scalarbar()
-arr = hil.pointdata["Scalars"]       # numpy array with heights
+arr = hil.pointdata["Scalars"]
 
 plt = Plotter(axes=1, bg2='lightblue')
-plt.add_callback('mouse move', func) # add the callback function
+plt.add_callback('mouse move', func)
 plt.add_callback('keyboard', lambda _: plt.remove("Arrow").render())
 plt.show(hil, msg, __doc__, viewup='z')
 plt.close()
-

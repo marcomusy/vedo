@@ -1,3 +1,4 @@
+"""Render a volume together with its histogram and opacity transfer curve."""
 from vedo import *
 from vedo.pyplot import histogram, plot
 

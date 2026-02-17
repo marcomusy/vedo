@@ -2,6 +2,7 @@
 with discrete values (labels)."""
 from vedo import *
 
+# Build the volumetric processing pipeline and render results.
 settings.default_font = "Antares"
 
 lut = build_lut(
