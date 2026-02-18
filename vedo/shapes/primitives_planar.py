@@ -10,11 +10,11 @@ import vedo
 import vedo.vtkclasses as vtki
 
 from vedo import settings, utils
-from vedo.transformations import LinearTransform, pol2cart, cart2spher, spher2cart
+from vedo.core.transformations import LinearTransform, pol2cart, cart2spher, spher2cart
 from vedo.colors import get_color, printc
 from vedo.mesh import Mesh
 from vedo.pointcloud import Points, merge
-from vedo.image import Image
+from vedo.grids.image import Image
 
 class Triangle(Mesh):
     """Create a triangle from 3 points in space."""

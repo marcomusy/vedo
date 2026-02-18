@@ -912,7 +912,7 @@ class MeshVisualTextureMixin:
 
         elif utils.is_sequence(tname):
             tu = vtki.vtkTexture()
-            out_img = vedo.image._get_img(tname)
+            out_img = vedo.grids.image._get_img(tname)
 
         elif isinstance(tname, str):
             tu = vtki.vtkTexture()

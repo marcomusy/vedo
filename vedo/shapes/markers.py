@@ -10,7 +10,7 @@ import vedo
 import vedo.vtkclasses as vtki
 
 from vedo import settings, utils
-from vedo.transformations import LinearTransform
+from vedo.core.transformations import LinearTransform
 from vedo.colors import get_color
 from vedo.mesh import Mesh
 from vedo.pointcloud import Points, merge

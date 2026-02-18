@@ -13,7 +13,7 @@ import numpy as np
 import vedo.vtkclasses as vtki
 
 import vedo
-from vedo import transformations
+import vedo.core.transformations as transformations
 from vedo import utils
 from vedo.mesh import Mesh
 from vedo.core import VolumeAlgorithms

@@ -11,7 +11,7 @@ import vedo.vtkclasses as vtki
 import vedo
 from vedo import colors
 from vedo import utils
-from vedo.transformations import LinearTransform
+from vedo.core.transformations import LinearTransform
 from vedo.core import PointAlgorithms
 from vedo.core import input as input_utils
 from vedo.visual import PointsVisual

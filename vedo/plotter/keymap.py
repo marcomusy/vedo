@@ -704,12 +704,12 @@ def handle_default_keypress(plotter, iren, event) -> None:
         else:
             cpos = utils.vector(plotter._extralight.GetPosition())
             x, y, z = plotter._extralight.GetPosition() - cm
-            r, th, ph = vedo.transformations.cart2spher(x, y, z)
+            r, th, ph = vedo.core.transformations.cart2spher(x, y, z)
             th += 0.2
             if th > np.pi:
                 th = np.random.random() * np.pi / 2
             ph += 0.3
-            cpos = vedo.transformations.spher2cart(r, th, ph).T + cm
+            cpos = vedo.core.transformations.spher2cart(r, th, ph).T + cm
             plotter._extralight.SetPosition(cpos)
 
     elif key == "l":

@@ -326,7 +326,7 @@ class Image(vedo.visual.ImageVisual):
         import base64
         from PIL import Image as PILImage
 
-        library_name = "vedo.image.Image"
+        library_name = "vedo.grids.image.Image"
         help_url = "https://vedo.embl.es/docs/vedo/image.html"
 
         arr = self.thumbnail(zoom=1.1)

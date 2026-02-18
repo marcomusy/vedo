@@ -12,7 +12,7 @@ import vedo.vtkclasses as vtki
 import vedo
 from vedo import colors
 from vedo import utils
-from vedo.transformations import LinearTransform, NonLinearTransform
+from vedo.core.transformations import LinearTransform, NonLinearTransform
 
 class PointCutMixin:
     def cut_with_plane(

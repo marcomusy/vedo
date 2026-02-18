@@ -13,7 +13,7 @@ import vedo.vtkclasses as vtki
 from vedo import settings
 from vedo import utils
 from vedo import shapes
-from vedo.transformations import LinearTransform
+from vedo.core.transformations import LinearTransform
 from vedo.assembly import Assembly, Group
 from vedo.colors import get_color, build_lut, color_map
 from vedo.mesh import Mesh

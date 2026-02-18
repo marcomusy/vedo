@@ -8,7 +8,7 @@ import vedo.vtkclasses as vtki
 
 from vedo import settings
 from vedo.colors import get_color
-from vedo.image import Image
+from vedo.grids.image import Image
 
 class Latex(Image):
     """

@@ -10,7 +10,7 @@ import vedo.vtkclasses as vtki
 
 import vedo
 from vedo import settings
-from vedo.transformations import cart2spher, spher2cart
+from vedo.core.transformations import cart2spher, spher2cart
 from vedo import addons
 from vedo import colors
 from vedo import utils

@@ -16,7 +16,7 @@ from vedo.core import PointAlgorithms
 from vedo.mesh import Mesh
 from vedo.file_io import download
 from vedo.visual import MeshVisual
-from vedo.transformations import LinearTransform
+from vedo.core.transformations import LinearTransform
 from .unstructured import UnstructuredGrid
 
 class StructuredGrid(PointAlgorithms, MeshVisual):

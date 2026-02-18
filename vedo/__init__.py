@@ -38,7 +38,7 @@ from vedo.settings import Settings
 settings = Settings()
 
 from vedo.colors import *
-from vedo.transformations import *
+from vedo.core.transformations import *
 from vedo.utils import *
 from vedo.core import *
 from vedo.shapes import *
@@ -46,7 +46,7 @@ from vedo.file_io import *
 from vedo.assembly import *
 from vedo.pointcloud import *
 from vedo.mesh import *
-from vedo.image import *
+from vedo.grids.image import *
 from vedo.volume import *
 from vedo.grids import *
 from vedo.addons import *

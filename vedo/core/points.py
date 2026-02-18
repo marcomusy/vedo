@@ -11,7 +11,7 @@ import vedo.vtkclasses as vtki
 
 import vedo
 from vedo import utils
-from vedo.transformations import LinearTransform, NonLinearTransform
+from vedo.core.transformations import LinearTransform, NonLinearTransform
 from vedo.core.common import CommonAlgorithms
 
 __all__ = ["PointAlgorithms"]
@@ -36,7 +36,7 @@ class PointAlgorithms(CommonAlgorithms):
 
         ![](https://vedo.embl.es/images/feats/apply_transform.png)
         """
-        if cls.dataset.GetNumberOfPoints() == 0 or not LT:
+        if cls.dataset.GetNumberOfPoints() == 0 or LT is None:
             return cls
 
         if isinstance(LT, LinearTransform):

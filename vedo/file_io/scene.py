@@ -10,7 +10,7 @@ import vedo
 import vedo.vtkclasses as vtki
 from vedo import colors, settings, utils
 from vedo.assembly import Assembly
-from vedo.image import Image
+from vedo.grids.image import Image
 from vedo.pointcloud import Points
 from vedo.volume import Volume
 

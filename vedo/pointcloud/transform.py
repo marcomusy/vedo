@@ -12,7 +12,7 @@ import vedo.vtkclasses as vtki
 import vedo
 from vedo import colors
 from vedo import utils
-from vedo.transformations import LinearTransform, NonLinearTransform
+from vedo.core.transformations import LinearTransform, NonLinearTransform
 
 class PointTransformMixin:
     def align_to(self, target, iters=100, rigid=False, invert=False, use_centroids=False) -> Self:

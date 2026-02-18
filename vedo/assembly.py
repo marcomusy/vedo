@@ -10,7 +10,7 @@ import vedo.file_io
 import vedo.vtkclasses as vtki  # a wrapper for lazy imports
 
 import vedo
-from vedo.transformations import LinearTransform
+from vedo.core.transformations import LinearTransform
 from vedo.visual import CommonVisual, Actor3DHelper
 
 __docformat__ = "google"

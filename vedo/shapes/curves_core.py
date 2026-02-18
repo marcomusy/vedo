@@ -10,7 +10,7 @@ import vedo
 import vedo.vtkclasses as vtki
 
 from vedo import utils
-from vedo.transformations import LinearTransform, pol2cart, cart2spher, spher2cart
+from vedo.core.transformations import LinearTransform, pol2cart, cart2spher, spher2cart
 from vedo.colors import get_color, printc
 from vedo.pointcloud import Points, merge
 from vedo.mesh import Mesh
