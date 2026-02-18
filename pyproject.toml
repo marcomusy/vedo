@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vedo"
-version = "2026.6.1"
+version = "2026.6.1.dev02"
 
 description = "A python module for scientific visualization, analysis of 3D objects and point clouds."
 
