@@ -4,7 +4,7 @@
 
 [![lics](https://img.shields.io/badge/license-MIT-blue.svg)](https://en.wikipedia.org/wiki/MIT_License)
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/vedo/badges/version.svg)](https://anaconda.org/conda-forge/vedo)
-[![Ubuntu 24.10 package](https://repology.org/badge/version-for-repo/ubuntu_25_04/vedo.svg)](https://repology.org/project/vedo/versions)
+[![Debian 14 package](https://repology.org/badge/version-for-repo/debian_14/vedo.svg)](https://repology.org/project/vedo/versions)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4587871.svg)](https://doi.org/10.5281/zenodo.4587871)
 [![Downloads](https://static.pepy.tech/badge/vedo)](https://pepy.tech/project/vedo)
 [![CircleCI](https://circleci.com/gh/marcomusy/vedo.svg?style=svg)](https://circleci.com/gh/marcomusy/vedo)

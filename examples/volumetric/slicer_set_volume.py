@@ -22,7 +22,7 @@ def make_volume(shape, center, sigma, scale=1.0, bias=0.0):
 
 def update_status():
     name, vol = volumes[state["index"]]
-    dims = vol.dimensions().tolist()
+    dims = vol.dimensions()
     status.text(f"Volume: {name} | dims={dims}")
 
 def swap_volume(reset_slices):
@@ -41,13 +41,7 @@ def on_key_press(evt):
         swap_volume(reset_slices=True)
 
 
-help_text = Text2D(
-    __doc__,
-    pos="top-left",
-    s=0.8,
-    bg="yellow",
-    alpha=0.25,
-)
+help_text = Text2D(__doc__, s=0.8, bg="yellow", alpha=0.25)
 status = Text2D("", pos="bottom-right", font="Calco", s=0.7, c="k")
 
 state = {"index": 0}
