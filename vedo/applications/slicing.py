@@ -23,6 +23,8 @@ class Slicer3DPlotter(Plotter):
     Generate a rendering window with slicing planes for the input Volume.
     """
 
+    _slice_names = ("XSlice", "YSlice", "ZSlice")
+
     def __init__(
         self,
         volume: vedo.Volume,
@@ -75,11 +77,121 @@ class Slicer3DPlotter(Plotter):
             # 2d sliders do not work with multiple renderers
             use_slider3d = True
 
-        self.volume = volume
-        box = volume.box().alpha(0.2)
-        self.add(box)
+        self._slice_ambient = 0.7
+        self._slice_diffuse = 0.3
+        self._show_histo = show_histo
+        self._show_icon = show_icon
+        self._draggable_icon = draggable
+        self._use_slider3d = use_slider3d
+        self._clamp = clamp
+        self._histogram_bg = ch
+        self._slider_colors = (cx, cy, cz)
+        self._cmaps = tuple(cmaps)
+        self._inset_widget = None
+        self._inset_marker = None
+        self._box = None
+        self._dims = (0, 0, 0)
+        self._scalar_range = (0, 1)
+        self._histogram_data = None
+        self.cmap_slicer = cmaps[0]
+        self.current_i = None
+        self.current_j = None
+        self.current_k = None
 
-        volume_axes_inset = vedo.addons.Axes(
+        self.xslice = None
+        self.yslice = None
+        self.zslice = None
+        self.histogram = None
+
+        if not use_slider3d:
+            self.xslider = self.add_slider(
+                self._slider_function_x,
+                0,
+                1,
+                title="",
+                title_size=0.5,
+                pos=[(0.8, 0.12), (0.95, 0.12)],
+                show_value=False,
+                c=cx,
+            )
+            self.yslider = self.add_slider(
+                self._slider_function_y,
+                0,
+                1,
+                title="",
+                title_size=0.5,
+                pos=[(0.8, 0.08), (0.95, 0.08)],
+                show_value=False,
+                c=cy,
+            )
+            self.zslider = self.add_slider(
+                self._slider_function_z,
+                0,
+                1,
+                title="",
+                title_size=0.6,
+                value=0,
+                pos=[(0.8, 0.04), (0.95, 0.04)],
+                show_value=False,
+                c=cz,
+            )
+
+        else:  # 3d sliders attached to the axes bounds
+            self.xslider = self.add_slider3d(
+                self._slider_function_x,
+                pos1=(0, 0, 0),
+                pos2=(0, 0, 0),
+                xmin=0,
+                xmax=1,
+                t=1,
+                c=cx,
+                show_value=False,
+            )
+            self.yslider = self.add_slider3d(
+                self._slider_function_y,
+                pos1=(0, 0, 0),
+                pos2=(0, 0, 0),
+                xmin=0,
+                xmax=1,
+                t=1,
+                c=cy,
+                show_value=False,
+            )
+            self.zslider = self.add_slider3d(
+                self._slider_function_z,
+                pos1=(0, 0, 0),
+                pos2=(0, 0, 0),
+                xmin=0,
+                xmax=1,
+                value=0,
+                t=1,
+                c=cz,
+                show_value=False,
+            )
+
+        if len(cmaps) > 1:
+            self._cmap_button = self.add_button(
+                self._button_func,
+                states=cmaps,
+                c=["k9"] * len(cmaps),
+                bc=["k1"] * len(cmaps),  # colors of states
+                size=16,
+                bold=True,
+            )
+            if self._cmap_button:
+                self._cmap_button.pos([0.04, 0.01], "bottom-left")
+        else:
+            self._cmap_button = None
+
+        self.set_volume(volume, reset_slices=True, reset_camera=False, render=False)
+
+    def _make_box(self, volume):
+        box = volume.box().alpha(0.2)
+        box.name = "VolumeBox"
+        return box
+
+    def _make_inset_axes(self, box):
+        return vedo.addons.Axes(
             box,
             xtitle=" ",
             ytitle=" ",
@@ -95,210 +207,211 @@ class Slicer3DPlotter(Plotter):
             zline_color="db",
         )
 
-        if show_icon:
-            self.add_inset(
-                volume,
-                volume_axes_inset,
-                pos=(0.9, 0.9),
-                size=0.15,
-                c="w",
-                draggable=draggable,
-            )
-
-        # inits
-        la, ld = 0.7, 0.3  # ambient, diffuse
-        dims = volume.dimensions()
+    def _compute_scalar_range(self, volume):
         data = volume.pointdata[0]
         rmin, rmax = volume.scalar_range()
-        if clamp:
+        if self._clamp:
             hdata, edg = np.histogram(data, bins=50)
             logdata = np.log(hdata + 1)
-            # mean  of the logscale plot
             meanlog = np.sum(np.multiply(edg[:-1], logdata)) / np.sum(logdata)
             rmax = min(rmax, meanlog + (meanlog - rmin) * 0.9)
             rmin = max(rmin, meanlog - (rmax - meanlog) * 0.9)
-            # print("scalar range clamped to range: ("
-            #       + precision(rmin, 3) + ", " + precision(rmax, 3) + ")")
+        return data, (rmin, rmax)
 
-        self.cmap_slicer = cmaps[0]
+    def _make_histogram(self):
+        if not self._show_histo or self._histogram_data is None:
+            return None
+        return histogram(
+            self._histogram_data,
+            bins=20,
+            logscale=True,
+            c=self.cmap_slicer,
+            bg=self._histogram_bg,
+            alpha=1,
+            axes=dict(text_scale=2),
+        ).clone2d(pos=[-0.925, -0.88], size=0.4)
 
-        self.current_i = None
-        self.current_j = None
-        self.current_k = int(dims[2] / 2)
+    def _update_histogram(self):
+        if self.histogram is not None:
+            self.remove(self.histogram)
+            self.histogram = None
+        self.histogram = self._make_histogram()
+        if self.histogram is not None:
+            self.add(self.histogram)
+
+    def _make_slice(self, axis, index):
+        rmin, rmax = self._scalar_range
+        slicer = getattr(self.volume, f"{axis}slice")(index).lighting(
+            "", self._slice_ambient, self._slice_diffuse, 0
+        )
+        slicer.name = f"{axis.upper()}Slice"
+        slicer.cmap(self.cmap_slicer, vmin=rmin, vmax=rmax)
+        return slicer
+
+    def _update_slice(self, axis, index, render=True):
+        dims = self._dims
+        dim = {"x": dims[0], "y": dims[1], "z": dims[2]}[axis]
+        name = f"{axis.upper()}Slice"
+        self.remove(name)
+        new_slice = None
+        if 0 < index < dim:
+            new_slice = self._make_slice(axis, index)
+            self.add(new_slice)
+        setattr(self, f"{axis}slice", new_slice)
+        if render:
+            self.render()
+
+    def _slider_function_x(self, _widget, _event):
+        i = int(self.xslider.value)
+        if i == self.current_i:
+            return
+        self.current_i = i
+        self._update_slice("x", i)
+
+    def _slider_function_y(self, _widget, _event):
+        j = int(self.yslider.value)
+        if j == self.current_j:
+            return
+        self.current_j = j
+        self._update_slice("y", j)
+
+    def _slider_function_z(self, _widget, _event):
+        k = int(self.zslider.value)
+        if k == self.current_k:
+            return
+        self.current_k = k
+        self._update_slice("z", k)
+
+    def _button_func(self, _obj, _evtname):
+        self._cmap_button.switch()
+        self.cmap_slicer = self._cmap_button.status()
+        for axis in "xyz":
+            msh = getattr(self, f"{axis}slice")
+            if msh is not None:
+                rmin, rmax = self._scalar_range
+                msh.cmap(self.cmap_slicer, vmin=rmin, vmax=rmax)
+        self._update_histogram()
+        self.render()
+
+    def _update_inset(self):
+        if not self._show_icon or not self.interactor:
+            return
+        self._inset_marker = vedo.Assembly(self.volume, self._make_inset_axes(self._box))
+        if self._inset_widget is None:
+            self._inset_widget = self.add_inset(
+                self._inset_marker,
+                pos=(0.9, 0.9),
+                size=0.15,
+                c="w",
+                draggable=self._draggable_icon,
+            )
+        elif self._inset_widget:
+            self._inset_widget.SetOrientationMarker(self._inset_marker.actor)
+
+    def _update_slider_positions(self):
+        if not self._use_slider3d:
+            return
+        bs = self._box.bounds()
+        repx = self.xslider.representation
+        repx.GetPoint1Coordinate().SetValue((bs[1], bs[2], bs[4]))
+        repx.GetPoint2Coordinate().SetValue((bs[0], bs[2], bs[4]))
+        repx.SetSliderWidth(0.03 * self._box.diagonal_size() / mag(self._box.xbounds()) * 0.6)
+        repx.SetTubeWidth(0.01 * self._box.diagonal_size() / mag(self._box.xbounds()) * 0.6)
+        repx.SetSliderLength(0.04 * self._box.diagonal_size() / mag(self._box.xbounds()) * 0.6)
+
+        repy = self.yslider.representation
+        repy.GetPoint1Coordinate().SetValue((bs[1], bs[3], bs[4]))
+        repy.GetPoint2Coordinate().SetValue((bs[1], bs[2], bs[4]))
+        repy.SetSliderWidth(0.03 * self._box.diagonal_size() / mag(self._box.ybounds()) * 0.6)
+        repy.SetTubeWidth(0.01 * self._box.diagonal_size() / mag(self._box.ybounds()) * 0.6)
+        repy.SetSliderLength(0.04 * self._box.diagonal_size() / mag(self._box.ybounds()) * 0.6)
+
+        repz = self.zslider.representation
+        repz.GetPoint1Coordinate().SetValue((bs[0], bs[2], bs[5]))
+        repz.GetPoint2Coordinate().SetValue((bs[0], bs[2], bs[4]))
+        repz.SetSliderWidth(0.03 * self._box.diagonal_size() / mag(self._box.zbounds()) * 0.6)
+        repz.SetTubeWidth(0.01 * self._box.diagonal_size() / mag(self._box.zbounds()) * 0.6)
+        repz.SetSliderLength(0.04 * self._box.diagonal_size() / mag(self._box.zbounds()) * 0.6)
+
+    def _update_slider_ranges(self):
+        dims = self._dims
+        self.xslider.range = (0, dims[0])
+        self.yslider.range = (0, dims[1])
+        self.zslider.range = (0, dims[2])
+        self.xslider.value = 0 if self.current_i is None else self.current_i
+        self.yslider.value = 0 if self.current_j is None else self.current_j
+        self.zslider.value = 0 if self.current_k is None else self.current_k
+        self._update_slider_positions()
+
+    def set_volume(
+        self,
+        volume: vedo.Volume,
+        reset_slices=True,
+        reset_camera=False,
+        render=True,
+    ) -> Slicer3DPlotter:
+        """
+        Replace the input volume while preserving the existing plotter window.
+
+        Arguments:
+            volume : (Volume)
+                the new input volume to visualize.
+            reset_slices : (bool)
+                if True reset slices to their default positions, otherwise preserve them when possible.
+            reset_camera : (bool)
+                if True reset the camera after swapping the volume.
+            render : (bool)
+                if True render the scene after the update.
+        """
+        if self._box is not None:
+            self.remove(self._box)
+        self.remove(*self._slice_names)
+
+        self.volume = volume
+        self._box = self._make_box(volume)
+        self.add(self._box)
+        self._dims = volume.dimensions()
+
+        data, self._scalar_range = self._compute_scalar_range(volume)
+        self._histogram_data = None
+        if self._show_histo and data.ndim == 1:
+            n = (self._dims[0] - 1) * (self._dims[1] - 1) * (self._dims[2] - 1)
+            n = min(1_000_000, n)
+            self._histogram_data = np.random.choice(data, n)
+
+        if reset_slices:
+            self.current_i = None
+            self.current_j = None
+            self.current_k = int(self._dims[2] / 2)
+        else:
+            if self.current_i is not None:
+                self.current_i = min(self.current_i, self._dims[0] - 1)
+            if self.current_j is not None:
+                self.current_j = min(self.current_j, self._dims[1] - 1)
+            if self.current_k is None:
+                self.current_k = int(self._dims[2] / 2)
+            else:
+                self.current_k = min(self.current_k, self._dims[2] - 1)
+
+        self._update_slider_ranges()
+        self._update_histogram()
+        self._update_inset()
 
         self.xslice = None
         self.yslice = None
         self.zslice = None
+        if self.current_i is not None:
+            self._update_slice("x", self.current_i, render=False)
+        if self.current_j is not None:
+            self._update_slice("y", self.current_j, render=False)
+        if self.current_k is not None:
+            self._update_slice("z", self.current_k, render=False)
 
-        self.zslice = volume.zslice(self.current_k).lighting("", la, ld, 0)
-        self.zslice.name = "ZSlice"
-        self.zslice.cmap(self.cmap_slicer, vmin=rmin, vmax=rmax)
-        self.add(self.zslice)
-
-        self.histogram = None
-        data_reduced = data
-        if show_histo:
-            # try to reduce the number of values to histogram
-            dims = self.volume.dimensions()
-            n = (dims[0] - 1) * (dims[1] - 1) * (dims[2] - 1)
-            n = min(1_000_000, n)
-            if data.ndim == 1:
-                data_reduced = np.random.choice(data, n)
-                self.histogram = histogram(
-                    data_reduced,
-                    # title=volume.filename,
-                    bins=20,
-                    logscale=True,
-                    c=self.cmap_slicer,
-                    bg=ch,
-                    alpha=1,
-                    axes=dict(text_scale=2),
-                ).clone2d(pos=[-0.925, -0.88], size=0.4)
-                self.add(self.histogram)
-
-        #################
-        def slider_function_x(_widget, _event):
-            i = int(self.xslider.value)
-            if i == self.current_i:
-                return
-            self.current_i = i
-            self.xslice = volume.xslice(i).lighting("", la, ld, 0)
-            self.xslice.cmap(self.cmap_slicer, vmin=rmin, vmax=rmax)
-            self.xslice.name = "XSlice"
-            self.remove("XSlice")  # removes the old one
-            if 0 < i < dims[0]:
-                self.add(self.xslice)
+        if reset_camera:
+            self.reset_camera()
+        if render:
             self.render()
-
-        def slider_function_y(_widget, _event):
-            j = int(self.yslider.value)
-            if j == self.current_j:
-                return
-            self.current_j = j
-            self.yslice = volume.yslice(j).lighting("", la, ld, 0)
-            self.yslice.cmap(self.cmap_slicer, vmin=rmin, vmax=rmax)
-            self.yslice.name = "YSlice"
-            self.remove("YSlice")
-            if 0 < j < dims[1]:
-                self.add(self.yslice)
-            self.render()
-
-        def slider_function_z(_widget, _event):
-            k = int(self.zslider.value)
-            if k == self.current_k:
-                return
-            self.current_k = k
-            self.zslice = volume.zslice(k).lighting("", la, ld, 0)
-            self.zslice.cmap(self.cmap_slicer, vmin=rmin, vmax=rmax)
-            self.zslice.name = "ZSlice"
-            self.remove("ZSlice")
-            if 0 < k < dims[2]:
-                self.add(self.zslice)
-            self.render()
-
-        if not use_slider3d:
-            self.xslider = self.add_slider(
-                slider_function_x,
-                0,
-                dims[0],
-                title="",
-                title_size=0.5,
-                pos=[(0.8, 0.12), (0.95, 0.12)],
-                show_value=False,
-                c=cx,
-            )
-            self.yslider = self.add_slider(
-                slider_function_y,
-                0,
-                dims[1],
-                title="",
-                title_size=0.5,
-                pos=[(0.8, 0.08), (0.95, 0.08)],
-                show_value=False,
-                c=cy,
-            )
-            self.zslider = self.add_slider(
-                slider_function_z,
-                0,
-                dims[2],
-                title="",
-                title_size=0.6,
-                value=int(dims[2] / 2),
-                pos=[(0.8, 0.04), (0.95, 0.04)],
-                show_value=False,
-                c=cz,
-            )
-
-        else:  # 3d sliders attached to the axes bounds
-            bs = box.bounds()
-            self.xslider = self.add_slider3d(
-                slider_function_x,
-                pos1=(bs[0], bs[2], bs[4]),
-                pos2=(bs[1], bs[2], bs[4]),
-                xmin=0,
-                xmax=dims[0],
-                t=box.diagonal_size() / mag(box.xbounds()) * 0.6,
-                c=cx,
-                show_value=False,
-            )
-            self.yslider = self.add_slider3d(
-                slider_function_y,
-                pos1=(bs[1], bs[2], bs[4]),
-                pos2=(bs[1], bs[3], bs[4]),
-                xmin=0,
-                xmax=dims[1],
-                t=box.diagonal_size() / mag(box.ybounds()) * 0.6,
-                c=cy,
-                show_value=False,
-            )
-            self.zslider = self.add_slider3d(
-                slider_function_z,
-                pos1=(bs[0], bs[2], bs[4]),
-                pos2=(bs[0], bs[2], bs[5]),
-                xmin=0,
-                xmax=dims[2],
-                value=int(dims[2] / 2),
-                t=box.diagonal_size() / mag(box.zbounds()) * 0.6,
-                c=cz,
-                show_value=False,
-            )
-
-        #################
-        def button_func(_obj, _evtname):
-            bu.switch()
-            self.cmap_slicer = bu.status()
-            for m in self.objects:
-                try:
-                    if "Slice" in m.name:
-                        m.cmap(self.cmap_slicer, vmin=rmin, vmax=rmax)
-                except AttributeError:
-                    pass
-            self.remove(self.histogram)
-            if show_histo:
-                self.histogram = histogram(
-                    data_reduced,
-                    # title=volume.filename,
-                    bins=20,
-                    logscale=True,
-                    c=self.cmap_slicer,
-                    bg=ch,
-                    alpha=1,
-                    axes=dict(text_scale=2),
-                ).clone2d(pos=[-0.925, -0.88], size=0.4)
-                self.add(self.histogram)
-            self.render()
-
-        if len(cmaps) > 1:
-            bu = self.add_button(
-                button_func,
-                states=cmaps,
-                c=["k9"] * len(cmaps),
-                bc=["k1"] * len(cmaps),  # colors of states
-                size=16,
-                bold=True,
-            )
-            if bu:
-                bu.pos([0.04, 0.01], "bottom-left")
+        return self
 
 
 ####################################################################################
