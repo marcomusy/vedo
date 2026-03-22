@@ -34,6 +34,21 @@ class Slicer3DPlotter(Plotter):
         show_histo=True,
         show_icon=True,
         draggable=False,
+        slider_positions=(((0.8, 0.12), (0.95, 0.12)),
+                          ((0.8, 0.08), (0.95, 0.08)),
+                          ((0.8, 0.04), (0.95, 0.04))),
+        slider_title_sizes=(0.5, 0.5, 0.6),
+        slider3d_size=(0.03, 0.01, 0.04, 0.6),
+        histogram_position=(-0.925, -0.88),
+        histogram_size=0.4,
+        histogram_bins=20,
+        histogram_text_scale=2,
+        inset_position=(0.9, 0.9),
+        inset_size=0.15,
+        inset_axes_params=None,
+        cmap_button_position=(0.04, 0.01),
+        cmap_button_size=16,
+        box_alpha=0.2,
         at=0,
         **kwargs,
     ):
@@ -53,6 +68,32 @@ class Slicer3DPlotter(Plotter):
                 show a small 3D rendering icon of the volume
             draggable : (bool)
                 make the 3D icon draggable
+            slider_positions : (list)
+                2D slider endpoint positions for x, y, z sliders
+            slider_title_sizes : (list)
+                title sizes for x, y, z sliders
+            slider3d_size : (list)
+                3D slider width, tube width, slider length and axis scale factor
+            histogram_position : (list)
+                2D histogram anchor position
+            histogram_size : (float)
+                histogram 2D size
+            histogram_bins : (int)
+                histogram number of bins
+            histogram_text_scale : (float)
+                histogram axes text scale
+            inset_position : (list)
+                inset icon position
+            inset_size : (float)
+                inset icon size
+            inset_axes_params : (dict)
+                extra keyword arguments passed to the inset axes actor
+            cmap_button_position : (list)
+                colormap button position
+            cmap_button_size : (float)
+                colormap button text size
+            box_alpha : (float)
+                opacity of the volume bounding box
             at : (int)
                 subwindow number to plot to
             **kwargs : (dict)
@@ -85,11 +126,24 @@ class Slicer3DPlotter(Plotter):
         self._use_slider3d = use_slider3d
         self._clamp = clamp
         self._histogram_bg = ch
+        self._histogram_bins = histogram_bins
+        self._histogram_position = histogram_position
+        self._histogram_size = histogram_size
+        self._histogram_text_scale = histogram_text_scale
         self._slider_colors = (cx, cy, cz)
+        self._slider_positions = slider_positions
+        self._slider_title_sizes = slider_title_sizes
+        self._slider3d_size = slider3d_size
         self._cmaps = tuple(cmaps)
+        self._cmap_button_position = cmap_button_position
+        self._cmap_button_size = cmap_button_size
         self._inset_widget = None
         self._inset_marker = None
+        self._inset_position = inset_position
+        self._inset_size = inset_size
+        self._inset_axes_params = inset_axes_params or {}
         self._box = None
+        self._box_alpha = box_alpha
         self._dims = (0, 0, 0)
         self._scalar_range = (0, 1)
         self._histogram_data = None
@@ -109,8 +163,8 @@ class Slicer3DPlotter(Plotter):
                 0,
                 1,
                 title="",
-                title_size=0.5,
-                pos=[(0.8, 0.12), (0.95, 0.12)],
+                title_size=self._slider_title_sizes[0],
+                pos=self._slider_positions[0],
                 show_value=False,
                 c=cx,
             )
@@ -119,8 +173,8 @@ class Slicer3DPlotter(Plotter):
                 0,
                 1,
                 title="",
-                title_size=0.5,
-                pos=[(0.8, 0.08), (0.95, 0.08)],
+                title_size=self._slider_title_sizes[1],
+                pos=self._slider_positions[1],
                 show_value=False,
                 c=cy,
             )
@@ -129,9 +183,9 @@ class Slicer3DPlotter(Plotter):
                 0,
                 1,
                 title="",
-                title_size=0.6,
+                title_size=self._slider_title_sizes[2],
                 value=0,
-                pos=[(0.8, 0.04), (0.95, 0.04)],
+                pos=self._slider_positions[2],
                 show_value=False,
                 c=cz,
             )
@@ -143,6 +197,7 @@ class Slicer3DPlotter(Plotter):
                 pos2=(0, 0, 0),
                 xmin=0,
                 xmax=1,
+                s=self._slider3d_size[0],
                 t=1,
                 c=cx,
                 show_value=False,
@@ -153,6 +208,7 @@ class Slicer3DPlotter(Plotter):
                 pos2=(0, 0, 0),
                 xmin=0,
                 xmax=1,
+                s=self._slider3d_size[0],
                 t=1,
                 c=cy,
                 show_value=False,
@@ -164,6 +220,7 @@ class Slicer3DPlotter(Plotter):
                 xmin=0,
                 xmax=1,
                 value=0,
+                s=self._slider3d_size[0],
                 t=1,
                 c=cz,
                 show_value=False,
@@ -175,24 +232,23 @@ class Slicer3DPlotter(Plotter):
                 states=cmaps,
                 c=["k9"] * len(cmaps),
                 bc=["k1"] * len(cmaps),  # colors of states
-                size=16,
+                size=self._cmap_button_size,
                 bold=True,
             )
             if self._cmap_button:
-                self._cmap_button.pos([0.04, 0.01], "bottom-left")
+                self._cmap_button.pos(self._cmap_button_position, "bottom-left")
         else:
             self._cmap_button = None
 
         self.set_volume(volume, reset_slices=True, reset_camera=False, render=False)
 
     def _make_box(self, volume):
-        box = volume.box().alpha(0.2)
+        box = volume.box().alpha(self._box_alpha)
         box.name = "VolumeBox"
         return box
 
     def _make_inset_axes(self, box):
-        return vedo.addons.Axes(
-            box,
+        options = dict(
             xtitle=" ",
             ytitle=" ",
             ztitle=" ",
@@ -205,6 +261,11 @@ class Slicer3DPlotter(Plotter):
             xline_color="dr",
             yline_color="dg",
             zline_color="db",
+        )
+        options.update(self._inset_axes_params)
+        return vedo.addons.Axes(
+            box,
+            **options,
         )
 
     def _compute_scalar_range(self, volume):
@@ -223,13 +284,13 @@ class Slicer3DPlotter(Plotter):
             return None
         return histogram(
             self._histogram_data,
-            bins=20,
+            bins=self._histogram_bins,
             logscale=True,
             c=self.cmap_slicer,
             bg=self._histogram_bg,
             alpha=1,
-            axes=dict(text_scale=2),
-        ).clone2d(pos=[-0.925, -0.88], size=0.4)
+            axes=dict(text_scale=self._histogram_text_scale),
+        ).clone2d(pos=self._histogram_position, size=self._histogram_size)
 
     def _update_histogram(self):
         if self.histogram is not None:
@@ -300,8 +361,8 @@ class Slicer3DPlotter(Plotter):
         if self._inset_widget is None:
             self._inset_widget = self.add_inset(
                 self._inset_marker,
-                pos=(0.9, 0.9),
-                size=0.15,
+                pos=self._inset_position,
+                size=self._inset_size,
                 c="w",
                 draggable=self._draggable_icon,
             )
@@ -312,26 +373,30 @@ class Slicer3DPlotter(Plotter):
         if not self._use_slider3d:
             return
         bs = self._box.bounds()
+        slider_width, tube_width, slider_length, axis_scale = self._slider3d_size
         repx = self.xslider.representation
         repx.GetPoint1Coordinate().SetValue((bs[1], bs[2], bs[4]))
         repx.GetPoint2Coordinate().SetValue((bs[0], bs[2], bs[4]))
-        repx.SetSliderWidth(0.03 * self._box.diagonal_size() / mag(self._box.xbounds()) * 0.6)
-        repx.SetTubeWidth(0.01 * self._box.diagonal_size() / mag(self._box.xbounds()) * 0.6)
-        repx.SetSliderLength(0.04 * self._box.diagonal_size() / mag(self._box.xbounds()) * 0.6)
+        xscale = self._box.diagonal_size() / mag(self._box.xbounds()) * axis_scale
+        repx.SetSliderWidth(slider_width * xscale)
+        repx.SetTubeWidth(tube_width * xscale)
+        repx.SetSliderLength(slider_length * xscale)
 
         repy = self.yslider.representation
         repy.GetPoint1Coordinate().SetValue((bs[1], bs[3], bs[4]))
         repy.GetPoint2Coordinate().SetValue((bs[1], bs[2], bs[4]))
-        repy.SetSliderWidth(0.03 * self._box.diagonal_size() / mag(self._box.ybounds()) * 0.6)
-        repy.SetTubeWidth(0.01 * self._box.diagonal_size() / mag(self._box.ybounds()) * 0.6)
-        repy.SetSliderLength(0.04 * self._box.diagonal_size() / mag(self._box.ybounds()) * 0.6)
+        yscale = self._box.diagonal_size() / mag(self._box.ybounds()) * axis_scale
+        repy.SetSliderWidth(slider_width * yscale)
+        repy.SetTubeWidth(tube_width * yscale)
+        repy.SetSliderLength(slider_length * yscale)
 
         repz = self.zslider.representation
         repz.GetPoint1Coordinate().SetValue((bs[0], bs[2], bs[5]))
         repz.GetPoint2Coordinate().SetValue((bs[0], bs[2], bs[4]))
-        repz.SetSliderWidth(0.03 * self._box.diagonal_size() / mag(self._box.zbounds()) * 0.6)
-        repz.SetTubeWidth(0.01 * self._box.diagonal_size() / mag(self._box.zbounds()) * 0.6)
-        repz.SetSliderLength(0.04 * self._box.diagonal_size() / mag(self._box.zbounds()) * 0.6)
+        zscale = self._box.diagonal_size() / mag(self._box.zbounds()) * axis_scale
+        repz.SetSliderWidth(slider_width * zscale)
+        repz.SetTubeWidth(tube_width * zscale)
+        repz.SetSliderLength(slider_length * zscale)
 
     def _update_slider_ranges(self):
         dims = self._dims

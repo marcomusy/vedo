@@ -1,8 +1,8 @@
 """Test swapping the input of Slicer3DPlotter without recreating the window.
 
 Press space to toggle between two synthetic volumes.
-Press p to preserve the current slice indices when switching volume.
-Press r to reset slices to the new volume defaults."""
+Press x to preserve the current slice indices when switching volume.
+Press z to reset slices to the new volume defaults."""
 
 import numpy as np
 from vedo import Text2D, Volume
@@ -22,7 +22,7 @@ def make_volume(shape, center, sigma, scale=1.0, bias=0.0):
 
 def update_status():
     name, vol = volumes[state["index"]]
-    dims = vol.dimensions()
+    dims = vol.dimensions().tolist()
     status.text(f"Volume: {name} | dims={dims}")
 
 def swap_volume(reset_slices):
@@ -35,9 +35,9 @@ def swap_volume(reset_slices):
 def on_key_press(evt):
     if evt.keypress == "space":
         swap_volume(reset_slices=False)
-    elif evt.keypress.lower() == "p":
+    elif evt.keypress == "x":
         swap_volume(reset_slices=False)
-    elif evt.keypress.lower() == "r":
+    elif evt.keypress == "z":
         swap_volume(reset_slices=True)
 
 
@@ -48,11 +48,11 @@ help_text = Text2D(
     bg="yellow",
     alpha=0.25,
 )
-status = Text2D("", pos="bottom-right", font="Calco", s=0.9, c="k", bg='yellow')
+status = Text2D("", pos="bottom-right", font="Calco", s=0.7, c="k")
 
 state = {"index": 0}
 volumes = [
-    ("vol-A", make_volume((20, 50, 50), (25, 25, 25), (10, 10, 10), scale=1.0)),
+    ("vol-A", make_volume((30, 50, 50), (25, 25, 25), (10, 10, 10), scale=1.0)),
     ("vol-B", make_volume((60, 60, 60), (30, 30, 30), (12, 12, 12), scale=1.5)),
 ]
 
