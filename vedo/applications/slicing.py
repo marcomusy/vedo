@@ -135,6 +135,8 @@ class Slicer3DPlotter(Plotter):
         self._slider_title_sizes = slider_title_sizes
         self._slider3d_size = slider3d_size
         self._cmaps = tuple(cmaps)
+        max_cmap_len = max(len(cm) for cm in self._cmaps)
+        self._cmap_button_labels = tuple(cm.center(max_cmap_len) for cm in self._cmaps)
         self._cmap_button_position = cmap_button_position
         self._cmap_button_size = cmap_button_size
         self._inset_widget = None
@@ -229,7 +231,7 @@ class Slicer3DPlotter(Plotter):
         if len(cmaps) > 1:
             self._cmap_button = self.add_button(
                 self._button_func,
-                states=cmaps,
+                states=self._cmap_button_labels,
                 c=["k9"] * len(cmaps),
                 bc=["k1"] * len(cmaps),  # colors of states
                 size=self._cmap_button_size,
@@ -345,7 +347,7 @@ class Slicer3DPlotter(Plotter):
 
     def _button_func(self, _obj, _evtname):
         self._cmap_button.switch()
-        self.cmap_slicer = self._cmap_button.status()
+        self.cmap_slicer = self._cmaps[self._cmap_button.status_idx]
         for axis in "xyz":
             msh = getattr(self, f"{axis}slice")
             if msh is not None:
