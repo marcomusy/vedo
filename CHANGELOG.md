@@ -4,42 +4,12 @@ All notable changes to the project will be documented in this file.
 
 ===================================================================================
 # Development Version 
-
-
-===================================================================================
-# Version 2026.6.1
-
-## Changes and Fixes
-- added example with embedding matplotlib figures in a scene
-- add `Line.eval2d()` useful for plotting
-- improvements to the `addons.BaseCutter` as per #1263 by @natabma
-- add `applications.MorphByLandmarkPlotter` class
-- add `applications.MorphBySplinesPlotter` class
-- fix memory leaks in Text2D and Assembly classes #1269 by @shBLOCK
-- add `volume.extract_components()`
-- add `applications.ImageEditor` Plotter-derived class 
-- add `pointcloud.project_point_on_variety()` function
-- objects can now be removed also by substring e.g. `plt.remove("*_mesh")` will remove "some_mesh"
-
-
-## Soft-breaking Changes
-- small changes to the API of the `addons.BaseCutter` class
-- `CornerAnnotation` class removed (substituted by Text2D)
-- changes in `Button` class (check examples/basic/buttons2.py)
-
-
-
-## Hard-breaking Changes
-- None
+- added example aizawa_attractor
 
 
 ## New/Revised Examples
 ```
-examples/pyplot/embed_matplotlib2.py
-examples/basic/cut_interactive.py
-examples/volumetric/slice_plane3.py
-examples/volumetric/image_editor.py
-examples/advanced/measure_curvature2.py
+examples/simulations/aizawa_attractor.py
 ```
 
 #### (Internal) Broken Examples
@@ -76,8 +46,31 @@ streamlines1.py
 
 
 
+===================================================================================
+# Version 2026.6.1
+
+## Changes and Fixes
+- added example with embedding matplotlib figures in a scene
+- add `Line.eval2d()` useful for plotting
+- improvements to the `addons.BaseCutter` as per #1263 by @natabma
+- add `applications.MorphByLandmarkPlotter` class
+- add `applications.MorphBySplinesPlotter` class
+- fix memory leaks in Text2D and Assembly classes #1269 by @shBLOCK
+- add `volume.extract_components()`
+- add `applications.ImageEditor` Plotter-derived class 
+- add `pointcloud.project_point_on_variety()` function
+- objects can now be removed also by substring e.g. `plt.remove("*_mesh")` will remove "some_mesh"
 
 
+## Soft-breaking Changes
+- small changes to the API of the `addons.BaseCutter` class
+- `CornerAnnotation` class removed (substituted by Text2D)
+- changes in `Button` class (check examples/basic/buttons2.py)
+
+
+
+## Hard-breaking Changes
+- None
 
 
 ===================================================================================
