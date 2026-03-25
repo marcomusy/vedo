@@ -11,19 +11,12 @@ from vedo import Axes, Plotter, Points, color_map
 
 def deriv(states, a=0.95, b=0.7, c=0.6, d=3.5, e=0.25, f=0.1):
     """Evaluate the Aizawa vector field for a batch of particle states."""
-    x_coord, y_coord, z_coord = states[:, 0], states[:, 1], states[:, 2]
-    x_squared = x_coord * x_coord
-    y_squared = y_coord * y_coord
-    z_squared = z_coord * z_coord
-    z_cubed = z_squared * z_coord
-    x_velocity = (z_coord - b) * x_coord - d * y_coord
-    y_velocity = d * x_coord + (z_coord - b) * y_coord
-    z_velocity = (
-        c + a * z_coord - z_cubed / 3.0
-        - (x_squared + y_squared) * (1.0 + e * z_coord)
-        + f * z_coord * x_squared * x_coord
-    )
-    return np.column_stack([x_velocity, y_velocity, z_velocity])
+    x, y, z = states[:, 0], states[:, 1], states[:, 2]
+    x2 = x * x; y2 = y * y; z2 = z * z; z3 = z2 * z
+    vx = (z - b) * x - d * y
+    vy = d * x + (z - b) * y
+    vz = c + a * z - z3 / 3.0 - (x2 + y2) * (1.0 + e * z) + f * z * x2 * x
+    return np.column_stack([vx, vy, vz])
 
 
 def rk4_step(states, dt):
@@ -42,13 +35,12 @@ def cloud_colors(states, cmap_name):
     return np.clip(mapped_colors * 255.0, 0, 255).astype(np.uint8)
 
 
-# MAIN ################
+# MAIN ################################################################
 particle_count = 50_000
 time_step = 0.005
 render_scale = 3.0
-
-# Seed all particles near the attractor with small random offsets
 seed_center = np.array([0.1, 0.0, 0.0])
+
 states = seed_center + np.random.normal(0, 0.05, (particle_count, 3))
 render_positions = states * render_scale
 swarm_points = Points(render_positions, r=3)
