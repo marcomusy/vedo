@@ -10,6 +10,8 @@ import vedo.vtkclasses as vtki
 from vedo import utils
 from vedo.mesh import Mesh
 from vedo.pointcloud import Points
+
+
 class ConvexHull(Mesh):
     """
     Create the 2D/3D convex hull from a set of points.

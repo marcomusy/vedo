@@ -5,7 +5,7 @@
 [![lics](https://img.shields.io/badge/license-MIT-blue.svg)](https://en.wikipedia.org/wiki/MIT_License)
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/vedo/badges/version.svg)](https://anaconda.org/conda-forge/vedo)
 [![Debian 14 package](https://repology.org/badge/version-for-repo/debian_14/vedo.svg)](https://repology.org/project/vedo/versions)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4587871.svg)](https://doi.org/10.5281/zenodo.4587871)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7019968.svg)](https://doi.org/10.5281/zenodo.7019968)
 [![Downloads](https://static.pepy.tech/badge/vedo)](https://pepy.tech/project/vedo)
 [![CircleCI](https://circleci.com/gh/marcomusy/vedo.svg?style=svg)](https://circleci.com/gh/marcomusy/vedo)
 
@@ -15,6 +15,7 @@ for scientific analysis and **v**isualization of **3d** **o**bjects.<br>
 
 
 ## 💾  Installation
+
 ```bash
 pip install vedo
 ```
@@ -37,6 +38,16 @@ conda install -c conda-forge vedo
 
 </details>
 
+## 🚀  Quick Start
+```python
+from vedo import Sphere, show
+
+sphere = Sphere().c("tomato")
+show(sphere, axes=1).close()
+```
+
+This opens an interactive 3D window with a simple object and axes.
+
 
 ## 📙  Documentation
 The webpage of the library with documentation is available [**here**](https://vedo.embl.es).
@@ -47,7 +58,7 @@ or by opening a [**github issue**](https://github.com/marcomusy/vedo/issues).
 
 
 ## 🎨  Features
-The library includes a [large set of working examples](https://github.com/marcomusy/vedo/tree/master/examples)
+The library includes [hundreds of working examples](https://github.com/marcomusy/vedo/tree/master/examples)
 for a wide range of functionalities
 
 <details>
@@ -157,7 +168,7 @@ vedo https://vedo.embl.es/examples/data/embryo.tif
 Type `vedo -h` for the complete list of options.<br>
 
 ## 🐾  Gallery
-`vedo` currently includes 300+ working [examples](https://github.com/marcomusy/vedo/tree/master/examples) and [notebooks](https://github.com/marcomusy/vedo/tree/master/examples/notebooks). <br>
+`vedo` currently includes hundreds of working [examples](https://github.com/marcomusy/vedo/tree/master/examples) and [notebooks](https://github.com/marcomusy/vedo/tree/master/examples/notebooks). <br>
 
 Run any of the built-in examples. In a terminal type: `vedo -r warp2`
 
@@ -172,87 +183,112 @@ Check out the example galleries organized by subject here:
 
 ## ✏  Contributing
 
-Any contributions are **greatly appreciated**!
-If you have a suggestion that would make this better,
-please fork the repo and create a pull request. This is how:
-```bash
-# 1. Fork the repository on GitHub then clone your fork locally:
-git clone https://github.com/your-username/vedo.git
-# 2. Create a new branch for your feature or bugfix:
-git checkout -b feature/my-feature
-# 3. Make your changes and commit them:
-git commit -m "Description of my feature"
-# 4. Push your changes to your fork:
-git push origin feature/my-feature
-# 5. Open a Pull Request on the main repository.
-```
-You can also simply open an issue with the tag "enhancement".
+Any contributions are **greatly appreciated**.
+If you have a suggestion, bugfix, feature, or documentation improvement, please open an issue or submit a pull request.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines and workflow details.
 
 
 ## 📜  References
 
 **Scientific publications leveraging `vedo`:**
 
-- X. Diego *et al.*:
-*"Key features of Turing systems are determined purely by network topology"*,
-Phys. Rev. X 8, 021071,
-[DOI](https://journals.aps.org/prx/abstract/10.1103/PhysRevX.8.021071).
-- M. Musy, K. Flaherty *et al.*:
-*"A Quantitative Method for Staging Mouse Limb Embryos based on Limb Morphometry"*,
-Development (2018) 145 (7): dev154856,
-[DOI](http://dev.biologists.org/content/145/7/dev154856).
-- F. Claudi, A. L. Tyson, T. Branco, *"Brainrender. A python based software for visualisation
-of neuroanatomical and morphological data."*,
-eLife 2021;10:e65751,
-[DOI](https://doi.org/10.7554/eLife.65751).
-- J. S. Bennett, D. Sijacki,
-*"Resolving shocks and filaments in galaxy formation simulations: effects on gas properties and
-star formation in the circumgalactic medium"*,
-Monthly Notices of the Royal Astronomical Society, Volume 499, Issue 1,
-[DOI](https://doi.org/10.1093/mnras/staa2835).
-- J.D.P. Deshapriya *et al.*,
-*"Spectral analysis of craters on (101955) Bennu"*.
-Icarus 2020,
-[DOI](https://doi.org/10.1016/j.icarus.2020.114252).
-- A. Pollack *et al.*,
-*"Stochastic inversion of gravity, magnetic, tracer, lithology, and fault data
-for geologically realistic structural models: Patua Geothermal Field case study"*,
-Geothermics, Volume 95, September 2021,
-[DOI](https://doi.org/10.1016/j.geothermics.2021.102129).
-- X. Lu *et al.*,
-*"3D electromagnetic modeling of graphitic faults in the Athabasca
- Basin using a finite-volume time-domain approach with unstructured grids"*,
-Geophysics,
-[DOI](https://doi.org/10.1190/geo2020-0657.1).
-- M. Deepa Maheshvare *et al.*,
-*"A Graph-Based Framework for Multiscale Modeling of Physiological Transport"*,
-Front. Netw. Physiol. 1:802881,
-[DOI](https://www.frontiersin.org/articles/10.3389/fnetp.2021.802881/full).
-- F. Claudi, T. Branco,
-*"Differential geometry methods for constructing manifold-targeted recurrent neural networks"*,
-bioRxiv 2021.10.07.463479,
-[DOI](https://doi.org/10.1101/2021.10.07.463479).
-- J. Klatzow, G. Dalmasso, N. Martínez-Abadías, J. Sharpe, V. Uhlmann,
-*"µMatch: 3D shape correspondence for microscopy data"*,
-Front. Comput. Sci., 15 February 2022.
-[DOI](https://doi.org/10.3389/fcomp.2022.777615)
-- G. Dalmasso *et al.*, *"4D reconstruction of murine developmental trajectories using spherical harmonics"*,
-Developmental Cell 57, 1–11 September 2022,
-[DOI](https://doi.org/10.1016/j.devcel.2022.08.005).
-- D.J.E Waibel *et al.*, *"Capturing Shape Information with Multi-scale Topological Loss Terms for 3D Reconstruction"*,
-Lecture Notes in Computer Science, vol 13434. Springer, Cham. 
-[DOI](https://doi.org/10.1007/978-3-031-16440-8_15).
-- N. Lamb *et al.*, *"DeepJoin: Learning a Joint Occupancy, Signed Distance, and Normal Field Function for Shape Repair"*,
-ACM Transactions on Graphics (TOG), vol 41, 6, 2022.
-[DOI](https://dl.acm.org/doi/abs/10.1145/3550454.3555470)
-- J. Cotterell *et al.*, *"Cell 3D Positioning by Optical encoding (C3PO) and its application to spatial transcriptomics"*,
-bioRxiv 2024.03.12.584578.
-[DOI](https://doi.org/10.1101/2024.03.12.584578)
-- L. Aviñó-Esteban *et al.*, *"Spatio-temporal reconstruction of gene expression patterns in developing mice"*,
-Development (2025) 152.
-[DOI](https://doi.org/10.1242/dev.204313)
-- J.S. Posada *et al., "morphoHeart: A quantitative tool for integrated 3D morphometric analyses of heart and ECM during embryonic development"*, PLOS Biology 23(1).
-[DOI](https://doi.org/10.1371/journal.pbio.3002995)
+<details>
+<summary>browse 68 publications using <code>vedo</code> <i><b>[click to expand]</b></i></summary>
+
+**2026**
+
+- L. Aviñó-Esteban *et al.*, *"Limblab: pipeline for 3D analysis and visualisation of limb bud gene expression"*, BMC Bioinformatics 27(1): 6 (2026).
+- D. Krsikapa, I. Y. Kim, *"Gradient-based optimization of component layout: addressing accessibility and mounting in assembly system design"*, Journal of Mechanical Design 148(3): 031702 (2026).
+
+**2025**
+
+- A. Kharlamova *et al.*, *"Spatial CAPTCHA: Generatively Benchmarking Spatial Reasoning for Human-Machine Differentiation"*, arXiv preprint arXiv:2510.03863 (2025).
+- J. F. Fuhrmann *et al.*, *"Apical extracellular matrix regulates fold morphogenesis in the Drosophila wing disc"*, bioRxiv 2025-09 (2025).
+- B. Li *et al.*, *"Three-dimensional spatial transcriptomics at isotropic resolution enabled by generative deep learning"*, bioRxiv 2025-08 (2025).
+- T.-T. Hsu *et al.*, *"Shared Alteration of Whole-Brain Connectivity and Olfactory Deficits in Multiple Autism Mouse Models"*, bioRxiv 2025-02 (2025).
+- A. Arrabi *et al.*, *"C-arm guidance: A self-supervised approach to automated positioning during stroke thrombectomy"*, 2025 IEEE 22nd International Symposium on Biomedical Imaging (ISBI).
+- L. Aviñó-Esteban, H. Cardona-Blaya, J. Sharpe, *"Spatio-temporal reconstruction of gene expression patterns in developing mice"*, Development 152: DEV204313 (2025), [DOI](https://doi.org/10.1242/dev.204313).
+- B. Bortolon *et al.*, *"GRASPLAT: Enabling dexterous grasping through novel view synthesis"*, 2025 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS).
+- L. Carreira *et al.*, *"Targeted nano-energetic material exploration through active learning algorithm implementation"*, Energetic Materials Frontiers 6(1): 3-13 (2025).
+- M. Chirillo *et al.*, *"PyReconstruct: A fully open-source, collaborative successor to Reconstruct"*, Proceedings of the National Academy of Sciences 122(31): e2505822122 (2025).
+- B. Clayton *et al.*, *"A facile method to create continuum stochastic sheet-based cellular materials"*, Additive Manufacturing: 104917 (2025).
+- A. Gross *et al.*, *"STRESS, an automated geometrical characterization of deformable particles for in vivo measurements of cell and tissue mechanical stresses"*, Scientific Reports 15(1): 28599 (2025).
+- A. Gauvain *et al.*, *"HydroModPy: A Python toolbox for deploying catchment-scale shallow groundwater models"* (2025).
+- K. N. Halwachs *et al.*, *"Effects of Stiffness and Degradability on Cardiac Fibroblast Contractility and Extracellular Matrix Secretion in Three-Dimensional Hydrogel Scaffolds"*, ACS Biomaterials Science & Engineering 11(11): 6521-6533 (2025).
+- R. Kliman *et al.*, *"Toward an Automated System for Nondestructive Estimation of Plant Biomass"*, Plant Direct 9(3): e70043 (2025).
+- J. Laussu *et al.*, *"Deciphering the interplay between biology and physics with a finite element method-implemented vertex organoid model: A tool for the mechanical analysis of cell behavior on a spherical organoid shell"*, PLOS Computational Biology 21(1): e1012681 (2025).
+- M. Mitelut *et al.*, *"Continuous monitoring and machine vision reveals that developing gerbils exhibit structured social behaviors prior to the emergence of autonomy"*, PLoS Biology 23(9): e3003348 (2025).
+- J.S. Posada *et al.*, *"morphoHeart: A quantitative tool for integrated 3D morphometric analyses of heart and ECM during embryonic development"*, PLOS Biology 23(1) (2025), [DOI](https://doi.org/10.1371/journal.pbio.3002995).
+- A. Prashanth, S. Hathwar, *"Comparing the Effectiveness of Deep Learning Models Combined with Loss Functions in Cardiac Segmentation"* (2025).
+- M. Levin Thomas *et al.*, *"Banner cloud formation at the Matterhorn: Measurements versus large-eddy simulations"*, Journal of the Atmospheric Sciences 82(8): 1661-1675 (2025).
+- H. Xu, *"A Progressive Interactive Exploration Framework for Vector Field Data Guided by Storylines"*, 2025 18th International Congress on Image and Signal Processing, BioMedical Engineering and Informatics (CISP-BMEI).
+- S. M. Zahedi *et al.*, *"Comparative evaluation of neural networks and transfer learning for predicting mechanical properties of 3D-printed bone scaffolds"*, Macromolecular Materials and Engineering 310(10): e00073 (2025).
+
+**2024**
+
+- C. Lei *et al.*, *"Automatic tooth arrangement with joint features of point and mesh representations via diffusion probabilistic models"*, Computer Aided Geometric Design 111: 102293 (2024), [Code](https://github.com/lcshhh/TADPM).
+- S. Li *et al.*, *"MogaNet: Multi-order Gated Aggregation Network"*, International Conference on Learning Representations (2024).
+- J. Cotterell *et al.*, *"Cell 3D Positioning by Optical encoding (C3PO) and its application to spatial transcriptomics"*, bioRxiv 2024.03.12.584578 (2024), [DOI](https://doi.org/10.1101/2024.03.12.584578).
+- D. Galvez Alcantara, *"Development of a finite element framework for biological applications"* (2024).
+- M. Gazziro *et al.*, *"Fully Automated Ultra-Personalized 3D Printed Prosthetic Breasts"*, American Journal of Biomedical Science & Research 20: 128-132 (2024).
+- I. G. Gonçalves, J. M. García-Aznar, *"Neurorosettes: a novel computational modelling framework to investigate the Homer-Wright rosette formation in neuroblastoma"*, Computational Particle Mechanics 11(2): 565-577 (2024).
+- E. Guiltinan *et al.*, *"pySimFrac: A Python library for synthetic fracture generation and analysis"*, Computers & Geosciences 191: 105665 (2024).
+- R. Haase *et al.*, *"Benchmarking large language models for bio-image analysis code generation"*, bioRxiv 2024-04 (2024).
+- Y. Jiang, S. L. Bugby, J. E. Lees, *"PMST: A custom Python-based Monte Carlo Simulation Tool for research and system development in portable pinhole gamma cameras"*, Nuclear Instruments and Methods in Physics Research Section A 1061: 169161 (2024).
+- D. Li, F. Pucci, M. Rooman, *"Prediction of paratope-epitope pairs using convolutional neural networks"*, International Journal of Molecular Sciences 25(10): 5434 (2024).
+- M. Marro, L. Moccozet, D. Vernez, *"A numerical model for quantifying exposure to natural and artificial light in human health research"*, Computers in Biology and Medicine 171: 108119 (2024).
+- M. Deepa Maheshvare *et al.*, *"Kiphynet: an online network simulation tool connecting cellular kinetics and physiological transport"*, Metabolomics 20(5): 94 (2024).
+- S. Scholz *et al.*, *"Factors influencing pain medication and opioid use in patients with musculoskeletal injuries: a retrospective insurance claims database study"*, Scientific Reports 14(1): 1978 (2024).
+- J. Sultana, M. Naznin, T. R. Faisal, *"SSDL - an automated semi-supervised deep learning approach for patient-specific 3D reconstruction of proximal femur from QCT images"*, Medical & Biological Engineering & Computing 62(5): 1409-1425 (2024).
+- S. Wang *et al.*, *"A 3D dental model dataset with pre/post-orthodontic treatment for automatic tooth alignment"*, Scientific Data 11(1): 1277 (2024).
+
+**2023**
+
+- S. Baumer *et al.*, *"Robocasting of ceramic Fischer-Koch S scaffolds for bone tissue engineering"*, Journal of Functional Biomaterials 14(5): 251 (2023).
+- R. Blain *et al.*, *"A tridimensional atlas of the developing human head"*, Cell 186(26): 5910-5924 (2023).
+- B. Bogusławski *et al.*, *"Increasing brightness in multiphoton microscopy with a low-repetition-rate, wavelength-tunable femtosecond fiber laser"*, Optics Continuum 3(1): 22-35 (2023).
+- G. Gust *et al.*, *"3D Analytics: Opportunities and Guidelines for Information Systems Research"*, arXiv preprint arXiv:2308.08560 (2023).
+- T.-T. Hsu, C.-Y. Wang, Y.-P. Hsueh, *"Tbr1 autism mouse model displays altered structural and functional amygdalar connectivity and abnormal whole-brain synchronization"*, bioRxiv 2023-07 (2023).
+- J. Laussu *et al.*, *"Deciphering interplay between biology and physics: finite element method-implemented vertex organoid model raises the challenge"*, bioRxiv 2023-05 (2023).
+- Y. Li *et al.*, *"Research on the evolutionary history of the morphological structure of cotton seeds: a new perspective based on high-resolution micro-CT technology"*, Frontiers in Plant Science 14: 1219476 (2023).
+- S. Monji-Azad *et al.*, *"SimTool: A toolset for soft body simulation using Flex and Unreal Engine"*, Software Impacts 17: 100521 (2023).
+- S. Triarjo *et al.*, *"Automatic 3D digital dental landmark based on point transformation weight"*, 2023 International Conference on Artificial Intelligence in Information and Communication (ICAIIC).
+- V. Zinchenko *et al.*, *"MorphoFeatures for unsupervised exploration of cell types, tissues, and organs in volume electron microscopy"*, eLife 12: e80918 (2023).
+
+**2022**
+
+- M. Blanc *et al.*, *"A dynamic and expandable digital 3D-atlas maker for monitoring the temporal changes in tissue growth during hindbrain morphogenesis"*, eLife 11: e78300 (2022).
+- G. Dalmasso *et al.*, *"4D reconstruction of murine developmental trajectories using spherical harmonics"*, Developmental Cell 57, 1-11 September 2022, [DOI](https://doi.org/10.1016/j.devcel.2022.08.005).
+- M. Deepa Maheshvare *et al.*, *"A Graph-Based Framework for Multiscale Modeling of Physiological Transport"*, Frontiers in Network Physiology 1: 802881 (2022), [DOI](https://www.frontiersin.org/articles/10.3389/fnetp.2021.802881/full).
+- M. Erber *et al.*, *"Geometry-based assurance of directional solidification for complex topology-optimized castings using the medial axis transform"*, Computer-Aided Design 152: 103394 (2022).
+- J. Hellar *et al.*, *"Manifold approximating graph interpolation of cardiac local activation time"*, IEEE Transactions on Biomedical Engineering 69(10): 3253-3264 (2022).
+- A. Jaeschke, H. Eckert, L. J. Bray, *"Qiber3D - an open-source software package for the quantitative analysis of networks from 3D image stacks"*, GigaScience 11: giab091 (2022).
+- J. Klatzow, G. Dalmasso, N. Martínez-Abadías, J. Sharpe, V. Uhlmann, *"µMatch: 3D shape correspondence for microscopy data"*, Frontiers in Computer Science (2022), [DOI](https://doi.org/10.3389/fcomp.2022.777615).
+- N. Lamb *et al.*, *"DeepJoin: Learning a Joint Occupancy, Signed Distance, and Normal Field Function for Shape Repair"*, ACM Transactions on Graphics 41(6) (2022), [DOI](https://dl.acm.org/doi/abs/10.1145/3550454.3555470).
+- J. E. Santos *et al.*, *"MPLBM-UT: Multiphase LBM library for permeable media analysis"*, SoftwareX 18: 101097 (2022).
+- D. J. E. Waibel *et al.*, *"Capturing Shape Information with Multi-scale Topological Loss Terms for 3D Reconstruction"*, Lecture Notes in Computer Science 13434 (2022), [DOI](https://doi.org/10.1007/978-3-031-16440-8_15).
+
+**2021**
+
+- F. Claudi, A. L. Tyson, T. Branco, *"Brainrender. A python based software for visualisation of neuroanatomical and morphological data."*, eLife 10: e65751 (2021), [DOI](https://doi.org/10.7554/eLife.65751).
+- F. Claudi, T. Branco, *"Differential geometry methods for constructing manifold-targeted recurrent neural networks"*, bioRxiv 2021.10.07.463479 (2021), [DOI](https://doi.org/10.1101/2021.10.07.463479).
+- X. Lu *et al.*, *"3D electromagnetic modeling of graphitic faults in the Athabasca Basin using a finite-volume time-domain approach with unstructured grids"*, Geophysics (2021), [DOI](https://doi.org/10.1190/geo2020-0657.1).
+- S. Ortiz-Laverde *et al.*, *"Proposal of an open-source computational toolbox for solving PDEs in the context of chemical reaction engineering using FEniCS and complementary components"*, Heliyon 7(1) (2021).
+- J. Paglia *et al.*, *"TRACER: a toolkit to register and visualize anatomical coordinates in the rat brain"*, bioRxiv 2021-10 (2021).
+- A. Pollack *et al.*, *"Stochastic inversion of gravity, magnetic, tracer, lithology, and fault data for geologically realistic structural models: Patua Geothermal Field case study"*, Geothermics 95 (2021), [DOI](https://doi.org/10.1016/j.geothermics.2021.102129).
+
+**2020**
+
+- J. S. Bennett, D. Sijacki, *"Resolving shocks and filaments in galaxy formation simulations: effects on gas properties and star formation in the circumgalactic medium"*, Monthly Notices of the Royal Astronomical Society 499(1) (2020), [DOI](https://doi.org/10.1093/mnras/staa2835).
+- J. D. P. Deshapriya *et al.*, *"Spectral analysis of craters on (101955) Bennu"*, Icarus (2020), [DOI](https://doi.org/10.1016/j.icarus.2020.114252).
+
+**2018**
+
+- X. Diego *et al.*, *"Key features of Turing systems are determined purely by network topology"*, Physical Review X 8, 021071 (2018), [DOI](https://journals.aps.org/prx/abstract/10.1103/PhysRevX.8.021071).
+- M. Musy, K. Flaherty *et al.*, *"A Quantitative Method for Staging Mouse Limb Embryos based on Limb Morphometry"*, Development 145(7): dev154856 (2018), [DOI](http://dev.biologists.org/content/145/7/dev154856).
+
+</details>
 
 **Have you found this software useful for your research? Star ✨ the project and cite it as:**
 
