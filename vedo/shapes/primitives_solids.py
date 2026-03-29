@@ -236,6 +236,253 @@ class Spring(Mesh):
         self.name = "Spring"
 
 
+class IcoSphere(Mesh):
+    """
+    Create a sphere made of a uniform triangle mesh.
+    """
+
+    def __init__(self, pos=(0, 0, 0), r=1.0, subdivisions=4, c="r5", alpha=1.0) -> None:
+        """
+        Create a sphere made of a uniform triangle mesh
+        (from recursive subdivision of an icosahedron).
+
+        Example:
+        ```python
+        from vedo import *
+        icos = IcoSphere(subdivisions=3)
+        icos.compute_quality().cmap('coolwarm')
+        icos.show(axes=1).close()
+        ```
+        ![](https://vedo.embl.es/images/basic/icosphere.jpg)
+        """
+        subdivisions = int(min(subdivisions, 9))  # to avoid disasters
+
+        t = (1.0 + np.sqrt(5.0)) / 2.0
+        points = np.array(
+            [
+                [-1, t, 0],
+                [1, t, 0],
+                [-1, -t, 0],
+                [1, -t, 0],
+                [0, -1, t],
+                [0, 1, t],
+                [0, -1, -t],
+                [0, 1, -t],
+                [t, 0, -1],
+                [t, 0, 1],
+                [-t, 0, -1],
+                [-t, 0, 1],
+            ]
+        )
+        faces = [
+            [0, 11, 5],
+            [0, 5, 1],
+            [0, 1, 7],
+            [0, 7, 10],
+            [0, 10, 11],
+            [1, 5, 9],
+            [5, 11, 4],
+            [11, 10, 2],
+            [10, 7, 6],
+            [7, 1, 8],
+            [3, 9, 4],
+            [3, 4, 2],
+            [3, 2, 6],
+            [3, 6, 8],
+            [3, 8, 9],
+            [4, 9, 5],
+            [2, 4, 11],
+            [6, 2, 10],
+            [8, 6, 7],
+            [9, 8, 1],
+        ]
+        super().__init__([points * r, faces], c=c, alpha=alpha)
+
+        for _ in range(subdivisions):
+            self.subdivide(method=1)
+            pts = utils.versor(self.coordinates) * r
+            self.coordinates = pts
+
+        self.pos(pos)
+        self.name = "IcoSphere"
+
+
+class Sphere(Mesh):
+    """
+    Build a sphere.
+    """
+
+    def __init__(self, pos=(0, 0, 0), r=1.0, res=24, quads=False, c="r5", alpha=1.0) -> None:
+        """
+        Build a sphere at position `pos` of radius `r`.
+
+        Arguments:
+            r : (float)
+                sphere radius
+            res : (int, list)
+                resolution in phi, resolution in theta is by default `2*res`
+            quads : (bool)
+                sphere mesh will be made of quads instead of triangles
+
+        [](https://user-images.githubusercontent.com/32848391/72433092-f0a31e00-3798-11ea-85f7-b2f5fcc31568.png)
+        """
+        if len(pos) == 2:
+            pos = np.asarray([pos[0], pos[1], 0])
+
+        self.radius = r  # used by fitSphere
+        self.center = pos
+        self.residue = 0
+
+        if quads:
+            res = max(res, 4)
+            img = vtki.vtkImageData()
+            img.SetDimensions(res - 1, res - 1, res - 1)
+            rs = 1.0 / (res - 2)
+            img.SetSpacing(rs, rs, rs)
+            gf = vtki.new("GeometryFilter")
+            gf.SetInputData(img)
+            gf.Update()
+            super().__init__(gf.GetOutput(), c, alpha)
+            self.lw(0.1)
+
+            cgpts = self.coordinates - (0.5, 0.5, 0.5)
+
+            x, y, z = cgpts.T
+            x = x * (1 + x * x) / 2
+            y = y * (1 + y * y) / 2
+            z = z * (1 + z * z) / 2
+            _, theta, phi = cart2spher(x, y, z)
+
+            pts = spher2cart(np.ones_like(phi) * r, theta, phi).T
+            self.coordinates = pts
+
+        else:
+            if utils.is_sequence(res):
+                res_t, res_phi = res
+            else:
+                res_t, res_phi = 2 * res, res
+
+            ss = vtki.new("SphereSource")
+            ss.SetRadius(r)
+            ss.SetThetaResolution(res_t)
+            ss.SetPhiResolution(res_phi)
+            ss.Update()
+
+            super().__init__(ss.GetOutput(), c, alpha)
+
+        self.phong()
+        self.pos(pos)
+        self.name = "Sphere"
+
+
+class Ellipsoid(Mesh):
+    """Build a 3D ellipsoid."""
+    def __init__(
+        self,
+        pos=(0, 0, 0),
+        axis1=(0.5, 0, 0),
+        axis2=(0, 1, 0),
+        axis3=(0, 0, 1.5),
+        res=24,
+        c="cyan4",
+        alpha=1.0,
+    ) -> None:
+        """
+        Build a 3D ellipsoid centered at position `pos`.
+
+        Arguments:
+            axis1 : (list)
+                First axis. Length corresponds to semi-axis.
+            axis2 : (list)
+                Second axis. Length corresponds to semi-axis.
+            axis3 : (list)
+                Third axis. Length corresponds to semi-axis.
+        """
+        self.center = utils.make3d(pos)
+
+        self.axis1 = utils.make3d(axis1)
+        self.axis2 = utils.make3d(axis2)
+        self.axis3 = utils.make3d(axis3)
+
+        self.va = np.linalg.norm(self.axis1)
+        self.vb = np.linalg.norm(self.axis2)
+        self.vc = np.linalg.norm(self.axis3)
+
+        self.va_error = 0
+        self.vb_error = 0
+        self.vc_error = 0
+
+        self.nr_of_points = 1  # used by pointcloud.pca_ellipsoid()
+        self.pvalue = 0        # used by pointcloud.pca_ellipsoid()
+
+        if utils.is_sequence(res):
+            res_t, res_phi = res
+        else:
+            res_t, res_phi = 2 * res, res
+
+        elli_source = vtki.new("SphereSource")
+        elli_source.SetRadius(1)
+        elli_source.SetThetaResolution(res_t)
+        elli_source.SetPhiResolution(res_phi)
+        elli_source.Update()
+
+        super().__init__(elli_source.GetOutput(), c, alpha)
+
+        matrix = np.c_[self.axis1, self.axis2, self.axis3]
+        lt = LinearTransform(matrix).translate(pos)
+        self.apply_transform(lt)
+        self.name = "Ellipsoid"
+
+    def asphericity(self) -> float:
+        """
+        Return a measure of how different an ellipsoid is from a sphere.
+        Values close to zero correspond to a spheric object.
+        """
+        a, b, c = self.va, self.vb, self.vc
+        asp = (((a - b) / (a + b)) ** 2 + ((a - c) / (a + c)) ** 2 + ((b - c) / (b + c)) ** 2) / 3. * 4.
+        return float(asp)
+
+    def asphericity_error(self) -> float:
+        """
+        Calculate statistical error on the asphericity value.
+
+        Errors on the main axes are stored in
+        `Ellipsoid.va_error`, Ellipsoid.vb_error` and `Ellipsoid.vc_error`.
+        """
+        a, b, c = self.va, self.vb, self.vc
+        sqrtn = np.sqrt(self.nr_of_points)
+        ea, eb, ec = a / 2 / sqrtn, b / 2 / sqrtn, b / 2 / sqrtn
+
+        dL2 = (
+            ea ** 2
+            * (
+                -8 * (a - b) ** 2 / (3 * (a + b) ** 3)
+                - 8 * (a - c) ** 2 / (3 * (a + c) ** 3)
+                + 4 * (2 * a - 2 * c) / (3 * (a + c) ** 2)
+                + 4 * (2 * a - 2 * b) / (3 * (a + b) ** 2)
+            ) ** 2
+            + eb ** 2
+            * (
+                4 * (-2 * a + 2 * b) / (3 * (a + b) ** 2)
+                - 8 * (a - b) ** 2 / (3 * (a + b) ** 3)
+                - 8 * (-b + c) ** 2 / (3 * (b + c) ** 3)
+                + 4 * (2 * b - 2 * c) / (3 * (b + c) ** 2)
+            ) ** 2
+            + ec ** 2
+            * (
+                4 * (-2 * a + 2 * c) / (3 * (a + c) ** 2)
+                - 8 * (a - c) ** 2 / (3 * (a + c) ** 3)
+                + 4 * (-2 * b + 2 * c) / (3 * (b + c) ** 2)
+                - 8 * (-b + c) ** 2 / (3 * (b + c) ** 3)
+            ) ** 2
+        )
+        err = np.sqrt(dL2)
+        self.va_error = ea
+        self.vb_error = eb
+        self.vc_error = ec
+        return err
+
+
 class Cylinder(Mesh):
     """
     Build a cylinder of specified height and radius.
