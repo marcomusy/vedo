@@ -47,6 +47,11 @@ dependencies = [
 all = [
     "scipy"
 ]
+trame = [
+    "trame",
+    "trame-vtk",
+    "trame-vuetify",
+]
 
 [project.urls]
 Homepage = "https://github.com/marcomusy/vedo"

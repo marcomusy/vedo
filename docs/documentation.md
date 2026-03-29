@@ -129,7 +129,7 @@ The supported backends are:
 - `vtk`, in this case a normal graphics rendering window will pop up.
 - [k3d](https://github.com/K3D-tools/K3D-jupyter), use with `pip install k3d`.
 - [ipyvtklink](https://github.com/Kitware/ipyvtklink) (allows interaction with the scene).
-- [trame](https://www.kitware.com/trame-visual-analytics-everywhere/)
+- [trame](https://www.kitware.com/trame-visual-analytics-everywhere/), use with `pip install trame trame-vtk trame-vuetify`.
 
 Check for more examples in the
 [repository](https://github.com/marcomusy/vedo/tree/master/examples/notebooks).

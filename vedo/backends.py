@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+from importlib import import_module
 import os
 import numpy as np
 
@@ -17,6 +18,94 @@ from vedo import utils
 __doc__ = """Submodule to delegate jupyter notebook rendering"""
 
 __all__ = []
+
+
+############################################################################################
+def _import_trame_components():
+    """Import trame modules across legacy and current package layouts."""
+    try:
+        from trame.app import get_server  # type: ignore
+    except ImportError as exc:
+        raise ImportError(
+            "Trame support requires the 'trame' package. Install with:\n"
+            "> pip install trame trame-vtk trame-vuetify"
+        ) from exc
+
+    layout_paths = [
+        ("trame.ui.vuetify3", "VAppLayout", "vue3"),
+        ("trame.ui.vuetify", "VAppLayout", "vue2"),
+    ]
+    widget_paths = [
+        ("trame.widgets.vtk", None),
+    ]
+    vuetify_paths = [
+        ("trame.widgets.vuetify3", None, "vue3"),
+        ("trame.widgets.vuetify", None, "vue2"),
+    ]
+
+    layout_error = None
+    VAppLayout = None
+    client_type = None
+    for module_name, attr_name, layout_client_type in layout_paths:
+        try:
+            VAppLayout = getattr(import_module(module_name), attr_name)
+            client_type = layout_client_type
+            break
+        except ImportError as exc:
+            layout_error = exc
+
+    vtk_error = None
+    t_vtk = None
+    for module_name, _ in widget_paths:
+        try:
+            t_vtk = import_module(module_name)
+            break
+        except ImportError as exc:
+            vtk_error = exc
+
+    vuetify_error = None
+    vuetify = None
+    vuetify_client_type = None
+    for module_name, _, current_client_type in vuetify_paths:
+        try:
+            vuetify = import_module(module_name)
+            vuetify_client_type = current_client_type
+            break
+        except ImportError as exc:
+            vuetify_error = exc
+
+    if (
+        VAppLayout
+        and t_vtk
+        and vuetify
+        and client_type is not None
+        and client_type == vuetify_client_type
+    ):
+        return get_server, VAppLayout, t_vtk, vuetify, client_type
+
+    missing = []
+    if VAppLayout is None or vuetify is None:
+        missing.append("trame-vuetify")
+    if t_vtk is None:
+        missing.append("trame-vtk")
+    missing = sorted(set(missing))
+
+    raise ImportError(
+        "Trame backend requires additional widget packages. Install with:\n"
+        f"> pip install trame {' '.join(missing)}"
+    )
+
+
+############################################################################################
+def _warn_trame_xopengl(render_window):
+    """Warn about unstable interactive trame rendering on X/GLX offscreen VTK."""
+    if not render_window or not hasattr(render_window, "GetClassName"):
+        return
+    if render_window.GetClassName() == "vtkXOpenGLRenderWindow":
+        vedo.logger.warning(
+            "Trame on vtkXOpenGLRenderWindow can segfault during interactive rendering. "
+            "Prefer VtkLocalView or use a VTK build with EGL/OSMesa for remote rendering."
+        )
 
 
 ############################################################################################
@@ -403,20 +492,19 @@ def start_k3d(actors2show):
 def start_trame():
     """Start a trame display in the notebook"""
     try:
-        from trame.app import get_server, jupyter # type: ignore
-        from trame.ui.vuetify import VAppLayout # type: ignore
-        from trame.widgets import vtk as t_vtk, vuetify # type: ignore
-    except ImportError:
-        print("trame is not installed, try:\n> pip install trame==2.5.2")
-        return
+        get_server, VAppLayout, t_vtk, vuetify, client_type = _import_trame_components()
+    except ImportError as exc:
+        print(exc)
+        return None
 
     plt = vedo.current_plotter()
     if not plt:
         vedo.logger.error("No active Plotter found for the trame backend.")
         return None
     if hasattr(plt, "window") and plt.window:
+        _warn_trame_xopengl(plt.window)
         plt.renderer.ResetCamera()
-        server = get_server("jupyter-1")
+        server = get_server("jupyter-1", client_type=client_type)
         state, ctrl = server.state, server.controller
         plt.server = server
         plt.controller = ctrl
@@ -428,13 +516,15 @@ def start_trame():
 
                 with vuetify.VContainer(fluid=True, classes="pa-0 fill-height"):
                     plt.reset_camera()
-                    view = t_vtk.VtkLocalView(plt.window)
+                    server.state["scene_vedo_trame_view"] = {}
+                    view = t_vtk.VtkLocalView(plt.window, ref="vedo_trame_view")
                     ctrl.view_update = view.update
                     ctrl.view_reset_camera = view.reset_camera
+                    ctrl.view_update()
 
         ctrl.on_server_exited.add(lambda **_: print("trame server exited"))
-        jupyter.show(server)
-        return
+        vedo.set_current_notebook_plotter(layout)
+        return layout
     vedo.logger.error("No window present for the trame backend.")
     return
 

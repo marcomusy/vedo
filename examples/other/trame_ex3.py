@@ -1,20 +1,37 @@
-"""Trame integration example."""
+"""Trame integration example with interactive vedo updates."""
+from importlib import import_module
+
 from trame.app import get_server
-from trame.ui.vuetify import SinglePageLayout
-from trame.widgets import vtk, vuetify
+
+try:
+    try:
+        SinglePageLayout = import_module("trame.ui.vuetify3").SinglePageLayout
+        vtk = import_module("trame.widgets.vtk")
+        vuetify = import_module("trame.widgets.vuetify3")
+        client_type = "vue3"
+    except ImportError:
+        SinglePageLayout = import_module("trame.ui.vuetify").SinglePageLayout
+        vtk = import_module("trame.widgets.vtk")
+        vuetify = import_module("trame.widgets.vuetify")
+        client_type = "vue2"
+except ImportError as exc:
+    raise SystemExit(
+        "This example requires trame widget packages. Install with:\n"
+        "> pip install trame trame-vtk trame-vuetify"
+    ) from exc
 
 import vedo
 
 cone = vedo.Cone()
 axes = vedo.Axes(cone).unpack()
 
-plt = vedo.Plotter()
+plt = vedo.Plotter(offscreen=True)
 plt += [cone, axes]
 
 # -----------------------------------------------------------------------------
 # Trame setup
 # -----------------------------------------------------------------------------
-server = get_server()
+server = get_server(client_type=client_type)
 state, ctrl = server.state, server.controller
 
 # -----------------------------------------------------------------------------
@@ -32,7 +49,7 @@ def reset_resolution():
 # -----------------------------------------------------------------------------
 # GUI
 # -----------------------------------------------------------------------------
-with SinglePageLayout(server) as layout:
+with SinglePageLayout(server, full_height=True) as layout:
     layout.title.set_text("Use slider to change color")
 
     with layout.content:
@@ -41,9 +58,10 @@ with SinglePageLayout(server) as layout:
             classes="pa-0 fill-height",
         ):
             plt.reset_camera()
-            view = vtk.VtkLocalView(plt.window)
+            view = vtk.VtkRemoteView(plt.window, interactive_ratio=1)
             ctrl.view_update = view.update
             ctrl.view_reset_camera = view.reset_camera
+            ctrl.view_update()
 
     with layout.toolbar:
         vuetify.VSpacer()
