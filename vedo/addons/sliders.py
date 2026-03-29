@@ -13,6 +13,8 @@ import vedo.vtkclasses as vtki
 from vedo import settings
 from vedo import utils
 from vedo.colors import get_color
+
+
 class SliderWidget(vtki.vtkSliderWidget):
     """Helper class for `vtkSliderWidget`"""
 

@@ -14,6 +14,8 @@ from vedo import settings
 from vedo import utils
 from vedo.colors import get_color
 from vedo.pointcloud import Points
+
+
 class Flagpost(vtki.vtkFlagpoleLabel):
     """
     Create a flag post style element to describe an object.

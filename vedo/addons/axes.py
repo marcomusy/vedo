@@ -24,6 +24,8 @@ from vedo.visual import Actor2D
 from vedo.addons.measure import compute_visible_bounds, Ruler3D, RulerAxes
 from vedo.addons.cutters import BoxCutter, PlaneCutter, SphereCutter
 from vedo.addons.icon import Icon
+
+
 def Axes(
         obj=None,
         xtitle='x', ytitle='y', ztitle='z',

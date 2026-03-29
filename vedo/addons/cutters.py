@@ -20,6 +20,8 @@ from vedo.pointcloud import Points, Point, merge
 from vedo.grids import TetMesh
 from vedo.volume import Volume
 from vedo.visual import Actor2D
+
+
 class BaseCutter:
     """
     Base class for Cutter widgets.

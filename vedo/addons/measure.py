@@ -16,6 +16,8 @@ from vedo.colors import get_color
 from vedo.assembly import Group
 from vedo.mesh import Mesh
 from vedo.pointcloud import merge
+
+
 class Ruler2D(vtki.vtkAxisActor2D):
     """
     Create a ruler with tick marks, labels and a title.
