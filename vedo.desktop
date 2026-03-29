@@ -1,24 +1,21 @@
 
-# In linux systems, place this file in directory:
+# Install this file in one of:
+# ~/.local/share/applications/
 # /usr/share/applications/
-# sudo chmod o+r /usr/share/applications/vedo.desktop
 #
-# then right-click a file
-# choose Properties
-# choose Open With ... vedo
+# Then select "Open With" for a supported file type and choose `vedo`.
 
 [Desktop Entry]
 Type=Application
 Name=vedo
-GenericName=vedo
-Comment=Scientific 3D Viewer
-Comment[it]=Visualizzatore di modelli 3D in vari formati
-Exec=vedo -n %F
+GenericName=Scientific 3D Viewer
+Comment=Scientific 3D viewer for meshes, volumes, and point clouds
+TryExec=vedo
+Exec=vedo %F
 Categories=Science;Graphics;3DGraphics;
-Icon=python
-Terminal=true
-StartupNotify=false
-MimeType=text/x-python;application/x-wavefront-obj;application/x-collada;
+Icon=applications-science
+Terminal=false
+StartupNotify=true
+MimeType=application/x-wavefront-obj;model/obj;model/stl;image/tiff;image/x-tiff-multipage;
 X-AppStream-Ignore=True
-Keywords=browser;vtk;collada;
-
+Keywords=vtk;mesh;volume;point-cloud;visualization;science;
