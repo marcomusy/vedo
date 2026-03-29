@@ -14,12 +14,17 @@ from vedo.grids.image import Image
 from vedo.pointcloud import Points
 from vedo.volume import Volume
 
-from .constants import _x3d_html_template
 from .loaders import _import_npy
 
 __docformat__ = "google"
 
-def export_window(fileoutput: str | os.PathLike, binary=False, plt=None) -> vedo.Plotter | None:
+def export_window(
+    fileoutput: str | os.PathLike,
+    binary=False,
+    plt=None,
+    backend: str | None = None,
+    backend_options: dict | None = None,
+) -> vedo.Plotter | None:
     """
     Exporter which writes out the rendered scene into an HTML, X3D or Numpy file.
 
@@ -33,6 +38,11 @@ def export_window(fileoutput: str | os.PathLike, binary=False, plt=None) -> vedo
     .. note::
         the rendering window can also be exported to `numpy` file `scene.npz`
         by pressing `E` key at any moment during visualization.
+
+        For `.html` exports, the default backend remains `k3d`.
+        Pass `backend="threejs"` to generate a standalone Three.js scene page instead.
+        Optional `backend_options` can tune the Three.js material mapping, e.g.
+        `{"headlight_intensity": 1.1, "specular_scale": 0.55, "preserve_base_color": True}`.
     """
     fileoutput = str(fileoutput)
     if plt is None:
@@ -48,45 +58,26 @@ def export_window(fileoutput: str | os.PathLike, binary=False, plt=None) -> vedo
 
     ####################################################################
     elif fr.endswith(".x3d"):
-        # obj = plt.get_actors()
-        # if plt.axes_instances:
-        #     obj.append(plt.axes_instances[0])
-
-        # for a in obj:
-        #     if isinstance(a, Assembly):
-        #         plt.remove(a)
-        #         plt.add(a.unpack())
-
-        plt.render()
-
-        exporter = vtki.new("X3DExporter")
-        exporter.SetBinary(binary)
-        exporter.FastestOff()
-        exporter.SetInput(plt.window)
-        exporter.SetFileName(fileoutput)
-        # exporter.WriteToOutputStringOn()
-        exporter.Update()
-        exporter.Write()
-
-        wsize = plt.window.GetSize()
-        x3d_html = _x3d_html_template.replace("~fileoutput", fileoutput)
-        x3d_html = x3d_html.replace("~width",  str(wsize[0]))
-        x3d_html = x3d_html.replace("~height", str(wsize[1]))
-        with open(fileoutput.replace(".x3d", ".html"), "w", encoding="UTF-8") as outF:
-            outF.write(x3d_html)
+        _export_x3d(plt, fileoutput, binary=binary)
 
     ####################################################################
     elif fr.endswith(".html"):
-        savebk = vedo.current_notebook_backend()
-        try:
-            vedo.set_current_notebook_backend("k3d")
-            vedo.settings.default_backend = "k3d"
-            backend_obj = vedo.backends.get_notebook_backend(plt.objects)
-            with open(fileoutput, "w", encoding="UTF-8") as fp:
-                fp.write(backend_obj.get_snapshot())
-        finally:
-            vedo.set_current_notebook_backend(savebk)
-            vedo.settings.default_backend = savebk
+        html_backend = "k3d" if backend is None else backend.lower()
+        if html_backend == "threejs":
+            _export_threejs(plt, fileoutput, backend_options=backend_options)
+        elif html_backend == "k3d":
+            savebk = vedo.current_notebook_backend()
+            try:
+                vedo.set_current_notebook_backend("k3d")
+                vedo.settings.default_backend = "k3d"
+                backend_obj = vedo.backends.get_notebook_backend(plt.objects)
+                with open(fileoutput, "w", encoding="UTF-8") as fp:
+                    fp.write(backend_obj.get_snapshot())
+            finally:
+                vedo.set_current_notebook_backend(savebk)
+                vedo.settings.default_backend = savebk
+        else:
+            vedo.logger.error(f"Unsupported html export backend '{backend}'")
 
     else:
         vedo.logger.error(f"export extension {fr.split('.')[-1]} is not supported")
@@ -131,7 +122,8 @@ def to_numpy(act: Any) -> dict:
             poly = obj.dataset
             mapper = obj.mapper
 
-        adict["points"] = obj.vertices.astype(float)
+        # Keep geometry arrays at single precision to reduce exported scene size.
+        adict["points"] = obj.vertices.astype(np.float32, copy=False)
 
         adict["cells"] = None
         if poly.GetNumberOfPolys():
@@ -156,6 +148,16 @@ def to_numpy(act: Any) -> dict:
         adict["metadata"] = {}
         for iname in obj.metadata.keys():
             adict["metadata"][iname] = obj.metadata[iname]
+
+        adict["point_normals"] = None
+        normals = poly.GetPointData().GetNormals()
+        if normals:
+            adict["point_normals"] = vedo.vtk2numpy(normals).astype(np.float32, copy=False)
+
+        adict["texture_coordinates"] = None
+        tcoords = poly.GetPointData().GetTCoords()
+        if tcoords:
+            adict["texture_coordinates"] = vedo.vtk2numpy(tcoords).astype(np.float32, copy=False)
 
         # NEW in vedo 5.0
         adict["scalar_mode"] = mapper.GetScalarMode()
@@ -224,6 +226,23 @@ def to_numpy(act: Any) -> dict:
         adict["backcolor"] = None
         if obj.actor.GetBackfaceProperty():
             adict["backcolor"] = obj.actor.GetBackfaceProperty().GetColor()
+        if adict["point_normals"] is None and poly.GetNumberOfPolys():
+            if adict["representation"] != 1 and adict["shading"] != 0:
+                # Compute normals from the already transformed world-space
+                # points so exported shading follows the exact geometry that
+                # the browser receives.
+                world_poly = utils.buildPolyData(adict["points"], faces=adict["cells"])
+                pdnorm = vtki.new("PolyDataNormals")
+                pdnorm.SetInputData(world_poly)
+                pdnorm.SetComputePointNormals(True)
+                pdnorm.SetComputeCellNormals(False)
+                pdnorm.SetConsistency(True)
+                pdnorm.FlipNormalsOff()
+                pdnorm.SetSplitting(False)
+                pdnorm.Update()
+                wn = pdnorm.GetOutput().GetPointData().GetNormals()
+                if wn:
+                    adict["point_normals"] = vedo.vtk2numpy(wn).astype(np.float32, copy=False)
 
     ######################################################## Volume
     elif isinstance(obj, Volume):
@@ -290,12 +309,61 @@ def to_numpy(act: Any) -> dict:
 
 
 #########################################################################
-def _export_npy(plt, fileoutput="scene.npz") -> None:
+def _color_to_hex(rgb) -> str | None:
+    """Convert a color tuple to a CSS hex string."""
+    if rgb is None:
+        return None
+    r, g, b = colors.get_color(rgb)
+    return "#{:02x}{:02x}{:02x}".format(
+        int(np.clip(r, 0, 1) * 255),
+        int(np.clip(g, 0, 1) * 255),
+        int(np.clip(b, 0, 1) * 255),
+    )
 
-    fileoutput = str(fileoutput)
+
+def _json_compatible(value):
+    """Convert numpy-heavy scene payloads into JSON-serializable objects."""
+    if isinstance(value, np.ndarray):
+        return value.tolist()
+    if isinstance(value, (np.floating, np.integer)):
+        return value.item()
+    if isinstance(value, set):
+        return sorted(value)
+    if isinstance(value, dict):
+        return {k: _json_compatible(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_compatible(v) for v in value]
+    return value
+
+
+def _plotter_to_scene_dict(plt) -> dict:
+    """Serialize the current Plotter scene into a dictionary."""
     if plt is None:
-        vedo.logger.error("_export_npy(): no active Plotter found")
-        return
+        vedo.logger.error("_plotter_to_scene_dict(): no active Plotter found")
+        return {}
+
+    def _append_scene_object(ob, index_tag) -> None:
+        if isinstance(ob, Assembly):
+            asse_actor = ob.actor if hasattr(ob, "actor") else ob
+            asse_scale = asse_actor.GetScale()
+            asse_pos = asse_actor.GetPosition()
+            asse_ori = asse_actor.GetOrientation()
+            asse_org = asse_actor.GetOrigin()
+            for elem in ob.unpack():
+                npobj = to_numpy(elem)
+                npobj["name"] = f"ASSEMBLY{index_tag}_{ob.name}_{npobj.get('name', '')}"
+                metadata = npobj.get("metadata")
+                if not isinstance(metadata, dict):
+                    metadata = {}
+                    npobj["metadata"] = metadata
+                metadata["assembly"] = ob.name
+                metadata["assembly_scale"] = asse_scale
+                metadata["assembly_position"] = asse_pos
+                metadata["assembly_orientation"] = asse_ori
+                metadata["assembly_origin"] = asse_org
+                sdict["objects"].append(npobj)
+        else:
+            sdict["objects"].append(to_numpy(ob))
 
     sdict = {}
     sdict["shape"] = plt.shape
@@ -310,7 +378,7 @@ def _export_npy(plt, fileoutput="scene.npz") -> None:
     )
     sdict["position"] = plt.pos
     sdict["size"] = plt.size
-    sdict["axes"] = 0
+    sdict["axes"] = plt.axes
     sdict["title"] = plt.title
     sdict["backgrcol"] = colors.get_color(plt.renderer.GetBackground())
     sdict["backgrcol2"] = None
@@ -323,54 +391,44 @@ def _export_npy(plt, fileoutput="scene.npz") -> None:
     sdict["objects"] = []
 
     actors = plt.get_actors(include_non_pickables=True)
-    # this ^ also retrieves Actors2D
-    allobjs = []
     for i, a in enumerate(actors):
-
         if not a.GetVisibility():
             continue
 
         try:
             ob = a.retrieve_object()
-            # print("get_actors",[ob], ob.name)
-            if isinstance(ob, Assembly):
-                asse_scale = ob.GetScale()
-                asse_pos = ob.GetPosition()
-                asse_ori = ob.GetOrientation()
-                asse_org = ob.GetOrigin()
-                for elem in ob.unpack():
-                    npobj = to_numpy(elem)
-                    npobj["name"] = f"ASSEMBLY{i}_{ob.name}_{npobj.get('name', '')}"
-                    metadata = npobj.get("metadata")
-                    if not isinstance(metadata, dict):
-                        metadata = {}
-                        npobj["metadata"] = metadata
-                    metadata["assembly"] = ob.name
-                    metadata["assembly_scale"] = asse_scale
-                    metadata["assembly_position"] = asse_pos
-                    metadata["assembly_orientation"] = asse_ori
-                    metadata["assembly_origin"] = asse_org
-                    sdict["objects"].append(npobj)
-            else:
-                allobjs.append(ob)
-
+            _append_scene_object(ob, i)
         except AttributeError:
-            # print()
-            # vedo.logger.warning(f"Cannot retrieve object of type {type(a)}")
             pass
 
-    for a in allobjs:
-        # print("to_numpy(): dumping", [a], a.name)
-        # try:
-        npobj = to_numpy(a)
-        sdict["objects"].append(npobj)
-        # except AttributeError:
-        #     vedo.logger.warning(f"Cannot export object of type {type(a)}")
+    for i, ax in enumerate(getattr(plt, "axes_instances", [])):
+        if not ax or ax is True:
+            continue
+        if isinstance(ax, Assembly):
+            _append_scene_object(ax, f"AX{i}")
+    return sdict
 
-    if fileoutput.endswith(".npz"):
-        np.savez_compressed(fileoutput, vedo_scenes=[sdict])
-    else:
-        np.save(fileoutput, [sdict])
+
+#########################################################################
+def _export_npy(plt, fileoutput="scene.npz") -> None:
+    """Compatibility wrapper for the dedicated NPY exporter."""
+    from .export_npy import _export_npy as _export_npy_impl
+
+    _export_npy_impl(plt, fileoutput)
+
+
+def _export_x3d(plt, fileoutput="scene.x3d", binary=False) -> None:
+    """Compatibility wrapper for the dedicated X3D exporter."""
+    from .export_x3d import _export_x3d as _export_x3d_impl
+
+    _export_x3d_impl(plt, fileoutput, binary=binary)
+
+
+def _export_threejs(plt, fileoutput="scene.html", backend_options: dict | None = None) -> None:
+    """Compatibility wrapper for the dedicated Three.js exporter."""
+    from .export_threejs import _export_threejs as _export_threejs_impl
+
+    _export_threejs_impl(plt, fileoutput, backend_options=backend_options)
 
 
 ########################################################################
@@ -507,62 +565,10 @@ def screenshot(filename="screenshot.png", scale=1, asarray=False) -> vedo.Plotte
         writer.Write()
     return plt
 
-
-def ask(*question, **kwarg) -> str:
-    """
-    Ask a question from command line. Return the answer as a string.
-    See function `colors.printc()` for the description of the keyword options.
-
-    Arguments:
-        options : (list)
-            a python list of possible answers to choose from.
-        default : (str)
-            the default answer when just hitting return.
-
-    Example:
-    ```python
-    import vedo
-    res = vedo.ask("Continue?", options=['Y','n'], default='Y', c='g')
-    print(res)
-    ```
-    """
-    kwarg.update({"end": " "})
-    if "invert" not in kwarg:
-        kwarg.update({"invert": True})
-    if "box" in kwarg:
-        kwarg.update({"box": ""})
-
-    options = kwarg.pop("options", [])
-    default = kwarg.pop("default", "")
-    if options:
-        opt = "["
-        for o in options:
-            opt += o + "/"
-        opt = opt[:-1] + "]"
-        colors.printc(*question, opt, **kwarg)
-    else:
-        colors.printc(*question, **kwarg)
-
-    try:
-        resp = input()
-    except Exception:
-        resp = ""
-        return resp
-
-    if options:
-        if resp not in options:
-            if default and str(repr(resp)) == "''":
-                return default
-            colors.printc("Please choose one option in:", opt, italic=True, bold=False)
-            kwarg["options"] = options
-            return ask(*question, **kwarg)  # ask again
-    return resp
-
 __all__ = [
     "export_window",
     "to_numpy",
     "_export_npy",
     "import_window",
     "screenshot",
-    "ask",
 ]

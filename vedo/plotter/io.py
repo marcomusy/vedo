@@ -69,7 +69,7 @@ def toimage(plotter, scale=1) -> vedo.image.Image:
     w2if.Update()
     return vedo.image.Image(w2if.GetOutput())
 
-def export(plotter, filename="scene.npz", binary=False) -> Any:
+def export(plotter, filename="scene.npz", binary=False, backend=None, backend_options=None) -> Any:
     """
     Export scene to file to HTML, X3D or Numpy file.
 
@@ -77,5 +77,11 @@ def export(plotter, filename="scene.npz", binary=False) -> Any:
         - [export_x3d.py](https://github.com/marcomusy/vedo/tree/master/examples/other/export_x3d.py)
         - [export_numpy.py](https://github.com/marcomusy/vedo/tree/master/examples/other/export_numpy.py)
     """
-    vedo.file_io.export_window(filename, binary=binary)
+    vedo.file_io.export_window(
+        filename,
+        binary=binary,
+        plt=plotter,
+        backend=backend,
+        backend_options=backend_options,
+    )
     return plotter

@@ -25,7 +25,8 @@ from .loaders import (
     load_obj,
 )
 from .network import download, file_info, gunzip
-from .scene import _export_npy, ask, export_window, import_window, screenshot, to_numpy
+from .scene import _export_npy, export_window, import_window, screenshot, to_numpy
+from .terminal import ask
 from .video import Video
 from .writers import read, save, write
 

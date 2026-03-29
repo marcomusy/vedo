@@ -8,7 +8,8 @@ from tempfile import TemporaryDirectory
 import vedo
 from vedo import colors, utils
 
-from .scene import ask, screenshot
+from .scene import screenshot
+from .terminal import ask
 
 __docformat__ = "google"
 
