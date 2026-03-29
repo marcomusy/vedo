@@ -5,12 +5,15 @@ from __future__ import annotations
 import numpy as np
 
 import vedo
+import vedo.transformations
 
 
 def main() -> None:
     pts = vedo.Points(np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]]))
     msh = vedo.Sphere(res=12).compute_normals()
     vol = vedo.Volume(np.zeros((8, 8, 8)))
+    assert vedo.transformations is not None
+    assert vedo.transformations.cart2spher(1.0, 0.0, 0.0)[0] == 1.0
     assert pts.npoints == 2
     assert msh.npoints > 0
     assert vol.npoints > 0
