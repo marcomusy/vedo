@@ -14,6 +14,7 @@ from .fits import (
     pca_ellipsoid,
     project_point_on_variety,
 )
+from .transform import procrustes_alignment
 
 __all__ = [
     "Points",
@@ -26,4 +27,5 @@ __all__ = [
     "pca_ellipse",
     "pca_ellipsoid",
     "project_point_on_variety",
+    "procrustes_alignment",
 ]
