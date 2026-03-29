@@ -7,6 +7,7 @@ from weakref import ref as weak_ref_to
 from typing import Any
 from typing_extensions import Self
 import numpy as np
+from vtkmodules.vtkCommonDataModel import vtkExplicitStructuredGrid as vtkExplicitStructuredGrid_
 
 import vedo.vtkclasses as vtki  # a wrapper for lazy imports
 
@@ -34,100 +35,6 @@ class ExplicitStructuredGrid:
         inputobj : (vtkExplicitStructuredGrid, list, str)
             list of points and indices, or filename
     """
-
-    # int 	GetDataDimension ()
-    #  	Return the dimensionality of the data.
-    
-    # void 	GetCellDims (int cellDims[3])
-    #  	Computes the cell dimensions according to internal point dimensions.
-    
-    # int 	GetExtentType () override
-    #  	The extent type is a 3D extent.
-    
-    # void 	BuildLinks ()
-    #  	Build topological links from points to lists of cells that use each point.
-    
-    # vtkIdType * 	GetCellPoints (vtkIdType cellId)
-    #  	Get direct raw pointer to the 8 points indices of an hexahedra.
-    
-    # void 	GetCellPoints (vtkIdType cellId, vtkIdType &npts, vtkIdType *&pts)
-    #  	More efficient method to obtain cell points.
-    
-    # void 	GetCellPoints (vtkIdType cellId, vtkIdType &npts, vtkIdType const *&pts, vtkIdList *ptIds) override
-    #  	More efficient method to obtain cell points.
-    
-    # void 	GetCellNeighbors (vtkIdType cellId, vtkIdType neighbors[6], int *wholeExtent=nullptr)
-    #  	Get cell neighbors of the cell for every faces.
-    
-    # void 	ComputeCellStructuredCoords (vtkIdType cellId, int &i, int &j, int &k, bool adjustForExtent=true)
-    #  	Given a cellId, get the structured coordinates (i-j-k).
-    
-    # vtkIdType 	ComputeCellId (int i, int j, int k, bool adjustForExtent=true)
-    #  	Given a location in structured coordinates (i-j-k), return the cell id.
-    
-    # void 	ComputeFacesConnectivityFlagsArray ()
-    #  	Compute the faces connectivity flags array.
-    
-    # bool 	HasAnyBlankCells () override
-    #  	Returns true if one or more cells are blanked, false otherwise.
-    
-    # unsigned char 	IsCellVisible (vtkIdType cellId)
-    #  	Return non-zero value if specified cell is visible.
-    
-    # unsigned char 	IsCellGhost (vtkIdType cellId)
-    #  	Return non-zero value if specified cell is a ghost cell.
-    
-    # bool 	HasAnyGhostCells ()
-    #  	Returns true if one or more cells are ghost, false otherwise.
-    
-    # void 	CheckAndReorderFaces ()
-    #  	Check faces are numbered correctly regarding ijk numbering 
-    # If not this will reorganize cell points order so face order is valid.
-    
-    # void 	GetCellBounds (vtkIdType cellId, double bounds[6]) override
-    #  	Standard vtkDataSet API methods.
-    
-    # int 	GetCellType (vtkIdType cellId) override
-    #  	Standard vtkDataSet API methods.
-    
-    # vtkIdType 	GetCellSize (vtkIdType cellId) override
-    #  	Standard vtkDataSet API methods.
-    
-    # vtkIdType 	GetNumberOfCells () override
-    #  	Standard vtkDataSet API methods.
-    
-    # void 	GetCellPoints (vtkIdType cellId, vtkIdList *ptIds) override
-    #  	Standard vtkDataSet API methods.
-    
-    # void 	GetPointCells (vtkIdType ptId, vtkIdList *cellIds) override
-    #  	Standard vtkDataSet API methods.
-    
-    # int 	GetMaxCellSize () override
-    #  	Standard vtkDataSet API methods.
-    
-    # int 	GetMaxSpatialDimension () override
-    #  	Standard vtkDataSet API methods.
-    
-    # int 	GetMinSpatialDimension () override
-    #  	Standard vtkDataSet API methods.
-    
-    # void 	GetCellNeighbors (vtkIdType cellId, vtkIdList *ptIds, vtkIdList *cellIds) override
-    #  	Standard vtkDataSet API methods.
-    
-    # void 	SetDimensions (int i, int j, int k)
-    #  	Set/Get the dimensions of this structured dataset in term of number of points along each direction.
-    
-    # void 	SetDimensions (int dim[3])
-    #  	Set/Get the dimensions of this structured dataset in term of number of points along each direction.
-    
-    # void 	GetDimensions (int dim[3])
-    #  	Set/Get the dimensions of this structured dataset in term of number of points along each direction.
-    
-    # void 	SetExtent (int x0, int x1, int y0, int y1, int z0, int z1)
-    #  	Set/Get the extent of this structured dataset in term of number of points along each direction.
-    
-    # void 	SetExtent (int extent[6])
-    #  	Set/Get the extent of this structured dataset in term of number of points along each direction.
 
     def __init__(self, inputobj=None):
         """
@@ -162,9 +69,9 @@ class ExplicitStructuredGrid:
 
         ###############################
         if inputobj is None:
-            self.dataset = vtki.vtkExplicitStructuredGrid()
+            self.dataset = vtkExplicitStructuredGrid_()
 
-        elif isinstance(inputobj, vtki.vtkExplicitStructuredGrid):
+        elif isinstance(inputobj, vtkExplicitStructuredGrid_):
             self.dataset = inputobj
 
         elif isinstance(inputobj, ExplicitStructuredGrid):
@@ -183,7 +90,7 @@ class ExplicitStructuredGrid:
             self.dataset = reader.GetOutput()
 
         elif utils.is_sequence(inputobj):
-            self.dataset = vtki.vtkExplicitStructuredGrid()
+            self.dataset = vtkExplicitStructuredGrid_()
             x, y, z = inputobj
             xyz = np.vstack((
                 x.flatten(order="F"),
@@ -231,12 +138,191 @@ class ExplicitStructuredGrid:
     
     def dimensions(self) -> np.ndarray:
         """Return the number of points in the x, y and z directions."""
-        return np.array(self.dataset.GetDimensions())
+        try:
+            dims = self.dataset.GetDimensions()
+        except TypeError:
+            dims = [0, 0, 0]
+            self.dataset.GetDimensions(dims)
+        return np.array(dims)
+
+    def data_dimension(self) -> int:
+        """Return the dimensionality of the data."""
+        return self.dataset.GetDataDimension()
+
+    def cell_dimensions(self) -> np.ndarray:
+        """Return the number of cells in the x, y and z directions."""
+        dims = [0, 0, 0]
+        self.dataset.GetCellDims(dims)
+        return np.array(dims)
+
+    def extent(self) -> np.ndarray:
+        """Return the structured grid extent."""
+        return np.array(self.dataset.GetExtent())
+
+    def extent_type(self) -> int:
+        """Return the extent type identifier."""
+        return self.dataset.GetExtentType()
+
+    def set_dimensions(self, *dims) -> Self:
+        """Set the grid dimensions as number of points along x, y and z."""
+        if len(dims) == 1 and utils.is_sequence(dims[0]):
+            dims = dims[0]
+        self.dataset.SetDimensions(*dims)
+        self.mapper.Modified()
+        return self
+
+    def set_extent(self, *extent) -> Self:
+        """Set the structured grid extent."""
+        if len(extent) == 1 and utils.is_sequence(extent[0]):
+            extent = extent[0]
+        self.dataset.SetExtent(*extent)
+        self.mapper.Modified()
+        return self
+
+    def build_links(self) -> Self:
+        """Build topological links from points to the cells that use them."""
+        self.dataset.BuildLinks()
+        return self
+
+    def cell_points(self, cell_id: int) -> np.ndarray:
+        """Return the point ids that define cell `cell_id`."""
+        pt_ids = vtki.vtkIdList()
+        self.dataset.GetCellPoints(cell_id, pt_ids)
+        return np.array([pt_ids.GetId(i) for i in range(pt_ids.GetNumberOfIds())], dtype=int)
+
+    def point_cells(self, point_id: int) -> np.ndarray:
+        """Return the cell ids that use point `point_id`."""
+        cell_ids = vtki.vtkIdList()
+        self.dataset.GetPointCells(point_id, cell_ids)
+        return np.array([cell_ids.GetId(i) for i in range(cell_ids.GetNumberOfIds())], dtype=int)
+
+    def cell_neighbors(
+        self,
+        cell_id: int,
+        pt_ids=None,
+        whole_extent=None,
+    ) -> np.ndarray:
+        """
+        Return the neighbors of cell `cell_id`.
+
+        If `pt_ids` is given, return the ids of the cells sharing all those points.
+        Otherwise return the six face-neighbor ids.
+        """
+        if pt_ids is None:
+            neighbors = [-1] * 6
+            if whole_extent is None:
+                self.dataset.GetCellNeighbors(cell_id, neighbors)
+            else:
+                self.dataset.GetCellNeighbors(cell_id, neighbors, whole_extent)
+            return np.array(neighbors, dtype=int)
+
+        ids = vtki.vtkIdList()
+        for pid in pt_ids:
+            ids.InsertNextId(int(pid))
+        neighbors = vtki.vtkIdList()
+        self.dataset.GetCellNeighbors(cell_id, ids, neighbors)
+        return np.array([neighbors.GetId(i) for i in range(neighbors.GetNumberOfIds())], dtype=int)
+
+    def compute_cell_structured_coords(
+        self,
+        cell_id: int,
+        adjust_for_extent=True,
+    ) -> np.ndarray:
+        """Return the structured `(i, j, k)` coordinates of cell `cell_id`."""
+        i = vtki.mutable(0)
+        j = vtki.mutable(0)
+        k = vtki.mutable(0)
+        self.dataset.ComputeCellStructuredCoords(cell_id, i, j, k, adjust_for_extent)
+        return np.array([int(i), int(j), int(k)])
+
+    def compute_cellid(self, ijk, adjust_for_extent=True) -> int:
+        """Return the cell id for the structured coordinates `(i, j, k)`."""
+        if utils.is_sequence(ijk):
+            return self.dataset.ComputeCellId(int(ijk[0]), int(ijk[1]), int(ijk[2]), adjust_for_extent)
+        raise TypeError("compute_cellid() expects a sequence of 3 structured coordinates")
+
+    def compute_faces_connectivity_flags_array(self) -> Self:
+        """Compute the faces connectivity flags array."""
+        self.dataset.ComputeFacesConnectivityFlagsArray()
+        return self
+
+    def has_blank_points(self) -> bool:
+        """Return True if the grid has blank points."""
+        return self.dataset.HasAnyBlankPoints()
+
+    def has_blank_cells(self) -> bool:
+        """Return True if the grid has blank cells."""
+        return self.dataset.HasAnyBlankCells()
+
+    def is_cell_visible(self, cell_id: int) -> bool:
+        """Return True if cell `cell_id` is visible."""
+        return bool(self.dataset.IsCellVisible(cell_id))
+
+    def is_cell_ghost(self, cell_id: int) -> bool:
+        """Return True if cell `cell_id` is marked as ghost."""
+        return bool(self.dataset.IsCellGhost(cell_id))
+
+    def has_ghost_cells(self) -> bool:
+        """Return True if the grid has ghost cells."""
+        return self.dataset.HasAnyGhostCells()
+
+    def has_ghost_points(self) -> bool:
+        """Return True if the grid has ghost points."""
+        return self.dataset.HasAnyGhostPoints()
+
+    def blank_cell(self, cell_id: int) -> Self:
+        """Blank cell `cell_id`."""
+        self.dataset.BlankCell(cell_id)
+        return self
+
+    def unblank_cell(self, cell_id: int) -> Self:
+        """Unblank cell `cell_id`."""
+        self.dataset.UnBlankCell(cell_id)
+        return self
+
+    def check_and_reorder_faces(self) -> Self:
+        """Check and reorder cell faces to match the structured orientation."""
+        self.dataset.CheckAndReorderFaces()
+        return self
+
+    def cell_bounds(self, cell_id: int) -> np.ndarray:
+        """Return the bounds of cell `cell_id`."""
+        bounds = [0.0] * 6
+        self.dataset.GetCellBounds(cell_id, bounds)
+        return np.array(bounds)
+
+    def cell_type(self, cell_id: int) -> int:
+        """Return the VTK cell type id of cell `cell_id`."""
+        return self.dataset.GetCellType(cell_id)
+
+    def cell_size(self, cell_id: int) -> int:
+        """Return the number of points used by cell `cell_id`."""
+        return self.dataset.GetCellSize(cell_id)
+
+    def number_of_cells(self) -> int:
+        """Return the number of cells."""
+        return self.dataset.GetNumberOfCells()
+
+    def max_cell_size(self) -> int:
+        """Return the maximum cell size."""
+        return self.dataset.GetMaxCellSize()
+
+    def max_spatial_dimension(self) -> int:
+        """Return the maximum spatial dimension across all cells."""
+        return self.dataset.GetMaxSpatialDimension()
+
+    def min_spatial_dimension(self) -> int:
+        """Return the minimum spatial dimension across all cells."""
+        return self.dataset.GetMinSpatialDimension()
+
+    def find_point(self, x: list) -> int:
+        """Given a position `x`, return the id of the closest point."""
+        return self.dataset.FindPoint(x)
     
     def clone(self, deep=True) -> ExplicitStructuredGrid:
         """Return a clone copy of the StructuredGrid. Alias of `copy()`."""
         if deep:
-            newrg = vtki.vtkExplicitStructuredGrid()
+            newrg = vtkExplicitStructuredGrid_()
             newrg.CopyStructure(self.dataset)
             newrg.CopyAttributes(self.dataset)
             newvol = ExplicitStructuredGrid(newrg)
@@ -287,5 +373,3 @@ class ExplicitStructuredGrid:
             return self
         ug.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
         return ug
-
-
