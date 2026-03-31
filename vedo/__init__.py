@@ -18,7 +18,7 @@ from importlib.metadata import PackageNotFoundError, version as pkg_version
 import numpy as np
 from numpy import sin, cos, sqrt, exp, log, dot, cross  # just because handy
 
-from vedo._lazy import build_attr_map, dir_lazy, getattr_lazy
+from vedo.lazy_imports import build_attr_map, dir_lazy, getattr_lazy
 
 try:
     from vtkmodules.vtkCommonCore import vtkVersion

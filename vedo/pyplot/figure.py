@@ -19,6 +19,8 @@ from vedo.pointcloud import Points, merge
 from vedo.mesh import Mesh
 from vedo.assembly import Assembly
 
+__all__ = ["LabelData", "Figure"]
+
 class LabelData:
     """Helper internal class to hold label information."""
 
@@ -602,7 +604,3 @@ class Figure(Assembly):
         aleg.name = "Legend"
         return self
 
-
-#########################################################################################
-
-__all__ = ["LabelData", "Figure"]

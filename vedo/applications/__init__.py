@@ -3,7 +3,7 @@
 from __future__ import annotations
 """Ready-to-use interactive application plotters and tools."""
 
-from vedo._lazy import build_attr_map, dir_lazy, getattr_lazy
+from vedo.lazy_imports import build_attr_map, dir_lazy, getattr_lazy
 
 __docformat__ = "google"
 

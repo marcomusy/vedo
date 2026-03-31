@@ -21,6 +21,8 @@ from vedo.assembly import Assembly
 
 from .functions import _histogram_polar
 
+__all__ = ["pie_chart", "violin", "whisker", "matrix", "CornerPlot", "CornerHistogram"]
+
 def pie_chart(
     fractions,
     title="",
@@ -565,7 +567,3 @@ def CornerHistogram(
     cplot.GetYAxisActor2D().SetLabelFactor(0.0)
     cplot.GetYAxisActor2D().LabelVisibilityOff()
     return cplot
-
-
-
-__all__ = ["pie_chart", "violin", "whisker", "matrix", "CornerPlot", "CornerHistogram"]

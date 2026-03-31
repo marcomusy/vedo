@@ -4,7 +4,10 @@ from __future__ import annotations
 """
 Subset of the vtk classes to be imported eagerly or lazily.
 """
+import sys
+from contextlib import contextmanager
 from importlib import import_module
+from threading import Lock, Timer
 
 __all__ = []
 
@@ -12,6 +15,56 @@ __all__ = []
 location = {}
 module_cache = {}
 _rendering_backends_loaded = False
+
+_SLOW_LOAD_NOTICE_DELAY = 5.0
+_slow_load_notice_lock = Lock()
+_slow_load_notice_timer = None
+_slow_load_notice_shown = False
+_slow_load_depth = 0
+
+
+def _emit_slow_load_notice() -> None:
+    global _slow_load_notice_shown
+    with _slow_load_notice_lock:
+        if _slow_load_notice_shown or _slow_load_depth <= 0:
+            return
+        _slow_load_notice_shown = True
+    print(
+        "...please wait, modules are still loading. "
+        "The first import can take a while on some systems, "
+        "later imports will be much faster.",
+        file=sys.stderr,
+        flush=True,
+    )
+
+
+@contextmanager
+def _slow_load_notice():
+    global _slow_load_depth, _slow_load_notice_timer
+
+    with _slow_load_notice_lock:
+        if not _slow_load_notice_shown and _slow_load_depth == 0:
+            timer = Timer(_SLOW_LOAD_NOTICE_DELAY, _emit_slow_load_notice)
+            timer.daemon = True
+            _slow_load_notice_timer = timer
+            timer.start()
+        _slow_load_depth += 1
+
+    try:
+        yield
+    finally:
+        with _slow_load_notice_lock:
+            _slow_load_depth -= 1
+            if _slow_load_depth == 0 and _slow_load_notice_timer is not None:
+                _slow_load_notice_timer.cancel()
+                _slow_load_notice_timer = None
+
+
+def _import_module_cached(module_name: str):
+    if module_name not in module_cache:
+        with _slow_load_notice():
+            module_cache[module_name] = import_module(module_name)
+    return module_cache[module_name]
 
 ######################################################################
 for name in [
@@ -794,10 +847,10 @@ def _ensure_rendering_backends():
     if Settings.dry_run_mode >= 2:
         return
 
-    import_module("vtkmodules.vtkRenderingOpenGL2")
-    import_module("vtkmodules.vtkInteractionStyle")
-    import_module("vtkmodules.vtkRenderingFreeType")
-    import_module("vtkmodules.vtkRenderingVolumeOpenGL2")
+    _import_module_cached("vtkmodules.vtkRenderingOpenGL2")
+    _import_module_cached("vtkmodules.vtkInteractionStyle")
+    _import_module_cached("vtkmodules.vtkRenderingFreeType")
+    _import_module_cached("vtkmodules.vtkRenderingVolumeOpenGL2")
     _rendering_backends_loaded = True
 
 
@@ -841,17 +894,14 @@ def get_class(name, module_name=""):
     if _needs_rendering_backends(module_name):
         _ensure_rendering_backends()
 
-    if module_name not in module_cache:
-        module = import_module(module_name)
-        module_cache[module_name] = module
+    module = _import_module_cached(module_name)
     if name:
         try:
-            return getattr(module_cache[module_name], name)
+            return getattr(module, name)
         except AttributeError:
             if name == "vtkCellTreeLocator" and module_name == "vtkmodules.vtkCommonDataModel":
                 fallback_module_name = "vtkmodules.vtkFiltersGeneral"
-                if fallback_module_name not in module_cache:
-                    module_cache[fallback_module_name] = import_module(fallback_module_name)
+                _import_module_cached(fallback_module_name)
                 return getattr(module_cache[fallback_module_name], name)
             raise
     else:

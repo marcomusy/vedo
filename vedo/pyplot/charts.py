@@ -21,6 +21,8 @@ from vedo.assembly import Assembly
 
 from .figure import LabelData, Figure
 
+__all__ = ["Histogram1D", "Histogram2D", "PlotBars", "PlotXY"]
+
 class Histogram1D(Figure):
     "1D histogramming."
 
@@ -1145,7 +1147,3 @@ class PlotXY(Figure):
 
         self.insert(*acts, as3d=False)
         self.name = "PlotXY"
-
-
-
-__all__ = ["Histogram1D", "Histogram2D", "PlotBars", "PlotXY"]

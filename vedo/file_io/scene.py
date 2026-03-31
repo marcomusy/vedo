@@ -17,6 +17,13 @@ from vedo.volume import Volume
 from .loaders import _import_npy
 
 __docformat__ = "google"
+__all__ = [
+    "export_window",
+    "to_numpy",
+    "_export_npy",
+    "import_window",
+    "screenshot",
+]
 
 def export_window(
     fileoutput: str | os.PathLike,
@@ -564,11 +571,3 @@ def screenshot(filename="screenshot.png", scale=1, asarray=False) -> vedo.Plotte
         writer.SetInputData(w2if.GetOutput())
         writer.Write()
     return plt
-
-__all__ = [
-    "export_window",
-    "to_numpy",
-    "_export_npy",
-    "import_window",
-    "screenshot",
-]

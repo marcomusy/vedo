@@ -19,6 +19,8 @@ from vedo.pointcloud import Points, merge
 from vedo.mesh import Mesh
 from vedo.assembly import Assembly
 
+__all__ = ["DirectedGraph"]
+
 class DirectedGraph(Assembly):
     """
     Support for Directed Graphs.
@@ -350,5 +352,3 @@ class DirectedGraph(Assembly):
         super().__init__([dgraph, node_labels, edge_labels, arrows])
         self.name = "DirectedGraphAssembly"
         return self
-
-__all__ = ["DirectedGraph"]

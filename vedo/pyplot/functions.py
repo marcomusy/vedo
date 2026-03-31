@@ -22,6 +22,8 @@ from vedo.assembly import Assembly
 from .figure import Figure
 from .charts import Histogram1D, Histogram2D, PlotBars, PlotXY
 
+__all__ = ["plot", "histogram", "fit", "streamplot"]
+
 def plot(*args, **kwargs):
     """
     Draw a 2D line plot, or scatter plot, of variable x vs variable y.
@@ -1605,7 +1607,3 @@ def streamplot(
         stream.scale([1 / (n - 1) * (xmax - xmin), 1 / (n - 1) * (ymax - ymin), 1])
         stream.shift(xmin, ymin)
     return stream
-
-
-
-__all__ = ["plot", "histogram", "fit", "streamplot"]

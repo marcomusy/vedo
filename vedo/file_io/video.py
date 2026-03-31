@@ -12,6 +12,7 @@ from .scene import screenshot
 from .terminal import ask
 
 __docformat__ = "google"
+__all__ = ["Video"]
 
 class Video:
     """
@@ -227,5 +228,3 @@ class Video:
         ):
             output_file = os.path.join(output_dir, f"{prefix}{str(i).zfill(5)}.{file_format}")
             imageio.imwrite(output_file, frame, format=file_format)
-
-__all__ = ["Video"]

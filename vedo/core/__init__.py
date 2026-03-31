@@ -3,7 +3,7 @@
 from __future__ import annotations
 """Compatibility facade for vedo core algorithm mixins."""
 
-from vedo._lazy import build_attr_map, dir_lazy, getattr_lazy
+from vedo.lazy_imports import build_attr_map, dir_lazy, getattr_lazy
 
 _LAZY_EXPORT_MAP, __all__ = build_attr_map(
     ("vedo.core.data", ["DataArrayHelper"]),

@@ -16,6 +16,7 @@ from .loaders import load
 from .scene import to_numpy
 
 __docformat__ = "google"
+__all__ = ["write", "save", "read"]
 
 def write(objct: Any, fileoutput: str | os.PathLike, binary=True) -> Any:
     """
@@ -173,6 +174,3 @@ def save(obj: Any, fileoutput="out.png", binary=True) -> Any:
 def read(obj: Any, unpack=True, force=False) -> Any:
     """Read an object from file. Same as `load()`."""
     return load(obj, unpack, force)
-
-
-__all__ = ["write", "save", "read"]

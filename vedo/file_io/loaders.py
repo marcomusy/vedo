@@ -20,6 +20,24 @@ from vedo.volume import Volume
 from .network import download, file_info, gunzip
 
 __docformat__ = "google"
+__all__ = [
+    "load",
+    "_load_file",
+    "loadStructuredPoints",
+    "loadStructuredGrid",
+    "load3DS",
+    "loadOFF",
+    "loadSTEP",
+    "loadGeoJSON",
+    "loadPVD",
+    "loadNeutral",
+    "loadGmesh",
+    "loadPCD",
+    "from_numpy",
+    "_import_npy",
+    "loadImageData",
+    "load_obj",
+]
 
 def load(inputobj: list | str | os.PathLike, unpack=True, force=False) -> Any:
     """
@@ -959,22 +977,3 @@ def load_obj(fileinput: str | os.PathLike, mtl_file=None, texture_path=None) -> 
             msh.texture(tx)
         objs.append(msh)
     return objs
-
-__all__ = [
-    "load",
-    "_load_file",
-    "loadStructuredPoints",
-    "loadStructuredGrid",
-    "load3DS",
-    "loadOFF",
-    "loadSTEP",
-    "loadGeoJSON",
-    "loadPVD",
-    "loadNeutral",
-    "loadGmesh",
-    "loadPCD",
-    "from_numpy",
-    "_import_npy",
-    "loadImageData",
-    "load_obj",
-]

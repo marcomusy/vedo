@@ -12,6 +12,11 @@ from vedo import colors, utils
 
 
 __docformat__ = "google"
+__all__ = [
+    "PointsVisualEffectsMixin",
+    "PointsVisualAnnotationsMixin",
+    "MeshVisualTextureMixin",
+]
 
 
 class PointsVisualEffectsMixin:
@@ -1047,10 +1052,3 @@ class MeshVisualTextureMixin:
 
         self.dataset.Modified()
         return self
-
-
-__all__ = [
-    "PointsVisualEffectsMixin",
-    "PointsVisualAnnotationsMixin",
-    "MeshVisualTextureMixin",
-]

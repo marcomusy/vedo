@@ -8,6 +8,7 @@ from tempfile import NamedTemporaryFile
 from vedo import colors, settings
 
 __docformat__ = "google"
+__all__ = ["download", "gunzip", "file_info"]
 
 def download(url: str, force=False, verbose=True) -> str:
     """
@@ -93,5 +94,3 @@ def file_info(file_path: str) -> tuple[str, str]:
         siz = "%3.1f%s" % (num, x)
         created = time.ctime(os.path.getmtime(file_path))
     return siz, created
-
-__all__ = ["download", "gunzip", "file_info"]

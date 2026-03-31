@@ -3,7 +3,7 @@
 from __future__ import annotations
 """Submodule to generate simple and complex geometric shapes."""
 
-from vedo._lazy import build_attr_map, dir_lazy, getattr_lazy
+from vedo.lazy_imports import build_attr_map, dir_lazy, getattr_lazy
 
 
 def VedoLogo(distance=0.0, c=None, bc="t", version=False, frame=True):
