@@ -3,20 +3,7 @@
 from __future__ import annotations
 """Ready-to-use interactive application plotters and tools."""
 
-from vedo.applications.slicing import (
-    Slicer3DPlotter,
-    Slicer3DTwinPlotter,
-    Slicer2DPlotter,
-    RayCastPlotter,
-)
-from vedo.applications.morphing import (
-    MorphPlotter,
-    MorphByLandmarkPlotter,
-    MorphBySplinesPlotter,
-)
-from vedo.applications.browsers import IsosurfaceBrowser, Browser
-from vedo.applications.editing import FreeHandCutPlotter, SplinePlotter, ImageEditor
-from vedo.applications.animation import Animation, AnimationPlayer, Clock
+from vedo._lazy import build_attr_map, dir_lazy, getattr_lazy
 
 __docformat__ = "google"
 
@@ -26,20 +13,24 @@ This module contains vedo applications which provide some *ready-to-use* funcion
 <img src="https://vedo.embl.es/images/advanced/app_raycaster.gif" width="500">
 """
 
-__all__ = [
-    "Browser",
-    "IsosurfaceBrowser",
-    "FreeHandCutPlotter",
-    "RayCastPlotter",
-    "Slicer2DPlotter",
-    "Slicer3DPlotter",
-    "Slicer3DTwinPlotter",
-    "MorphPlotter",
-    "MorphByLandmarkPlotter",
-    "MorphBySplinesPlotter",
-    "SplinePlotter",
-    "ImageEditor",
-    "Animation",
-    "AnimationPlayer",
-    "Clock",
-]
+_LAZY_EXPORT_MAP, __all__ = build_attr_map(
+    (
+        "vedo.applications.slicing",
+        ["Slicer3DPlotter", "Slicer3DTwinPlotter", "Slicer2DPlotter", "RayCastPlotter"],
+    ),
+    (
+        "vedo.applications.morphing",
+        ["MorphPlotter", "MorphByLandmarkPlotter", "MorphBySplinesPlotter"],
+    ),
+    ("vedo.applications.browsers", ["IsosurfaceBrowser", "Browser"]),
+    ("vedo.applications.editing", ["FreeHandCutPlotter", "SplinePlotter", "ImageEditor"]),
+    ("vedo.applications.animation", ["Animation", "AnimationPlayer", "Clock"]),
+)
+
+
+def __getattr__(name):
+    return getattr_lazy(__name__, globals(), name, attr_map=_LAZY_EXPORT_MAP)
+
+
+def __dir__():
+    return dir_lazy(globals(), attr_map=_LAZY_EXPORT_MAP)

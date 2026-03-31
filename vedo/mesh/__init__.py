@@ -3,6 +3,14 @@
 from __future__ import annotations
 """Mesh package facade."""
 
-from .core import Mesh
+from vedo._lazy import build_attr_map, dir_lazy, getattr_lazy
 
-__all__ = ["Mesh"]
+_LAZY_EXPORT_MAP, __all__ = build_attr_map(("vedo.mesh.core", ["Mesh"]))
+
+
+def __getattr__(name):
+    return getattr_lazy(__name__, globals(), name, attr_map=_LAZY_EXPORT_MAP)
+
+
+def __dir__():
+    return dir_lazy(globals(), attr_map=_LAZY_EXPORT_MAP)

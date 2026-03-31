@@ -44,6 +44,7 @@ seed_center = np.array([0.1, 0.0, 0.0])
 states = seed_center + np.random.normal(0, 0.05, (particle_count, 3))
 render_positions = states * render_scale
 swarm_points = Points(render_positions, r=3)
+swarm_points.pointcolors = cloud_colors(states, "managua")
 
 def loop_func(_event):
     global states
@@ -51,7 +52,7 @@ def loop_func(_event):
         states = rk4_step(states, time_step)
     render_positions = states * render_scale
     swarm_points.points = render_positions
-    swarm_points.pointcolors = cloud_colors(states, "managua")
+    # swarm_points.pointcolors = cloud_colors(states, "managua")
     plotter.render()
 
 plotter = Plotter(bg="#151325", bg2="#252335", size=(1200,1200))

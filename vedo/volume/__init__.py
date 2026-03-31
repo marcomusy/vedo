@@ -3,6 +3,14 @@
 from __future__ import annotations
 """Volume package facade."""
 
-from .core import Volume
+from vedo._lazy import build_attr_map, dir_lazy, getattr_lazy
 
-__all__ = ["Volume"]
+_LAZY_EXPORT_MAP, __all__ = build_attr_map(("vedo.volume.core", ["Volume"]))
+
+
+def __getattr__(name):
+    return getattr_lazy(__name__, globals(), name, attr_map=_LAZY_EXPORT_MAP)
+
+
+def __dir__():
+    return dir_lazy(globals(), attr_map=_LAZY_EXPORT_MAP)

@@ -3,14 +3,19 @@
 from __future__ import annotations
 """Compatibility facade for vedo core algorithm mixins."""
 
-from vedo.core.data import DataArrayHelper, _get_data_legacy_format
-from vedo.core.common import CommonAlgorithms
-from vedo.core.points import PointAlgorithms
-from vedo.core.volume import VolumeAlgorithms
+from vedo._lazy import build_attr_map, dir_lazy, getattr_lazy
 
-__all__ = [
-    "DataArrayHelper",
-    "CommonAlgorithms",
-    "PointAlgorithms",
-    "VolumeAlgorithms",
-]
+_LAZY_EXPORT_MAP, __all__ = build_attr_map(
+    ("vedo.core.data", ["DataArrayHelper"]),
+    ("vedo.core.common", ["CommonAlgorithms"]),
+    ("vedo.core.points", ["PointAlgorithms"]),
+    ("vedo.core.volume", ["VolumeAlgorithms"]),
+)
+
+
+def __getattr__(name):
+    return getattr_lazy(__name__, globals(), name, attr_map=_LAZY_EXPORT_MAP)
+
+
+def __dir__():
+    return dir_lazy(globals(), attr_map=_LAZY_EXPORT_MAP)

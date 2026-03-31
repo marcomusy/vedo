@@ -5,18 +5,15 @@ from __future__ import annotations
 Subset of the vtk classes to be imported eagerly or lazily.
 """
 from importlib import import_module
-from importlib.util import find_spec
 
 __all__ = []
 
 ######################################################################
 location = {}
 module_cache = {}
+_rendering_backends_loaded = False
 
 ######################################################################
-# noinspection PyUnresolvedReferences
-from vtkmodules.vtkInteractionStyle import vtkInteractorStyleUser
-
 for name in [
     "vtkOpenGLGPUVolumeRayCastMapper",
     "vtkSmartVolumeMapper",
@@ -131,39 +128,6 @@ for name in [
     "vtkVersion",
 ]: location[name] = "vtkCommonCore"
 
-# noinspection PyUnresolvedReferences
-from vtkmodules.vtkCommonDataModel import (
-    vtkPolyData,
-    vtkImageData,
-    vtkUnstructuredGrid,
-    vtkRectilinearGrid,
-    vtkStructuredGrid,
-    vtkCellArray,
-    vtkDataSetAttributes,
-    vtkDataObject,
-    vtkDataSet,
-    vtkFieldData,
-    vtkHexagonalPrism,
-    vtkHexahedron,
-    vtkLine,
-    vtkPentagonalPrism,
-    vtkPixel,
-    vtkPlane,
-    vtkPlanes,
-    vtkPointLocator,
-    vtkPolyLine,
-    vtkPolyPlane,
-    vtkPolygon,
-    vtkPolyVertex,
-    vtkPyramid,
-    vtkQuad,
-    vtkTetra,
-    vtkTriangle,
-    vtkTriangleStrip,
-    vtkVertex,
-    vtkVoxel,
-    vtkWedge,
-)
 for name in [
     "vtkCellArray",
     "vtkBox",
@@ -214,20 +178,10 @@ for name in [
     "vtkWedge",
 ]: location[name] = "vtkCommonDataModel"
 
-# noinspection PyUnresolvedReferences
-from vtkmodules.vtkCommonMath import vtkMatrix4x4
 location["vtkAmoebaMinimizer"] = "vtkCommonMath"
 location["vtkMatrix4x4"] = "vtkCommonMath"
 location["vtkQuaternion"] = "vtkCommonMath"
 
-# noinspection PyUnresolvedReferences
-from vtkmodules.vtkCommonTransforms import (
-    vtkHomogeneousTransform,
-    vtkLandmarkTransform,
-    vtkLinearTransform,
-    vtkThinPlateSplineTransform,
-    vtkTransform,
-)
 for name in [
     "vtkHomogeneousTransform",
     "vtkLandmarkTransform",
@@ -285,17 +239,7 @@ for name in [
     "vtkStaticCleanUnstructuredGrid",
     "vtkPolyDataPlaneCutter"
 ]: location[name] = "vtkFiltersCore"
-
-# Compatibility across VTK versions:
-# vtkIdFilter was removed in newer VTK where vtkGenerateIds is available.
-if find_spec("vtkmodules.vtkFiltersCore"):
-    _vtk_filters_core = import_module("vtkmodules.vtkFiltersCore")
-    if hasattr(_vtk_filters_core, "vtkIdFilter"):
-        location["vtkIdFilter"] = "vtkFiltersCore"
-    del _vtk_filters_core
-
-# noinspection PyUnresolvedReferences
-from vtkmodules.vtkFiltersCore import vtkGlyph3D
+location["vtkIdFilter"] = "vtkFiltersCore"
 
 
 for name in [
@@ -339,12 +283,7 @@ for name in [
     "vtkVertexGlyphFilter",
 ]: location[name] = "vtkFiltersGeneral"
 
-try:
-    from vtkmodules.vtkCommonDataModel import vtkCellTreeLocator
-    location["vtkCellTreeLocator"] = "vtkCommonDataModel"
-except ImportError:
-    from vtkmodules.vtkFiltersGeneral import vtkCellTreeLocator
-    location["vtkCellTreeLocator"] = "vtkFiltersGeneral"
+location["vtkCellTreeLocator"] = "vtkCommonDataModel"
 
 
 for name in [
@@ -605,20 +544,6 @@ for name in [
     "vtkInteractorStyleUser",
 ]: location[name] = "vtkInteractionStyle"
 
-# noinspection PyUnresolvedReferences
-from vtkmodules.vtkInteractionWidgets import (
-    vtkBalloonWidget,
-    vtkBoxWidget,
-    vtkContourWidget,
-    vtkFocalPlanePointPlacer,
-    vtkImplicitPlaneWidget,
-    vtkOrientationMarkerWidget,
-    vtkOrientedGlyphContourRepresentation,
-    vtkPlaneWidget,
-    vtkPolygonalSurfacePointPlacer,
-    vtkSliderWidget,
-    vtkSphereWidget,
-)
 for name in [
     "vtkBalloonRepresentation",
     "vtkBalloonWidget",
@@ -642,15 +567,6 @@ for name in [
 
 location["vtkCameraOrientationWidget"] = "vtkInteractionWidgets"
 
-# noinspection PyUnresolvedReferences
-from vtkmodules.vtkRenderingAnnotation import (
-    vtkAxesActor,
-    vtkAxisActor2D,
-    vtkCaptionActor2D,
-    vtkLegendBoxActor,
-    vtkLegendScaleActor,
-    vtkScalarBarActor,
-)
 for name in [
     "vtkAnnotatedCubeActor",
     "vtkArcPlotter",
@@ -666,39 +582,6 @@ for name in [
 ]: location[name] = "vtkRenderingAnnotation"
 
 
-# noinspection PyUnresolvedReferences
-from vtkmodules.vtkRenderingCore import (
-    vtkActor,
-    vtkActor2D,
-    vtkAreaPicker,
-    vtkAssembly,
-    vtkBillboardTextActor3D,
-    vtkCamera,
-    vtkCoordinate,
-    vtkDataSetMapper,
-    vtkFlagpoleLabel,
-    vtkFollower,
-    vtkImageActor,
-    vtkImageProperty,
-    vtkImageSlice,
-    vtkInteractorObserver,
-    vtkLight,
-    vtkLogLookupTable,
-    vtkProp,
-    vtkPropAssembly,
-    vtkPropCollection,
-    vtkPropPicker,
-    vtkProperty,
-    vtkRenderWindow,
-    vtkRenderer,
-    vtkRenderWindowInteractor,
-    vtkTextActor,
-    vtkTextProperty,
-    vtkTexture,
-    vtkViewport,
-    vtkVolume,
-    vtkVolumeProperty,
-)
 for name in [
     "vtkActor",
     "vtkActor2D",
@@ -894,19 +777,28 @@ array_types["ID_TYPE"]        = VTK_ID_TYPE
 
 
 #########################################################
-from vedo.settings import Settings
+def _needs_rendering_backends(module_name: str) -> bool:
+    return module_name.startswith("vtkmodules.vtkRendering") or module_name in {
+        "vtkmodules.vtkInteractionStyle",
+        "vtkmodules.vtkInteractionWidgets",
+    }
 
-if Settings.dry_run_mode < 2:
-    # https://vtk.org/doc/nightly/html
-    # /md__builds_gitlab_kitware_sciviz_ci_Documentation_Doxygen_PythonWrappers.html
-    # noinspection PyUnresolvedReferences
-    import vtkmodules.vtkRenderingOpenGL2
-    # noinspection PyUnresolvedReferences
-    import vtkmodules.vtkInteractionStyle
-    # noinspection PyUnresolvedReferences
-    import vtkmodules.vtkRenderingFreeType
-    # noinspection PyUnresolvedReferences
-    import vtkmodules.vtkRenderingVolumeOpenGL2
+
+def _ensure_rendering_backends():
+    global _rendering_backends_loaded
+    if _rendering_backends_loaded:
+        return
+
+    from vedo.settings import Settings
+
+    if Settings.dry_run_mode >= 2:
+        return
+
+    import_module("vtkmodules.vtkRenderingOpenGL2")
+    import_module("vtkmodules.vtkInteractionStyle")
+    import_module("vtkmodules.vtkRenderingFreeType")
+    import_module("vtkmodules.vtkRenderingVolumeOpenGL2")
+    _rendering_backends_loaded = True
 
 
 #########################################################
@@ -945,13 +837,40 @@ def get_class(name, module_name=""):
         else:
             raise KeyError(f"Unknown VTK class or symbol: {requested_name!r}")
     module_name = "vtkmodules." + module_name
+
+    if _needs_rendering_backends(module_name):
+        _ensure_rendering_backends()
+
     if module_name not in module_cache:
         module = import_module(module_name)
         module_cache[module_name] = module
     if name:
-        return getattr(module_cache[module_name], name)
+        try:
+            return getattr(module_cache[module_name], name)
+        except AttributeError:
+            if name == "vtkCellTreeLocator" and module_name == "vtkmodules.vtkCommonDataModel":
+                fallback_module_name = "vtkmodules.vtkFiltersGeneral"
+                if fallback_module_name not in module_cache:
+                    module_cache[fallback_module_name] = import_module(fallback_module_name)
+                return getattr(module_cache[fallback_module_name], name)
+            raise
     else:
         return module_cache[module_name]
+
+
+######################################################################
+def __getattr__(name):
+    """Resolve VTK classes and symbols lazily on first attribute access."""
+    try:
+        value = get_class(name)
+    except (KeyError, AttributeError, ImportError) as exc:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}") from exc
+    globals()[name] = value
+    return value
+
+
+def __dir__():
+    return sorted(set(globals()) | set(location))
 
 ######################################################################
 def new(cls_name, module_name=""):

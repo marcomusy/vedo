@@ -3,28 +3,7 @@
 from __future__ import annotations
 """Compatibility facade for add-on actors, widgets and utilities."""
 
-from vedo.addons.core import Goniometer, Light, ScalarBar, ScalarBar3D
-from vedo.addons.axes import Axes, add_global_axes
-from vedo.addons.widgets import ButtonWidget, Button, DrawingWidget
-from vedo.addons.interaction import PointCloudWidget, SplineTool
-from vedo.addons.ui import Flagpost, LegendBox
-from vedo.addons.sliders import SliderWidget, Slider2D, Slider3D
-from vedo.addons.cutters import (
-    BaseCutter,
-    PlaneCutter,
-    BoxCutter,
-    SphereCutter,
-    RendererFrame,
-    ProgressBarWidget,
-)
-from vedo.addons.icon import Icon
-from vedo.addons.measure import (
-    Ruler2D,
-    Ruler3D,
-    RulerAxes,
-    DistanceTool,
-    compute_visible_bounds,
-)
+from vedo._lazy import build_attr_map, dir_lazy, getattr_lazy
 
 __docformat__ = "google"
 
@@ -34,28 +13,32 @@ Create additional objects like axes, legends, lights, etc.
 ![](https://vedo.embl.es/images/pyplot/customAxes2.png)
 """
 
-__all__ = [
-    "ScalarBar",
-    "ScalarBar3D",
-    "Slider2D",
-    "Slider3D",
-    "Icon",
-    "LegendBox",
-    "Light",
-    "Axes",
-    "RendererFrame",
-    "Ruler2D",
-    "Ruler3D",
-    "RulerAxes",
-    "DistanceTool",
-    "SplineTool",
-    "DrawingWidget",
-    "Goniometer",
-    "Button",
-    "ButtonWidget",
-    "Flagpost",
-    "ProgressBarWidget",
-    "BoxCutter",
-    "PlaneCutter",
-    "SphereCutter",
-]
+_LAZY_EXPORT_MAP, __all__ = build_attr_map(
+    ("vedo.addons.core", ["Goniometer", "Light", "ScalarBar", "ScalarBar3D"]),
+    ("vedo.addons.axes", ["Axes", "add_global_axes"]),
+    ("vedo.addons.widgets", ["ButtonWidget", "Button", "DrawingWidget"]),
+    ("vedo.addons.interaction", ["PointCloudWidget", "SplineTool"]),
+    ("vedo.addons.ui", ["Flagpost", "LegendBox"]),
+    ("vedo.addons.sliders", ["SliderWidget", "Slider2D", "Slider3D"]),
+    (
+        "vedo.addons.cutters",
+        [
+            "BaseCutter",
+            "PlaneCutter",
+            "BoxCutter",
+            "SphereCutter",
+            "RendererFrame",
+            "ProgressBarWidget",
+        ],
+    ),
+    ("vedo.addons.icon", ["Icon"]),
+    ("vedo.addons.measure", ["Ruler2D", "Ruler3D", "RulerAxes", "DistanceTool", "compute_visible_bounds"]),
+)
+
+
+def __getattr__(name):
+    return getattr_lazy(__name__, globals(), name, attr_map=_LAZY_EXPORT_MAP)
+
+
+def __dir__():
+    return dir_lazy(globals(), attr_map=_LAZY_EXPORT_MAP)

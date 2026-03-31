@@ -3,119 +3,82 @@
 from __future__ import annotations
 """Submodule to generate simple and complex geometric shapes."""
 
-from vedo.shapes.glyphs import Glyph, Tensors
-from vedo.shapes.curves import (
-    Line,
-    DashedLine,
-    RoundedLine,
-    Tube,
-    Tubes,
-    ThickTube,
-    Lines,
-    Arc,
-    Spline,
-    KSpline,
-    CSpline,
-    Bezier,
-    NormalLines,
-    Ribbon,
-    Arrow,
-    Arrows,
-    Arrow2D,
-    Arrows2D,
-    FlatArrow,
-)
-from vedo.shapes.primitives import (
-    Triangle,
-    Polygon,
-    Circle,
-    GeoCircle,
-    Star,
-    Disc,
-    IcoSphere,
-    Sphere,
-    Spheres,
-    Earth,
-    Ellipsoid,
-    Grid,
-    Plane,
-    Rectangle,
-    Box,
-    Cube,
-    TessellatedBox,
-    Spring,
-    Cylinder,
-    Cone,
-    Pyramid,
-    Torus,
-    Paraboloid,
-    Hyperboloid,
-)
-from vedo.shapes.markers import Marker, Brace, Star3D, Cross3D, ParametricShape
-from vedo.shapes.text import Text3D, Text2D, Latex, _reps
-from vedo.shapes.analysis import ConvexHull
-from vedo.shapes.branding import vedo_logo
+from vedo._lazy import build_attr_map, dir_lazy, getattr_lazy
 
 
 def VedoLogo(distance=0.0, c=None, bc="t", version=False, frame=True):
     """Create the 3D vedo logo."""
+    from vedo.shapes.branding import vedo_logo
+
     return vedo_logo(distance=distance, c=c, bc=bc, version=version, frame=frame)
 
 
-__all__ = [
-    "Marker",
-    "Line",
-    "DashedLine",
-    "RoundedLine",
-    "Tube",
-    "Tubes",
-    "ThickTube",
-    "Lines",
-    "Spline",
-    "KSpline",
-    "CSpline",
-    "Bezier",
-    "Brace",
-    "NormalLines",
-    "Ribbon",
-    "Arrow",
-    "Arrows",
-    "Arrow2D",
-    "Arrows2D",
-    "FlatArrow",
-    "Polygon",
-    "Triangle",
-    "Rectangle",
-    "Disc",
-    "Circle",
-    "GeoCircle",
-    "Arc",
-    "Star",
-    "Star3D",
-    "Cross3D",
-    "IcoSphere",
-    "Sphere",
-    "Spheres",
-    "Earth",
-    "Ellipsoid",
-    "Grid",
-    "TessellatedBox",
-    "Plane",
-    "Box",
-    "Cube",
-    "Spring",
-    "Cylinder",
-    "Cone",
-    "Pyramid",
-    "Torus",
-    "Paraboloid",
-    "Hyperboloid",
-    "Text2D",
-    "Text3D",
-    "Latex",
-    "Glyph",
-    "Tensors",
-    "ParametricShape",
-    "ConvexHull",
-    "VedoLogo",
-]
+_LAZY_EXPORT_MAP, _LAZY_EXPORTS = build_attr_map(
+    ("vedo.shapes.glyphs", ["Glyph", "Tensors"]),
+    (
+        "vedo.shapes.curves",
+        [
+            "Line",
+            "DashedLine",
+            "RoundedLine",
+            "Tube",
+            "Tubes",
+            "ThickTube",
+            "Lines",
+            "Arc",
+            "Spline",
+            "KSpline",
+            "CSpline",
+            "Bezier",
+            "NormalLines",
+            "Ribbon",
+            "Arrow",
+            "Arrows",
+            "Arrow2D",
+            "Arrows2D",
+            "FlatArrow",
+        ],
+    ),
+    (
+        "vedo.shapes.primitives",
+        [
+            "Triangle",
+            "Polygon",
+            "Circle",
+            "GeoCircle",
+            "Star",
+            "Disc",
+            "IcoSphere",
+            "Sphere",
+            "Spheres",
+            "Earth",
+            "Ellipsoid",
+            "Grid",
+            "Plane",
+            "Rectangle",
+            "Box",
+            "Cube",
+            "TessellatedBox",
+            "Spring",
+            "Cylinder",
+            "Cone",
+            "Pyramid",
+            "Torus",
+            "Paraboloid",
+            "Hyperboloid",
+        ],
+    ),
+    ("vedo.shapes.markers", ["Marker", "Brace", "Star3D", "Cross3D", "ParametricShape"]),
+    ("vedo.shapes.text", ["Text3D", "Text2D", "Latex", "_reps"]),
+    ("vedo.shapes.analysis", ["ConvexHull"]),
+)
+
+__all__ = [*_LAZY_EXPORTS, "VedoLogo"]
+
+
+def __getattr__(name):
+    return getattr_lazy(__name__, globals(), name, attr_map=_LAZY_EXPORT_MAP)
+
+
+def __dir__():
+    return dir_lazy(globals(), attr_map=_LAZY_EXPORT_MAP)

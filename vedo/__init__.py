@@ -14,10 +14,11 @@ from __future__ import annotations
 import os
 import sys
 import logging
-import importlib
 from importlib.metadata import PackageNotFoundError, version as pkg_version
 import numpy as np
 from numpy import sin, cos, sqrt, exp, log, dot, cross  # just because handy
+
+from vedo._lazy import build_attr_map, dir_lazy, getattr_lazy
 
 try:
     from vtkmodules.vtkCommonCore import vtkVersion
@@ -36,22 +37,6 @@ from vedo.plotter import session as _session
 
 from vedo.settings import Settings
 settings = Settings()
-
-from vedo.colors import *
-from vedo.core.transformations import *
-from vedo.utils import *
-from vedo.core import *
-from vedo.shapes import *
-from vedo.file_io import *
-from vedo.assembly import *
-from vedo.pointcloud import *
-from vedo.mesh import *
-from vedo.grids.image import *
-from vedo.volume import *
-from vedo.grids import *
-from vedo.addons import *
-from vedo.plotter import *
-from vedo.visual import *
 
 try:
     import platform
@@ -107,6 +92,261 @@ else:
 
 # pyplot module to remember last figure format
 last_figure = None
+
+_LAZY_EXPORT_MAP, _LAZY_EXPORTS = build_attr_map(
+    ("vedo.colors", ["printc", "printd", "get_color", "get_color_name", "color_map", "build_palette", "build_lut"]),
+    (
+        "vedo.core.transformations",
+        [
+            "LinearTransform",
+            "NonLinearTransform",
+            "TransformInterpolator",
+            "spher2cart",
+            "cart2spher",
+            "cart2cyl",
+            "cyl2cart",
+            "cyl2spher",
+            "spher2cyl",
+            "cart2pol",
+            "pol2cart",
+        ],
+    ),
+    (
+        "vedo.utils",
+        [
+            "OperationNode",
+            "ProgressBar",
+            "progressbar",
+            "Minimizer",
+            "compute_hessian",
+            "geometry",
+            "is_sequence",
+            "lin_interpolate",
+            "vector",
+            "mag",
+            "mag2",
+            "versor",
+            "precision",
+            "round_to_digit",
+            "point_in_triangle",
+            "point_line_distance",
+            "otsu_threshold",
+            "closest",
+            "grep",
+            "make_bands",
+            "pack_spheres",
+            "humansort",
+            "print_histogram",
+            "print_inheritance_tree",
+            "camera_from_quaternion",
+            "camera_from_neuroglancer",
+            "camera_from_dict",
+            "camera_to_dict",
+            "oriented_camera",
+            "vtk2numpy",
+            "numpy2vtk",
+            "get_uv",
+            "andrews_curves",
+        ],
+    ),
+    ("vedo.core", ["DataArrayHelper", "CommonAlgorithms", "PointAlgorithms", "VolumeAlgorithms"]),
+    (
+        "vedo.shapes",
+        [
+            "Marker",
+            "Line",
+            "DashedLine",
+            "RoundedLine",
+            "Tube",
+            "Tubes",
+            "ThickTube",
+            "Lines",
+            "Spline",
+            "KSpline",
+            "CSpline",
+            "Bezier",
+            "Brace",
+            "NormalLines",
+            "Ribbon",
+            "Arrow",
+            "Arrows",
+            "Arrow2D",
+            "Arrows2D",
+            "FlatArrow",
+            "Polygon",
+            "Triangle",
+            "Rectangle",
+            "Disc",
+            "Circle",
+            "GeoCircle",
+            "Arc",
+            "Star",
+            "Star3D",
+            "Cross3D",
+            "IcoSphere",
+            "Sphere",
+            "Spheres",
+            "Earth",
+            "Ellipsoid",
+            "Grid",
+            "TessellatedBox",
+            "Plane",
+            "Box",
+            "Cube",
+            "Spring",
+            "Cylinder",
+            "Cone",
+            "Pyramid",
+            "Torus",
+            "Paraboloid",
+            "Hyperboloid",
+            "Text2D",
+            "Text3D",
+            "Latex",
+            "Glyph",
+            "Tensors",
+            "ParametricShape",
+            "ConvexHull",
+            "VedoLogo",
+        ],
+    ),
+    (
+        "vedo.file_io",
+        [
+            "load",
+            "read",
+            "download",
+            "gunzip",
+            "loadStructuredPoints",
+            "loadStructuredGrid",
+            "write",
+            "save",
+            "export_window",
+            "import_window",
+            "load_obj",
+            "screenshot",
+            "ask",
+            "Video",
+            "file_info",
+            "load3DS",
+            "loadOFF",
+            "loadSTEP",
+            "loadGeoJSON",
+            "loadPVD",
+            "loadNeutral",
+            "loadGmesh",
+            "loadPCD",
+            "from_numpy",
+            "loadImageData",
+            "to_numpy",
+        ],
+    ),
+    ("vedo.assembly", ["Group", "Assembly"]),
+    (
+        "vedo.pointcloud",
+        [
+            "Points",
+            "Point",
+            "merge",
+            "fit_line",
+            "fit_circle",
+            "fit_plane",
+            "fit_sphere",
+            "pca_ellipse",
+            "pca_ellipsoid",
+            "project_point_on_variety",
+            "procrustes_alignment",
+        ],
+    ),
+    ("vedo.mesh", ["Mesh"]),
+    ("vedo.grids.image", ["Image"]),
+    ("vedo.volume", ["Volume"]),
+    ("vedo.grids", ["UnstructuredGrid", "TetMesh", "RectilinearGrid", "StructuredGrid", "ExplicitStructuredGrid"]),
+    (
+        "vedo.addons",
+        [
+            "ScalarBar",
+            "ScalarBar3D",
+            "Slider2D",
+            "Slider3D",
+            "Icon",
+            "LegendBox",
+            "Light",
+            "Axes",
+            "RendererFrame",
+            "Ruler2D",
+            "Ruler3D",
+            "RulerAxes",
+            "DistanceTool",
+            "SplineTool",
+            "DrawingWidget",
+            "Goniometer",
+            "Button",
+            "ButtonWidget",
+            "Flagpost",
+            "ProgressBarWidget",
+            "BoxCutter",
+            "PlaneCutter",
+            "SphereCutter",
+        ],
+    ),
+    ("vedo.plotter", ["Plotter", "show", "close"]),
+    ("vedo.visual", ["CommonVisual", "PointsVisual", "VolumeVisual", "MeshVisual", "ImageVisual", "Actor2D", "LightKit"]),
+)
+
+_LAZY_MODULES = {
+    "vtkclasses": "vedo.vtkclasses",
+    "colors": "vedo.colors",
+    "utils": "vedo.utils",
+    "transformations": "vedo.core.transformations",
+    "core": "vedo.core",
+    "shapes": "vedo.shapes",
+    "file_io": "vedo.file_io",
+    "assembly": "vedo.assembly",
+    "pointcloud": "vedo.pointcloud",
+    "mesh": "vedo.mesh",
+    "grids": "vedo.grids",
+    "volume": "vedo.volume",
+    "addons": "vedo.addons",
+    "plotter": "vedo.plotter",
+    "visual": "vedo.visual",
+    "applications": "vedo.applications",
+    "external": "vedo.external",
+    "pyplot": "vedo.pyplot",
+    "backends": "vedo.backends",
+}
+
+__all__ = [
+    "np",
+    "sin",
+    "cos",
+    "sqrt",
+    "exp",
+    "log",
+    "dot",
+    "cross",
+    "settings",
+    "installdir",
+    "dataurl",
+    "fonts_path",
+    "fonts",
+    "plotter_instance",
+    "notebook_plotter",
+    "notebook_backend",
+    "last_figure",
+    "sys_platform",
+    "vtk_version",
+    "logger",
+    "current_plotter",
+    "set_current_plotter",
+    "current_notebook_plotter",
+    "set_current_notebook_plotter",
+    "current_notebook_backend",
+    "set_current_notebook_backend",
+    "current_last_figure",
+    "set_last_figure",
+    *_LAZY_EXPORTS,
+]
 
 
 ######################################################################### LOGGING
@@ -207,13 +447,15 @@ def set_last_figure(figure):
 
 
 def __getattr__(name):
-    """Lazy-load selected heavy optional modules while preserving public API."""
-    if name == "transformations":
-        module = importlib.import_module("vedo.transformations")
-        globals()[name] = module
-        return module
-    if name in {"applications", "external", "pyplot", "backends"}:
-        module = importlib.import_module(f"vedo.{name}")
-        globals()[name] = module
-        return module
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    """Lazy-load public API symbols and selected modules."""
+    return getattr_lazy(
+        __name__,
+        globals(),
+        name,
+        attr_map=_LAZY_EXPORT_MAP,
+        module_map=_LAZY_MODULES,
+    )
+
+
+def __dir__():
+    return dir_lazy(globals(), attr_map=_LAZY_EXPORT_MAP, module_map=_LAZY_MODULES)
