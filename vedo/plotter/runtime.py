@@ -42,7 +42,10 @@ from .interaction import (
     timer_callback,
 )
 from .io import export, screenshot, toimage
-from .keymap import handle_default_keypress as _handle_default_keypress
+from .keymap import (
+    _print_color_picker_report,
+    handle_default_keypress as _handle_default_keypress,
+)
 from .lifecycle import (
     break_interaction,
     clear,
@@ -93,6 +96,7 @@ Key functionality:
 __docformat__ = "google"
 
 __all__ = ["Plotter", "show", "close"]
+
 
 ##############################################################################################
 def show(
@@ -2422,12 +2426,6 @@ class Plotter:
         self.widgets.append(widget)
         return widget
 
-
-
-
-
-
-
     @property
     def camera(self):
         """Return the current active camera."""
@@ -2441,9 +2439,6 @@ class Plotter:
                 cam = utils.camera_from_dict(cam)
             self.renderer.SetActiveCamera(cam)
 
-
-
-
     def color_picker(self, xy, verbose=False):
         """Pick color of specific (x,y) pixel on the screen."""
         w2if = vtki.new("WindowToImageFilter")
@@ -2456,50 +2451,14 @@ class Plotter:
         arr = utils.vtk2numpy(varr).reshape(ny, nx, 3)
         x, y = int(xy[0]), int(xy[1])
         if y < ny and x < nx:
-
             rgb = arr[y, x]
-
             if verbose:
-                vedo.printc(":rainbow:Pixel", [x, y], "has RGB[", end="")
-                vedo.printc("█", c=[rgb[0], 0, 0], end="")
-                vedo.printc("█", c=[0, rgb[1], 0], end="")
-                vedo.printc("█", c=[0, 0, rgb[2]], end="")
-                vedo.printc("] = ", end="")
-                cnm = vedo.get_color_name(rgb)
-                if np.sum(rgb) < 150:
-                    vedo.printc(
-                        rgb.tolist(),
-                        vedo.colors.rgb2hex(np.array(rgb) / 255),
-                        c="w",
-                        bc=rgb,
-                        invert=1,
-                        end="",
-                    )
-                    vedo.printc("  -> " + cnm, invert=1, c="w")
-                else:
-                    vedo.printc(
-                        rgb.tolist(),
-                        vedo.colors.rgb2hex(np.array(rgb) / 255),
-                        c=rgb,
-                        end="",
-                    )
-                    vedo.printc("  -> " + cnm, c=cnm)
+                _print_color_picker_report(x, y, rgb)
 
             return rgb
 
         return None
 
-    #######################################################################
-
-        # -----------
-        # if "Histogram1D" in picker.GetAssembly().__class__.__name__:
-        #     histo = picker.GetAssembly()
-        #     if histo.verbose:
-        #         x = self.picked3d[0]
-        #         idx = np.digitize(x, histo.edges) - 1
-        #         f = histo.frequencies[idx]
-        #         cn = histo.centers[idx]
-        #         vedo.colors.printc(f"{histo.name}, bin={idx}, center={cn}, value={f}")
 
     #######################################################################
     def _default_keypress(self, iren, event) -> None:

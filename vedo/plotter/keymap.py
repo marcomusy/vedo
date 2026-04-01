@@ -15,6 +15,76 @@ from vedo import addons, utils
 __docformat__ = "google"
 
 
+def _print_color_picker_report(x: int, y: int, rgb) -> None:
+    """Print pixel color information using Rich when available."""
+    rgb_values = [int(v) for v in np.asarray(rgb).tolist()]
+    hex_color = vedo.colors.rgb2hex(np.array(rgb_values) / 255)
+    color_name = vedo.get_color_name(rgb_values)
+    is_dark = sum(rgb_values) < 150
+
+    if not vedo.settings.enable_print_color:
+        print(f"Pixel {[x, y]} has RGB{rgb_values} = {hex_color}  -> {color_name}")
+        return
+
+    try:
+        from rich.console import Console
+        from rich.style import Style
+        from rich.text import Text
+
+        text = Text()
+        text.append("Pixel ", style="bold cyan")
+        text.append(str([x, y]), style="bold white")
+        text.append(" has RGB[", style="white")
+
+        for channel in (
+            (rgb_values[0], 0, 0),
+            (0, rgb_values[1], 0),
+            (0, 0, rgb_values[2]),
+        ):
+            text.append(
+                "█",
+                style=Style(color=vedo.colors.rgb2hex(np.array(channel) / 255), bold=True),
+            )
+
+        text.append("] = ", style="white")
+
+        if is_dark:
+            value_style = Style(color="white", bgcolor=hex_color, bold=True)
+        else:
+            value_style = Style(color=hex_color, bold=True)
+
+        text.append(str(rgb_values), style=value_style)
+        text.append(" ", style="white")
+        text.append(hex_color, style=value_style)
+        text.append("  -> ", style="white")
+        text.append(color_name, style=value_style)
+        Console().print(text, highlight=False, soft_wrap=True)
+    except Exception:
+        vedo.printc(":rainbow:Pixel", [x, y], "has RGB[", end="")
+        vedo.printc("█", c=[rgb_values[0], 0, 0], end="")
+        vedo.printc("█", c=[0, rgb_values[1], 0], end="")
+        vedo.printc("█", c=[0, 0, rgb_values[2]], end="")
+        vedo.printc("] = ", end="")
+        if is_dark:
+            vedo.printc(
+                rgb_values,
+                hex_color,
+                c="w",
+                bc=rgb_values,
+                invert=1,
+                end="",
+            )
+            vedo.printc("  -> " + color_name, invert=1, c="w")
+        else:
+            vedo.printc(
+                rgb_values,
+                hex_color,
+                c=rgb_values,
+                end="",
+            )
+            vedo.printc("  -> " + color_name, c=color_name)
+
+
 def _print_keymap_notice(title: str, rows: list[tuple[str, str]] | None = None, message: str = "", color: str = "cyan") -> None:
     try:
         from rich.console import Console
