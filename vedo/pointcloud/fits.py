@@ -14,7 +14,7 @@ import vedo
 from vedo import colors
 from vedo import utils
 from vedo.core.transformations import LinearTransform
-from .core import Points
+from .core import Point, Points
 
 __all__ = [
     "Point",
@@ -106,8 +106,8 @@ def _rotate_points(points, n0=None, n1=(0, 0, 1)) -> np.ndarray | tuple:
     n0 = n0 / np.linalg.norm(n0)
     n1 = n1 / np.linalg.norm(n1)
     k = np.cross(n0, n1)
-    l = np.linalg.norm(k)
-    if not l:
+    k_norm = np.linalg.norm(k)
+    if not k_norm:
         k = n0
     k /= np.linalg.norm(k)
 
@@ -328,7 +328,7 @@ def project_point_on_variety(
         return z_pred
 
     def _compute_curvature(coeffs, terms, degree):
-        if compute_curvature == False or degree < 2:
+        if not compute_curvature or degree < 2:
             return 0, 0
         terms = [
             f"x^{i}y^{j}" for i in range(degree + 1) for j in range(degree + 1 - i)

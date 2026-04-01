@@ -137,11 +137,11 @@ class LinearTransform:
                     lines = read_file.readlines()
                     i = 0
                     matrix = np.eye(4)
-                    for l in lines:
-                        if l.startswith("#"):
-                            self.comment = l.replace("#", "").strip()
+                    for line in lines:
+                        if line.startswith("#"):
+                            self.comment = line.replace("#", "").strip()
                             continue
-                        vals = l.split(" ")
+                        vals = line.split(" ")
                         for j in range(len(vals)):
                             v = vals[j].replace("\n", "")
                             if v != "":

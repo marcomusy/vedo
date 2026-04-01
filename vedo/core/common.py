@@ -48,11 +48,13 @@ class CommonAlgorithms:
         if on.startswith("p"):
             varr = cls.dataset.GetPointData()
             assoc = vtki.vtkDataObject.FIELD_ASSOCIATION_POINTS
-            getter = lambda out: out.GetPointData().GetArray(result_name)
+            def getter(out):
+                return out.GetPointData().GetArray(result_name)
         elif on.startswith("c"):
             varr = cls.dataset.GetCellData()
             assoc = vtki.vtkDataObject.FIELD_ASSOCIATION_CELLS
-            getter = lambda out: out.GetCellData().GetArray(result_name)
+            def getter(out):
+                return out.GetCellData().GetArray(result_name)
         else:
             vedo.logger.error(f"in {mode}(): unknown option {on}")
             raise RuntimeError

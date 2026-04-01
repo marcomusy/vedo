@@ -55,7 +55,9 @@ def download(url: str, force=False, verbose=True) -> str:
         import urllib2  # type: ignore
         import contextlib
 
-        urlopen = lambda url_: contextlib.closing(urllib2.urlopen(url_))
+        def urlopen(url_):
+            return contextlib.closing(urllib2.urlopen(url_))
+
         req = url
         if verbose:
             colors.printc(

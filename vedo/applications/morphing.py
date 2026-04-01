@@ -216,7 +216,7 @@ class MorphPlotter(Plotter):
             for i in range(self.n_intermediates):
                 pi = allpts[:, i, :]
                 m_nterp = self.source.clone().warp(self.arrow_starts, pi)
-                m_nterp.name = f"morphed"
+                m_nterp.name = "morphed"
                 m_nterp.c("blue4", 0.05)
                 self.intermediates.append(m_nterp)
             self.output_text.text(
@@ -300,7 +300,7 @@ class MorphPlotter(Plotter):
                 h["Axes"]["xtitle"].text(
                     f":sigma = {abs(popt[2]):.3f}", font="VictorMono"
                 )
-            except:
+            except Exception:
                 pass
 
             h = h.clone2d(pos="bottom-left", size=0.575)
@@ -726,7 +726,7 @@ class MorphBySplinesPlotter(Plotter):
                 can_add_nodes=False,
             )
             self.splinetools.append(st)
-            self.status.text(f"Added spline.")
+            self.status.text("Added spline.")
             self.render()
 
         elif evt.keypress == "Ctrl+f":
@@ -783,7 +783,7 @@ class MorphBySplinesPlotter(Plotter):
             if len(self.splinetools) > 0:
                 self.splinetools[-1].off()
                 self.splinetools.pop()
-                self.status.text(f"Removed last spline.")
+                self.status.text("Removed last spline.")
                 self.render()
 
         elif evt.keypress == "Ctrl+c":

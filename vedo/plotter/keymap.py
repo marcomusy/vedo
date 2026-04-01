@@ -381,8 +381,9 @@ def _key_export_x3d(_plotter, _iren, _renderer) -> bool:
 def _key_print_info(plotter, _iren, _renderer) -> bool:
     if plotter.clicked_object:
         obj = plotter.clicked_object
-        label = getattr(obj, "name", "") or obj.__class__.__name__
-        # _print_keymap_info(f"Clicked Object: {label}", obj)
+        # _print_keymap_info(
+        #     f"Clicked Object: {getattr(obj, 'name', '') or obj.__class__.__name__}", obj
+        # )
         print(obj)
     else:
         _print_keymap_info("Plotter Info", plotter)
@@ -960,7 +961,7 @@ def handle_default_keypress(plotter, iren, event) -> None:
                 else:
                     try:
                         renderer.RemoveActor(plotter.axes_instances[clickedr])
-                    except:
+                    except Exception:
                         pass
                 plotter.axes_instances[clickedr] = None
             bounds = renderer.ComputeVisiblePropBounds()

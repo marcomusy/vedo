@@ -4,4 +4,4 @@ from __future__ import annotations
 
 """Compatibility wrapper for the public ``vedo.transformations`` module."""
 
-from vedo.core.transformations import *
+from vedo.core.transformations import *  # noqa: F403

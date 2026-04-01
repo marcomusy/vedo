@@ -12,7 +12,7 @@ import vedo.vtkclasses as vtki
 
 from vedo import utils
 from vedo import shapes
-from vedo.colors import get_color, build_lut
+from vedo.colors import get_color, build_lut, color_map
 from vedo.assembly import Assembly
 from vedo.mesh import Mesh
 from vedo.pointcloud import Points

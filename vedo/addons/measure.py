@@ -16,7 +16,7 @@ from vedo import shapes
 from vedo.colors import get_color
 from vedo.assembly import Group
 from vedo.mesh import Mesh
-from vedo.pointcloud import merge
+from vedo.pointcloud import Point, merge
 
 
 class Ruler2D(vtki.vtkAxisActor2D):
@@ -309,7 +309,7 @@ def compute_visible_bounds(objs=None) -> list:
         )
         return [vbb, sizes, min_bns, max_bns]
 
-    except:
+    except Exception:
         return [[0, 0, 0, 0, 0, 0], [0, 0, 0], 0, 0]
 
 

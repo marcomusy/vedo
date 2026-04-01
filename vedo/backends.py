@@ -43,7 +43,6 @@ def _import_trame_components():
         ("trame.widgets.vuetify", None, "vue2"),
     ]
 
-    layout_error = None
     VAppLayout = None
     client_type = None
     for module_name, attr_name, layout_client_type in layout_paths:
@@ -51,19 +50,17 @@ def _import_trame_components():
             VAppLayout = getattr(import_module(module_name), attr_name)
             client_type = layout_client_type
             break
-        except ImportError as exc:
-            layout_error = exc
+        except ImportError:
+            pass
 
-    vtk_error = None
     t_vtk = None
     for module_name, _ in widget_paths:
         try:
             t_vtk = import_module(module_name)
             break
-        except ImportError as exc:
-            vtk_error = exc
+        except ImportError:
+            pass
 
-    vuetify_error = None
     vuetify = None
     vuetify_client_type = None
     for module_name, _, current_client_type in vuetify_paths:
@@ -71,8 +68,8 @@ def _import_trame_components():
             vuetify = import_module(module_name)
             vuetify_client_type = current_client_type
             break
-        except ImportError as exc:
-            vuetify_error = exc
+        except ImportError:
+            pass
 
     if (
         VAppLayout

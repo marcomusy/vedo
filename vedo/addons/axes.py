@@ -1752,7 +1752,7 @@ def add_global_axes(axtype=None, c=None, bounds=()) -> None:
             polaxes.AutoSubdividePolarAxisOff()
             polaxes.SetNumberOfPolarAxisTicks(10)
             polaxes.SetNumberOfPolarAxisTicks(5)
-        except Exception as e:
+        except Exception:
             pass
             # vedo.logger.warning("Failed to set polar axis properties")
         polaxes.SetCamera(plt.renderer.GetActiveCamera())
