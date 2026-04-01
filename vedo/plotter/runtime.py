@@ -2158,7 +2158,12 @@ class Plotter:
                 save a screenshot of the window to file
         """
 
-        if vedo.settings.dry_run_mode >= 2:
+        # Keep the trame notebook path exercisable in dry-run mode so the
+        # backend smoke test can still verify server/controller wiring.
+        if (
+            vedo.settings.dry_run_mode >= 2
+            and vedo.settings.default_backend != "trame"
+        ):
             return self
 
         if self.wx_widget:

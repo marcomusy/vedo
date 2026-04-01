@@ -29,15 +29,49 @@ import os
 import pkgutil
 import subprocess
 import sys
-import numpy as np
-
-from vedo.utils import humansort
-from vedo.colors import get_color, printc
-
-import vedo
-from vedo import __version__
+from importlib.metadata import PackageNotFoundError, version as pkg_version
 
 __all__ = []
+
+vedo = None
+np = None
+humansort = None
+get_color = None
+printc = None
+
+
+def _get_pkg_version(dist_name, fallback="unknown"):
+    try:
+        return pkg_version(dist_name)
+    except PackageNotFoundError:
+        return fallback
+
+
+def _get_install_dir():
+    package_dir = os.path.dirname(os.path.abspath(__file__))
+    parent_dir = os.path.dirname(package_dir)
+    if os.path.basename(package_dir) == "vedo" and os.path.basename(parent_dir) == "vedo":
+        return parent_dir
+    return package_dir
+
+
+def _ensure_cli_runtime():
+    global vedo, np, humansort, get_color, printc
+    if vedo is not None:
+        return vedo
+
+    import numpy as np_module
+    import vedo as vedo_module
+    from vedo.colors import get_color as get_color_fn, printc as printc_fn
+    from vedo.utils import humansort as humansort_fn
+
+    vedo = vedo_module
+    np = np_module
+    humansort = humansort_fn
+    get_color = get_color_fn
+    printc = printc_fn
+    vedo.installdir = _get_install_dir()
+    return vedo
 
 
 ##############################################################################################
@@ -52,21 +86,17 @@ def execute_cli():
     parser = get_parser()
     args = parser.parse_args()
 
-    if "/vedo/vedo" in vedo.installdir:
-        vedo.installdir = vedo.installdir.replace("vedo/", "")
-
-    if "\\vedo\\vedo" in vedo.installdir:
-        vedo.installdir = vedo.installdir.replace("vedo\\", "")
-
     if args.info is not None:
         system_info()
         return 0
 
     elif args.run:
+        _ensure_cli_runtime()
         exe_run(args)
         return 0
 
     elif args.search:
+        _ensure_cli_runtime()
         exe_search(args)
         return 0
 
@@ -75,30 +105,32 @@ def execute_cli():
         return 0
 
     elif args.search_code:
+        _ensure_cli_runtime()
         exe_search_code(args)
         return 0
 
     elif args.locate:
+        _ensure_cli_runtime()
         exe_locate(args)
         return 0
 
     elif args.convert:
+        _ensure_cli_runtime()
         exe_convert(args)
         return 0
 
     elif args.eog:
+        _ensure_cli_runtime()
         exe_eog(args)
         return 0
 
     elif len(args.files) == 0:
         system_info()
-        printc(
-            ":idea: No input files? Try:\n vedo https://vedo.embl.es/examples/data/panther.stl.gz",
-            c="y",
-        )
+        print_no_input_hint()
         return 0
 
     else:
+        _ensure_cli_runtime()
         draw_scene(args)
         return 0
 
@@ -106,7 +138,7 @@ def execute_cli():
 ##############################################################################################
 def get_parser():
 
-    descr = f"version {__version__}"
+    descr = f"version {_get_pkg_version('vedo')}"
     descr += " - check out home page at https://vedo.embl.es"
 
     pr = argparse.ArgumentParser(
@@ -297,42 +329,109 @@ def get_parser():
 
 #################################################################################################
 def system_info():
-    from vtkmodules.all import vtkVersion
+    vedo_version = _get_pkg_version("vedo")
+    vtk_version = _get_pkg_version("vtk", fallback="unknown")
+    numpy_version = _get_pkg_version("numpy", fallback="unknown")
+    rows = [
+        ("vedo version", f"{vedo_version}  (https://vedo.embl.es)"),
+        ("vtk version", vtk_version),
+        ("numpy version", numpy_version),
+        ("python version", sys.version.replace(chr(10), "")),
+        ("python interpreter", sys.executable),
+        ("installation point", _get_install_dir()[:70]),
+    ]
 
-    printc(
-        f"vedo version      : {__version__}  (https://vedo.embl.es) ".ljust(65),
-        invert=1,
-    )
-    printc("vtk version       :", vtkVersion().GetVTKVersion())
-    printc("numpy version     :", np.__version__)
-    printc("python version    :", sys.version.replace("\n", ""))
-    printc("python interpreter:", sys.executable)
-    printc("installation point:", vedo.installdir[:70])
     try:
         import platform
 
-        printc(
-            "system            :",
-            platform.system(),
-            platform.release(),
-            os.name,
-            platform.machine(),
+        rows.append(
+            (
+                "system",
+                " ".join(
+                    [
+                        platform.system(),
+                        platform.release(),
+                        os.name,
+                        platform.machine(),
+                    ]
+                ),
+            )
         )
     except ModuleNotFoundError:
         pass
 
-    try:
-        import k3d
+    k3d_version = _get_pkg_version("k3d", fallback=None)
+    if k3d_version is not None:
+        rows.append(("k3d version", k3d_version))
 
-        printc("k3d version       :", k3d.__version__, bold=0, dim=1)
+    try:
+        from rich import box
+        from rich.console import Console
+        from rich.panel import Panel
+        from rich.table import Table
+        from rich.text import Text
+
+        table = Table(
+            show_header=False,
+            box=None,
+            expand=False,
+            pad_edge=False,
+            padding=(0, 1),
+        )
+        table.add_column(style="bold bright_cyan", no_wrap=True)
+        table.add_column(style="white")
+        for key, value in rows:
+            table.add_row(key, value)
+        Console().print(
+            Panel(
+                table,
+                box=box.ROUNDED,
+                title=Text("vedo", style="bold white"),
+                subtitle=Text("System Info", style="bold cyan"),
+                title_align="left",
+                subtitle_align="right",
+                border_style="bright_blue",
+                padding=(0, 1),
+                expand=False,
+            )
+        )
     except ModuleNotFoundError:
-        pass
+        for key, value in rows:
+            print(f"{key + ':':18} {value}")
 
     # try:
     #     import trame
     #     printc("trame version     :", trame.__version__, bold=0, dim=1)
     # except ModuleNotFoundError:
     #     pass
+
+
+def print_no_input_hint():
+    message = "No input files? Try:"
+    example = "vedo https://vedo.embl.es/examples/data/panther.stl.gz"
+    try:
+        from rich import box
+        from rich.console import Console
+        from rich.panel import Panel
+        from rich.text import Text
+
+        body = Text()
+        body.append(f"{message}\n", style="bold yellow")
+        body.append(example, style="bold white")
+        Console().print(
+            Panel(
+                body,
+                box=box.ROUNDED,
+                title=Text("Tip", style="bold yellow"),
+                title_align="left",
+                border_style="yellow",
+                padding=(0, 1),
+                expand=False,
+            )
+        )
+    except ModuleNotFoundError:
+        print(f":idea: {message}")
+        print(f" {example}")
 
 
 #################################################################################################
