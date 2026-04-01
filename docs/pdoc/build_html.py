@@ -8,7 +8,9 @@ from pathlib import Path
 from vedo import __version__, printc
 
 script_dir = Path(__file__).resolve().parent
-output_dir = Path(os.getenv("VEDO_PDOC_OUTPUT", str(script_dir / "html"))).expanduser().resolve()
+output_dir = (
+    Path(os.getenv("VEDO_PDOC_OUTPUT", str(script_dir / "html"))).expanduser().resolve()
+)
 cmd = [
     "pdoc",
     "vedo",
@@ -37,4 +39,6 @@ printc("Done.", c="y")
 printc("Move to server manually with commands:")
 printc(" ls ~/Projects/StagingServer/var/www/html/vtkplotter.embl.es/autodocs/")
 printc(" rm ~/Projects/StagingServer/var/www/html/vtkplotter.embl.es/autodocs/html")
-printc(f" mv {output_dir}/ ~/Projects/StagingServer/var/www/html/vtkplotter.embl.es/autodocs/")
+printc(
+    f" mv {output_dir}/ ~/Projects/StagingServer/var/www/html/vtkplotter.embl.es/autodocs/"
+)

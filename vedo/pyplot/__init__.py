@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Advanced plotting functionalities."""
 
 from vedo.lazy_imports import build_attr_map, dir_lazy, getattr_lazy
@@ -7,7 +8,10 @@ _LAZY_EXPORT_MAP, __all__ = build_attr_map(
     ("vedo.pyplot.figure", ["Figure"]),
     ("vedo.pyplot.charts", ["Histogram1D", "Histogram2D", "PlotBars", "PlotXY"]),
     ("vedo.pyplot.functions", ["plot", "histogram", "fit", "streamplot"]),
-    ("vedo.pyplot.stats", ["pie_chart", "violin", "whisker", "matrix", "CornerPlot", "CornerHistogram"]),
+    (
+        "vedo.pyplot.stats",
+        ["pie_chart", "violin", "whisker", "matrix", "CornerPlot", "CornerHistogram"],
+    ),
     ("vedo.pyplot.graph", ["DirectedGraph"]),
 )
 

@@ -3,6 +3,7 @@ particle in a swarm of small particles in 2D motion.
 The spheres collide elastically with themselves and
 with the walls of the box. The masses of the spheres
 are proportional to their radius**3 (as in 3D)"""
+
 # Adapted by M. Musy from E. Velasco (2009)
 from vedo import *
 import random
@@ -55,8 +56,8 @@ for s in range(1, Nsp):
 Vel = np.array(ListVel)
 
 plt = Plotter(size=(screen_w, screen_h), interactive=0)
-plt += Grid(s=[screen_w,screen_w])
-plt.show(zoom='tight')
+plt += Grid(s=[screen_w, screen_w])
+plt.show(zoom="tight")
 
 # Auxiliary variables
 Id = np.identity(Nsp)
@@ -121,7 +122,7 @@ for i in progressbar(500, c="r"):
     if not int(i) % 20:  # every 20 steps:
         rsp = [Pos[0][0], Pos[0][1], 0]
         trace = Points(rsp).c("red").point_size(4)
-        plt.add(trace)   # leave a point trace
+        plt.add(trace)  # leave a point trace
 
     spheres.name = "particles"
     plt.remove("particles").add(spheres).render()

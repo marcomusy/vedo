@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Interactive editing and drawing applications."""
 
 import os
@@ -18,6 +19,7 @@ from vedo.pointcloud import fit_plane, Points
 from vedo.shapes import Line, Ribbon, Spline, Text2D
 from vedo.pyplot import CornerHistogram, histogram
 from vedo.addons import SliderWidget
+
 
 class FreeHandCutPlotter(Plotter):
     """A tool to edit meshes interactively."""
@@ -128,13 +130,17 @@ class FreeHandCutPlotter(Plotter):
             self.cpoints = init_points.coordinates
         else:
             self.cpoints = np.array(init_points)
-        self.points = Points(self.cpoints, r=self.linewidth).c(self.pointcolor).pickable(0)
+        self.points = (
+            Points(self.cpoints, r=self.linewidth).c(self.pointcolor).pickable(0)
+        )
         if self.splined:
             self.spline = Spline(self.cpoints, res=len(self.cpoints) * 4)
         else:
             self.spline = Line(self.cpoints)
         self.spline.lw(self.linewidth).c(self.linecolor).pickable(False)
-        self.jline = Line(self.cpoints[0], self.cpoints[-1], lw=1, c=self.linecolor).pickable(0)
+        self.jline = Line(
+            self.cpoints[0], self.cpoints[-1], lw=1, c=self.linecolor
+        ).pickable(0)
         self.add([self.points, self.spline, self.jline]).render()
         return self
 
@@ -147,7 +153,9 @@ class FreeHandCutPlotter(Plotter):
             if len(self.cpoints) > 2:
                 self.remove([self.spline, self.jline])
                 if self.splined:  # show the spline closed
-                    self.spline = Spline(self.cpoints, closed=True, res=len(self.cpoints) * 4)
+                    self.spline = Spline(
+                        self.cpoints, closed=True, res=len(self.cpoints) * 4
+                    )
                 else:
                     self.spline = Line(self.cpoints, closed=True)
                 self.spline.lw(self.linewidth).c(self.linecolor).pickable(False)
@@ -156,15 +164,26 @@ class FreeHandCutPlotter(Plotter):
 
     def _on_mouse_move(self, evt):
         if self.drawmode:
-            cpt = self.compute_world_coordinate(evt.picked2d)  # make this 2d-screen point 3d
-            if self.cpoints and mag(cpt - self.cpoints[-1]) < self.mesh.diagonal_size() * self.tol:
+            cpt = self.compute_world_coordinate(
+                evt.picked2d
+            )  # make this 2d-screen point 3d
+            if (
+                self.cpoints
+                and mag(cpt - self.cpoints[-1]) < self.mesh.diagonal_size() * self.tol
+            ):
                 return  # new point is too close to the last one. skip
             self.cpoints.append(cpt)
             if len(self.cpoints) > 2:
                 self.remove([self.points, self.spline, self.jline, self.topline])
-                self.points = Points(self.cpoints, r=self.linewidth).c(self.pointcolor).pickable(0)
+                self.points = (
+                    Points(self.cpoints, r=self.linewidth)
+                    .c(self.pointcolor)
+                    .pickable(0)
+                )
                 if self.splined:
-                    self.spline = Spline(self.cpoints, res=len(self.cpoints) * 4)  # not closed here
+                    self.spline = Spline(
+                        self.cpoints, res=len(self.cpoints) * 4
+                    )  # not closed here
                 else:
                     self.spline = Line(self.cpoints)
 
@@ -175,11 +194,15 @@ class FreeHandCutPlotter(Plotter):
 
                 self.spline.lw(self.linewidth).c(self.linecolor).pickable(False)
                 self.txt2d.background(self.linecolor)
-                self.jline = Line(self.cpoints[0], self.cpoints[-1], lw=1, c=self.linecolor).pickable(0)
+                self.jline = Line(
+                    self.cpoints[0], self.cpoints[-1], lw=1, c=self.linecolor
+                ).pickable(0)
                 self.add([self.points, self.spline, self.jline, self.topline]).render()
 
     def _on_keypress(self, evt):
-        if evt.keypress.lower() == "z" and self.spline:  # Cut mesh with a ribbon-like surface
+        if (
+            evt.keypress.lower() == "z" and self.spline
+        ):  # Cut mesh with a ribbon-like surface
             inv = False
             if evt.keypress == "Z":
                 inv = True
@@ -211,7 +234,7 @@ class FreeHandCutPlotter(Plotter):
             mcut.name = self.mesh.name
             mcut.scalarbar = self.mesh.scalarbar
             mcut.info = self.mesh.info
-            self.mesh = mcut                            # discard old mesh by overwriting it
+            self.mesh = mcut                          # discard old mesh by overwriting it
             self.txt2d.text(self.msg).background(self.color)   # put back original message
             self.add(mcut).render()
 
@@ -268,7 +291,9 @@ class SplinePlotter(Plotter):
     Interactive drawing of splined curves on meshes.
     """
 
-    def __init__(self, obj, init_points=(), closed=False, splined=True, mode="auto", **kwargs):
+    def __init__(
+        self, obj, init_points=(), closed=False, splined=True, mode="auto", **kwargs
+    ):
         """
         Create an interactive application that allows the user to click points and
         retrieve the coordinates of such points and optionally a spline or line
@@ -324,14 +349,15 @@ class SplinePlotter(Plotter):
             "Press c to clear points\n"
             "Press q to continue"
         )
-        self.instructions = Text2D(t, pos="bottom-left", c="white", bg="green", font="Calco")
+        self.instructions = Text2D(
+            t, pos="bottom-left", c="white", bg="green", font="Calco"
+        )
 
         self += [self.object, self.instructions]
 
         self.callid1 = self.add_callback("KeyPress", self._key_press)
         self.callid2 = self.add_callback("LeftButtonPress", self._on_left_click)
         self.callid3 = self.add_callback("RightButtonPress", self._on_right_click)
-
 
     def points(self, newpts=None) -> SplinePlotter | np.ndarray:
         """Retrieve the 3D coordinates of the clicked points"""
@@ -375,7 +401,9 @@ class SplinePlotter(Plotter):
         if self.lwidth and len(self.cpoints) > minnr:
             if self.splined:
                 try:
-                    self.line = Spline(self.cpoints, closed=self.closed, res=self.resolution)
+                    self.line = Spline(
+                        self.cpoints, closed=self.closed, res=self.resolution
+                    )
                 except ValueError:
                     # if clicking too close splining might fail
                     self.cpoints.pop()
@@ -399,6 +427,7 @@ class SplinePlotter(Plotter):
         self.update()
         self.show(self.object, self.instructions, mode=self.mode)
         return self
+
 
 ########################################################################
 class ImageEditor(Plotter):
@@ -470,8 +499,10 @@ class ImageEditor(Plotter):
         self.add_callback("key", self.key_func)
 
         self.at(0).add(self.header, self.instructions, self.status)
-        self.at(1).add(vedo.Text2D("Input",  font="Calco", c="k5", bg="y5"), self.image0)
-        self.at(2).add(vedo.Text2D("Output", font="Calco", c="k5", bg="y5"), self.image2)
+        self.at(1).add(vedo.Text2D("Input", font="Calco", c="k5", bg="y5"), self.image0)
+        self.at(2).add(
+            vedo.Text2D("Output", font="Calco", c="k5", bg="y5"), self.image2
+        )
         self.user_mode(self.pan).show()
         self.interactor.RemoveObservers("CharEvent")
 
@@ -519,12 +550,12 @@ class ImageEditor(Plotter):
 
         elif evt.keypress == "Ctrl+o":  # change luminosity
             narray = self.image2.tonumpy(raw=True)
-            narray[:] = (narray*1.1).clip(0, 255).astype(np.uint8)
+            narray[:] = (narray * 1.1).clip(0, 255).astype(np.uint8)
             self.image2.modified()
             self.status.text("Increased luminosity")
         elif evt.keypress == "Ctrl+l":  # change luminosity
             narray = self.image2.tonumpy(raw=True)
-            narray[:] = (narray*0.9).clip(0, 255).astype(np.uint8)
+            narray[:] = (narray * 0.9).clip(0, 255).astype(np.uint8)
             self.image2.modified()
             self.status.text("Decreased luminosity")
 
@@ -574,6 +605,4 @@ class ImageEditor(Plotter):
         """Start the interactive image editor."""
         self.at(1).reset_camera(0.01).interactive()
         return self
-    
 
-########################################################################

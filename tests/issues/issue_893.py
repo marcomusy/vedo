@@ -15,7 +15,7 @@ for x in range(xs):
             positions.append(pos)
 
 pts = vedo.Points(positions)
-labs= pts.labels2d(font='Quikhand', scale=2, justify="top-center", c="red4")
+labs = pts.labels2d(font="Quikhand", scale=2, justify="top-center", c="red4")
 vedo.show(cubes, labs, axes=4).close()
 
 ################################################################### (BUG)
@@ -25,9 +25,9 @@ for x in range(xs):
     for y in range(ys):
         for z in range(zs):
             pos = (x, y, z)
-            txt = vedo.Text3D(f"{pos}", pos, s=0.05, justify='centered', c='r5')
+            txt = vedo.Text3D(f"{pos}", pos, s=0.05, justify="centered", c="r5")
             txt.rotate_x(0.00001)
-            txt.shift(0.00001, 0.00001, 0.00001) # same as rotate_x
+            txt.shift(0.00001, 0.00001, 0.00001)  # same as rotate_x
             texts.append(txt.follow_camera())
 
 vedo.show(texts, axes=1)

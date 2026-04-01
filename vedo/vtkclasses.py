@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """
 Subset of the vtk classes to be imported eagerly or lazily.
 """
@@ -66,11 +67,13 @@ def _import_module_cached(module_name: str):
             module_cache[module_name] = import_module(module_name)
     return module_cache[module_name]
 
+
 ######################################################################
 for name in [
     "vtkOpenGLGPUVolumeRayCastMapper",
     "vtkSmartVolumeMapper",
-]: location[name] = "vtkRenderingVolumeOpenGL2"
+]:
+    location[name] = "vtkRenderingVolumeOpenGL2"
 
 ######################################################################
 for name in [
@@ -99,7 +102,8 @@ for name in [
     "vtkParametricKuen",
     "vtkParametricPluckerConoid",
     "vtkParametricPseudosphere",
-]: location[name] = "vtkCommonComputationalGeometry"
+]:
+    location[name] = "vtkCommonComputationalGeometry"
 
 
 location["vtkNamedColors"] = "vtkCommonColor"
@@ -142,6 +146,7 @@ from vtkmodules.vtkCommonCore import (
     vtkVariantArray,
     vtkVersion,
 )
+
 for name in [
     "mutable",
     "VTK_UNSIGNED_CHAR",
@@ -179,7 +184,8 @@ for name in [
     "vtkVariant",
     "vtkVariantArray",
     "vtkVersion",
-]: location[name] = "vtkCommonCore"
+]:
+    location[name] = "vtkCommonCore"
 
 for name in [
     "vtkCellArray",
@@ -229,7 +235,8 @@ for name in [
     "vtkVertex",
     "vtkVoxel",
     "vtkWedge",
-]: location[name] = "vtkCommonDataModel"
+]:
+    location[name] = "vtkCommonDataModel"
 
 location["vtkAmoebaMinimizer"] = "vtkCommonMath"
 location["vtkMatrix4x4"] = "vtkCommonMath"
@@ -243,7 +250,8 @@ for name in [
     "vtkLinearTransform",
     "vtkThinPlateSplineTransform",
     "vtkTransform",
-]: location[name] = "vtkCommonTransforms"
+]:
+    location[name] = "vtkCommonTransforms"
 
 
 for name in [
@@ -292,8 +300,9 @@ for name in [
     "vtkVoronoi2D",
     "vtkWindowedSincPolyDataFilter",
     "vtkStaticCleanUnstructuredGrid",
-    "vtkPolyDataPlaneCutter"
-]: location[name] = "vtkFiltersCore"
+    "vtkPolyDataPlaneCutter",
+]:
+    location[name] = "vtkFiltersCore"
 location["vtkIdFilter"] = "vtkFiltersCore"
 
 
@@ -302,7 +311,8 @@ for name in [
     "vtkExtractGeometry",
     "vtkExtractPolyDataGeometry",
     "vtkExtractSelection",
-]: location[name] = "vtkFiltersExtraction"
+]:
+    location[name] = "vtkFiltersExtraction"
 
 
 location["vtkExtractEdges"] = "vtkFiltersCore"
@@ -336,7 +346,8 @@ for name in [
     "vtkShrinkPolyData",
     "vtkRectilinearGridToTetrahedra",
     "vtkVertexGlyphFilter",
-]: location[name] = "vtkFiltersGeneral"
+]:
+    location[name] = "vtkFiltersGeneral"
 
 location["vtkCellTreeLocator"] = "vtkCommonDataModel"
 
@@ -347,7 +358,8 @@ for name in [
     "vtkGeometryFilter",
     "vtkImageDataGeometryFilter",
     "vtkMarkBoundaryFilter",
-]: location[name] = "vtkFiltersGeometry"
+]:
+    location[name] = "vtkFiltersGeometry"
 
 
 for name in [
@@ -356,7 +368,8 @@ for name in [
     "vtkPolyDataSilhouette",
     "vtkProcrustesAlignmentFilter",
     "vtkRenderLargeImage",
-]: location[name] = "vtkFiltersHybrid"
+]:
+    location[name] = "vtkFiltersHybrid"
 
 
 for name in [
@@ -381,7 +394,8 @@ for name in [
     "vtkSelectPolyData",
     "vtkSubdivideTetra",
     "vtkTrimmedExtrusionFilter",
-]: location[name] = "vtkFiltersModeling"
+]:
+    location[name] = "vtkFiltersModeling"
 
 
 for name in [
@@ -401,7 +415,8 @@ for name in [
     "vtkPointSmoothingFilter",
     "vtkUnsignedDistance",
     "vtkVoronoiKernel",
-]: location[name] = "vtkFiltersPoints"
+]:
+    location[name] = "vtkFiltersPoints"
 
 
 for name in [
@@ -423,7 +438,8 @@ for name in [
     "vtkSphereSource",
     "vtkTexturedSphereSource",
     "vtkTessellatedBoxSource",
-]: location[name] = "vtkFiltersSources"
+]:
+    location[name] = "vtkFiltersSources"
 
 location["vtkTextureMapToPlane"] = "vtkFiltersTexture"
 
@@ -444,7 +460,8 @@ for name in [
     "vtkParticleReader",
     "vtkSTLReader",
     "vtkSTLWriter",
-]: location[name] = "vtkIOGeometry"
+]:
+    location[name] = "vtkIOGeometry"
 
 for name in [
     "vtkBMPReader",
@@ -465,14 +482,16 @@ for name in [
     "vtkSLCReader",
     "vtkTIFFReader",
     "vtkTIFFWriter",
-]: location[name] = "vtkIOImage"
+]:
+    location[name] = "vtkIOImage"
 
 for name in [
     "vtk3DSImporter",
     "vtkOBJImporter",
     "vtkVRMLImporter",
     "vtkGLTFImporter",
-]: location[name] = "vtkIOImport"
+]:
+    location[name] = "vtkIOImport"
 
 for name in [
     "vtkSimplePointsWriter",
@@ -483,7 +502,8 @@ for name in [
     "vtkPolyDataWriter",
     "vtkRectilinearGridReader",
     "vtkUnstructuredGridReader",
-]: location[name] = "vtkIOLegacy"
+]:
+    location[name] = "vtkIOLegacy"
 
 
 location["vtkPLYReader"] = "vtkIOPLY"
@@ -504,7 +524,8 @@ for name in [
     "vtkXMLStructuredGridReader",
     "vtkXMLUnstructuredGridReader",
     "vtkXMLUnstructuredGridWriter",
-]: location[name] = "vtkIOXML"
+]:
+    location[name] = "vtkIOXML"
 
 
 location["vtkImageLuminance"] = "vtkImagingColor"
@@ -526,7 +547,8 @@ for name in [
     "vtkImageThreshold",
     "vtkImageTranslateExtent",
     "vtkExtractVOI",
-]: location[name] = "vtkImagingCore"
+]:
+    location[name] = "vtkImagingCore"
 
 
 for name in [
@@ -535,7 +557,8 @@ for name in [
     "vtkImageFFT",
     "vtkImageFourierCenter",
     "vtkImageRFFT",
-]: location[name] = "vtkImagingFourier"
+]:
+    location[name] = "vtkImagingFourier"
 
 
 for name in [
@@ -548,7 +571,8 @@ for name in [
     "vtkImageMedian3D",
     "vtkImageNormalize",
     "vtkImageSlab",
-]: location[name] = "vtkImagingGeneral"
+]:
+    location[name] = "vtkImagingGeneral"
 
 for name in ["vtkImageToPoints", "vtkSampleFunction"]:
     location[name] = "vtkImagingHybrid"
@@ -561,12 +585,14 @@ for name in [
     "vtkImageLogic",
     "vtkImageMagnitude",
     "vtkImageMathematics",
-]: location[name] = "vtkImagingMath"
+]:
+    location[name] = "vtkImagingMath"
 
 for name in [
     "vtkImageContinuousDilate3D",
     "vtkImageContinuousErode3D",
-]: location[name] = "vtkImagingMorphological"
+]:
+    location[name] = "vtkImagingMorphological"
 
 location["vtkImageCanvasSource2D"] = "vtkImagingSources"
 
@@ -582,7 +608,8 @@ for name in [
     "vtkSimple2DLayoutStrategy",
     "vtkSimple3DCirclesStrategy",
     "vtkSpanTreeLayoutStrategy",
-]: location[name] = "vtkInfovisLayout"
+]:
+    location[name] = "vtkInfovisLayout"
 
 for name in [
     "vtkInteractorStyleFlight",
@@ -597,7 +624,8 @@ for name in [
     "vtkInteractorStyleTrackballCamera",
     "vtkInteractorStyleUnicam",
     "vtkInteractorStyleUser",
-]: location[name] = "vtkInteractionStyle"
+]:
+    location[name] = "vtkInteractionStyle"
 
 for name in [
     "vtkBalloonRepresentation",
@@ -618,7 +646,8 @@ for name in [
     "vtkSliderWidget",
     "vtkSphereWidget",
     "vtkTexturedButtonRepresentation2D",
-]: location[name] = "vtkInteractionWidgets"
+]:
+    location[name] = "vtkInteractionWidgets"
 
 location["vtkCameraOrientationWidget"] = "vtkInteractionWidgets"
 
@@ -634,7 +663,8 @@ for name in [
     "vtkPolarAxesActor",
     "vtkScalarBarActor",
     "vtkXYPlotActor",
-]: location[name] = "vtkRenderingAnnotation"
+]:
+    location[name] = "vtkRenderingAnnotation"
 
 
 for name in [
@@ -686,7 +716,8 @@ for name in [
     "vtkVolume",
     "vtkVolumeProperty",
     "vtkWindowToImageFilter",
-]: location[name] = "vtkRenderingCore"
+]:
+    location[name] = "vtkRenderingCore"
 
 location["vtkVectorText"] = "vtkRenderingFreeType"
 
@@ -709,13 +740,15 @@ for name in [
     "vtkShadowMapPass",
     "vtkTranslucentPass",
     "vtkVolumetricPass",
-]: location[name] = "vtkRenderingOpenGL2"
+]:
+    location[name] = "vtkRenderingOpenGL2"
 
 
 for name in [
     "vtkFixedPointVolumeRayCastMapper",
     "vtkGPUVolumeRayCastMapper",
-]: location[name] = "vtkRenderingVolume"
+]:
+    location[name] = "vtkRenderingVolume"
 
 ###########################################################################
 # https://vtk.org/doc/nightly/html/vtkCellType_8h.html
@@ -789,46 +822,46 @@ cell_types = {
 ###########################################################################
 array_types = {}
 array_types[VTK_UNSIGNED_CHAR] = "uint8"
-array_types[VTK_UNSIGNED_SHORT]= "uint16"
-array_types[VTK_UNSIGNED_INT]  = "uint32"
+array_types[VTK_UNSIGNED_SHORT] = "uint16"
+array_types[VTK_UNSIGNED_INT] = "uint32"
 array_types[VTK_UNSIGNED_LONG_LONG] = "uint64"
-array_types[VTK_CHAR]          = "int8"
-array_types[VTK_SHORT]         = "int16"
-array_types[VTK_INT]           = "int32"
+array_types[VTK_CHAR] = "int8"
+array_types[VTK_SHORT] = "int16"
+array_types[VTK_INT] = "int32"
 # array_types[VTK_LONG]  # ??
-array_types[VTK_LONG_LONG]     = "int64"
-array_types[VTK_FLOAT]         = "float32"
-array_types[VTK_DOUBLE]        = "float64"
-array_types[VTK_SIGNED_CHAR]   = "int8"
-array_types[VTK_ID_TYPE]       = "int64"
+array_types[VTK_LONG_LONG] = "int64"
+array_types[VTK_FLOAT] = "float32"
+array_types[VTK_DOUBLE] = "float64"
+array_types[VTK_SIGNED_CHAR] = "int8"
+array_types[VTK_ID_TYPE] = "int64"
 ############ reverse aliases
-array_types["char"]            = VTK_UNSIGNED_CHAR
-array_types["uint8"]           = VTK_UNSIGNED_CHAR
-array_types["uint16"]          = VTK_UNSIGNED_SHORT
-array_types["uint32"]          = VTK_UNSIGNED_INT
-array_types["uint64"]          = VTK_UNSIGNED_LONG_LONG
-array_types["int8"]            = VTK_CHAR
-array_types["int16"]           = VTK_SHORT
-array_types["int32"]           = VTK_INT
-array_types["int64"]           = VTK_LONG_LONG
-array_types["float32"]         = VTK_FLOAT
-array_types["float64"]         = VTK_DOUBLE
-array_types["int"]             = VTK_INT
-array_types["float"]           = VTK_FLOAT
+array_types["char"] = VTK_UNSIGNED_CHAR
+array_types["uint8"] = VTK_UNSIGNED_CHAR
+array_types["uint16"] = VTK_UNSIGNED_SHORT
+array_types["uint32"] = VTK_UNSIGNED_INT
+array_types["uint64"] = VTK_UNSIGNED_LONG_LONG
+array_types["int8"] = VTK_CHAR
+array_types["int16"] = VTK_SHORT
+array_types["int32"] = VTK_INT
+array_types["int64"] = VTK_LONG_LONG
+array_types["float32"] = VTK_FLOAT
+array_types["float64"] = VTK_DOUBLE
+array_types["int"] = VTK_INT
+array_types["float"] = VTK_FLOAT
 ############ reverse aliases
-array_types["UNSIGNED_CHAR"]  = VTK_UNSIGNED_CHAR
+array_types["UNSIGNED_CHAR"] = VTK_UNSIGNED_CHAR
 array_types["UNSIGNED_SHORT"] = VTK_UNSIGNED_SHORT
-array_types["UNSIGNED_INT"]   = VTK_UNSIGNED_INT
+array_types["UNSIGNED_INT"] = VTK_UNSIGNED_INT
 array_types["UNSIGNED_LONG_LONG"] = VTK_UNSIGNED_LONG_LONG
-array_types["CHAR"]           = VTK_CHAR
-array_types["SHORT"]          = VTK_SHORT
-array_types["INT"]            = VTK_INT
-array_types["LONG"]           = VTK_LONG
-array_types["LONG_LONG"]      = VTK_LONG_LONG
-array_types["FLOAT"]          = VTK_FLOAT
-array_types["DOUBLE"]         = VTK_DOUBLE
-array_types["SIGNED_CHAR"]    = VTK_SIGNED_CHAR
-array_types["ID_TYPE"]        = VTK_ID_TYPE
+array_types["CHAR"] = VTK_CHAR
+array_types["SHORT"] = VTK_SHORT
+array_types["INT"] = VTK_INT
+array_types["LONG"] = VTK_LONG
+array_types["LONG_LONG"] = VTK_LONG_LONG
+array_types["FLOAT"] = VTK_FLOAT
+array_types["DOUBLE"] = VTK_DOUBLE
+array_types["SIGNED_CHAR"] = VTK_SIGNED_CHAR
+array_types["ID_TYPE"] = VTK_ID_TYPE
 
 
 #########################################################
@@ -901,7 +934,10 @@ def get_class(name, module_name=""):
         try:
             return getattr(module, name)
         except AttributeError:
-            if name == "vtkCellTreeLocator" and module_name == "vtkmodules.vtkCommonDataModel":
+            if (
+                name == "vtkCellTreeLocator"
+                and module_name == "vtkmodules.vtkCommonDataModel"
+            ):
                 fallback_module_name = "vtkmodules.vtkFiltersGeneral"
                 _import_module_cached(fallback_module_name)
                 return getattr(module_cache[fallback_module_name], name)
@@ -924,6 +960,7 @@ def __getattr__(name):
 def __dir__():
     return sorted(set(globals()) | set(location))
 
+
 ######################################################################
 def new(cls_name, module_name=""):
     """
@@ -942,6 +979,7 @@ def new(cls_name, module_name=""):
         return None
     return instance
 
+
 ######################################################################
 def new_ids_filter():
     """
@@ -954,6 +992,7 @@ def new_ids_filter():
         return get_class("IdFilter")()
     except (KeyError, AttributeError, ImportError):
         return new("GenerateIds")
+
 
 ######################################################################
 def dump_hierarchy_to_file(fname=""):
@@ -972,6 +1011,7 @@ def dump_hierarchy_to_file(fname=""):
         import pkgutil
         import vtkmodules
         from vtkmodules.all import vtkVersion
+
         ver = vtkVersion()
     except (ImportError, ModuleNotFoundError, AttributeError):
         print("Unable to detect VTK version.")
@@ -982,9 +1022,10 @@ def dump_hierarchy_to_file(fname=""):
     vtkvers = f"{major}.{minor}.{patch}"
     if not fname:
         fname = f"vtkmodules_{vtkvers}_hierarchy.txt"
-    with open(fname,"w") as w:
+    with open(fname, "w") as w:
         for pkg in pkgutil.walk_packages(
-            vtkmodules.__path__, vtkmodules.__name__ + "."):
+            vtkmodules.__path__, vtkmodules.__name__ + "."
+        ):
             try:
                 module = import_module(pkg.name)
             except ImportError:
@@ -1001,6 +1042,7 @@ def dump_hierarchy_to_file(fname=""):
                 if "__" in module.__name__ or "__" in subitem:
                     continue
                 w.write(f"{module.__name__}.{subitem}\n")
+
 
 #########################################################
 # print("successfully finished importing vtkmodules")

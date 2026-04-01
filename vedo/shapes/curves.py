@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Curve, line and arrow shapes.
 
 Compatibility facade that re-exports curve symbols from focused modules.
@@ -21,7 +22,14 @@ from vedo.shapes.curves_core import (
     ThickTube,
     Tubes,
 )
-from vedo.shapes.curves_extras import Ribbon, Arrow, Arrows, Arrow2D, Arrows2D, FlatArrow
+from vedo.shapes.curves_extras import (
+    Ribbon,
+    Arrow,
+    Arrows,
+    Arrow2D,
+    Arrows2D,
+    FlatArrow,
+)
 
 __all__ = [
     "Line",

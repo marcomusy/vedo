@@ -1,5 +1,7 @@
 """Colorize a mesh cell by clicking on it"""
+
 from vedo import Mesh, Plotter, dataurl
+
 
 # Define the callback function to change the color of the clicked cell to red
 def func(evt):
@@ -8,7 +10,8 @@ def func(evt):
         return
     pt = evt.picked3d
     idcell = msh.closest_point(pt, return_cell_id=True)
-    m.cellcolors[idcell] = [255,0,0,200] #RGBA 
+    m.cellcolors[idcell] = [255, 0, 0, 200]  # RGBA
+
 
 # Load a 3D mesh of a panther from a file and set its color to blue
 m = Mesh(dataurl + "panther.stl").c("blue7")

@@ -1,5 +1,6 @@
 """pymeshlab interoperability example:
 Surface reconstruction by ball pivoting"""
+
 from pathlib import Path
 import sys
 
@@ -11,7 +12,7 @@ from _optional import require_module
 pymeshlab = require_module("pymeshlab")  # tested on pymeshlab-2022.2.post2
 
 # Configure inputs and run the visualization workflow.
-pts = vedo.Mesh(vedo.dataurl+'cow.vtk').points # numpy array of vertices
+pts = vedo.Mesh(vedo.dataurl + "cow.vtk").points  # numpy array of vertices
 
 m = pymeshlab.Mesh(vertex_matrix=pts)
 
@@ -26,9 +27,13 @@ else:
 ms.generate_surface_reconstruction_ball_pivoting(ballradius=p)
 
 mlab_mesh = ms.current_mesh()
-reco_mesh = vedo.Mesh(mlab_mesh).compute_normals().flat().backcolor('t')
+reco_mesh = vedo.Mesh(mlab_mesh).compute_normals().flat().backcolor("t")
 
 vedo.show(
-    __doc__, vedo.Points(pts), reco_mesh,
-    axes=True, bg2='blue9', title="vedo + pymeshlab",
+    __doc__,
+    vedo.Points(pts),
+    reco_mesh,
+    axes=True,
+    bg2="blue9",
+    title="vedo + pymeshlab",
 )

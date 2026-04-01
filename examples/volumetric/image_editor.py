@@ -1,4 +1,5 @@
 """Launch the interactive image editor application."""
+
 # !/usr/bin/env python
 # -*- coding: utf-8 -*-
 # A simple image editor that allows the user to apply various filters

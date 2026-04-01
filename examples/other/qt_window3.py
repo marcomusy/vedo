@@ -1,4 +1,5 @@
 """Qt integration example."""
+
 import sys
 from PyQt5 import Qt
 from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
@@ -6,7 +7,6 @@ from vedo import Plotter, Cone
 
 
 class MainWindow(Qt.QMainWindow):
-
     def __init__(self, parent=None):
 
         Qt.QMainWindow.__init__(self, parent)
@@ -51,7 +51,6 @@ class MainWindow(Qt.QMainWindow):
 
 
 if __name__ == "__main__":
-
     app = Qt.QApplication(sys.argv)
     window = MainWindow()
     app.aboutToQuit.connect(window.onClose)

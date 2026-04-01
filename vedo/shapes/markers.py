@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Marker and special symbol shapes extracted from vedo.shapes."""
 
 from typing import Any
@@ -15,8 +16,20 @@ from vedo.colors import get_color
 from vedo.mesh import Mesh
 from vedo.pointcloud import Points, merge
 from vedo.shapes.curves import Line, Arc, Arrow, Arrow2D, Ribbon
-from vedo.shapes.primitives import Polygon, Star, Circle, Disc, Sphere, Cylinder, Cone, Rectangle, Grid
+from vedo.shapes.primitives import (
+    Polygon,
+    Star,
+    Circle,
+    Disc,
+    Sphere,
+    Cylinder,
+    Cone,
+    Rectangle,
+    Grid,
+)
 from vedo.shapes.text3d import Text3D
+
+
 def Marker(symbol, pos=(0, 0, 0), c="k", alpha=1.0, s=0.1, filled=True) -> Any:
     """
     Generate a marker shape. Typically used in association with `Glyph`.
@@ -25,7 +38,24 @@ def Marker(symbol, pos=(0, 0, 0), c="k", alpha=1.0, s=0.1, filled=True) -> Any:
         return symbol.c(c).alpha(alpha).lighting("off")
 
     if isinstance(symbol, int):
-        symbs = [".", "o", "O", "0", "p", "*", "h", "D", "d", "v", "^", ">", "<", "s", "x", "a"]
+        symbs = [
+            ".",
+            "o",
+            "O",
+            "0",
+            "p",
+            "*",
+            "h",
+            "D",
+            "d",
+            "v",
+            "^",
+            ">",
+            "<",
+            "s",
+            "x",
+            "a",
+        ]
         symbol = symbol % len(symbs)
         symbol = symbs[symbol]
 
@@ -201,7 +231,7 @@ class Brace(Mesh):
         super().__init__(poly, c, alpha)
 
         self.base = q1
-        self.top  = q2
+        self.top = q2
         self.name = "Brace"
 
 
@@ -210,18 +240,48 @@ class Star3D(Mesh):
     Build a 3D starred shape.
     """
 
-    def __init__(self, pos=(0, 0, 0), r=1.0, thickness=0.1, c="blue4", alpha=1.0) -> None:
+    def __init__(
+        self, pos=(0, 0, 0), r=1.0, thickness=0.1, c="blue4", alpha=1.0
+    ) -> None:
         """
         Build a 3D star shape of 5 cusps, mainly useful as a 3D marker.
         """
-        pts = ((1.34, 0., -0.37), (5.75e-3, -0.588, thickness/10), (0.377, 0.,-0.38),
-               (0.0116, 0., -1.35), (-0.366, 0., -0.384), (-1.33, 0., -0.385),
-               (-0.600, 0., 0.321), (-0.829, 0., 1.19), (-1.17e-3, 0., 0.761),
-               (0.824, 0., 1.20), (0.602, 0., 0.328), (6.07e-3, 0.588, thickness/10))
-        fcs = [[0, 1, 2], [0, 11,10], [2, 1, 3], [2, 11, 0], [3, 1, 4], [3, 11, 2],
-               [4, 1, 5], [4, 11, 3], [5, 1, 6], [5, 11, 4], [6, 1, 7], [6, 11, 5],
-               [7, 1, 8], [7, 11, 6], [8, 1, 9], [8, 11, 7], [9, 1,10], [9, 11, 8],
-               [10,1, 0],[10,11, 9]]
+        pts = (
+            (1.34, 0.0, -0.37),
+            (5.75e-3, -0.588, thickness / 10),
+            (0.377, 0.0, -0.38),
+            (0.0116, 0.0, -1.35),
+            (-0.366, 0.0, -0.384),
+            (-1.33, 0.0, -0.385),
+            (-0.600, 0.0, 0.321),
+            (-0.829, 0.0, 1.19),
+            (-1.17e-3, 0.0, 0.761),
+            (0.824, 0.0, 1.20),
+            (0.602, 0.0, 0.328),
+            (6.07e-3, 0.588, thickness / 10),
+        )
+        fcs = [
+            [0, 1, 2],
+            [0, 11, 10],
+            [2, 1, 3],
+            [2, 11, 0],
+            [3, 1, 4],
+            [3, 11, 2],
+            [4, 1, 5],
+            [4, 11, 3],
+            [5, 1, 6],
+            [5, 11, 4],
+            [6, 1, 7],
+            [6, 11, 5],
+            [7, 1, 8],
+            [7, 11, 6],
+            [8, 1, 9],
+            [8, 11, 7],
+            [9, 1, 10],
+            [9, 11, 8],
+            [10, 1, 0],
+            [10, 11, 9],
+        ]
 
         super().__init__([pts, fcs], c, alpha)
         self.rotate_x(90)
@@ -368,9 +428,14 @@ class ParametricShape(Mesh):
 
         super().__init__(pfs.GetOutput())
 
-        if name == "RandomHills": self.shift([0,-10,-2.25])
-        if name != 'Kuen': self.normalize()
-        if name == 'Dini': self.scale(0.4)
-        if name == 'Enneper': self.scale(0.4)
-        if name == 'ConicSpiral': self.bc('tomato')
+        if name == "RandomHills":
+            self.shift([0, -10, -2.25])
+        if name != "Kuen":
+            self.normalize()
+        if name == "Dini":
+            self.scale(0.4)
+        if name == "Enneper":
+            self.scale(0.4)
+        if name == "ConicSpiral":
+            self.bc("tomato")
         self.name = name

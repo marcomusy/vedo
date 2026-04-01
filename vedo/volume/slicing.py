@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Slicing mixin for Volume."""
 
 import os
@@ -26,9 +27,10 @@ class VolumeSlicingMixin:
         vslice.SetExtent(i, i, 0, ny, 0, nz)
         vslice.Update()
         m = Mesh(vslice.GetOutput())
-        m.pipeline = utils.OperationNode(f"xslice {i}", parents=[self], c="#4cc9f0:#e9c46a")
+        m.pipeline = utils.OperationNode(
+            f"xslice {i}", parents=[self], c="#4cc9f0:#e9c46a"
+        )
         return m
-
 
     def yslice(self, j: int) -> Mesh:
         """Extract the slice at index `j` of volume along y-axis."""
@@ -40,9 +42,10 @@ class VolumeSlicingMixin:
         vslice.SetExtent(0, nx, j, j, 0, nz)
         vslice.Update()
         m = Mesh(vslice.GetOutput())
-        m.pipeline = utils.OperationNode(f"yslice {j}", parents=[self], c="#4cc9f0:#e9c46a")
+        m.pipeline = utils.OperationNode(
+            f"yslice {j}", parents=[self], c="#4cc9f0:#e9c46a"
+        )
         return m
-
 
     def zslice(self, k: int) -> Mesh:
         """Extract the slice at index `i` of volume along z-axis."""
@@ -54,11 +57,19 @@ class VolumeSlicingMixin:
         vslice.SetExtent(0, nx, 0, ny, k, k)
         vslice.Update()
         m = Mesh(vslice.GetOutput())
-        m.pipeline = utils.OperationNode(f"zslice {k}", parents=[self], c="#4cc9f0:#e9c46a")
+        m.pipeline = utils.OperationNode(
+            f"zslice {k}", parents=[self], c="#4cc9f0:#e9c46a"
+        )
         return m
 
-
-    def slice_plane(self, origin: list[float], normal: list[float], autocrop=False, border=0.5, mode="linear") -> Mesh:
+    def slice_plane(
+        self,
+        origin: list[float],
+        normal: list[float],
+        autocrop=False,
+        border=0.5,
+        mode="linear",
+    ) -> Mesh:
         """
         Extract the slice along a given plane position and normal.
 
@@ -138,11 +149,12 @@ class VolumeSlicingMixin:
         varr2 = utils.numpy2vtk(img.GetBounds(), name="original_bounds")
         msh.dataset.GetFieldData().AddArray(varr1)
         msh.dataset.GetFieldData().AddArray(varr2)
-        msh.pipeline = utils.OperationNode("slice_plane", parents=[self], c="#4cc9f0:#e9c46a")
+        msh.pipeline = utils.OperationNode(
+            "slice_plane", parents=[self], c="#4cc9f0:#e9c46a"
+        )
         return msh
 
-
-    def slab(self, slice_range=(), axis='z', operation="mean") -> Mesh:
+    def slab(self, slice_range=(), axis="z", operation="mean") -> Mesh:
         """
         Extract a slab from a `Volume` by combining
         all of the slices of an image to create a single slice.
@@ -195,19 +207,19 @@ class VolumeSlicingMixin:
             raise ValueError()
 
         dims = self.dimensions()
-        if axis == 'x':
+        if axis == "x":
             islab.SetOrientationToX()
             if slab_range[0] > dims[0] - 1:
                 slab_range[0] = int(dims[0] - 1)
             if slab_range[1] > dims[0] - 1:
                 slab_range[1] = int(dims[0] - 1)
-        elif axis == 'y':
+        elif axis == "y":
             islab.SetOrientationToY()
             if slab_range[0] > dims[1] - 1:
                 slab_range[0] = int(dims[1] - 1)
             if slab_range[1] > dims[1] - 1:
                 slab_range[1] = int(dims[1] - 1)
-        elif axis == 'z':
+        elif axis == "z":
             islab.SetOrientationToZ()
             if slab_range[0] > dims[2] - 1:
                 slab_range[0] = int(dims[2] - 1)
@@ -220,41 +232,41 @@ class VolumeSlicingMixin:
         islab.SetSliceRange(slab_range)
         islab.Update()
 
-        msh = Mesh(islab.GetOutput()).lighting('off')
+        msh = Mesh(islab.GetOutput()).lighting("off")
         msh.mapper.SetLookupTable(utils.ctf2lut(self, msh))
         msh.mapper.SetScalarRange(self.scalar_range())
 
         msh.metadata["slab_range"] = slab_range
-        msh.metadata["slab_axis"]  = axis
+        msh.metadata["slab_axis"] = axis
         msh.metadata["slab_operation"] = operation
 
         # compute bounds of slab
         origin = list(self.origin())
         spacing = list(self.spacing())
-        if axis == 'x':
+        if axis == "x":
             msh.metadata["slab_bounding_box"] = [
                 origin[0] + slab_range[0] * spacing[0],
                 origin[0] + slab_range[1] * spacing[0],
                 origin[1],
-                origin[1] + dims[1]*spacing[1],
+                origin[1] + dims[1] * spacing[1],
                 origin[2],
-                origin[2] + dims[2]*spacing[2],
+                origin[2] + dims[2] * spacing[2],
             ]
-        elif axis == 'y':
+        elif axis == "y":
             msh.metadata["slab_bounding_box"] = [
                 origin[0],
-                origin[0] + dims[0]*spacing[0],
+                origin[0] + dims[0] * spacing[0],
                 origin[1] + slab_range[0] * spacing[1],
                 origin[1] + slab_range[1] * spacing[1],
                 origin[2],
-                origin[2] + dims[2]*spacing[2],
+                origin[2] + dims[2] * spacing[2],
             ]
-        elif axis == 'z':
+        elif axis == "z":
             msh.metadata["slab_bounding_box"] = [
                 origin[0],
-                origin[0] + dims[0]*spacing[0],
+                origin[0] + dims[0] * spacing[0],
                 origin[1],
-                origin[1] + dims[1]*spacing[1],
+                origin[1] + dims[1] * spacing[1],
                 origin[2] + slab_range[0] * spacing[2],
                 origin[2] + slab_range[1] * spacing[2],
             ]
@@ -267,4 +279,3 @@ class VolumeSlicingMixin:
         )
         msh.name = "SlabMesh"
         return msh
-

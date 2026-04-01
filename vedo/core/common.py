@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Common algorithm mixins shared by vedo objects."""
 
 from typing import Any
@@ -16,6 +17,7 @@ from vedo.core.transformations import LinearTransform
 from vedo.core.data import DataArrayHelper, _get_data_legacy_format
 
 __all__ = ["CommonAlgorithms"]
+
 
 class CommonAlgorithms:
     """Common algorithms."""
@@ -185,7 +187,7 @@ class CommonAlgorithms:
         bx = vedo.shapes.Box(
             pos,
             length * scale + padding[0],
-            width  * scale + padding[1],
+            width * scale + padding[1],
             height * scale + padding[2],
             c="gray",
         )
@@ -245,7 +247,7 @@ class CommonAlgorithms:
     def diagonal_size(cls) -> float:
         """Get the length of the diagonal of the bounding box."""
         b = cls.bounds()
-        return np.sqrt((b[1] - b[0])**2 + (b[3] - b[2])**2 + (b[5] - b[4])**2)
+        return np.sqrt((b[1] - b[0]) ** 2 + (b[3] - b[2]) ** 2 + (b[5] - b[4]) ** 2)
 
     def average_size(cls) -> float:
         """
@@ -284,7 +286,9 @@ class CommonAlgorithms:
 
     def inputdata(cls):
         """Obsolete, use `.dataset` instead."""
-        colors.printc("WARNING: 'inputdata()' is obsolete, use '.dataset' instead.", c="y")
+        colors.printc(
+            "WARNING: 'inputdata()' is obsolete, use '.dataset' instead.", c="y"
+        )
         return cls.dataset
 
     @property
@@ -615,7 +619,6 @@ class CommonAlgorithms:
 
         return neicells
 
-
     def map_points_to_cells(cls, arrays=(), move=False) -> Self:
         """
         Interpolate point data (i.e., data specified per point or vertex)
@@ -738,7 +741,9 @@ class CommonAlgorithms:
                 ![](https://vedo.embl.es/images/advanced/interpolateMeshArray.png)
         """
         if radius is None and not n:
-            vedo.logger.error("in interpolate_data_from(): please set either radius or n")
+            vedo.logger.error(
+                "in interpolate_data_from(): please set either radius or n"
+            )
             raise RuntimeError
 
         if on == "points":
@@ -749,7 +754,9 @@ class CommonAlgorithms:
             c2p.Update()
             points = c2p.GetOutput()
         else:
-            vedo.logger.error("in interpolate_data_from(), on must be on points or cells")
+            vedo.logger.error(
+                "in interpolate_data_from(), on must be on points or cells"
+            )
             raise RuntimeError()
 
         locator = vtki.new("PointLocator")
@@ -781,7 +788,7 @@ class CommonAlgorithms:
         for i in range(cls.dataset.GetPointData().GetNumberOfArrays()):
             name = cls.dataset.GetPointData().GetArrayName(i)
             clsnames.append(name)
-        
+
         pointsnames = []
         for i in range(points.GetPointData().GetNumberOfArrays()):
             name = points.GetPointData().GetArrayName(i)
@@ -819,7 +826,9 @@ class CommonAlgorithms:
 
         cls._update(cpoly, reset_locators=False)
 
-        cls.pipeline = utils.OperationNode("interpolate_data_from", parents=[cls, source])
+        cls.pipeline = utils.OperationNode(
+            "interpolate_data_from", parents=[cls, source]
+        )
         return cls
 
     def add_ids(cls) -> Self:
@@ -830,7 +839,9 @@ class CommonAlgorithms:
         """
         ids = vtki.new_ids_filter()
         if ids is None:
-            vedo.logger.error("add_ids(): cannot instantiate vtkIdFilter/vtkGenerateIds")
+            vedo.logger.error(
+                "add_ids(): cannot instantiate vtkIdFilter/vtkGenerateIds"
+            )
             raise RuntimeError("add_ids(): missing VTK ids filter")
         ids.SetInputData(cls.dataset)
         ids.PointIdsOn()
@@ -841,7 +852,7 @@ class CommonAlgorithms:
         ids.Update()
         # cls._update(ids.GetOutput(), reset_locators=False) # bug #1267
         point_arr = ids.GetOutput().GetPointData().GetArray("PointID")
-        cell_arr  = ids.GetOutput().GetCellData().GetArray("CellID")
+        cell_arr = ids.GetOutput().GetCellData().GetArray("CellID")
         if point_arr:
             cls.dataset.GetPointData().AddArray(point_arr)
         if cell_arr:
@@ -921,12 +932,12 @@ class CommonAlgorithms:
         )
 
     def probe(
-            cls,
-            source,
-            categorical=False,
-            snap=False,
-            tol=0,
-        ) -> Self:
+        cls,
+        source,
+        categorical=False,
+        snap=False,
+        tol=0,
+    ) -> Self:
         """
         Takes a data set and probes its scalars at the specified points in space.
 
@@ -1065,8 +1076,11 @@ class CommonAlgorithms:
         """Write object to file."""
         out = vedo.file_io.write(cls, filename, binary)
         out.pipeline = utils.OperationNode(
-            "write", parents=[cls], comment=str(filename)[:15], 
-            shape="folder", c="#8a817c"
+            "write",
+            parents=[cls],
+            comment=str(filename)[:15],
+            shape="folder",
+            c="#8a817c",
         )
 
     def tomesh(cls, bounds=(), shrink=0) -> vedo.Mesh:
@@ -1107,7 +1121,9 @@ class CommonAlgorithms:
         msh.pipeline = utils.OperationNode("tomesh", parents=[cls], c="#9e2a2b")
         return msh
 
-    def signed_distance(cls, dims=(20, 20, 20), bounds=None, invert=False, max_radius=None) -> vedo.Volume:
+    def signed_distance(
+        cls, dims=(20, 20, 20), bounds=None, invert=False, max_radius=None
+    ) -> vedo.Volume:
         """
         Compute the `Volume` object whose voxels contains the signed distance from
         the object. The calling object must have "Normals" defined.
@@ -1157,7 +1173,8 @@ class CommonAlgorithms:
         return vol
 
     def unsigned_distance(
-            cls, dims=(25,25,25), bounds=(), max_radius=0, cap_value=0) -> vedo.Volume:
+        cls, dims=(25, 25, 25), bounds=(), max_radius=0, cap_value=0
+    ) -> vedo.Volume:
         """
         Compute the `Volume` object whose voxels contains the unsigned distance
         from the input object.
@@ -1185,14 +1202,19 @@ class CommonAlgorithms:
         vol = vedo.Volume(dist.GetOutput())
         vol.name = "UnsignedDistanceVolume"
         vol.pipeline = utils.OperationNode(
-            "unsigned_distance", parents=[cls], c="#e9c46a:#0096c7")
+            "unsigned_distance", parents=[cls], c="#e9c46a:#0096c7"
+        )
         return vol
 
-    def smooth_data(cls,
-            niter=10, relaxation_factor=0.1, strategy=0, mask=None,
-            mode="distance2",
-            exclude=("Normals", "TextureCoordinates"),
-        ) -> Self:
+    def smooth_data(
+        cls,
+        niter=10,
+        relaxation_factor=0.1,
+        strategy=0,
+        mask=None,
+        mode="distance2",
+        exclude=("Normals", "TextureCoordinates"),
+    ) -> Self:
         """
         Smooth point attribute data using distance weighted Laplacian kernel.
         The effect is to blur regions of high variation and emphasize low variation regions.
@@ -1213,7 +1235,7 @@ class CommonAlgorithms:
         adequate (i.e., just a distance weighted average is computed).
 
         Warning:
-            Certain data attributes cannot be correctly interpolated. 
+            Certain data attributes cannot be correctly interpolated.
             For example, surface normals are expected to be |n|=1;
             after attribute smoothing this constraint is likely to be violated.
             Other vectors and tensors may suffer from similar issues.
@@ -1297,17 +1319,17 @@ class CommonAlgorithms:
         return cls
 
     def compute_streamlines(
-            cls,
-            seeds: Any,
-            integrator="rk4",
-            direction="forward",
-            initial_step_size=None,
-            max_propagation=None,
-            max_steps=10000,
-            step_length=0,
-            surface_constrained=False,
-            compute_vorticity=False,
-        ) -> vedo.Lines | None:
+        cls,
+        seeds: Any,
+        integrator="rk4",
+        direction="forward",
+        initial_step_size=None,
+        max_propagation=None,
+        max_steps=10000,
+        step_length=0,
+        surface_constrained=False,
+        compute_vorticity=False,
+    ) -> vedo.Lines | None:
         """
         Integrate a vector field to generate streamlines.
 
@@ -1337,7 +1359,7 @@ class CommonAlgorithms:
                 whether to compute the vorticity at each streamline point
         """
         b = cls.dataset.GetBounds()
-        size = (b[5]-b[4] + b[3]-b[2] + b[1]-b[0]) / 3
+        size = (b[5] - b[4] + b[3] - b[2] + b[1] - b[0]) / 3
         if initial_step_size is None:
             initial_step_size = size / 1000.0
 
@@ -1369,7 +1391,9 @@ class CommonAlgorithms:
         elif "both" in direction:
             sti.SetIntegrationDirectionToBoth()
         else:
-            vedo.logger.error(f"in compute_streamlines(), unknown direction {direction}")
+            vedo.logger.error(
+                f"in compute_streamlines(), unknown direction {direction}"
+            )
             return None
 
         if integrator == "rk2":
@@ -1379,7 +1403,9 @@ class CommonAlgorithms:
         elif integrator == "rk45":
             sti.SetIntegratorTypeToRungeKutta45()
         else:
-            vedo.logger.error(f"in compute_streamlines(), unknown integrator {integrator}")
+            vedo.logger.error(
+                f"in compute_streamlines(), unknown integrator {integrator}"
+            )
             return None
 
         sti.Update()
@@ -1387,8 +1413,12 @@ class CommonAlgorithms:
         stlines = vedo.shapes.Lines(sti.GetOutput(), lw=4)
         stlines.name = "StreamLines"
         cls.pipeline = utils.OperationNode(
-            "compute_streamlines", comment=f"{integrator}", parents=[cls, seeds], c="#9e2a2b"
+            "compute_streamlines",
+            comment=f"{integrator}",
+            parents=[cls, seeds],
+            c="#9e2a2b",
         )
         return stlines
+
 
 ###############################################################################

@@ -3,21 +3,22 @@ N points that are closest to a given point of the surface.
 For some of these point we show the fitting sphere.
 Red lines join the center of the sphere to the surface point.
 Blue points are the N points used for fitting"""
+
 from vedo import *
 
-settings.default_font = 'Kanopus'
+settings.default_font = "Kanopus"
 settings.use_depth_peeling = True
 
 plt = Plotter()
 
 # load mesh and increase by a lot subdivide(2) the nr of surface vertices
-cow = Mesh(dataurl+"cow.vtk").alpha(0.3).subdivide(2)
+cow = Mesh(dataurl + "cow.vtk").alpha(0.3).subdivide(2)
 
 for i, p in enumerate(cow.points):
     if i % 1000:
         continue  # skip most points
     # Fit local osculating sphere from nearest neighbors.
-    pts = cow.closest_point(p, n=16)   # find the n-closest points to p
+    pts = cow.closest_point(p, n=16)  # find the n-closest points to p
     sph = fit_sphere(pts).alpha(0.05)  # find the fitting sphere
     if sph is None:
         continue  # may fail if all points sit on a plane

@@ -3,6 +3,7 @@
 - Add points by clicking on the line
 - Remove them by selecting&pressing DEL
 --- PRESS q TO PROCEED ---"""
+
 from vedo import Circle, show
 
 # Create a set of points in space
@@ -16,11 +17,11 @@ sptool = plt.add_spline_tool(pts, closed=True)
 
 # Add a callback to print the center of mass of the spline
 sptool.add_observer(
-    "end of interaction", 
+    "end of interaction",
     lambda o, e: (
         print(f"Spline changed! CM = {sptool.spline().center_of_mass()}"),
         print(f"\tNumber of points: {sptool.spline().points.size}"),
-    )
+    ),
 )
 
 # Stay in the loop until the user presses q

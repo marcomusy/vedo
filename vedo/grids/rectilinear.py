@@ -26,6 +26,7 @@ from vedo.visual import MeshVisual
 from vedo.core.transformations import LinearTransform
 from .unstructured import UnstructuredGrid
 
+
 class RectilinearGrid(PointAlgorithms, MeshVisual):
     """
     Build a rectilinear grid.
@@ -83,7 +84,7 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         self.filename = ""
 
         self.info = {}
-        self.time =  time.time()
+        self.time = time.time()
 
         ###############################
         if inputobj is None:
@@ -119,7 +120,9 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         ###############################
 
         if not self.dataset:
-            vedo.logger.error(f"RectilinearGrid: cannot understand input type {type(inputobj)}")
+            vedo.logger.error(
+                f"RectilinearGrid: cannot understand input type {type(inputobj)}"
+            )
             return
 
         self.properties.SetColor(0.352, 0.612, 0.996)  # blue7
@@ -166,17 +169,34 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         rows.append(("dimensions", str(self.dataset.GetDimensions())))
         rows.append(("center", utils.precision(self.dataset.GetCenter(), 6)))
         rows.append(("bounds", format_bounds(self.bounds(), utils.precision)))
-        rows.append(("memory size", utils.precision(self.dataset.GetActualMemorySize() / 1024, 2) + " MB"))
+        rows.append(
+            (
+                "memory size",
+                utils.precision(self.dataset.GetActualMemorySize() / 1024, 2) + " MB",
+            )
+        )
 
         for key in self.pointdata.keys():
             arr = self.pointdata[key]
             label = active_array_label(self.dataset, "point", key, "pointdata")
-            rows.append((label, f'"{key}" ' + summarize_array(arr, utils.precision, dim_label="ndim")))
+            rows.append(
+                (
+                    label,
+                    f'"{key}" '
+                    + summarize_array(arr, utils.precision, dim_label="ndim"),
+                )
+            )
 
         for key in self.celldata.keys():
             arr = self.celldata[key]
             label = active_array_label(self.dataset, "cell", key, "celldata")
-            rows.append((label, f'"{key}" ' + summarize_array(arr, utils.precision, dim_label="ndim")))
+            rows.append(
+                (
+                    label,
+                    f'"{key}" '
+                    + summarize_array(arr, utils.precision, dim_label="ndim"),
+                )
+            )
 
         for key in self.metadata.keys():
             arr = self.metadata[key]
@@ -199,7 +219,7 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         help_url = "https://vedo.embl.es/docs/vedo/grids.html#RectilinearGrid"
 
         m = self.tomesh().linewidth(1).lighting("off")
-        arr= m.thumbnail(zoom=1, elevation=-30, azimuth=-30)
+        arr = m.thumbnail(zoom=1, elevation=-30, azimuth=-30)
 
         im = Image.fromarray(arr)
         buffered = io.BytesIO()
@@ -218,7 +238,9 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         help_text = ""
         if self.name:
             help_text += f"<b> {self.name}: &nbsp&nbsp</b>"
-        help_text += '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>"
+        help_text += (
+            '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>"
+        )
         if self.filename:
             dots = ""
             if len(self.filename) > 30:
@@ -229,13 +251,17 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         if self.dataset.GetPointData().GetScalars():
             if self.dataset.GetPointData().GetScalars().GetName():
                 name = self.dataset.GetPointData().GetScalars().GetName()
-                pdata = "<tr><td><b> point data array </b></td><td>" + name + "</td></tr>"
+                pdata = (
+                    "<tr><td><b> point data array </b></td><td>" + name + "</td></tr>"
+                )
 
         cdata = ""
         if self.dataset.GetCellData().GetScalars():
             if self.dataset.GetCellData().GetScalars().GetName():
                 name = self.dataset.GetCellData().GetScalars().GetName()
-                cdata = "<tr><td><b> cell data array </b></td><td>" + name + "</td></tr>"
+                cdata = (
+                    "<tr><td><b> cell data array </b></td><td>" + name + "</td></tr>"
+                )
 
         pts = self.coordinates
         cm = np.mean(pts, axis=0)
@@ -243,13 +269,23 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         _all = [
             "<table>",
             "<tr>",
-            "<td>", image, "</td>",
-            "<td style='text-align: center; vertical-align: center;'><br/>", help_text,
+            "<td>",
+            image,
+            "</td>",
+            "<td style='text-align: center; vertical-align: center;'><br/>",
+            help_text,
             "<table>",
-            "<tr><td><b> bounds </b> <br/> (x/y/z) </td><td>" + str(bounds) + "</td></tr>",
-            "<tr><td><b> center of mass </b></td><td>" + utils.precision(cm,3) + "</td></tr>",
+            "<tr><td><b> bounds </b> <br/> (x/y/z) </td><td>"
+            + str(bounds)
+            + "</td></tr>",
+            "<tr><td><b> center of mass </b></td><td>"
+            + utils.precision(cm, 3)
+            + "</td></tr>",
             "<tr><td><b> nr. points&nbsp/&nbspcells </b></td><td>"
-            + str(self.npoints) + "&nbsp/&nbsp" + str(self.ncells) + "</td></tr>",
+            + str(self.npoints)
+            + "&nbsp/&nbsp"
+            + str(self.ncells)
+            + "</td></tr>",
             pdata,
             cdata,
             "</table>",
@@ -299,9 +335,13 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         Value of `inside` is False if the point x is outside of the grid.
         """
         ijk = [0, 0, 0]
-        pcoords = [0., 0., 0.]
+        pcoords = [0.0, 0.0, 0.0]
         inout = self.dataset.ComputeStructuredCoordinates(x, ijk, pcoords)
-        return {"ijk": np.array(ijk), "pcoords": np.array(pcoords), "inside": bool(inout)}
+        return {
+            "ijk": np.array(ijk),
+            "pcoords": np.array(pcoords),
+            "inside": bool(inout),
+        }
 
     def compute_pointid(self, ijk: int) -> int:
         """Given a location in structured coordinates (i-j-k), return the point id."""
@@ -319,7 +359,7 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         """Given a position `x`, return the id of the closest cell."""
         cell = vtki.vtkHexagonalPrism()
         cellid = vtki.mutable(0)
-        tol2 = 0.001 # vtki.mutable(0)
+        tol2 = 0.001  # vtki.mutable(0)
         subid = vtki.mutable(0)
         pcoords = [0.0, 0.0, 0.0]
         weights = [0.0, 0.0, 0.0]
@@ -346,7 +386,9 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         prop.DeepCopy(self.properties)
         newvol.actor.SetProperty(prop)
         newvol.properties = prop
-        newvol.pipeline = utils.OperationNode("clone", parents=[self], c="#bbd0ff", shape="diamond")
+        newvol.pipeline = utils.OperationNode(
+            "clone", parents=[self], c="#bbd0ff", shape="diamond"
+        )
         return newvol
 
     def bounds(self) -> np.ndarray:
@@ -407,12 +449,18 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
                 normal vector to the cutting plane
         """
         strn = str(normal)
-        if strn   ==  "x": normal = (1, 0, 0)
-        elif strn ==  "y": normal = (0, 1, 0)
-        elif strn ==  "z": normal = (0, 0, 1)
-        elif strn == "-x": normal = (-1, 0, 0)
-        elif strn == "-y": normal = (0, -1, 0)
-        elif strn == "-z": normal = (0, 0, -1)
+        if strn == "x":
+            normal = (1, 0, 0)
+        elif strn == "y":
+            normal = (0, 1, 0)
+        elif strn == "z":
+            normal = (0, 0, 1)
+        elif strn == "-x":
+            normal = (-1, 0, 0)
+        elif strn == "-y":
+            normal = (0, -1, 0)
+        elif strn == "-z":
+            normal = (0, 0, -1)
         plane = vtki.new("Plane")
         plane.SetOrigin(origin)
         plane.SetNormal(normal)
@@ -427,12 +475,16 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         ug = vedo.UnstructuredGrid(cout)
         if isinstance(self, UnstructuredGrid):
             self._update(cout)
-            self.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
+            self.pipeline = utils.OperationNode(
+                "cut_with_plane", parents=[self], c="#9e2a2b"
+            )
             return self
         ug.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
         return ug
 
-    def cut_with_mesh(self, mesh, invert=False, whole_cells=False, on_boundary=False) -> UnstructuredGrid:
+    def cut_with_mesh(
+        self, mesh, invert=False, whole_cells=False, on_boundary=False
+    ) -> UnstructuredGrid:
         """
         Cut a `RectilinearGrid` with a `Mesh`.
 
@@ -472,4 +524,3 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         out = UnstructuredGrid(clipper.GetOutput())
         out.pipeline = utils.OperationNode("cut_with_mesh", parents=[self], c="#9e2a2b")
         return out
-

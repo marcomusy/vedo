@@ -1,4 +1,5 @@
 """Trame integration example with a volume scene."""
+
 #!/usr/bin/env python
 #
 from importlib import import_module
@@ -24,11 +25,11 @@ except ImportError as exc:
 
 from vedo import Volume, Axes, Plotter, dataurl
 
-vol = Volume(dataurl+"embryo.slc")
+vol = Volume(dataurl + "embryo.slc")
 
-plt = Plotter(bg='Wheat', offscreen=True)
+plt = Plotter(bg="Wheat", offscreen=True)
 plt += [vol, Axes(vol)]
-plt += vol.isosurface().shift(300,0,0)
+plt += vol.isosurface().shift(300, 0, 0)
 
 # ------------------------------------------------------------
 # Web Application setup

@@ -1,4 +1,5 @@
 """Compute the mean of two Bézier splines on a sphere using the Riemannian mean"""
+
 # https://morphomatics.github.io/tutorials/tutorial_bezierfold/
 import jax
 import jax.numpy as jnp

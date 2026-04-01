@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Video generation utilities from rendered scenes."""
 
 import os
@@ -14,12 +15,15 @@ from .terminal import ask
 __docformat__ = "google"
 __all__ = ["Video"]
 
+
 class Video:
     """
     Generate a video from a rendering window.
     """
 
-    def __init__(self, name="movie.mp4", duration=None, fps=24, scale=1, backend="imageio"):
+    def __init__(
+        self, name="movie.mp4", duration=None, fps=24, scale=1, backend="imageio"
+    ):
         """
         Class to generate a video from the specified rendering window.
         Program `ffmpeg` is used to create video from each generated frame.
@@ -71,7 +75,9 @@ class Video:
             shutil.copyfile(fr, fr2)
         return self
 
-    def action(self, elevation=(0, 80), azimuth=(0, 359), cameras=(), resetcam=False) -> Video:
+    def action(
+        self, elevation=(0, 80), azimuth=(0, 359), cameras=(), resetcam=False
+    ) -> Video:
         """
         Automatic shooting of a static scene by specifying rotation and elevation ranges.
 
@@ -101,12 +107,11 @@ class Video:
 
         if nc:
             for i in range(n):
-                plt.move_camera(cams, i / (n-1))
+                plt.move_camera(cams, i / (n - 1))
                 plt.render()
                 self.add_frame()
 
         else:  ########################################
-
             for i in range(n):
                 plt.camera.Elevation((elevation[1] - elevation[0]) / n)
                 plt.camera.Azimuth((azimuth[1] - azimuth[0]) / n)
@@ -140,7 +145,9 @@ class Video:
                 + f"'{self.name}'"
             )
             if out:
-                vedo.logger.error(f":noentry: backend {self.backend} returning error: {out}")
+                vedo.logger.error(
+                    f":noentry: backend {self.backend} returning error: {out}"
+                )
             else:
                 colors.printc(f":save: saved to {self.name}", c="m")
 
@@ -176,7 +183,9 @@ class Video:
             try:
                 import imageio
             except ImportError:
-                vedo.logger.error("Please install imageio with:\n pip install imageio[ffmpeg]")
+                vedo.logger.error(
+                    "Please install imageio with:\n pip install imageio[ffmpeg]"
+                )
                 return
 
             if self.name.endswith(".mp4"):
@@ -195,7 +204,9 @@ class Video:
                     writer.append_data(image)
                 except TypeError:
                     vedo.logger.error(f"Could not append data to video {self.name}")
-                    vedo.logger.error("Please install imageio with: pip install imageio[ffmpeg]")
+                    vedo.logger.error(
+                        "Please install imageio with: pip install imageio[ffmpeg]"
+                    )
                     break
             try:
                 writer.close()
@@ -206,7 +217,9 @@ class Video:
         # finalize cleanup
         self.tmp_dir.cleanup()
 
-    def split_frames(self, output_dir="video_frames", prefix="frame_", file_format="png") -> None:
+    def split_frames(
+        self, output_dir="video_frames", prefix="frame_", file_format="png"
+    ) -> None:
         """Split an existing video file into frames."""
         try:
             import imageio
@@ -226,5 +239,7 @@ class Video:
         for i, frame in utils.progressbar(
             enumerate(reader), title=f"writing {file_format} frames", c="m", width=20
         ):
-            output_file = os.path.join(output_dir, f"{prefix}{str(i).zfill(5)}.{file_format}")
+            output_file = os.path.join(
+                output_dir, f"{prefix}{str(i).zfill(5)}.{file_format}"
+            )
             imageio.imwrite(output_file, frame, format=file_format)

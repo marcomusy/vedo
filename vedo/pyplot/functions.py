@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Function- and field-based plotting helpers."""
 
 from typing_extensions import Self
@@ -23,6 +24,7 @@ from .figure import Figure
 from .charts import Histogram1D, Histogram2D, PlotBars, PlotXY
 
 __all__ = ["plot", "histogram", "fit", "streamplot"]
+
 
 def plot(*args, **kwargs):
     """
@@ -317,7 +319,24 @@ def plot(*args, **kwargs):
         else:
             kwargs["lw"] = 0
 
-        symbs = [".", "o", "O", "0", "p", "*", "h", "D", "d", "v", "^", ">", "<", "s", "x", "a"]
+        symbs = [
+            ".",
+            "o",
+            "O",
+            "0",
+            "p",
+            "*",
+            "h",
+            "D",
+            "d",
+            "v",
+            "^",
+            ">",
+            "<",
+            "s",
+            "x",
+            "a",
+        ]
 
         allcols = list(colors.colors.keys()) + list(colors.color_nicks.keys())
         for cc in allcols:
@@ -635,7 +654,6 @@ def histogram(*args, **kwargs):
     """
     mode = kwargs.pop("mode", "")
     if len(args) == 2:  # x, y
-
         if "spher" in mode:
             return _histogram_spheric(args[0], args[1], **kwargs)
 
@@ -648,7 +666,6 @@ def histogram(*args, **kwargs):
         return Histogram2D(args[0], args[1], **kwargs)
 
     elif len(args) == 1:
-
         if isinstance(args[0], vedo.Volume):
             data = args[0].pointdata[0]
         elif isinstance(args[0], vedo.Points):
@@ -687,7 +704,16 @@ def histogram(*args, **kwargs):
 
 
 def fit(
-    points, deg=1, niter=0, nstd=3, xerrors=None, yerrors=None, vrange=None, res=250, lw=3, c="red4"
+    points,
+    deg=1,
+    niter=0,
+    nstd=3,
+    xerrors=None,
+    yerrors=None,
+    vrange=None,
+    res=250,
+    lw=3,
+    c="red4",
 ) -> vedo.shapes.Line:
     """
     Polynomial fitting with parameter error and error bands calculation.
@@ -1113,10 +1139,14 @@ def _plot_polar(
         for t in np.linspace(0, 2 * np.pi, num=nrays, endpoint=False):
             ct, st = np.cos(t), np.sin(t)
             if show_lines:
-                l = shapes.Line((0, 0, -0.01), (r2e * ct * 1.03, r2e * st * 1.03, -0.01))
+                l = shapes.Line(
+                    (0, 0, -0.01), (r2e * ct * 1.03, r2e * st * 1.03, -0.01)
+                )
                 rays.append(l)
                 ct2, st2 = np.cos(t + np.pi / nrays), np.sin(t + np.pi / nrays)
-                lm = shapes.DashedLine((0, 0, -0.01), (r2e * ct2, r2e * st2, -0.01), spacing=0.25)
+                lm = shapes.DashedLine(
+                    (0, 0, -0.01), (r2e * ct2, r2e * st2, -0.01), spacing=0.25
+                )
                 rays.append(lm)
             elif show_angles:  # just the ticks
                 l = shapes.Line(
@@ -1136,7 +1166,9 @@ def _plot_polar(
                     ju = "top-center"
                 else:
                     ju = "top-left"
-                a = shapes.Text3D(int(t * k), pos=(0, 0, 0), s=lsize, depth=0, justify=ju)
+                a = shapes.Text3D(
+                    int(t * k), pos=(0, 0, 0), s=lsize, depth=0, justify=ju
+                )
                 a.pos(r2e * ct * (1 + rgap), r2e * st * (1 + rgap), -0.01)
                 angles.append(a)
 
@@ -1148,7 +1180,9 @@ def _plot_polar(
     return rh
 
 
-def _plot_spheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha=0.05, cmap="jet"):
+def _plot_spheric(
+    rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha=0.05, cmap="jet"
+):
     sg = shapes.Sphere(res=res, quads=True)
     sg.alpha(alpha).c(c).wireframe()
 
@@ -1372,7 +1406,9 @@ def _histogram_polar(
             t += 2 * np.pi
         vals.append(t + 0.00001)
 
-    histodata, edges = np.histogram(vals, weights=weights, bins=bins, range=(0, 2 * np.pi))
+    histodata, edges = np.histogram(
+        vals, weights=weights, bins=bins, range=(0, 2 * np.pi)
+    )
 
     thetas = []
     for i in range(bins):
@@ -1442,10 +1478,14 @@ def _histogram_polar(
         for t in np.linspace(0, 2 * np.pi, num=nrays, endpoint=False):
             ct, st = np.cos(t), np.sin(t)
             if show_lines:
-                l = shapes.Line((0, 0, -0.01), (r2e * ct * 1.03, r2e * st * 1.03, -0.01))
+                l = shapes.Line(
+                    (0, 0, -0.01), (r2e * ct * 1.03, r2e * st * 1.03, -0.01)
+                )
                 rays.append(l)
                 ct2, st2 = np.cos(t + np.pi / nrays), np.sin(t + np.pi / nrays)
-                lm = shapes.DashedLine((0, 0, -0.01), (r2e * ct2, r2e * st2, -0.01), spacing=0.25)
+                lm = shapes.DashedLine(
+                    (0, 0, -0.01), (r2e * ct2, r2e * st2, -0.01), spacing=0.25
+                )
                 rays.append(lm)
             elif show_angles:  # just the ticks
                 l = shapes.Line(
@@ -1465,7 +1505,9 @@ def _histogram_polar(
                     ju = "top-center"
                 else:
                     ju = "top-left"
-                a = shapes.Text3D(int(t * k), pos=(0, 0, 0), s=lsize, depth=0, justify=ju)
+                a = shapes.Text3D(
+                    int(t * k), pos=(0, 0, 0), s=lsize, depth=0, justify=ju
+                )
                 a.pos(r2e * ct * (1 + rgap), r2e * st * (1 + rgap), -0.01)
                 angles.append(a)
 
@@ -1477,7 +1519,11 @@ def _histogram_polar(
     for i, t in enumerate(thetas):
         if i < len(labels):
             lab = shapes.Text3D(
-                labels[i], (0, 0, 0), s=lsize, depth=0, justify="center"  # font="VTK",
+                labels[i],
+                (0, 0, 0),
+                s=lsize,
+                depth=0,
+                justify="center",  # font="VTK",
             )
             lab.pos(
                 r2e * np.cos(t) * (1 + rgap) * lpos / 2,
@@ -1498,7 +1544,9 @@ def _histogram_polar(
     return asse
 
 
-def _histogram_spheric(thetavalues, phivalues, rmax=1.2, res=8, cmap="rainbow", gap=0.1):
+def _histogram_spheric(
+    thetavalues, phivalues, rmax=1.2, res=8, cmap="rainbow", gap=0.1
+):
 
     x, y, z = spher2cart(np.ones_like(thetavalues) * 1.1, thetavalues, phivalues)
     ptsvals = np.c_[x, y, z]
@@ -1588,7 +1636,9 @@ def streamplot(
     vol.pointdata["StreamPlotField"] = vects
 
     if len(probes) == 0:
-        probe = shapes.Grid(pos=((n - 1) / 2, (n - 1) / 2, 0), s=(n - 1, n - 1), res=(n - 1, n - 1))
+        probe = shapes.Grid(
+            pos=((n - 1) / 2, (n - 1) / 2, 0), s=(n - 1, n - 1), res=(n - 1, n - 1)
+        )
     else:
         if isinstance(probes, vedo.Points):
             probes = probes.coordinates
@@ -1601,7 +1651,9 @@ def streamplot(
         probes = np.multiply(probes, sv)
         probe = vedo.Points(probes)
 
-    stream = vol.compute_streamlines(probe, direction=direction, max_propagation=max_propagation)
+    stream = vol.compute_streamlines(
+        probe, direction=direction, max_propagation=max_propagation
+    )
     if stream:
         stream.lw(lw).cmap(cmap).lighting("off")
         stream.scale([1 / (n - 1) * (xmax - xmin), 1 / (n - 1) * (ymax - ymin), 1])

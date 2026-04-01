@@ -1,21 +1,22 @@
 """Warp a mesh by prescribing source and target landmark positions."""
+
 from vedo import dataurl, Mesh, Arrows, show
 
 # Source landmark positions.
 # Landmarks do not need to lie exactly on mesh vertices.
 landmarks1 = [
     [-0.067332, 0.177376, -0.05199058],
-    [-0.004541, 0.085447,  0.05713107],
+    [-0.004541, 0.085447, 0.05713107],
     [-0.011799, 0.175825, -0.02279279],
-    [-0.081910, 0.117902,  0.04889364],
+    [-0.081910, 0.117902, 0.04889364],
 ]
 
 # Target landmark positions.
 landmarks2 = [
     [0.1287002, 0.2651531, -0.0469673],
-    [0.3338593, 0.0941488,  0.1243552],
+    [0.3338593, 0.0941488, 0.1243552],
     [0.1860555, 0.2626522, -0.0202493],
-    [0.1149052, 0.1731894,  0.0474256],
+    [0.1149052, 0.1731894, 0.0474256],
 ]
 
 s1 = Mesh(dataurl + "bunny.obj").c("gold")

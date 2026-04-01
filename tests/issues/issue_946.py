@@ -39,7 +39,7 @@ class MainWindow(QMainWindow):
         i = int(self.plt.xslider.value)
         j = int(self.plt.yslider.value)
         k = int(self.plt.zslider.value)
-        print(i,j,k, type(self.vol.xslice(i)))
+        print(i, j, k, type(self.vol.xslice(i)))
 
     def onClose(self):
         # Disable the interactor before closing to prevent it

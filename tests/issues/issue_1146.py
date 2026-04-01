@@ -1,4 +1,3 @@
-
 from vedo import *
 from vedo.pyplot import histogram
 
@@ -8,10 +7,12 @@ def set_mask_by_thresholds(thresholds):
     vol_arrc[(vol_arr > thresholds[0]) & (vol_arr < thresholds[1])] = 1
     vol.mask(vol_arrc)
 
+
 def slider1(w, e):
     if slid1.value > slid2.value:
         slid1.value = slid2.value
     set_mask_by_thresholds([slid1.value, slid2.value])
+
 
 def slider2(w, e):
     if slid2.value < slid1.value:
@@ -19,7 +20,7 @@ def slider2(w, e):
     set_mask_by_thresholds([slid1.value, slid2.value])
 
 
-vol = Volume(dataurl+"embryo.slc")
+vol = Volume(dataurl + "embryo.slc")
 vol.mapper = "gpu"
 vol.cmap("rainbow").alpha([0, 0.1, 0.2, 0.3, 0.4, 0.8, 1])
 vol_arr = vol.tonumpy()
@@ -39,7 +40,7 @@ slid2 = plt.add_slider(
     slider_width=0.06,
     alpha=0.75,
     c="red2",
-    delayed=True, # update only when mouse is released
+    delayed=True,  # update only when mouse is released
 )
 slid1 = plt.add_slider(
     slider1,

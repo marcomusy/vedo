@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """3D text mesh class."""
 
 from typing import Any
@@ -13,6 +14,7 @@ import vedo.vtkclasses as vtki
 from vedo import settings, utils
 from vedo.mesh import Mesh
 from vedo.shapes.text_utils import _reps, _get_font_letter
+
 
 class Text3D(Mesh):
     """
@@ -143,8 +145,15 @@ class Text3D(Mesh):
             justify = self.justify
 
         poly = self._get_text3d_poly(
-            txt, self.init_scale * s, font, hspacing, vspacing,
-            depth, italic, justify, literal
+            txt,
+            self.init_scale * s,
+            font,
+            hspacing,
+            vspacing,
+            depth,
+            italic,
+            justify,
+            literal,
         )
 
         # apply the current transformation to the new polydata
@@ -182,7 +191,6 @@ class Text3D(Mesh):
             tpoly = vtt.GetOutput()
 
         else:  ###################################################
-
             stxt = set(txt)  # check here if null or only spaces
             if not txt or (len(stxt) == 1 and " " in stxt):
                 return vtki.vtkPolyData()
@@ -217,7 +225,7 @@ class Text3D(Mesh):
                     (r"\_", "┭"),  # trick to protect ~ _ and ^ chars
                     (r"\^", "┮"),  #
                     (r"\~", "┯"),  #
-                    ("**", "^"),   # order matters
+                    ("**", "^"),  # order matters
                     ("e+0", dotsep + "10^"),
                     ("e-0", dotsep + "10^-"),
                     ("E+0", dotsep + "10^"),
@@ -292,7 +300,9 @@ class Text3D(Mesh):
                     pscale = scale * fscale / 1000
                     tr.Scale(pscale, pscale, pscale)
                     if italic:
-                        tr.Concatenate([1, italic * 0.15, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1])
+                        tr.Concatenate(
+                            [1, italic * 0.15, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+                        )
                     tf = vtki.new("TransformPolyDataFilter")
                     tf.SetInputData(poly)
                     tf.SetTransform(tr)
@@ -324,11 +334,15 @@ class Text3D(Mesh):
 
         bb = tpoly.GetBounds()
         dx, dy = (bb[1] - bb[0]) / 2 * s, (bb[3] - bb[2]) / 2 * s
-        shift = -np.array([(bb[1] + bb[0]), (bb[3] + bb[2]), (bb[5] + bb[4])]) * s /2
-        if "bottom" in justify: shift += np.array([  0, dy, 0.])
-        if "top"    in justify: shift += np.array([  0,-dy, 0.])
-        if "left"   in justify: shift += np.array([ dx,  0, 0.])
-        if "right"  in justify: shift += np.array([-dx,  0, 0.])
+        shift = -np.array([(bb[1] + bb[0]), (bb[3] + bb[2]), (bb[5] + bb[4])]) * s / 2
+        if "bottom" in justify:
+            shift += np.array([0, dy, 0.0])
+        if "top" in justify:
+            shift += np.array([0, -dy, 0.0])
+        if "left" in justify:
+            shift += np.array([dx, 0, 0.0])
+        if "right" in justify:
+            shift += np.array([-dx, 0, 0.0])
 
         if tpoly.GetNumberOfPoints():
             t = vtki.vtkTransform()
@@ -351,5 +365,3 @@ class Text3D(Mesh):
                 tpoly = extrude.GetOutput()
 
         return tpoly
-
-

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Event data object used by the Plotter callback system."""
 
 from vedo.core.summary import summary_panel, summary_string

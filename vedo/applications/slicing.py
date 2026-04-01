@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Volume slicing and ray-casting application plotters."""
 
 import os
@@ -18,6 +19,7 @@ from vedo.shapes import Line, Ribbon, Spline, Text2D
 from vedo.pyplot import CornerHistogram, histogram
 from vedo.addons import SliderWidget
 
+
 class Slicer3DPlotter(Plotter):
     """
     Generate a rendering window with slicing planes for the input Volume.
@@ -34,9 +36,11 @@ class Slicer3DPlotter(Plotter):
         show_histo=True,
         show_icon=True,
         draggable=False,
-        slider_positions=(((0.8, 0.12), (0.95, 0.12)),
-                          ((0.8, 0.08), (0.95, 0.08)),
-                          ((0.8, 0.04), (0.95, 0.04))),
+        slider_positions=(
+            ((0.8, 0.12), (0.95, 0.12)),
+            ((0.8, 0.08), (0.95, 0.08)),
+            ((0.8, 0.04), (0.95, 0.04)),
+        ),
         slider_title_sizes=(0.5, 0.5, 0.6),
         slider3d_size=(0.03, 0.01, 0.04, 0.6),
         histogram_position=(-0.925, -0.88),
@@ -359,7 +363,9 @@ class Slicer3DPlotter(Plotter):
     def _update_inset(self):
         if not self._show_icon or not self.interactor:
             return
-        self._inset_marker = vedo.Assembly(self.volume, self._make_inset_axes(self._box))
+        self._inset_marker = vedo.Assembly(
+            self.volume, self._make_inset_axes(self._box)
+        )
         if self._inset_widget is None:
             self._inset_widget = self.add_inset(
                 self._inset_marker,
@@ -638,7 +644,9 @@ class Slicer2DPlotter(Plotter):
     but at the same time can be oriented arbitrarily in space.
     """
 
-    def __init__(self, vol: vedo.Volume, levels=(None, None), histo_color="red4", **kwargs):
+    def __init__(
+        self, vol: vedo.Volume, levels=(None, None), histo_color="red4", **kwargs
+    ):
         """
         A single slice of a Volume which always faces the camera,
         but at the same time can be oriented arbitrarily in space.
@@ -658,7 +666,9 @@ class Slicer2DPlotter(Plotter):
 
         if "shape" not in kwargs:
             custom_shape = [  # define here the 2 rendering rectangle spaces
-                dict(bottomleft=(0.0, 0.0), topright=(1, 1), bg="k9"),  # the full window
+                dict(
+                    bottomleft=(0.0, 0.0), topright=(1, 1), bg="k9"
+                ),  # the full window
                 dict(bottomleft=(0.8, 0.8), topright=(1, 1), bg="k8", bg2="lb"),
             ]
             kwargs["shape"] = custom_shape
@@ -899,13 +909,20 @@ class RayCastPlotter(Plotter):
         ############################## color map slider
         # Create transfer mapping scalar value to color
         cmaps = [
-            "rainbow", "rainbow_r",
-            "viridis", "viridis_r",
-            "bone", "bone_r",
-            "hot", "hot_r",
-            "plasma", "plasma_r",
-            "gist_earth", "gist_earth_r",
-            "coolwarm", "coolwarm_r",
+            "rainbow",
+            "rainbow_r",
+            "viridis",
+            "viridis_r",
+            "bone",
+            "bone_r",
+            "hot",
+            "hot_r",
+            "plasma",
+            "plasma_r",
+            "gist_earth",
+            "gist_earth_r",
+            "coolwarm",
+            "coolwarm_r",
             "tab10_r",
         ]
         cols_cmaps = []
@@ -923,16 +940,14 @@ class RayCastPlotter(Plotter):
                 volume.cmap(cmaps[k])
             self.remove(self.color_scalarbar)
             self.color_scalarbar = vedo.addons.ScalarBar(
-                volume,
-                horizontal=True,
-                pos=[(0.8, 0), (0.97, 0.1)],
-                font_size=0
+                volume, horizontal=True, pos=[(0.8, 0), (0.97, 0.1)], font_size=0
             )
             self.add(self.color_scalarbar)
 
         w1 = self.add_slider(
             slider_cmap,
-            0, Ncols - 1,
+            0,
+            Ncols - 1,
             value=0,
             show_value=False,
             c=csl,
@@ -960,7 +975,8 @@ class RayCastPlotter(Plotter):
 
         self.add_slider(
             sliderA0,
-            0, 1,
+            0,
+            1,
             value=self.alphaslider0,
             pos=[(0.84, 0.1), (0.84, 0.26)],
             c=csl,
@@ -973,7 +989,8 @@ class RayCastPlotter(Plotter):
 
         self.add_slider(
             sliderA1,
-            0, 1,
+            0,
+            1,
             value=self.alphaslider1,
             pos=[(0.89, 0.1), (0.89, 0.26)],
             c=csl,
@@ -986,7 +1003,8 @@ class RayCastPlotter(Plotter):
 
         w2 = self.add_slider(
             sliderA2,
-            0, 1,
+            0,
+            1,
             value=self.alphaslider2,
             pos=[(0.96, 0.1), (0.96, 0.26)],
             c=csl,
@@ -1006,7 +1024,7 @@ class RayCastPlotter(Plotter):
             button_func_mode,
             pos=(0.89, 0.31),
             states=["  composite   ", "max projection"],
-            c=[ "k3", "k6"],
+            c=["k3", "k6"],
             bc=["k6", "k3"],  # colors of states
             font="Calco",
             size=18,
@@ -1016,15 +1034,15 @@ class RayCastPlotter(Plotter):
         bum.frame(color="k6")
         bum.status(volume.mode())
 
-        slider_cmap() ############# init call to create scalarbar
+        slider_cmap()  ############# init call to create scalarbar
 
         # add histogram of scalar
         plot = CornerHistogram(
             volume,
             bins=25,
             logscale=1,
-            c='k5',
-            bg='k5',
+            c="k5",
+            bg="k5",
             pos=(0.78, 0.065),
             lines=True,
             dots=False,

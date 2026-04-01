@@ -1,9 +1,11 @@
 import numpy as np
 from scipy.optimize import curve_fit
 
+
 ############################################# Define fit function
 def fit_function(x, A, beta, B, mu, sigma):
     return A * np.exp(-x / beta) + B * np.exp(-((x - mu) ** 2) / (2 * sigma**2))
+
 
 # Generate exponential and gaussian data
 data1 = np.random.exponential(scale=2.0, size=4000)
@@ -38,7 +40,7 @@ h = histogram(
     xtitle="x axis",
     ytitle="Number of entries",
     label="Histogram entries",
-    c='green3',
+    c="green3",
 )
 h += plot(
     xspace,

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """PointReconstructMixin extracted from pointcloud core."""
 
 from typing_extensions import Self
@@ -14,13 +15,14 @@ from vedo import colors
 from vedo import utils
 from vedo.core.transformations import LinearTransform, NonLinearTransform
 
+
 class PointReconstructMixin:
     def generate_surface_halo(
-            self,
-            distance=0.05,
-            res=(50, 50, 50),
-            bounds=(),
-            maxdist=None,
+        self,
+        distance=0.05,
+        res=(50, 50, 50),
+        bounds=(),
+        maxdist=None,
     ) -> vedo.Mesh:
         """
         Generate the surface halo which sits at the specified distance from the input one.
@@ -102,7 +104,9 @@ class PointReconstructMixin:
         if line_resolution is None:
             contour = vedo.shapes.Line(self.coordinates)
         else:
-            contour = vedo.shapes.Spline(self.coordinates, smooth=smooth, res=line_resolution)
+            contour = vedo.shapes.Spline(
+                self.coordinates, smooth=smooth, res=line_resolution
+            )
         contour.clean()
 
         length = contour.length()
@@ -246,11 +250,11 @@ class PointReconstructMixin:
             )
 
         bb = sdf.GetBounds()
-        if bb[0]==bb[1]:
+        if bb[0] == bb[1]:
             vedo.logger.warning("reconstruct_surface(): zero x-range")
-        if bb[2]==bb[3]:
+        if bb[2] == bb[3]:
             vedo.logger.warning("reconstruct_surface(): zero y-range")
-        if bb[4]==bb[5]:
+        if bb[4] == bb[5]:
             vedo.logger.warning("reconstruct_surface(): zero z-range")
 
         pd = self.dataset
@@ -661,7 +665,9 @@ class PointReconstructMixin:
         deln.Update()
         m = vedo.TetMesh(deln.GetOutput())
         m.pipeline = utils.OperationNode(
-            "generate_delaunay3d", c="#e9c46a:#edabab", parents=[self],
+            "generate_delaunay3d",
+            c="#e9c46a:#edabab",
+            parents=[self],
         )
         m.name = "Delaunay3D"
         return m

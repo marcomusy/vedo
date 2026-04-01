@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Isosurface and object browser applications."""
 
 import os
@@ -17,6 +18,7 @@ from vedo.pointcloud import fit_plane, Points
 from vedo.shapes import Line, Ribbon, Spline, Text2D
 from vedo.pyplot import CornerHistogram, histogram
 from vedo.addons import SliderWidget
+
 
 class IsosurfaceBrowser(Plotter):
     """
@@ -82,7 +84,6 @@ class IsosurfaceBrowser(Plotter):
 
         ### GPU ################################
         if use_gpu and hasattr(volume.properties, "GetIsoSurfaceValues"):
-
             if len(scalar_range) == 2:
                 scrange = scalar_range
             else:
@@ -116,7 +117,6 @@ class IsosurfaceBrowser(Plotter):
 
         ### CPU ################################
         else:
-
             self._prev_value = 1e30
 
             scrange = volume.scalar_range()
@@ -141,7 +141,9 @@ class IsosurfaceBrowser(Plotter):
                     if lego:
                         mesh = volume.legosurface(vmin=value)
                         if mesh.ncells:
-                            mesh.cmap(cmap, vmin=scrange[0], vmax=scrange[1], on="cells")
+                            mesh.cmap(
+                                cmap, vmin=scrange[0], vmax=scrange[1], on="cells"
+                            )
                     else:
                         mesh = volume.isosurface(value).color(c).alpha(alpha)
                     bacts.update({value_name: mesh})  # store it
@@ -172,7 +174,9 @@ class IsosurfaceBrowser(Plotter):
                     if lego:
                         mesh = volume.legosurface(vmin=value)
                         if mesh.ncells:
-                            mesh.cmap(cmap, vmin=scrange[0], vmax=scrange[1], on="cells")
+                            mesh.cmap(
+                                cmap, vmin=scrange[0], vmax=scrange[1], on="cells"
+                            )
                     else:
                         mesh = volume.isosurface(value).color(c).alpha(alpha)
                     bacts.update({value_name: mesh})  # store it
@@ -261,7 +265,7 @@ class Browser(Plotter):
 
         self += objects
 
-        if len(objects)>0 and is_sequence(objects[0]):
+        if len(objects) > 0 and is_sequence(objects[0]):
             nobs = len(objects[0])
             for ob in objects:
                 n = len(ob)

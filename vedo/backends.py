@@ -157,12 +157,16 @@ def start_2d():
             plt.close()
         return pil_img
 
+
 #####################################################################################
 def start_panel():
     """Start a panel display in the notebook"""
     try:
-        import panel as pn # type: ignore
-        pn.extension('vtk', design='material', sizing_mode='stretch_width', template='material')
+        import panel as pn  # type: ignore
+
+        pn.extension(
+            "vtk", design="material", sizing_mode="stretch_width", template="material"
+        )
         # pn.state.template.config.raw_css.append("""
         # #main {
         # padding: 0;
@@ -181,13 +185,15 @@ def start_panel():
         plt.renderer.ResetCamera()
         vtkpan = pn.pane.VTK(
             plt.window,
-            margin=0, sizing_mode='stretch_both',
+            margin=0,
+            sizing_mode="stretch_both",
             min_height=600,
             orientation_widget=True,
             enable_keybindings=True,
         )
         vedo.set_current_notebook_plotter(vtkpan)
         return vedo.current_notebook_plotter()
+
 
 ####################################################################################
 def start_k3d(actors2show):
@@ -274,14 +280,13 @@ def start_k3d(actors2show):
 
     if already_has_axes:
         nbplot.grid_visible = False
-    if settings.k3d_grid_visible is not None: # override if set
+    if settings.k3d_grid_visible is not None:  # override if set
         nbplot.grid_visible = settings.k3d_grid_visible
 
     if plt.camera:
         nbplot.camera = utils.vtkCameraToK3D(plt.camera)
 
     for ia in actors2show2:
-
         if isinstance(ia, (vtki.vtkAssembly, vtki.vtkActor2D)):
             continue
 
@@ -316,8 +321,8 @@ def start_k3d(actors2show):
                 iapoly = ia.dataset
 
             if ia.mapper.GetScalarVisibility() and ia.mapper.GetColorMode() > 0:
-                iapoly, vtkscals, color_attribute, kcmap, scal_range = _setup_scalar_metadata(
-                    iapoly, ia.mapper
+                iapoly, vtkscals, color_attribute, kcmap, scal_range = (
+                    _setup_scalar_metadata(iapoly, ia.mapper)
                 )
                 if scal_range is not None:
                     scals_min, scals_max = scal_range
@@ -374,9 +379,7 @@ def start_k3d(actors2show):
             and ia.dataset.GetNumberOfLines()
             and ia.dataset.GetNumberOfPolys() == 0
         ):
-
             for i, ln_idx in enumerate(ia.lines):
-
                 if i > 200:
                     vedo.logger.warning("in k3d, nr. of lines is limited to 200.")
                     break
@@ -404,7 +407,6 @@ def start_k3d(actors2show):
 
             cols = []
             if ia.mapper.GetColorMode() == 2:  # direct RGB colors
-
                 vcols = ia.dataset.GetPointData().GetScalars()
 
                 if not vcols:
@@ -439,7 +441,6 @@ def start_k3d(actors2show):
                     )
 
             else:
-
                 kobj = k3d.vtk_poly_data(
                     iapoly,
                     name=name,
@@ -511,9 +512,7 @@ def start_trame():
         plt.state = state
 
         with VAppLayout(server) as layout:
-
             with layout.root:
-
                 with vuetify.VContainer(fluid=True, classes="pa-0 fill-height"):
                     plt.reset_camera()
                     server.state["scene_vedo_trame_view"] = {}
@@ -532,7 +531,7 @@ def start_trame():
 #####################################################################################
 def start_ipyvtklink():
     try:
-        from ipyvtklink.viewer import ViewInteractiveWidget # type: ignore
+        from ipyvtklink.viewer import ViewInteractiveWidget  # type: ignore
     except ImportError:
         print("ipyvtklink is not installed, try:\n> pip install ipyvtklink")
         return None

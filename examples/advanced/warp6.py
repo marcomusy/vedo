@@ -1,4 +1,5 @@
 """Press c while hovering to warp a Mesh onto another Mesh"""
+
 from vedo import *
 
 
@@ -11,7 +12,7 @@ def on_keypress(event):
         p = verts[idx] + n / 5
 
         txt = Text3D("Text3D\nABCDEF", s=0.1, justify="centered").c("red5")
-        txt.reorient([0,0,1], n).pos(p)
+        txt.reorient([0, 0, 1], n).pos(p)
 
         tpts = txt.clone().subsample(0.05).vertices
         kpts = [mesh.closest_point(tp) for tp in tpts]
@@ -21,7 +22,8 @@ def on_keypress(event):
         lines = Lines(tpts, kpts).alpha(0.2)
         plt.remove("Text3D", "Lines").add(txt, warped, lines).render()
 
-mesh = ParametricShape("RandomHills").scale([1,1,0.5])
+
+mesh = ParametricShape("RandomHills").scale([1, 1, 0.5])
 mesh.c("gray5").alpha(0.25)
 verts = mesh.vertices
 normals = mesh.vertex_normals

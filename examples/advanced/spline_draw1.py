@@ -1,4 +1,5 @@
 """Interactively draw and edit a spline over an image."""
+
 from vedo import dataurl, Image, Mesh
 from vedo.applications import SplinePlotter  # ready to use class!
 
@@ -9,7 +10,7 @@ pic = Image(dataurl + "images/embryo.jpg")
 # pic.color("blue9").alpha(0.75).backface_culling()
 
 plt = SplinePlotter(pic)
-plt.show(mode="image", zoom='tightest')
+plt.show(mode="image", zoom="tightest")
 
 if plt.line:
     print("Npts =", len(plt.points()), "NSpline =", plt.line.npoints)

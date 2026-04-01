@@ -20,6 +20,7 @@ It wraps the VTK's vtkPeriodicTable class to provide a more Pythonic interface.
 __docformat__ = "google"
 __all__ = ["PeriodicTable", "Atom", "Molecule", "Protein", "append_molecules"]
 
+
 class PeriodicTable:
     """
     A Vedo-compatible class for accessing periodic table data, wrapping vtkPeriodicTable.
@@ -196,7 +197,6 @@ class PeriodicTable:
         return rows
 
 
-
 def append_molecules(molecules):
     """
     Append multiple molecules into a single molecule.
@@ -205,7 +205,7 @@ def append_molecules(molecules):
     object that combines all atoms and bonds from the input molecules.
 
     Arguments:
-        molecules : (list of Molecule) 
+        molecules : (list of Molecule)
             The molecules to append.
 
     Returns:
@@ -220,7 +220,9 @@ def append_molecules(molecules):
     # Add each molecule's vtkMolecule to the append filter
     for mol in molecules:
         if not isinstance(mol, Molecule):
-            raise TypeError("append_molecules() expects an iterable of Molecule objects.")
+            raise TypeError(
+                "append_molecules() expects an iterable of Molecule objects."
+            )
         append_filter.AddInputData(mol.molecule)
 
     # Update the filter to generate the combined molecule
@@ -489,7 +491,7 @@ class Molecule:
         """Add a bond between two atoms.
 
         Arguments:
-            atom1 : (Atom or int) 
+            atom1 : (Atom or int)
                 The first atom or its ID.
             atom2 : (Atom or int)
                 The second atom or its ID.

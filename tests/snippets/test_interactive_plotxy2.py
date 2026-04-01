@@ -1,6 +1,7 @@
-"""Create an interactive plot that allows the user to control a parameter using a slider, 
-The plot shows the solution to a system of equations for y given x and a constant C. 
+"""Create an interactive plot that allows the user to control a parameter using a slider,
+The plot shows the solution to a system of equations for y given x and a constant C.
 The user can change the value of C using a slider, and the plot will update the y-range."""
+
 import numpy as np
 from scipy.optimize import fsolve
 from vedo import Plotter, settings
@@ -38,7 +39,7 @@ def generate_y_values(x_values, C):
             y_positive.append(max(y_vals))  # Choose the largest root as positive
             y_negative.append(min(y_vals))  # Choose the smallest root as negative
         else:
-            y_positive.append(np.nan)       # Use NaN for missing values
+            y_positive.append(np.nan)  # Use NaN for missing values
             y_negative.append(np.nan)
     return y_positive, y_negative
 
@@ -48,8 +49,8 @@ def update_plot(widget=None, event=""):
     C_value = C_init if widget is None else widget.value
     y_positive, y_negative = generate_y_values(xdata, C_value)
     m = max(max(y_positive), abs(min(y_negative)))
-    p  = plot(xdata, y_positive, c='red5',  lw=4, ylim=(-m, m))
-    p += plot(xdata, y_negative, c='blue5', lw=4, like=p)
+    p = plot(xdata, y_positive, c="red5", lw=4, ylim=(-m, m))
+    p += plot(xdata, y_negative, c="blue5", lw=4, like=p)
     plt.remove("PlotXY").add(p)
 
 
@@ -57,7 +58,9 @@ def update_plot(widget=None, event=""):
 settings.default_font = "Brachium"
 
 plt = Plotter(size=(1200, 760), title="Exercise")
-slider = plt.add_slider(update_plot, -10.0, 10.0, value=C_init, title="C value", c="green3")
+slider = plt.add_slider(
+    update_plot, -10.0, 10.0, value=C_init, title="C value", c="green3"
+)
 update_plot()  # Initial plot
 
 plt.show(__doc__, mode="2d", zoom=1.35)

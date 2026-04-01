@@ -2,7 +2,9 @@
 pressing a keyboard button when the rendering window
 is in interactive mode.
 Place the pointer anywhere on the mesh and press c"""
+
 from vedo import dataurl, printc, Plotter, Point, Mesh
+
 
 #############################################################
 def myfnc(evt):
@@ -16,9 +18,10 @@ def myfnc(evt):
     cpt.color("violet").ps(20).pickable(False)
     plt.add(cpt).render()
 
+
 ##############################################################
 plt = Plotter(axes=1)
-plt+= Mesh(dataurl+"bunny.obj").color("gold")
-plt+= __doc__
-plt.add_callback('on key press', myfnc)
+plt += Mesh(dataurl + "bunny.obj").color("gold")
+plt += __doc__
+plt.add_callback("on key press", myfnc)
 plt.show().close()

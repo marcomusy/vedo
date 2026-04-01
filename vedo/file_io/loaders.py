@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Object loading and conversion utilities."""
 
 import glob
@@ -38,6 +39,7 @@ __all__ = [
     "loadImageData",
     "load_obj",
 ]
+
 
 def load(inputobj: list | str | os.PathLike, unpack=True, force=False) -> Any:
     """
@@ -79,12 +81,10 @@ def load(inputobj: list | str | os.PathLike, unpack=True, force=False) -> Any:
         flist = utils.humansort(glob.glob(inputobj))
 
     for fod in flist:
-
         if fod.startswith("https://"):
             fod = download(fod, force=force, verbose=False)
 
         if os.path.isfile(fod):  ### it's a file
-
             if fod.endswith(".gz"):
                 fod = gunzip(fod)
 
@@ -108,9 +108,13 @@ def load(inputobj: list | str | os.PathLike, unpack=True, force=False) -> Any:
                     vol.metadata["Width"] = reader.GetWidth()
                     vol.metadata["Height"] = reader.GetHeight()
                     vol.metadata["PositionPatient"] = reader.GetImagePositionPatient()
-                    vol.metadata["OrientationPatient"] = reader.GetImageOrientationPatient()
+                    vol.metadata["OrientationPatient"] = (
+                        reader.GetImageOrientationPatient()
+                    )
                     vol.metadata["BitsAllocated"] = reader.GetBitsAllocated()
-                    vol.metadata["PixelRepresentation"] = reader.GetPixelRepresentation()
+                    vol.metadata["PixelRepresentation"] = (
+                        reader.GetPixelRepresentation()
+                    )
                     vol.metadata["NumberOfComponents"] = reader.GetNumberOfComponents()
                     vol.metadata["TransferSyntaxUID"] = reader.GetTransferSyntaxUID()
                     vol.metadata["RescaleSlope"] = reader.GetRescaleSlope()
@@ -146,6 +150,7 @@ def load(inputobj: list | str | os.PathLike, unpack=True, force=False) -> Any:
 
     else:
         return acts
+
 
 ########################################################################
 def _load_file(filename, unpack):
@@ -194,7 +199,9 @@ def _load_file(filename, unpack):
         objt = Assembly(wacts)
 
     ######################################################## volumetric:
-    elif fl.endswith((".tif", ".tiff", ".slc", ".vti", ".mhd", ".nrrd", ".nii", ".dem")):
+    elif fl.endswith(
+        (".tif", ".tiff", ".slc", ".vti", ".mhd", ".nrrd", ".nii", ".dem")
+    ):
         img = loadImageData(filename)
         objt = Volume(img)
 
@@ -282,7 +289,7 @@ def _load_file(filename, unpack):
             reader = vtki.new("PLYReader")
         elif fl.endswith(".obj"):
             reader = vtki.new("OBJReader")
-            reader.SetGlobalWarningDisplay(0) # suppress warnings issue #980
+            reader.SetGlobalWarningDisplay(0)  # suppress warnings issue #980
         elif fl.endswith(".stl"):
             reader = vtki.new("STLReader")
         elif fl.endswith(".byu") or fl.endswith(".g"):
@@ -329,7 +336,6 @@ def _load_file(filename, unpack):
     return objt
 
 
-
 def loadStructuredPoints(filename: str | os.PathLike, as_points=True):
     """
     Load and return a `vtkStructuredPoints` object from file.
@@ -348,6 +354,7 @@ def loadStructuredPoints(filename: str | os.PathLike, as_points=True):
         pts = Points(v2p.GetOutput())
         return pts
     return reader.GetOutput()
+
 
 ########################################################################
 def loadStructuredGrid(filename: str | os.PathLike):
@@ -394,6 +401,7 @@ def load3DS(filename: str | os.PathLike) -> Assembly:
             print("ERROR: cannot load 3DS object part", [a])
     return vedo.Assembly(wrapped_acts)
 
+
 ########################################################################
 def loadOFF(filename: str | os.PathLike) -> Mesh:
     """Read the OFF file format (polygonal mesh)."""
@@ -433,6 +441,7 @@ def loadOFF(filename: str | os.PathLike) -> Mesh:
             faces.append(ids)
 
     return Mesh(utils.buildPolyData(vertices, faces))
+
 
 def loadSTEP(filename: str | os.PathLike, deflection=1.0) -> Mesh:
     """
@@ -500,11 +509,13 @@ def loadSTEP(filename: str | os.PathLike, deflection=1.0) -> Mesh:
             for i in range(1, triangulation.NbTriangles() + 1):
                 triangle = triangulation.Triangle(i)
                 n1, n2, n3 = triangle.Get()  # 1-based indices
-                triangles.append((
-                    n1 + vertex_index - 1,
-                    n2 + vertex_index - 1,
-                    n3 + vertex_index - 1
-                ))
+                triangles.append(
+                    (
+                        n1 + vertex_index - 1,
+                        n2 + vertex_index - 1,
+                        n3 + vertex_index - 1,
+                    )
+                )
 
             # Update the vertex index offset for the next face
             vertex_index += triangulation.NbNodes()
@@ -515,6 +526,7 @@ def loadSTEP(filename: str | os.PathLike, deflection=1.0) -> Mesh:
     mesh = Mesh([vertices, triangles])
     return mesh
 
+
 ########################################################################
 def loadGeoJSON(filename: str | os.PathLike) -> Mesh:
     """Load GeoJSON files."""
@@ -523,6 +535,7 @@ def loadGeoJSON(filename: str | os.PathLike) -> Mesh:
     jr.SetFileName(filename)
     jr.Update()
     return Mesh(jr.GetOutput())
+
 
 ########################################################################
 def loadPVD(filename: str | os.PathLike) -> list[Any] | None:
@@ -553,6 +566,7 @@ def loadPVD(filename: str | os.PathLike) -> list[Any] | None:
         return None
     return listofobjs
 
+
 ########################################################################
 def loadNeutral(filename: str | os.PathLike) -> vedo.TetMesh:
     """
@@ -574,10 +588,16 @@ def loadNeutral(filename: str | os.PathLike) -> vedo.TetMesh:
     idolf_tets = []
     for i in range(ncoords + 2, ncoords + ntets + 2):
         text = lines[i].split()
-        v0, v1, v2, v3 = int(text[1])-1, int(text[2])-1, int(text[3])-1, int(text[4])-1
+        v0, v1, v2, v3 = (
+            int(text[1]) - 1,
+            int(text[2]) - 1,
+            int(text[3]) - 1,
+            int(text[4]) - 1,
+        )
         idolf_tets.append([v0, v1, v2, v3])
 
     return vedo.TetMesh([coords, idolf_tets])
+
 
 ########################################################################
 def loadGmesh(filename: str | os.PathLike) -> Mesh:
@@ -613,6 +633,7 @@ def loadGmesh(filename: str | os.PathLike) -> Mesh:
     poly = utils.buildPolyData(node_coords, elements, index_offset=1)
     return Mesh(poly)
 
+
 ########################################################################
 def loadPCD(filename: str | os.PathLike) -> Points:
     """Return a `Mesh` made of only vertex points
@@ -643,6 +664,7 @@ def loadPCD(filename: str | os.PathLike) -> Points:
     poly = utils.buildPolyData(pts)
     return Points(poly).point_size(4)
 
+
 #########################################################################
 def from_numpy(d: dict) -> Mesh:
     """Create a Mesh object from a dictionary."""
@@ -666,34 +688,34 @@ def from_numpy(d: dict) -> Mesh:
             msh.metadata[arrname] = arr
 
     prp = msh.properties
-    prp.SetAmbient(d['ambient'])
-    prp.SetDiffuse(d['diffuse'])
-    prp.SetSpecular(d['specular'])
-    prp.SetSpecularPower(d['specularpower'])
-    prp.SetSpecularColor(d['specularcolor'])
+    prp.SetAmbient(d["ambient"])
+    prp.SetDiffuse(d["diffuse"])
+    prp.SetSpecular(d["specular"])
+    prp.SetSpecularPower(d["specularpower"])
+    prp.SetSpecularColor(d["specularcolor"])
 
     prp.SetInterpolation(0)
     # prp.SetInterpolation(d['shading'])
 
-    prp.SetOpacity(d['alpha'])
-    prp.SetRepresentation(d['representation'])
-    prp.SetPointSize(d['pointsize'])
-    if d['color'] is not None:
-        msh.color(d['color'])
+    prp.SetOpacity(d["alpha"])
+    prp.SetRepresentation(d["representation"])
+    prp.SetPointSize(d["pointsize"])
+    if d["color"] is not None:
+        msh.color(d["color"])
     if "lighting_is_on" in d.keys():
-        prp.SetLighting(d['lighting_is_on'])
+        prp.SetLighting(d["lighting_is_on"])
     # Must check keys for backwards compatibility:
-    if "linecolor" in d.keys() and d['linecolor'] is not None:
-        msh.linecolor(d['linecolor'])
-    if "backcolor" in d.keys() and d['backcolor'] is not None:
-        msh.backcolor(d['backcolor'])
+    if "linecolor" in d.keys() and d["linecolor"] is not None:
+        msh.linecolor(d["linecolor"])
+    if "backcolor" in d.keys() and d["backcolor"] is not None:
+        msh.backcolor(d["backcolor"])
 
-    if d['linewidth'] is not None:
-        msh.linewidth(d['linewidth'])
+    if d["linewidth"] is not None:
+        msh.linewidth(d["linewidth"])
     if "edge_visibility" in d.keys():
-        prp.SetEdgeVisibility(d['edge_visibility']) # new
+        prp.SetEdgeVisibility(d["edge_visibility"])  # new
 
-    lut_list  = d["LUT"]
+    lut_list = d["LUT"]
     lut_range = d["LUT_range"]
     ncols = len(lut_list)
     lut = vtki.vtkLookupTable()
@@ -706,13 +728,13 @@ def from_numpy(d: dict) -> Mesh:
     msh.mapper.SetLookupTable(lut)
     msh.mapper.SetScalarRange(lut_range)
 
-    try: # NEW in vedo 5.0
+    try:  # NEW in vedo 5.0
         arname = d["array_name_to_color_by"]
         msh.mapper.SetArrayName(arname)
         msh.mapper.SetInterpolateScalarsBeforeMapping(
-            d["interpolate_scalars_before_mapping"])
-        msh.mapper.SetUseLookupTableScalarRange(
-            d["use_lookup_table_scalar_range"])
+            d["interpolate_scalars_before_mapping"]
+        )
+        msh.mapper.SetUseLookupTableScalarRange(d["use_lookup_table_scalar_range"])
         msh.mapper.SetScalarRange(d["scalar_range"])
         msh.mapper.SetScalarVisibility(d["scalar_visibility"])
         msh.mapper.SetScalarMode(d["scalar_mode"])
@@ -752,13 +774,19 @@ def from_numpy(d: dict) -> Mesh:
     except KeyError:
         pass
 
-    if "time" in keys: msh.time = d["time"]
-    if "name" in keys: msh.name = d["name"]
+    if "time" in keys:
+        msh.time = d["time"]
+    if "name" in keys:
+        msh.name = d["name"]
     # if "info" in keys: msh.info = d["info"]
-    if "filename" in keys: msh.filename = d["filename"]
-    if "pickable" in keys: msh.pickable(d["pickable"])
-    if "dragable" in keys: msh.draggable(d["dragable"])
+    if "filename" in keys:
+        msh.filename = d["filename"]
+    if "pickable" in keys:
+        msh.pickable(d["pickable"])
+    if "dragable" in keys:
+        msh.draggable(d["dragable"])
     return msh
+
 
 #############################################################################
 def _import_npy(fileinput: str | os.PathLike) -> vedo.Plotter:
@@ -780,15 +808,17 @@ def _import_npy(fileinput: str | os.PathLike) -> vedo.Plotter:
     if "polygon_offset_units" in data.keys():
         vedo.settings.polygon_offset_units = data["polygon_offset_units"]
     if "interpolate_scalars_before_mapping" in data.keys():
-        vedo.settings.interpolate_scalars_before_mapping = data["interpolate_scalars_before_mapping"]
+        vedo.settings.interpolate_scalars_before_mapping = data[
+            "interpolate_scalars_before_mapping"
+        ]
     if "default_font" in data.keys():
         vedo.settings.default_font = data["default_font"]
     if "use_depth_peeling" in data.keys():
         vedo.settings.use_depth_peeling = data["use_depth_peeling"]
 
-    axes = data.pop("axes", 4) # UNUSED
+    axes = data.pop("axes", 4)  # UNUSED
     title = data.pop("title", "")
-    backgrcol  = data.pop("backgrcol", "white")
+    backgrcol = data.pop("backgrcol", "white")
     backgrcol2 = data.pop("backgrcol2", None)
     cam = data.pop("camera", None)
 
@@ -797,7 +827,7 @@ def _import_npy(fileinput: str | os.PathLike) -> vedo.Plotter:
 
     plt = vedo.Plotter(
         size=data["size"],  # not necessarily a good idea to set it
-        axes=axes,          # must be zero to avoid recreating the axes
+        axes=axes,  # must be zero to avoid recreating the axes
         title=title,
         bg=backgrcol,
         bg2=backgrcol2,
@@ -806,7 +836,7 @@ def _import_npy(fileinput: str | os.PathLike) -> vedo.Plotter:
     if cam:
         if "pos" in cam.keys():
             plt.camera.SetPosition(cam["pos"])
-        if "focalPoint" in cam.keys(): # obsolete
+        if "focalPoint" in cam.keys():  # obsolete
             plt.camera.SetFocalPoint(cam["focalPoint"])
         if "focal_point" in cam.keys():
             plt.camera.SetFocalPoint(cam["focal_point"])
@@ -814,7 +844,7 @@ def _import_npy(fileinput: str | os.PathLike) -> vedo.Plotter:
             plt.camera.SetViewUp(cam["viewup"])
         if "distance" in cam.keys():
             plt.camera.SetDistance(cam["distance"])
-        if "clippingRange" in cam.keys(): # obsolete
+        if "clippingRange" in cam.keys():  # obsolete
             plt.camera.SetClippingRange(cam["clippingRange"])
         if "clipping_range" in cam.keys():
             plt.camera.SetClippingRange(cam["clipping_range"])
@@ -825,11 +855,11 @@ def _import_npy(fileinput: str | os.PathLike) -> vedo.Plotter:
     objs = []
     for d in data["objects"]:
         ### Mesh
-        if d['type'].lower() == 'mesh':
+        if d["type"].lower() == "mesh":
             obj = from_numpy(d)
 
         ### Assembly
-        elif d['type'].lower() == 'assembly':
+        elif d["type"].lower() == "assembly":
             assacts = []
             for ad in d["actors"]:
                 assacts.append(from_numpy(ad))
@@ -840,26 +870,27 @@ def _import_npy(fileinput: str | os.PathLike) -> vedo.Plotter:
             obj.SetOrigin(d["origin"])
 
         ### Volume
-        elif d['type'].lower() == 'volume':
+        elif d["type"].lower() == "volume":
             obj = Volume(d["array"])
             obj.spacing(d["spacing"])
             obj.origin(d["origin"])
-            if "jittering" in d.keys(): obj.jittering(d["jittering"])
+            if "jittering" in d.keys():
+                obj.jittering(d["jittering"])
             obj.mode(d["mode"])
             obj.color(d["color"])
             obj.alpha(d["alpha"])
             obj.alpha_gradient(d["alphagrad"])
 
         ### TetMesh
-        elif d['type'].lower() == 'tetmesh':
+        elif d["type"].lower() == "tetmesh":
             raise NotImplementedError("TetMesh not supported yet")
 
         ### ScalarBar2D
-        elif d['type'].lower() == 'scalarbar2d':
+        elif d["type"].lower() == "scalarbar2d":
             raise NotImplementedError("ScalarBar2D not supported yet")
 
         ### Image
-        elif d['type'].lower() == 'image':
+        elif d["type"].lower() == "image":
             obj = Image(d["array"])
             obj.alpha(d["alpha"])
             obj.actor.SetScale(d["scale"])
@@ -868,7 +899,7 @@ def _import_npy(fileinput: str | os.PathLike) -> vedo.Plotter:
             obj.actor.SetOrigin(d["origin"])
 
         ### Text2D
-        elif d['type'].lower() == 'text2d':
+        elif d["type"].lower() == "text2d":
             obj = vedo.shapes.Text2D(d["text"], font=d["font"], c=d["color"])
             obj.pos(d["position"]).size(d["size"])
             obj.background(d["bgcol"], d["alpha"])
@@ -881,15 +912,19 @@ def _import_npy(fileinput: str | os.PathLike) -> vedo.Plotter:
 
         if obj:
             keys = d.keys()
-            if "time" in keys: obj.time = d["time"]
-            if "name" in keys: obj.name = d["name"]
+            if "time" in keys:
+                obj.time = d["time"]
+            if "name" in keys:
+                obj.name = d["name"]
             # if "info" in keys: obj.info = d["info"]
-            if "filename" in keys: obj.filename = d["filename"]
+            if "filename" in keys:
+                obj.filename = d["filename"]
             objs.append(obj)
 
     plt.add(objs)
     plt.resetcam = False
     return plt
+
 
 ###########################################################
 def loadImageData(filename: str | os.PathLike) -> vtki.vtkImageData | None:
@@ -928,9 +963,13 @@ def loadImageData(filename: str | os.PathLike) -> vtki.vtkImageData | None:
     reader.Update()
     return reader.GetOutput()
 
+
 ###########################################################
 
-def load_obj(fileinput: str | os.PathLike, mtl_file=None, texture_path=None) -> list[Mesh]:
+
+def load_obj(
+    fileinput: str | os.PathLike, mtl_file=None, texture_path=None
+) -> list[Mesh]:
     """
     Import a set of meshes from a OBJ wavefront file.
 

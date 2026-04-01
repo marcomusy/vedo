@@ -1,4 +1,5 @@
 """Custom color and transparency maps for Volumes"""
+
 from vedo import Volume, dataurl, show
 from vedo.pyplot import CornerHistogram
 

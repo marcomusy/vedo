@@ -1,10 +1,11 @@
 """External-tools interoperability example."""
-#Credits:
-#M. Attene. A lightweight approach to repairing digitized polygon meshes.
-#The Visual Computer, 2010. (c) Springer. DOI: 10.1007/s00371-010-0416-3
-#http://pymeshfix.pyvista.org
-#TetGen, a Delaunay-Based Quality Tetrahedral Mesh Generator
-#https://github.com/pyvista/tetgen
+
+# Credits:
+# M. Attene. A lightweight approach to repairing digitized polygon meshes.
+# The Visual Computer, 2010. (c) Springer. DOI: 10.1007/s00371-010-0416-3
+# http://pymeshfix.pyvista.org
+# TetGen, a Delaunay-Based Quality Tetrahedral Mesh Generator
+# https://github.com/pyvista/tetgen
 #
 # pip install pymeshfix
 # pip install tetgen
@@ -22,7 +23,7 @@ require_module("tetgen")
 import pymeshfix
 import tetgen
 
-amesh = vedo.Mesh(vedo.dataurl+'290.vtk')
+amesh = vedo.Mesh(vedo.dataurl + "290.vtk")
 
 # repairing also closes the mesh in a nice way
 meshfix = pymeshfix.MeshFix(amesh.points, amesh.cells)

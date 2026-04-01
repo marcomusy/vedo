@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Ready-to-use interactive application plotters and tools."""
 
 from vedo.lazy_imports import build_attr_map, dir_lazy, getattr_lazy
@@ -23,7 +24,10 @@ _LAZY_EXPORT_MAP, __all__ = build_attr_map(
         ["MorphPlotter", "MorphByLandmarkPlotter", "MorphBySplinesPlotter"],
     ),
     ("vedo.applications.browsers", ["IsosurfaceBrowser", "Browser"]),
-    ("vedo.applications.editing", ["FreeHandCutPlotter", "SplinePlotter", "ImageEditor"]),
+    (
+        "vedo.applications.editing",
+        ["FreeHandCutPlotter", "SplinePlotter", "ImageEditor"],
+    ),
     ("vedo.applications.animation", ["Animation", "AnimationPlayer", "Clock"]),
 )
 

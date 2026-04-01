@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Shared helpers for plain-text and rich object summaries."""
 
 import sys
@@ -58,7 +59,11 @@ def summary_text(obj, rows) -> str:
 def summary_string(obj, rows, color: str = "white", expand: bool = False) -> str:
     """Use rich formatting in an interactive terminal, else return plain text."""
     fallback = summary_text(obj, rows)
-    if sys.stdout is None or not hasattr(sys.stdout, "isatty") or not sys.stdout.isatty():
+    if (
+        sys.stdout is None
+        or not hasattr(sys.stdout, "isatty")
+        or not sys.stdout.isatty()
+    ):
         return fallback
     try:
         from io import StringIO
@@ -99,7 +104,9 @@ def active_array_label(dataset, association: str, key: str, base_label: str) -> 
     return base_label
 
 
-def summarize_array(arr, precision_func, *, include_range: bool = True, dim_label: str = "dim") -> str:
+def summarize_array(
+    arr, precision_func, *, include_range: bool = True, dim_label: str = "dim"
+) -> str:
     """Summarize a numpy array for object-printing."""
     dim = arr.shape[1] if arr.ndim > 1 else 1
     value = f"({arr.dtype}), {dim_label}={dim}"

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Public visual API."""
 
 from vedo.lazy_imports import build_attr_map, dir_lazy, getattr_lazy

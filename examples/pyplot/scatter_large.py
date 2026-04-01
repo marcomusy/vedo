@@ -4,6 +4,7 @@ assigned colors and transparencies.
 Use mouse to zoom,
 press r to reset,
 press p to increase point size."""
+
 from vedo import *
 
 # scatter large example.
@@ -11,9 +12,9 @@ N = 1000000
 
 x = np.random.rand(N)
 y = np.random.rand(N)
-RGBA = np.c_[x*255, y*255, np.zeros(N), y*255]
+RGBA = np.c_[x * 255, y * 255, np.zeros(N), y * 255]
 
-pts = np.array([x,y]).T
+pts = np.array([x, y]).T
 pts = Points(pts).point_size(1)
 pts.pointcolors = RGBA
 

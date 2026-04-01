@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Analytical/derived shapes extracted from vedo.shapes."""
 
 import numpy as np
@@ -57,5 +58,3 @@ class ConvexHull(Mesh):
         super().__init__(out, c=mesh.color(), alpha=0.75)
         self.flat()
         self.name = "ConvexHull"
-
-

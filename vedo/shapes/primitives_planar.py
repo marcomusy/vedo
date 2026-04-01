@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Planar and near-planar primitive shapes."""
 
 from typing import Any
@@ -15,6 +16,7 @@ from vedo.colors import get_color, printc
 from vedo.mesh import Mesh
 from vedo.pointcloud import Points, merge
 from vedo.grids.image import Image
+
 
 class Triangle(Mesh):
     """Create a triangle from 3 points in space."""
@@ -66,7 +68,7 @@ class Circle(Polygon):
         self.axis1: list[float] = []
         self.axis2: list[float] = []
         self.center: list[float] = []  # filled by pointcloud.pca_ellipse()
-        self.pvalue = 0.0              # filled by pointcloud.pca_ellipse()
+        self.pvalue = 0.0  # filled by pointcloud.pca_ellipse()
         self.alpha(alpha).c(c)
         self.name = "Circle"
 
@@ -77,9 +79,10 @@ class Circle(Polygon):
         """
         a, b = self.va, self.vb
         value = 0.0
-        if a+b:
-            value = ((a-b)/(a+b))**2
+        if a + b:
+            value = ((a - b) / (a + b)) ** 2
         return value
+
 
 class GeoCircle(Polygon):
     """
@@ -101,11 +104,13 @@ class GeoCircle(Polygon):
         sinlat, coslat = np.sin(lat), np.cos(lat)
         for phi in np.linspace(0, 2 * np.pi, num=res, endpoint=False):
             clat = np.arcsin(sinlat * cosr + coslat * sinr * np.cos(phi))
-            clng = lon + np.arctan2(np.sin(phi) * sinr * coslat, cosr - sinlat * np.sin(clat))
+            clng = lon + np.arctan2(
+                np.sin(phi) * sinr * coslat, cosr - sinlat * np.sin(clat)
+            )
             coords.append([clng / np.pi + 1, clat * 2 / np.pi + 1, 0])
 
         super().__init__(nsides=res, c=c, alpha=alpha)
-        self.coordinates = coords # warp polygon points to match geo projection
+        self.coordinates = coords  # warp polygon points to match geo projection
         self.name = "Circle"
 
 
@@ -114,7 +119,9 @@ class Star(Mesh):
     Build a 2D star shape.
     """
 
-    def __init__(self, pos=(0, 0, 0), n=5, r1=0.7, r2=1.0, line=False, c="blue6", alpha=1.0) -> None:
+    def __init__(
+        self, pos=(0, 0, 0), n=5, r1=0.7, r2=1.0, line=False, c="blue6", alpha=1.0
+    ) -> None:
         """
         Build a 2D star shape of `n` cusps of inner radius `r1` and outer radius `r2`.
 
@@ -163,7 +170,14 @@ class Disc(Mesh):
     """
 
     def __init__(
-        self, pos=(0, 0, 0), r1=0.5, r2=1.0, res=(1, 120), angle_range=(), c="gray4", alpha=1.0
+        self,
+        pos=(0, 0, 0),
+        r1=0.5,
+        r2=1.0,
+        res=(1, 120),
+        angle_range=(),
+        c="gray4",
+        alpha=1.0,
     ) -> None:
         """
         Build a 2D disc of inner radius `r1` and outer radius `r2`.
@@ -196,6 +210,7 @@ class Disc(Mesh):
         self.pos(utils.make3d(pos))
         self.name = "Disc"
 
+
 class Spheres(Mesh):
     """
     Build a large set of spheres.
@@ -224,7 +239,9 @@ class Spheres(Mesh):
 
         if cisseq:
             if len(centers) != len(c):
-                vedo.logger.error(f"mismatch #centers {len(centers)} != {len(c)} #colors")
+                vedo.logger.error(
+                    f"mismatch #centers {len(centers)} != {len(c)} #colors"
+                )
                 raise RuntimeError()
 
         risseq = False
@@ -233,7 +250,9 @@ class Spheres(Mesh):
 
         if risseq:
             if len(centers) != len(r):
-                vedo.logger.error(f"mismatch #centers {len(centers)} != {len(r)} #radii")
+                vedo.logger.error(
+                    f"mismatch #centers {len(centers)} != {len(r)} #radii"
+                )
                 raise RuntimeError()
         if cisseq and risseq:
             vedo.logger.error("Limitation: c and r cannot be both sequences.")
@@ -316,7 +335,9 @@ class Earth(Mesh):
         super().__init__(tss.GetOutput(), c="w")
         atext = vtki.vtkTexture()
         pnm_reader = vtki.new("JPEGReader")
-        fn = vedo.file_io.download(vedo.dataurl + f"textures/earth{style}.jpg", verbose=False)
+        fn = vedo.file_io.download(
+            vedo.dataurl + f"textures/earth{style}.jpg", verbose=False
+        )
         pnm_reader.SetFileName(fn)
         atext.SetInputConnection(pnm_reader.GetOutputPort())
         atext.InterpolateOn()
@@ -329,7 +350,9 @@ class Grid(Mesh):
     An even or uneven 2D grid.
     """
 
-    def __init__(self, pos=(0, 0, 0), s=(1, 1), res=(10, 10), lw=1, c="k3", alpha=1.0) -> None:
+    def __init__(
+        self, pos=(0, 0, 0), s=(1, 1), res=(10, 10), lw=1, c="k3", alpha=1.0
+    ) -> None:
         """
         Create an even or uneven 2D grid.
         Can also be created from a `np.mgrid` object (see example).
@@ -367,7 +390,7 @@ class Grid(Mesh):
 
         try:
             bb = pos.bounds()
-            pos = [(bb[0] + bb[1])/2, (bb[2] + bb[3])/2, (bb[4] + bb[5])/2]
+            pos = [(bb[0] + bb[1]) / 2, (bb[2] + bb[3]) / 2, (bb[4] + bb[5]) / 2]
             sx = bb[1] - bb[0]
             sy = bb[3] - bb[2]
         except AttributeError:
@@ -375,12 +398,12 @@ class Grid(Mesh):
 
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
-        elif len(pos) in [4,6]: # passing a bounding box
+        elif len(pos) in [4, 6]:  # passing a bounding box
             bb = pos
-            pos = [(bb[0] + bb[1])/2, (bb[2] + bb[3])/2, 0]
+            pos = [(bb[0] + bb[1]) / 2, (bb[2] + bb[3]) / 2, 0]
             sx = bb[1] - bb[0]
             sy = bb[3] - bb[2]
-            if len(pos)==6:
+            if len(pos) == 6:
                 pos[2] = bb[4] - bb[5]
 
         if utils.is_sequence(sx) and utils.is_sequence(sy):
@@ -421,6 +444,7 @@ class Grid(Mesh):
 
 class Plane(Mesh):
     """Create a plane in space."""
+
     def __init__(
         self,
         pos=(0, 0, 0),
@@ -480,12 +504,14 @@ class Plane(Mesh):
                 direction /= np.linalg.norm(direction)
 
                 if s[0] <= s[1]:
-                    current_direction = np.asarray([0,1,0])
+                    current_direction = np.asarray([0, 1, 0])
                 else:
-                    current_direction = np.asarray([1,0,0])
+                    current_direction = np.asarray([1, 0, 0])
 
                 transformed_current_direction = t.transform_point(current_direction)
-                n = transformed_current_direction / np.linalg.norm(transformed_current_direction)
+                n = transformed_current_direction / np.linalg.norm(
+                    transformed_current_direction
+                )
 
                 if np.linalg.norm(transformed_current_direction) >= 1e-6:
                     angle = np.arccos(np.dot(n, direction))
@@ -496,7 +522,7 @@ class Plane(Mesh):
 
         self.lighting("off")
         self.name = "Plane"
-        self.variance = 0 # used by pointcloud.fit_plane()
+        self.variance = 0  # used by pointcloud.fit_plane()
 
     def clone(self, deep=True) -> Plane:
         newplane = Plane()
@@ -523,7 +549,7 @@ class Plane(Mesh):
         #     if abs(cosine_angle) < 0.99:
         #         normal = np.cross(AB, AC)
         #         return normal / np.linalg.norm(normal)
-        p0, p1, p2 = pts[0], pts[1], pts[int(len(pts)/2 +0.5)]
+        p0, p1, p2 = pts[0], pts[1], pts[int(len(pts) / 2 + 0.5)]
         AB = p1 - p0
         AB /= np.linalg.norm(AB)
         AC = p2 - p0
@@ -561,7 +587,9 @@ class Rectangle(Mesh):
     Build a rectangle in the xy plane.
     """
 
-    def __init__(self, p1=(0, 0), p2=(1, 1), radius=None, res=12, c="gray5", alpha=1.0) -> None:
+    def __init__(
+        self, p1=(0, 0), p2=(1, 1), radius=None, res=12, c="gray5", alpha=1.0
+    ) -> None:
         """
         Build a rectangle in the xy plane identified by any two corner points.
 
@@ -631,10 +659,10 @@ class Rectangle(Mesh):
             # q6 = (rc, py)
             q7 = (0, py - rc)
             # q8 = (0, rd)
-            a = np.c_[rrx[3], rry[3]]*ra + [px-ra, ra]    if ra else np.array([])
-            b = np.c_[rrx[0], rry[0]]*rb + [px-rb, py-rb] if rb else np.array([])
-            c = np.c_[rrx[1], rry[1]]*rc + [rc, py-rc]    if rc else np.array([])
-            d = np.c_[rrx[2], rry[2]]*rd + [rd, rd]       if rd else np.array([])
+            a = np.c_[rrx[3], rry[3]] * ra + [px - ra, ra] if ra else np.array([])
+            b = np.c_[rrx[0], rry[0]] * rb + [px - rb, py - rb] if rb else np.array([])
+            c = np.c_[rrx[1], rry[1]] * rc + [rc, py - rc] if rc else np.array([])
+            d = np.c_[rrx[2], rry[2]] * rd + [rd, rd] if rd else np.array([])
 
             pts = [q1, *a.tolist(), q3, *b.tolist(), q5, *c.tolist(), q7, *d.tolist()]
             faces = [list(range(len(pts)))]

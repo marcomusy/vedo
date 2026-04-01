@@ -1,7 +1,8 @@
 """Generate the silhouette of a mesh
 as seen along a specified direction
 
-Axes font: """
+Axes font:"""
+
 # Author: Zhi-Qiang Zhou (https://github.com/zhouzq-thu)
 from vedo import *
 
@@ -34,9 +35,9 @@ pts2 = sob.silhouette("2d").points
 
 # draw the lines
 for i in range(0, n, int(n / 20)):
-    plt += Line(pts1[i], pts[i]).color("black",0.2)
-    plt += Line(point,   pts[i]).color("black",0.2)
-    plt += Line(pts2[i], pts[i]).color("black",0.2)
+    plt += Line(pts1[i], pts[i]).color("black", 0.2)
+    plt += Line(point, pts[i]).color("black", 0.2)
+    plt += Line(pts2[i], pts[i]).color("black", 0.2)
 
 plt.show(
     axes=dict(

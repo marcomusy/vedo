@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Conversion helpers for optional third-party libraries."""
 
 import numpy as np
@@ -34,7 +35,9 @@ def _build_polydata(points, cells=None, lines=None):
 def _numpy2vtk(arr, dtype=None, deep=True, name="", as_image=False, dims=None):
     from vedo import utils
 
-    return utils.numpy2vtk(arr, dtype=dtype, deep=deep, name=name, as_image=as_image, dims=dims)
+    return utils.numpy2vtk(
+        arr, dtype=dtype, deep=deep, name=name, as_image=as_image, dims=dims
+    )
 
 
 def vedo2trimesh(mesh):
@@ -57,7 +60,13 @@ def vedo2trimesh(mesh):
     if len(tris) == 0:
         tris = None
 
-    return Trimesh(vertices=points, faces=tris, face_colors=ccols, vertex_colors=vcols, process=False)
+    return Trimesh(
+        vertices=points,
+        faces=tris,
+        face_colors=ccols,
+        vertex_colors=vcols,
+        process=False,
+    )
 
 
 def trimesh2vedo(inputobj):
@@ -132,7 +141,9 @@ def vedo2meshlab(vmesh):
     else:
         v_color_matrix = v_color_matrix.astype(np.float64) / 255
         if v_color_matrix.shape[1] == 3:
-            v_color_matrix = np.c_[v_color_matrix, np.ones(v_color_matrix.shape[0], dtype=np.float64)]
+            v_color_matrix = np.c_[
+                v_color_matrix, np.ones(v_color_matrix.shape[0], dtype=np.float64)
+            ]
 
     f_color_matrix = vmesh.celldata["RGBA"]
     if f_color_matrix is None:
@@ -140,7 +151,9 @@ def vedo2meshlab(vmesh):
     else:
         f_color_matrix = f_color_matrix.astype(np.float64) / 255
         if f_color_matrix.shape[1] == 3:
-            f_color_matrix = np.c_[f_color_matrix, np.ones(f_color_matrix.shape[0], dtype=np.float64)]
+            f_color_matrix = np.c_[
+                f_color_matrix, np.ones(f_color_matrix.shape[0], dtype=np.float64)
+            ]
 
     m = mlab.Mesh(
         vertex_matrix=vertex_matrix,
@@ -157,7 +170,11 @@ def vedo2meshlab(vmesh):
             continue
         if data.ndim == 1:
             m.add_vertex_custom_scalar_attribute(data.astype(np.float64), k)
-        elif data.ndim == 2 and "tcoord" not in k.lower() and k not in ["Normals", "TextureCoordinates"]:
+        elif (
+            data.ndim == 2
+            and "tcoord" not in k.lower()
+            and k not in ["Normals", "TextureCoordinates"]
+        ):
             m.add_vertex_custom_point_attribute(data.astype(np.float64), k)
 
     for k in vmesh.celldata.keys():
@@ -267,17 +284,23 @@ def madcad2vedo(madcad_mesh):
     except Exception:
         pass
 
-    madp = np.array([[float(p[0]), float(p[1]), float(p[2])] for p in madcad_mesh.points])
+    madp = np.array(
+        [[float(p[0]), float(p[1]), float(p[2])] for p in madcad_mesh.points]
+    )
 
     madf = []
     try:
-        madf = np.array([[int(f[0]), int(f[1]), int(f[2])] for f in madcad_mesh.faces]).astype(np.uint16)
+        madf = np.array(
+            [[int(f[0]), int(f[1]), int(f[2])] for f in madcad_mesh.faces]
+        ).astype(np.uint16)
     except AttributeError:
         pass
 
     made = []
     try:
-        made = np.array([[int(e[0]), int(e[1])] for e in madcad_mesh.edges]).astype(np.uint16)
+        made = np.array([[int(e[0]), int(e[1])] for e in madcad_mesh.edges]).astype(
+            np.uint16
+        )
     except (AttributeError, TypeError):
         pass
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Morphing application plotters."""
 
 import os
@@ -17,6 +18,7 @@ from vedo.pointcloud import fit_plane, Points
 from vedo.shapes import Line, Ribbon, Spline, Text2D
 from vedo.pyplot import CornerHistogram, histogram
 from vedo.addons import SliderWidget
+
 
 class MorphPlotter(Plotter):
     """
@@ -40,9 +42,9 @@ class MorphPlotter(Plotter):
 
         self.n_intermediates = 10  # number of intermediate shapes to generate
         self.intermediates = []
-        self.auto_warping = True   # automatically warp the source mesh on click
+        self.auto_warping = True  # automatically warp the source mesh on click
         self.automatic_picking_distance = 0.075
-        self.automatic_picking_use_source = False # use source mesh to pick points
+        self.automatic_picking_use_source = False  # use source mesh to pick points
         self.cmap_name = "coolwarm"
         self.output_filename = "morphed.vtk"
         self.nbins = 25
@@ -58,8 +60,15 @@ class MorphPlotter(Plotter):
         self.target_labels = None
         self.msg0 = Text2D(
             "Pick a point on the surface",
-            pos="bottom-center", c='white', bg="blue4", alpha=1, font="Calco")
-        self.msg1 = Text2D(pos="bottom-center", c='white', bg="blue4", alpha=1, font="Calco")
+            pos="bottom-center",
+            c="white",
+            bg="blue4",
+            alpha=1,
+            font="Calco",
+        )
+        self.msg1 = Text2D(
+            pos="bottom-center", c="white", bg="blue4", alpha=1, font="Calco"
+        )
         self.instructions = Text2D(s=0.7, bg="blue4", alpha=0.1, font="Calco")
         self.instructions.text(
             "  Morphological alignment of 3D surfaces\n"
@@ -79,7 +88,11 @@ class MorphPlotter(Plotter):
         self.at(0).add_renderer_frame()
         self.add(source, self.msg0, self.instructions).reset_camera()
         self.at(1).add_renderer_frame()
-        self.add(Text2D(f"Target: {target.filename[-35:]}", bg="blue4", alpha=0.1, font="Calco"))
+        self.add(
+            Text2D(
+                f"Target: {target.filename[-35:]}", bg="blue4", alpha=0.1, font="Calco"
+            )
+        )
         self.add(self.msg1, target)
         cam1 = self.camera  # save camera at 1
         self.at(2).background("k9")
@@ -146,7 +159,7 @@ class MorphPlotter(Plotter):
             self.update()
 
         if evt.keypress == "w":
-            rep = (self.warped.properties.GetRepresentation() == 1)
+            rep = self.warped.properties.GetRepresentation() == 1
             self.warped.wireframe(not rep)
             self.render()
 
@@ -158,8 +171,8 @@ class MorphPlotter(Plotter):
             elif len(self.sources) == 0 or len(self.targets) == 0:
                 return
             n = min(len(self.sources), len(self.targets))
-            self.sources = self.sources[:n-1]
-            self.targets = self.targets[:n-1]
+            self.sources = self.sources[: n - 1]
+            self.targets = self.targets[: n - 1]
             self.msg0.text("Last point deleted! Pick a point here")
             self.msg1.text("")
             self.source.pickable(True)
@@ -180,7 +193,7 @@ class MorphPlotter(Plotter):
                 self.output_text.text("Morphed output:")
                 self.at(2).remove("warped").add(self.warped).render()
 
-        if evt.keypress == 'g':  ##------- generate intermediate shapes
+        if evt.keypress == "g":  ##------- generate intermediate shapes
             if not self.warped:
                 vedo.printc("Morph the source mesh first.", c="r")
                 return
@@ -191,7 +204,9 @@ class MorphPlotter(Plotter):
             self.output_text.c("white").background("red4")
             self.arrow_starts = np.array(self.sources)
             self.arrow_stops = np.array(self.targets)
-            self.dottedln = vedo.Lines(self.arrow_starts, self.arrow_stops, res=self.n_intermediates)
+            self.dottedln = vedo.Lines(
+                self.arrow_starts, self.arrow_stops, res=self.n_intermediates
+            )
             self.dottedln.name = "warped"
             self.dottedln.c("blue3").ps(5).alpha(0.5)
             self.at(2).add(self.dottedln).render()
@@ -204,7 +219,9 @@ class MorphPlotter(Plotter):
                 m_nterp.name = f"morphed"
                 m_nterp.c("blue4", 0.05)
                 self.intermediates.append(m_nterp)
-            self.output_text.text(f"Morphed output + Interpolation ({self.n_intermediates} shapes):")
+            self.output_text.text(
+                f"Morphed output + Interpolation ({self.n_intermediates} shapes):"
+            )
             self.output_text.c("k").background(None)
             self.at(2).add(self.intermediates).render()
 
@@ -254,11 +271,11 @@ class MorphPlotter(Plotter):
                 dists,
                 bins=self.nbins,
                 title=" ",
-                xtitle=f"STD = {v/2:.2f}",
+                xtitle=f"STD = {v / 2:.2f}",
                 ytitle="",
                 c=self.cmap_name,
                 xlim=(-v, v),
-                aspect=16/9,
+                aspect=16 / 9,
                 axes=dict(
                     number_of_divisions=5,
                     text_scale=2,
@@ -269,14 +286,20 @@ class MorphPlotter(Plotter):
 
             # try to fit a gaussian to the histogram
             def gauss(x, A, B, sigma):
-                return A + B * np.exp(-x**2 / (2 * sigma**2))
+                return A + B * np.exp(-(x**2) / (2 * sigma**2))
+
             try:
                 from scipy.optimize import curve_fit
-                inits = [0, len(dists)/self.nbins*2.5, v/2]
-                popt, _ = curve_fit(gauss, xdata=h.centers, ydata=h.frequencies, p0=inits)
+
+                inits = [0, len(dists) / self.nbins * 2.5, v / 2]
+                popt, _ = curve_fit(
+                    gauss, xdata=h.centers, ydata=h.frequencies, p0=inits
+                )
                 x = np.linspace(-v, v, 300)
                 h += vedo.pyplot.plot(x, gauss(x, *popt), like=h, lw=1, lc="k2")
-                h["Axes"]["xtitle"].text(f":sigma = {abs(popt[2]):.3f}", font="VictorMono")
+                h["Axes"]["xtitle"].text(
+                    f":sigma = {abs(popt[2]):.3f}", font="VictorMono"
+                )
             except:
                 pass
 
@@ -284,24 +307,26 @@ class MorphPlotter(Plotter):
             h.name = "warped"
             self.at(2).add(h)
             self.render()
-        
+
         if evt.keypress == "Ctrl+s":
             # write the warped mesh to file along with the transformation
             if self.warped:
-                m =  self.warped.clone()
+                m = self.warped.clone()
                 m.pointdata.remove("Scalars")
                 m.pointdata.remove("Distance")
                 m.write(str(self.output_filename))
                 matfile = str(self.output_filename).split(".")[0] + ".mat"
                 m.transform.write(matfile)
-                print(f"Warped mesh saved to: {self.output_filename}\n with transformation: {matfile}")
+                print(
+                    f"Warped mesh saved to: {self.output_filename}\n with transformation: {matfile}"
+                )
 
         if evt.keypress == "q":
             self.break_interaction()
 
+
 ########################################################################################
 class MorphByLandmarkPlotter(Plotter):
-
     def __init__(self, msh, init_pts=(), show_labels=True, **kwargs):
         """
         A Plotter to morph a mesh by moving points on it.
@@ -318,7 +343,7 @@ class MorphByLandmarkPlotter(Plotter):
                 show point labels on the mesh
             **kwargs : (dict)
                 keyword arguments to pass to a `vedo.plotter.Plotter` instance.
-        
+
         Example:
             ```python
             from vedo import Mesh, MorphByLandmarkPlotter
@@ -438,14 +463,16 @@ class MorphByLandmarkPlotter(Plotter):
     def _on_mouse_click(self, evt):
         if evt.picked3d is None:
             return
-        self.current_pid = self.vtargets.closest_point(evt.picked3d, return_point_id=True)
+        self.current_pid = self.vtargets.closest_point(
+            evt.picked3d, return_point_id=True
+        )
         if self.current_pid < 0:
             self.status.text("No point exists. Press o to place a point.")
             self.render()
             return
         self.current_pt = self.targets[self.current_pid]
         self.status.text(
-            f"Selected point ID {self.current_pid}" 
+            f"Selected point ID {self.current_pid}"
             f" coordinates: {precision(self.current_pt, 3)}"
         )
         self.vhighlighted.on()
@@ -483,7 +510,9 @@ class MorphByLandmarkPlotter(Plotter):
                 self.vtargets.c("blue6", alpha=0.5).pickable(0)
                 self.vtargets.name = "vtargets"
 
-                self.vlines = vedo.Lines(self._sources, self.targets, c="k5").pickable(0)
+                self.vlines = vedo.Lines(self._sources, self.targets, c="k5").pickable(
+                    0
+                )
                 self.vlines.name = "vlines"
 
                 self.remove("vsources", "vtargets", "vlines")
@@ -536,12 +565,18 @@ class MorphByLandmarkPlotter(Plotter):
             i = self.move_keys.index(k)
             k = std_keys[i]  # normalize the key to the standard keys
 
-            if   k == "Left":  self.targets[pid] += [-self.step, 0, 0]
-            elif k == "Right": self.targets[pid] += [self.step, 0, 0]
-            elif k == "Up":    self.targets[pid] += [0, self.step, 0]
-            elif k == "Down":  self.targets[pid] += [0, -self.step, 0]
-            elif k == "UP":    self.targets[pid] += [0, 0, self.step]
-            elif k == "DOWN":  self.targets[pid] += [0, 0, -self.step]
+            if k == "Left":
+                self.targets[pid] += [-self.step, 0, 0]
+            elif k == "Right":
+                self.targets[pid] += [self.step, 0, 0]
+            elif k == "Up":
+                self.targets[pid] += [0, self.step, 0]
+            elif k == "Down":
+                self.targets[pid] += [0, -self.step, 0]
+            elif k == "UP":
+                self.targets[pid] += [0, 0, self.step]
+            elif k == "DOWN":
+                self.targets[pid] += [0, 0, -self.step]
             elif k == "n" or k == "N":
                 # move along the normal of the picked point
                 if self.recompute_normals:
@@ -554,7 +589,7 @@ class MorphByLandmarkPlotter(Plotter):
                     self.targets[pid] -= normals[mid] * self.step
 
             self.status.text(
-                f"Moved point ID {self.current_pid}" 
+                f"Moved point ID {self.current_pid}"
                 f" {precision(self.targets[pid], 3)} {k} by {self.step} units"
             )
             self.vtargets = Points(self.targets, r=self.point_size)
@@ -592,9 +627,9 @@ class MorphByLandmarkPlotter(Plotter):
                 self.status.text(f"Morphed mesh saved to {self.output_filename}")
                 self.render()
 
+
 ########################################################################################
 class MorphBySplinesPlotter(Plotter):
-
     def __init__(self, meshes, **kwargs):
         """
         A Plotter to morph a mesh by moving points on it using splines.
@@ -605,7 +640,7 @@ class MorphBySplinesPlotter(Plotter):
                 the mesh set to be matched
             **kwargs : (dict)
                 keyword arguments to pass to a `vedo.plotter.Plotter` instance.
-        
+
         Example:
             ```python
             from vedo import Mesh, dataurl
@@ -622,7 +657,7 @@ class MorphBySplinesPlotter(Plotter):
         """
         vedo.settings.enable_default_keyboard_callbacks = False
         vedo.settings.enable_default_mouse_callbacks = False
-        
+
         super().__init__(**kwargs)
 
         self.parallel_projection(True)
@@ -659,14 +694,13 @@ class MorphBySplinesPlotter(Plotter):
             s=1.1,
         )
         b = meshes[0].bounds()
-        self.offset = [0, (b[3] - b[2])/2, 0]
+        self.offset = [0, (b[3] - b[2]) / 2, 0]
         self.output_prefix = "morphed_"
         self.output_suffix = ".vtk"
         self.output_spline_filename = f"{self.output_prefix}splines.npy"
         self.output_offset = 0  # used to generate an offset for the output filenames
         self.output_offset_factor = 1
         self.add(meshes, self.status, self.instructions)
-
 
     def _func(self, evt):
 
@@ -682,7 +716,9 @@ class MorphBySplinesPlotter(Plotter):
                 b = self.meshes[0].bounds()
                 init_nodes = vedo.Line(
                     [b[0], b[2], (b[4] + b[5]) / 2],
-                    [b[1], b[3], (b[4] + b[5]) / 2], res=n).coordinates
+                    [b[1], b[3], (b[4] + b[5]) / 2],
+                    res=n,
+                ).coordinates
             st = self.add_spline_tool(
                 init_nodes,
                 lc=len(self.splinetools),
@@ -710,15 +746,20 @@ class MorphBySplinesPlotter(Plotter):
             fname = f"{self.output_prefix}splines.npy"
             np.save(fname, all_nodes)
             for i, mi in enumerate(self.intermediates):
-                mi.write(f"{self.output_prefix}{self.output_offset+i*int(self.output_offset_factor)}{self.output_suffix}")
+                mi.write(
+                    f"{self.output_prefix}{self.output_offset + i * int(self.output_offset_factor)}{self.output_suffix}"
+                )
             self.status.text(
                 f"Saved {len(self.splinetools)} splines to {fname}.\n"
-                f"Saved {len(self.intermediates)} intermediate meshes saved as {self.output_prefix}*{self.output_suffix}")
+                f"Saved {len(self.intermediates)} intermediate meshes saved as {self.output_prefix}*{self.output_suffix}"
+            )
             self.render()
 
         elif evt.keypress == "Ctrl+l":
             if not os.path.exists(f"{self.output_prefix}splines.npy"):
-                self.status.text(f"File {self.output_prefix}splines.npy does not exist.")
+                self.status.text(
+                    f"File {self.output_prefix}splines.npy does not exist."
+                )
                 self.render()
                 return
             all_nodes = np.load(f"{self.output_prefix}splines.npy")
@@ -734,7 +775,8 @@ class MorphBySplinesPlotter(Plotter):
                 )
                 self.splinetools.append(st)
             self.status.text(
-                f"Loaded {len(self.splinetools)} splines from {self.output_prefix}splines.npy")
+                f"Loaded {len(self.splinetools)} splines from {self.output_prefix}splines.npy"
+            )
             self.render()
 
         elif evt.keypress == "Ctrl+z":
@@ -743,7 +785,7 @@ class MorphBySplinesPlotter(Plotter):
                 self.splinetools.pop()
                 self.status.text(f"Removed last spline.")
                 self.render()
-        
+
         elif evt.keypress == "Ctrl+c":
             self.remove(self.intermediates)
             self.intermediates.clear()
@@ -754,7 +796,7 @@ class MorphBySplinesPlotter(Plotter):
             all_pts = []
             for st in self.splinetools:
                 nodes = st.nodes()
-                coords = Spline(nodes, res=self.n_intermediates+1).coordinates
+                coords = Spline(nodes, res=self.n_intermediates + 1).coordinates
                 all_pts.append(coords)
             all_pts = np.array(all_pts)
             self.remove(self.intermediates)
@@ -763,13 +805,22 @@ class MorphBySplinesPlotter(Plotter):
                 self.status.text("No splines defined. Use Ctrl+a to add a spline.")
                 self.render()
                 return
-            warped0 = self.meshes[0].clone().wireframe().lighting("off").c("k4").alpha(1/n/5)
-            for i in range(1, self.n_intermediates+1):
+            warped0 = (
+                self.meshes[0]
+                .clone()
+                .wireframe()
+                .lighting("off")
+                .c("k4")
+                .alpha(1 / n / 5)
+            )
+            for i in range(1, self.n_intermediates + 1):
                 sources = all_pts[:, i - 1]
                 targets = all_pts[:, i]
                 warped0.warp(sources, targets, mode=self.mode)
                 self.intermediates.append(warped0.clone())
-            self.status.text(f"Generated {len(self.intermediates)} intermediate shapes.")
+            self.status.text(
+                f"Generated {len(self.intermediates)} intermediate shapes."
+            )
             self.add(self.intermediates).render()
 
 

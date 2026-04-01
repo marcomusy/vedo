@@ -1,4 +1,5 @@
 """Use tetgenpy to tetrahedralize a cube."""
+
 try:
     import tetgenpy
 except ImportError:
@@ -57,4 +58,3 @@ plt.show(tmesh, __doc__, axes=14).close()
 
 # Save to file
 # tmesh.write("tetramesh.vtu")
-

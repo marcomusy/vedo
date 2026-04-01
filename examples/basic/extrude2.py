@@ -1,4 +1,5 @@
 """Linear extrusion"""
+
 from vedo import Circle, show
 
 # Build a planar polygon to extrude.
@@ -20,7 +21,5 @@ nor_extruded = (
 )
 
 show(
-    base.wireframe(True), 
-    vec_extruded, nor_extruded,
-    __doc__, axes=1, viewup="z"
+    base.wireframe(True), vec_extruded, nor_extruded, __doc__, axes=1, viewup="z"
 ).close()

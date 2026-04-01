@@ -5,6 +5,7 @@ system and displays them as a live 3D point cloud. Particle colors
 are derived from instantaneous speed, making the slower recirculating regions
 and faster streaming regions of the flow easier to read visually.
 """
+
 import numpy as np
 from vedo import Axes, Plotter, Points, color_map
 
@@ -12,7 +13,10 @@ from vedo import Axes, Plotter, Points, color_map
 def deriv(states, a=0.95, b=0.7, c=0.6, d=3.5, e=0.25, f=0.1):
     """Evaluate the Aizawa vector field for a batch of particle states."""
     x, y, z = states[:, 0], states[:, 1], states[:, 2]
-    x2 = x * x; y2 = y * y; z2 = z * z; z3 = z2 * z
+    x2 = x * x
+    y2 = y * y
+    z2 = z * z
+    z3 = z2 * z
     vx = (z - b) * x - d * y
     vy = d * x + (z - b) * y
     vz = c + a * z - z3 / 3.0 - (x2 + y2) * (1.0 + e * z) + f * z * x2 * x
@@ -26,6 +30,7 @@ def rk4_step(states, dt):
     slope_3 = deriv(states + 0.5 * dt * slope_2)
     slope_4 = deriv(states + dt * slope_3)
     return states + (dt / 6.0) * (slope_1 + 2 * slope_2 + 2 * slope_3 + slope_4)
+
 
 def cloud_colors(states, cmap_name):
     """Map particle speed to RGB colors using a named Matplotlib colormap."""
@@ -46,6 +51,7 @@ render_positions = states * render_scale
 swarm_points = Points(render_positions, r=3)
 swarm_points.pointcolors = cloud_colors(states, "managua")
 
+
 def loop_func(_event):
     global states
     for _ in range(3):
@@ -55,9 +61,10 @@ def loop_func(_event):
     # swarm_points.pointcolors = cloud_colors(states, "managua")
     plotter.render()
 
-plotter = Plotter(bg="#151325", bg2="#252335", size=(1200,1200))
-axes = Axes(xrange=[-5,5], yrange=[-5,5]).shift([0,0,-2])
-plotter.show(swarm_points, axes, viewup='z', interactive=False)
+
+plotter = Plotter(bg="#151325", bg2="#252335", size=(1200, 1200))
+axes = Axes(xrange=[-5, 5], yrange=[-5, 5]).shift([0, 0, -2])
+plotter.show(swarm_points, axes, viewup="z", interactive=False)
 plotter.add_callback("timer", loop_func, enable_picking=False)
 plotter.timer_callback("start", dt=10)
 plotter.interactive().close()

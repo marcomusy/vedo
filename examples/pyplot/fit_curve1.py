@@ -1,4 +1,5 @@
 """Fitting a curve to a dataset"""
+
 import numpy as np
 from scipy.optimize import curve_fit
 from vedo.pyplot import plot
@@ -6,7 +7,7 @@ from vedo import settings
 
 
 def func(x, h, a, x0, k):
-    return h + a * (x-x0) * np.sin((x-x0)**2 / k)
+    return h + a * (x - x0) * np.sin((x - x0) ** 2 / k)
 
 
 # generate simulated data
@@ -23,9 +24,9 @@ print("fit  params = ", fit_params)
 settings.default_font = "ComicMono"
 settings.remember_last_figure_format = True  # when adding with p += ...
 
-p  = plot(xdata, ydata, "o", mc="blue2", title=__doc__, label="Data")
+p = plot(xdata, ydata, "o", mc="blue2", title=__doc__, label="Data")
 p += plot(xdata, ydata_true, "-g", lw=2, label="Ground Truth")
-p += plot(xdata, ydata_fit,  "-r", lw=4, label="Fit")
+p += plot(xdata, ydata_fit, "-r", lw=4, label="Fit")
 p.add_legend(pos="bottom-right")
 
 p.show(size=(900, 650), zoom="tight")

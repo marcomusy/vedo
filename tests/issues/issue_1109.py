@@ -6,7 +6,7 @@ X, Y, Z = np.mgrid[:4, :4, :2]
 scalar_field = (X - 2) ** 2 + (Y - 2) ** 2 + (Z - 2) ** 2
 
 vol = Volume(scalar_field.astype(int))
-spacing = vol.spacing() # get the voxel size
+spacing = vol.spacing()  # get the voxel size
 # print("spacing", spacing)
 # print('numpy array from Volume:', vol.pointdata)
 # print('input_scalars', vol.pointdata['input_scalars'])

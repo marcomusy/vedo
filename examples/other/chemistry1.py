@@ -1,4 +1,5 @@
 """Chemistry rendering and interaction example."""
+
 from vedo import show, download
 from vedo.chemistry import Molecule, PeriodicTable, Protein
 
@@ -11,8 +12,12 @@ print(pt)
 symbol = "Co"
 print(f"\nAtomic number of {symbol}: {pt.get_atomic_number(symbol)}")
 
-path1 = download("https://www.dropbox.com/scl/fi/6ml4xr88xyyaupe8hs61u/3gea.pdb?rlkey=xm8lkknyzklqacepqmqmod0i0&dl=0")
-path2 = download("https://www.dropbox.com/scl/fi/91tcay1a8vr8r5nogudr6/caffeine.pdb?rlkey=hhw217vyje54z6b9tdjzurmoq&dl=0")
+path1 = download(
+    "https://www.dropbox.com/scl/fi/6ml4xr88xyyaupe8hs61u/3gea.pdb?rlkey=xm8lkknyzklqacepqmqmod0i0&dl=0"
+)
+path2 = download(
+    "https://www.dropbox.com/scl/fi/91tcay1a8vr8r5nogudr6/caffeine.pdb?rlkey=hhw217vyje54z6b9tdjzurmoq&dl=0"
+)
 
 ###################################################################
 protein = Protein(path1)

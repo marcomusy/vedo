@@ -1,6 +1,7 @@
 """
 Set a JPEG image as a background layer while rendering 3D content on top.
 """
+
 from vedo import Plotter, dataurl, Cube, VedoLogo
 
 # Four independent sub-renderers sharing the same background image layer.

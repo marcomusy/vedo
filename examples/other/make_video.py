@@ -1,9 +1,10 @@
 """Make a video file with or without graphic window"""
+
 from vedo import dataurl, Plotter, Mesh, Axes, Video
 
 # Configure inputs and run the visualization workflow.
 
-msh = Mesh(dataurl+"data/teapot.vtk").normalize()#.rotate_x(-90)
+msh = Mesh(dataurl + "data/teapot.vtk").normalize()  # .rotate_x(-90)
 msh.shift(-msh.center_of_mass())
 
 plt = Plotter(bg="beige", bg2="lb", offscreen=False)
@@ -11,7 +12,7 @@ plt += [msh, Axes(msh), __doc__]
 
 ##############################################################
 # Open a video file and force it to last 3 seconds in total
-video = Video("vedo_video.mp4", duration=3) # or gif
+video = Video("vedo_video.mp4", duration=3)  # or gif
 
 ##############################################################
 # Any rendering loop goes here, e.g.:

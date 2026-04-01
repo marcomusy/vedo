@@ -1,4 +1,5 @@
 """Estimate Gaussian and mean curvature by local quadratic fitting."""
+
 import numpy as np
 from vedo import Mesh, Plotter, Points, Point, Arrows
 from vedo import dataurl, project_point_on_variety, progressbar
@@ -10,7 +11,7 @@ def onclick(event):
         return
     pid = event.object.closest_point(event.picked3d, return_point_id=True)
     ids = msh1.find_adjacent_vertices(pid, depth=depth, adjacency_list=adlist)
-    print(f"Clicked point {pid} with {len(ids)} adjacent vertices", end='')
+    print(f"Clicked point {pid} with {len(ids)} adjacent vertices", end="")
     print(f" -> curvatures: {curvs_g[pid]:.3f}, {curvs_m[pid]:.3f}")
     bpts = pts1[ids]
     _, res = project_point_on_variety(
@@ -51,7 +52,7 @@ msh1.lighting("glossy")
 
 msh2 = msh1.clone()
 msh2.pointdata["Mean_Curvature"] = curvs_m
-msh2.cmap("Reds", "Mean_Curvature", vmin=0, vmax=3*vrange[1]).add_scalarbar()
+msh2.cmap("Reds", "Mean_Curvature", vmin=0, vmax=3 * vrange[1]).add_scalarbar()
 
 msh3 = msh1.clone().lighting("off").alpha(0.5)
 msh3.pointdata.select("Gauss_Curvature")

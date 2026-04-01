@@ -1,11 +1,12 @@
 """3D Bar plot of a TOF camera with hexagonal pixels"""
+
 from vedo import *
 import numpy as np
 
 settings.default_font = "Glasgo"
 settings.use_parallel_projection = True
 
-vals = np.abs(np.random.randn(4*6))  # pixel heights
+vals = np.abs(np.random.randn(4 * 6))  # pixel heights
 cols = color_map(vals, "summer")
 
 k = 0
@@ -13,11 +14,11 @@ items = [__doc__]
 # Build a 4x6 grid of hexagonal extruded bars.
 for i in range(4):
     for j in range(6):
-        val, col= vals[k], cols[k]
-        x, y, z = [i+j%2/2, j/1.155, val+0.01]
-        zbar= Polygon([x,y,0], nsides=6, r=0.55, c=col).extrude(val)
-        line= Polygon([x,y,z], nsides=6, r=0.55, c='k').wireframe().lw(2)
-        txt = Text3D(f"{i}/{j}", [x,y,z],s=0.15, c='k', justify='center')
+        val, col = vals[k], cols[k]
+        x, y, z = [i + j % 2 / 2, j / 1.155, val + 0.01]
+        zbar = Polygon([x, y, 0], nsides=6, r=0.55, c=col).extrude(val)
+        line = Polygon([x, y, z], nsides=6, r=0.55, c="k").wireframe().lw(2)
+        txt = Text3D(f"{i}/{j}", [x, y, z], s=0.15, c="k", justify="center")
         items += [zbar, line, txt]
         k += 1
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Primitive geometric shapes.
 
 Compatibility facade that re-exports primitive symbols from focused modules.

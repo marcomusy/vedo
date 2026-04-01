@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Point-cloud and mesh geometric transform algorithms."""
 
 from typing import Any
@@ -15,6 +16,7 @@ from vedo.core.transformations import LinearTransform, NonLinearTransform
 from vedo.core.common import CommonAlgorithms
 
 __all__ = ["PointAlgorithms"]
+
 
 class PointAlgorithms(CommonAlgorithms):
     """Methods for point clouds."""
@@ -45,7 +47,9 @@ class PointAlgorithms(CommonAlgorithms):
             if LT.is_identity():
                 return cls
 
-        elif isinstance(LT, (vtki.vtkMatrix4x4, vtki.vtkLinearTransform)) or utils.is_sequence(LT):
+        elif isinstance(
+            LT, (vtki.vtkMatrix4x4, vtki.vtkLinearTransform)
+        ) or utils.is_sequence(LT):
             LT_is_linear = True
             LT = LinearTransform(LT)
             tr = LT.T
@@ -167,7 +171,7 @@ class PointAlgorithms(CommonAlgorithms):
         cls.pos(val, p[1], p[2])
         return cls
 
-    def y(cls, val=None)-> Self:
+    def y(cls, val=None) -> Self:
         """Set/Get object position along y axis."""
         p = cls.transform.position
         if val is None:

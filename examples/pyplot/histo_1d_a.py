@@ -1,4 +1,5 @@
 """Minimal 1D histogram example."""
+
 import numpy as np
 from vedo.pyplot import histogram
 

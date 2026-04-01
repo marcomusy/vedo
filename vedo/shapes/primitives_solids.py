@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Volumetric and 3D primitive shapes."""
 
 from typing import Any
@@ -16,15 +17,22 @@ from vedo.mesh import Mesh
 from vedo.pointcloud import Points, merge
 from vedo.grids.image import Image
 
+
 class Box(Mesh):
     """
     Build a box of specified dimensions.
     """
 
     def __init__(
-            self, 
-            pos=(0, 0, 0),
-            length=1.0, width=1.0, height=1.0, size=(), c="g4", alpha=1.0) -> None:
+        self,
+        pos=(0, 0, 0),
+        length=1.0,
+        width=1.0,
+        height=1.0,
+        size=(),
+        c="g4",
+        alpha=1.0,
+    ) -> None:
         """
         Build a box of dimensions `x=length, y=width and z=height`.
         Alternatively dimensions can be defined by setting `size` keyword with a tuple.
@@ -48,12 +56,16 @@ class Box(Mesh):
 
         #################
         if len(pos) == 6:
-            length, width, height = (pos[1] - pos[0]), (pos[3] - pos[2]), (pos[5] - pos[4]) 
+            length, width, height = (
+                (pos[1] - pos[0]),
+                (pos[3] - pos[2]),
+                (pos[5] - pos[4]),
+            )
             pos = [(pos[0] + pos[1]) / 2, (pos[2] + pos[3]) / 2, (pos[4] + pos[5]) / 2]
-        
+
         elif len(size) == 3:
             length, width, height = size
-        
+
         src.SetXLength(length)
         src.SetYLength(width)
         src.SetZLength(height)
@@ -114,7 +126,9 @@ class TessellatedBox(Mesh):
     Build a cubic `Mesh` made of quads.
     """
 
-    def __init__(self, pos=(0, 0, 0), n=10, spacing=(1, 1, 1), bounds=(), c="k5", alpha=0.5) -> None:
+    def __init__(
+        self, pos=(0, 0, 0), n=10, spacing=(1, 1, 1), bounds=(), c="k5", alpha=0.5
+    ) -> None:
         """
         Build a cubic `Mesh` made of `n` small quads in the 3 axis directions.
 
@@ -138,12 +152,12 @@ class TessellatedBox(Mesh):
             n -= 1
             tbs = vtki.new("TessellatedBoxSource")
             tbs.SetLevel(n)
-            if len(bounds)>0:
+            if len(bounds) > 0:
                 tbs.SetBounds(bounds)
             else:
                 tbs.SetBounds(0, n * spacing[0], 0, n * spacing[1], 0, n * spacing[2])
             tbs.QuadsOn()
-            #tbs.SetOutputPointsPrecision(vtki.vtkAlgorithm.SINGLE_PRECISION)
+            # tbs.SetOutputPointsPrecision(vtki.vtkAlgorithm.SINGLE_PRECISION)
             tbs.Update()
             poly = tbs.GetOutput()
         super().__init__(poly, c=c, alpha=alpha)
@@ -232,7 +246,7 @@ class Spring(Mesh):
 
         self.phong().lighting("metallic")
         self.base = np.array(start_pt, dtype=float)
-        self.top  = np.array(end_pt, dtype=float)
+        self.top = np.array(end_pt, dtype=float)
         self.name = "Spring"
 
 
@@ -312,7 +326,9 @@ class Sphere(Mesh):
     Build a sphere.
     """
 
-    def __init__(self, pos=(0, 0, 0), r=1.0, res=24, quads=False, c="r5", alpha=1.0) -> None:
+    def __init__(
+        self, pos=(0, 0, 0), r=1.0, res=24, quads=False, c="r5", alpha=1.0
+    ) -> None:
         """
         Build a sphere at position `pos` of radius `r`.
 
@@ -377,6 +393,7 @@ class Sphere(Mesh):
 
 class Ellipsoid(Mesh):
     """Build a 3D ellipsoid."""
+
     def __init__(
         self,
         pos=(0, 0, 0),
@@ -413,7 +430,7 @@ class Ellipsoid(Mesh):
         self.vc_error = 0
 
         self.nr_of_points = 1  # used by pointcloud.pca_ellipsoid()
-        self.pvalue = 0        # used by pointcloud.pca_ellipsoid()
+        self.pvalue = 0  # used by pointcloud.pca_ellipsoid()
 
         if utils.is_sequence(res):
             res_t, res_phi = res
@@ -439,7 +456,15 @@ class Ellipsoid(Mesh):
         Values close to zero correspond to a spheric object.
         """
         a, b, c = self.va, self.vb, self.vc
-        asp = (((a - b) / (a + b)) ** 2 + ((a - c) / (a + c)) ** 2 + ((b - c) / (b + c)) ** 2) / 3. * 4.
+        asp = (
+            (
+                ((a - b) / (a + b)) ** 2
+                + ((a - c) / (a + c)) ** 2
+                + ((b - c) / (b + c)) ** 2
+            )
+            / 3.0
+            * 4.0
+        )
         return float(asp)
 
     def asphericity_error(self) -> float:
@@ -454,27 +479,30 @@ class Ellipsoid(Mesh):
         ea, eb, ec = a / 2 / sqrtn, b / 2 / sqrtn, b / 2 / sqrtn
 
         dL2 = (
-            ea ** 2
+            ea**2
             * (
                 -8 * (a - b) ** 2 / (3 * (a + b) ** 3)
                 - 8 * (a - c) ** 2 / (3 * (a + c) ** 3)
                 + 4 * (2 * a - 2 * c) / (3 * (a + c) ** 2)
                 + 4 * (2 * a - 2 * b) / (3 * (a + b) ** 2)
-            ) ** 2
-            + eb ** 2
+            )
+            ** 2
+            + eb**2
             * (
                 4 * (-2 * a + 2 * b) / (3 * (a + b) ** 2)
                 - 8 * (a - b) ** 2 / (3 * (a + b) ** 3)
                 - 8 * (-b + c) ** 2 / (3 * (b + c) ** 3)
                 + 4 * (2 * b - 2 * c) / (3 * (b + c) ** 2)
-            ) ** 2
-            + ec ** 2
+            )
+            ** 2
+            + ec**2
             * (
                 4 * (-2 * a + 2 * c) / (3 * (a + c) ** 2)
                 - 8 * (a - c) ** 2 / (3 * (a + c) ** 3)
                 + 4 * (-2 * b + 2 * c) / (3 * (b + c) ** 2)
                 - 8 * (-b + c) ** 2 / (3 * (b + c) ** 3)
-            ) ** 2
+            )
+            ** 2
         )
         err = np.sqrt(dL2)
         self.va_error = ea
@@ -489,8 +517,15 @@ class Cylinder(Mesh):
     """
 
     def __init__(
-        self, pos=(0, 0, 0), r=1.0, height=2.0, axis=(0, 0, 1),
-        cap=True, res=24, c="teal3", alpha=1.0
+        self,
+        pos=(0, 0, 0),
+        r=1.0,
+        height=2.0,
+        axis=(0, 0, 1),
+        cap=True,
+        res=24,
+        c="teal3",
+        alpha=1.0,
     ) -> None:
         """
         Build a cylinder of specified height and radius `r`, centered at `pos`.
@@ -543,7 +578,7 @@ class Cylinder(Mesh):
 
         self.phong()
         self.base = base
-        self.top  = top
+        self.top = top
         self.transform = LinearTransform().translate(pos)
         self.name = "Cylinder"
 
@@ -551,8 +586,16 @@ class Cylinder(Mesh):
 class Cone(Mesh):
     """Build a cone of specified radius and height."""
 
-    def __init__(self, pos=(0, 0, 0), r=1.0, height=3.0, axis=(0, 0, 1),
-                 res=48, c="green3", alpha=1.0) -> None:
+    def __init__(
+        self,
+        pos=(0, 0, 0),
+        r=1.0,
+        height=3.0,
+        axis=(0, 0, 1),
+        res=48,
+        c="green3",
+        alpha=1.0,
+    ) -> None:
         """Build a cone of specified radius `r` and `height`, centered at `pos`."""
         con = vtki.new("ConeSource")
         con.SetResolution(res)
@@ -567,15 +610,16 @@ class Cone(Mesh):
         self.pos(pos)
         v = utils.versor(axis) * height / 2
         self.base = pos - v
-        self.top  = pos + v
+        self.top = pos + v
         self.name = "Cone"
 
 
 class Pyramid(Cone):
     """Build a pyramidal shape."""
 
-    def __init__(self, pos=(0, 0, 0), s=1.0, height=1.0, axis=(0, 0, 1),
-                 c="green3", alpha=1) -> None:
+    def __init__(
+        self, pos=(0, 0, 0), s=1.0, height=1.0, axis=(0, 0, 1), c="green3", alpha=1
+    ) -> None:
         """Build a pyramid of specified base size `s` and `height`, centered at `pos`."""
         super().__init__(pos, s, height, axis, 4, c, alpha)
         self.name = "Pyramid"
@@ -586,7 +630,9 @@ class Torus(Mesh):
     Build a toroidal shape.
     """
 
-    def __init__(self, pos=(0, 0, 0), r1=1.0, r2=0.2, res=36, quads=False, c="yellow3", alpha=1.0) -> None:
+    def __init__(
+        self, pos=(0, 0, 0), r1=1.0, r2=0.2, res=36, quads=False, c="yellow3", alpha=1.0
+    ) -> None:
         """
         Build a torus of specified outer radius `r1` internal radius `r2`, centered at `pos`.
         If `quad=True` a quad-mesh is generated.
@@ -678,7 +724,9 @@ class Hyperboloid(Mesh):
     Build a hyperboloid.
     """
 
-    def __init__(self, pos=(0, 0, 0), a2=1.0, value=0.5, res=100, c="pink4", alpha=1.0) -> None:
+    def __init__(
+        self, pos=(0, 0, 0), a2=1.0, value=0.5, res=100, c="pink4", alpha=1.0
+    ) -> None:
         """
         Build a hyperboloid of specified aperture `a2` and `height`, centered at `pos`.
 

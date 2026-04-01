@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Bootstrap helpers used by Plotter constructor."""
 
 import vedo

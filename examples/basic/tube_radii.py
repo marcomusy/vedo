@@ -1,17 +1,18 @@
 """Use array to vary radius and color
 of a line represented as a tube"""
+
 from vedo import *
 
-settings.default_font = 'Quikhand'
+settings.default_font = "Quikhand"
 
-ln = [[sin(x), cos(x), x / 2] for x in np.arange(0,9, 0.1)]
+ln = [[sin(x), cos(x), x / 2] for x in np.arange(0, 9, 0.1)]
 N = len(ln)
 
 ############################### a simple tube( along ln
 t1 = Tube(ln, c="blue", r=0.08)
 
 ############################### vary radius
-rads = [0.3*(cos(6.0*ir/N))**2+0.1 for ir in range(N)]
+rads = [0.3 * (cos(6.0 * ir / N)) ** 2 + 0.1 for ir in range(N)]
 t2 = Tube(ln, r=rads, c="tomato", res=24)
 
 ############################### vary color

@@ -1,15 +1,19 @@
 """Add an observer to specific objects in a scene"""
+
 from vedo import printc, Mesh, dataurl, Text2D, Plotter
 import numpy as np
+
 
 # -----------------------
 def func(obj, name=None):
     printc("Plotter callback", c="m")
 
+
 # -----------------------
 def ftxt(obj, ename):
     printc("Text2D callback", obj.__class__.__name__, ename, c="y")
     obj.color(np.random.rand() * 10)
+
 
 # -----------------------
 def fmsh(obj, ename):

@@ -43,6 +43,7 @@ def _setup_colormaps():
 
     try:
         import matplotlib as _mpl
+
         _ = _mpl.colormaps  # matplotlib >=3.5
         matplotlib = _mpl
         _has_matplotlib = True
@@ -51,6 +52,7 @@ def _setup_colormaps():
             "matplotlib is required for vedo color maps. "
             "Install it with `pip install matplotlib`."
         )
+
 
 _printc_delay_timestamp = [0]
 
@@ -424,52 +426,183 @@ color_nicks = {  # color nicknames
 
 # available colormap names:
 cmaps_names = [
-    "Accent", "Accent_r", "Blues", "Blues_r", "BrBG",
-    "BrBG_r", "BuGn", "BuGn_r", "BuPu", "BuPu_r",
-    "CMRmap", "CMRmap_r", "Dark2", "Dark2_r", "GnBu",
-    "GnBu_r", "Greens", "Greens_r", "Greys", "Greys_r",
-    "OrRd", "OrRd_r", "Oranges", "Oranges_r", "PRGn",
-    "PRGn_r", "Paired", "Paired_r", "Pastel1", "Pastel1_r",
-    "Pastel2", "Pastel2_r", "PiYG", "PiYG_r", "PuBu",
-    "PuBuGn", "PuBuGn_r", "PuBu_r", "PuOr", "PuOr_r",
-    "PuRd", "PuRd_r", "Purples", "Purples_r", "RdBu",
-    "RdBu_r", "RdGy", "RdGy_r", "RdPu", "RdPu_r",
-    "RdYlBu", "RdYlBu_r", "RdYlGn", "RdYlGn_r", "Reds",
-    "Reds_r", "Set1", "Set1_r", "Set2", "Set2_r",
-    "Set3", "Set3_r", "Spectral", "Spectral_r", "Wistia",
-    "Wistia_r", "YlGn", "YlGnBu", "YlGnBu_r", "YlGn_r",
-    "YlOrBr", "YlOrBr_r", "YlOrRd", "YlOrRd_r", "afmhot",
-    "afmhot_r", "autumn", "autumn_r", "binary", "binary_r",
-    "bone", "bone_r", "brg", "brg_r", "bwr", "bwr_r",
-    "cividis", "cividis_r", "cool", "cool_r", "coolwarm",
-    "coolwarm_r", "copper", "copper_r", "cubehelix", "cubehelix_r",
-    "flag", "flag_r", "gist_earth", "gist_earth_r", "gist_gray",
-    "gist_gray_r", "gist_heat", "gist_heat_r", "gist_ncar", "gist_ncar_r",
-    "gist_rainbow", "gist_rainbow_r", "gist_stern", "gist_stern_r", "gist_yarg",
-    "gist_yarg_r", "gnuplot", "gnuplot2", "gnuplot2_r", "gnuplot_r", "gray_r",
-    "hot", "hot_r", "hsv", "hsv_r", "inferno", "inferno_r",
-    "jet", "jet_r", "magma", "magma_r", "nipy_spectral", "nipy_spectral_r",
-    "ocean", "ocean_r", "pink_r", "plasma", "plasma_r", "prism",
-    "prism_r", "rainbow", "rainbow_r", "seismic", "seismic_r", "spring",
-    "spring_r", "summer", "summer_r", "tab10", "tab10_r", "tab20",
-    "tab20_r", "tab20b", "tab20b_r", "tab20c", "tab20c_r", "terrain",
-    "terrain_r", "twilight", "twilight_r", "twilight_shifted", "twilight_shifted_r",
-    "viridis", "viridis_r", "winter", "winter_r",
+    "Accent",
+    "Accent_r",
+    "Blues",
+    "Blues_r",
+    "BrBG",
+    "BrBG_r",
+    "BuGn",
+    "BuGn_r",
+    "BuPu",
+    "BuPu_r",
+    "CMRmap",
+    "CMRmap_r",
+    "Dark2",
+    "Dark2_r",
+    "GnBu",
+    "GnBu_r",
+    "Greens",
+    "Greens_r",
+    "Greys",
+    "Greys_r",
+    "OrRd",
+    "OrRd_r",
+    "Oranges",
+    "Oranges_r",
+    "PRGn",
+    "PRGn_r",
+    "Paired",
+    "Paired_r",
+    "Pastel1",
+    "Pastel1_r",
+    "Pastel2",
+    "Pastel2_r",
+    "PiYG",
+    "PiYG_r",
+    "PuBu",
+    "PuBuGn",
+    "PuBuGn_r",
+    "PuBu_r",
+    "PuOr",
+    "PuOr_r",
+    "PuRd",
+    "PuRd_r",
+    "Purples",
+    "Purples_r",
+    "RdBu",
+    "RdBu_r",
+    "RdGy",
+    "RdGy_r",
+    "RdPu",
+    "RdPu_r",
+    "RdYlBu",
+    "RdYlBu_r",
+    "RdYlGn",
+    "RdYlGn_r",
+    "Reds",
+    "Reds_r",
+    "Set1",
+    "Set1_r",
+    "Set2",
+    "Set2_r",
+    "Set3",
+    "Set3_r",
+    "Spectral",
+    "Spectral_r",
+    "Wistia",
+    "Wistia_r",
+    "YlGn",
+    "YlGnBu",
+    "YlGnBu_r",
+    "YlGn_r",
+    "YlOrBr",
+    "YlOrBr_r",
+    "YlOrRd",
+    "YlOrRd_r",
+    "afmhot",
+    "afmhot_r",
+    "autumn",
+    "autumn_r",
+    "binary",
+    "binary_r",
+    "bone",
+    "bone_r",
+    "brg",
+    "brg_r",
+    "bwr",
+    "bwr_r",
+    "cividis",
+    "cividis_r",
+    "cool",
+    "cool_r",
+    "coolwarm",
+    "coolwarm_r",
+    "copper",
+    "copper_r",
+    "cubehelix",
+    "cubehelix_r",
+    "flag",
+    "flag_r",
+    "gist_earth",
+    "gist_earth_r",
+    "gist_gray",
+    "gist_gray_r",
+    "gist_heat",
+    "gist_heat_r",
+    "gist_ncar",
+    "gist_ncar_r",
+    "gist_rainbow",
+    "gist_rainbow_r",
+    "gist_stern",
+    "gist_stern_r",
+    "gist_yarg",
+    "gist_yarg_r",
+    "gnuplot",
+    "gnuplot2",
+    "gnuplot2_r",
+    "gnuplot_r",
+    "gray_r",
+    "hot",
+    "hot_r",
+    "hsv",
+    "hsv_r",
+    "inferno",
+    "inferno_r",
+    "jet",
+    "jet_r",
+    "magma",
+    "magma_r",
+    "nipy_spectral",
+    "nipy_spectral_r",
+    "ocean",
+    "ocean_r",
+    "pink_r",
+    "plasma",
+    "plasma_r",
+    "prism",
+    "prism_r",
+    "rainbow",
+    "rainbow_r",
+    "seismic",
+    "seismic_r",
+    "spring",
+    "spring_r",
+    "summer",
+    "summer_r",
+    "tab10",
+    "tab10_r",
+    "tab20",
+    "tab20_r",
+    "tab20b",
+    "tab20b_r",
+    "tab20c",
+    "tab20c_r",
+    "terrain",
+    "terrain_r",
+    "twilight",
+    "twilight_r",
+    "twilight_shifted",
+    "twilight_shifted_r",
+    "viridis",
+    "viridis_r",
+    "winter",
+    "winter_r",
 ]
 
 # default color palettes when using an index
 palettes = (
     (
-       [1.        , 0.75686275, 0.02745098], # yellow5
-       [0.99215686, 0.49411765, 0.07843137], # orange5
-       [0.8627451 , 0.20784314, 0.27058824], # red5
-       [0.83921569, 0.2       , 0.51764706], # pink5
-       [0.1254902 , 0.78823529, 0.59215686], # teal5
-       [0.15686275, 0.65490196, 0.27058824], # green5
-       [0.09019608, 0.63529412, 0.72156863], # cyan5
-       [0.05098039, 0.43137255, 0.99215686], # blue5
-       [0.4       , 0.0627451 , 0.94901961], # indigo5
-       [0.67843137, 0.70980392, 0.74117647], # gray5
+        [1.0, 0.75686275, 0.02745098],  # yellow5
+        [0.99215686, 0.49411765, 0.07843137],  # orange5
+        [0.8627451, 0.20784314, 0.27058824],  # red5
+        [0.83921569, 0.2, 0.51764706],  # pink5
+        [0.1254902, 0.78823529, 0.59215686],  # teal5
+        [0.15686275, 0.65490196, 0.27058824],  # green5
+        [0.09019608, 0.63529412, 0.72156863],  # cyan5
+        [0.05098039, 0.43137255, 0.99215686],  # blue5
+        [0.4, 0.0627451, 0.94901961],  # indigo5
+        [0.67843137, 0.70980392, 0.74117647],  # gray5
     ),
     (
         (1.0, 0.832, 0.000),  # gold
@@ -484,13 +617,13 @@ palettes = (
         (0.941, 0.196, 0.901),
     ),
     (
-        (1.0, 0.832, 0),    # gold
+        (1.0, 0.832, 0),  # gold
         (0.59, 0.0, 0.09),  # dark red
-        (0.5, 0.5, 0),      # yellow-green
+        (0.5, 0.5, 0),  # yellow-green
         (0.0, 0.66, 0.42),  # green blue
-        (0.5, 1.0, 0.0),    # green
+        (0.5, 1.0, 0.0),  # green
         (0.0, 0.18, 0.65),  # blue
-        (0.4, 0.0, 0.4),    # plum
+        (0.4, 0.0, 0.4),  # plum
         (0.4, 0.0, 0.6),
         (0.2, 0.4, 0.6),
         (0.1, 0.3, 0.2),
@@ -547,33 +680,33 @@ palettes = (
 
 
 emoji = {
-    ":bomb:": "\U0001F4A5",
+    ":bomb:": "\U0001f4a5",
     ":sparks:": "\U00002728",
-    ":thumbup:": "\U0001F44D",
-    ":target:": "\U0001F3AF",
-    ":save:": "\U0001F4BE",
-    ":noentry:": "\U000026D4",
-    ":video:": "\U0001F4FD",
-    ":lightning:": "\U000026A1",
-    ":camera:": "\U0001F4F8",
-    ":times:": "\U0000274C",
-    ":world:": "\U0001F30D",
-    ":rainbow:": "\U0001F308",
-    ":idea:": "\U0001F4A1",
-    ":pin:": "\U0001F4CC",
-    ":construction:": "\U0001F6A7",
-    ":rocket:": "\U0001F680",
-    ":hourglass:": "\U000023F3",
-    ":prohibited:": "\U0001F6AB",
+    ":thumbup:": "\U0001f44d",
+    ":target:": "\U0001f3af",
+    ":save:": "\U0001f4be",
+    ":noentry:": "\U000026d4",
+    ":video:": "\U0001f4fd",
+    ":lightning:": "\U000026a1",
+    ":camera:": "\U0001f4f8",
+    ":times:": "\U0000274c",
+    ":world:": "\U0001f30d",
+    ":rainbow:": "\U0001f308",
+    ":idea:": "\U0001f4a1",
+    ":pin:": "\U0001f4cc",
+    ":construction:": "\U0001f6a7",
+    ":rocket:": "\U0001f680",
+    ":hourglass:": "\U000023f3",
+    ":prohibited:": "\U0001f6ab",
     ":checked:": "\U00002705",
-    ":smile:": "\U0001F642",
-    ":sad:": "\U0001F612",
-    ":star:": "\U00002B50",
-    ":zzz:": "\U0001F4A4",
-    ":mu:": "\U000003BC",
-    ":pi:": "\U000003C0",
-    ":sigma:": "\U000003C3",
-    ":rightarrow:": "\U000027A1",
+    ":smile:": "\U0001f642",
+    ":sad:": "\U0001f612",
+    ":star:": "\U00002b50",
+    ":zzz:": "\U0001f4a4",
+    ":mu:": "\U000003bc",
+    ":pi:": "\U000003c0",
+    ":sigma:": "\U000003c3",
+    ":rightarrow:": "\U000027a1",
 }
 
 
@@ -582,6 +715,7 @@ def _has_colors(stream):
     try:
         # Avoid importing IPython at module import time: this slows down startup.
         from builtins import get_ipython
+
         return get_ipython() is not None
     except Exception:
         pass
@@ -591,6 +725,8 @@ def _has_colors(stream):
     if not stream.isatty():
         return False
     return True
+
+
 _terminal_has_colors = _has_colors(sys.stdout)
 
 
@@ -718,8 +854,7 @@ def get_color_name(c) -> str:
     c = np.array(get_color(c))[:3]  # reformat to rgb
     if _colors_rgb_cache is None:
         _colors_rgb_cache = {
-            key: np.array(_get_color_from_string(key))[:3]
-            for key in colors
+            key: np.array(_get_color_from_string(key))[:3] for key in colors
         }
     mdist = 99.0
     kclosest = ""
@@ -827,8 +962,12 @@ def color_map(value, name="jet", vmin=None, vmax=None):
             mp = matplotlib.colormaps[name]
         except KeyError:
             vedo.logger.error(f"in color_map(), no color map with name '{name}'")
-            vedo.logger.error(f"Available color maps are:\n{list(matplotlib.colormaps.keys())}")
-            return np.array([0.5, 0.5, 0.5]) if not cut else np.full((len(values), 3), 0.5)
+            vedo.logger.error(
+                f"Available color maps are:\n{list(matplotlib.colormaps.keys())}"
+            )
+            return (
+                np.array([0.5, 0.5, 0.5]) if not cut else np.full((len(values), 3), 0.5)
+            )
     else:
         mp = name  # assume matplotlib.colors.LinearSegmentedColormap
     result = mp(values)[:, [0, 1, 2]]
@@ -958,7 +1097,7 @@ def build_lut(
 
     if interpolate:
         for i in range(ncols):
-            p = i / (ncols-1)
+            p = i / (ncols - 1)
             x = (1 - p) * x0 + p * x1
             alf = np.interp(x, alpha_x, alpha_vals)
             rgba = list(ctf.GetColor(x)) + [alf]
@@ -1051,17 +1190,16 @@ def printc(
         if tm - _printc_delay_timestamp[0] > delay:
             _printc_delay_timestamp[0] = tm
         else:
-            return ''  # skip print
+            return ""  # skip print
 
     if not vedo.settings.enable_print_color or not _terminal_has_colors:
         if return_string:
             return "".join(map(str, strings))
         else:
             print(*strings, end=end, flush=flush)
-            return ''
+            return ""
 
     try:  # -------------------------------------------------------------
-
         txt = str()
         ns = len(strings) - 1
         separator = " "
@@ -1103,14 +1241,14 @@ def printc(
                 cseq += oneletter_colors[c]
             else:
                 r, g, b = get_color(c)  # not all terms support this syntax
-                cseq += f"\x1b[38;2;{int(r*255)};{int(g*255)};{int(b*255)}m"
+                cseq += f"\x1b[38;2;{int(r * 255)};{int(g * 255)};{int(b * 255)}m"
 
         if bc:
             if bc in oneletter_colors:
                 cseq += oneletter_colors[bc]
             else:
                 r, g, b = get_color(bc)
-                cseq += f"\x1b[48;2;{int(r*255)};{int(g*255)};{int(b*255)}m"
+                cseq += f"\x1b[48;2;{int(r * 255)};{int(g * 255)};{int(b * 255)}m"
 
         if box is True:
             box = "-"
@@ -1151,7 +1289,6 @@ def printc(
             sys.stdout.write(outtxt)
 
         else:
-
             out = special + cseq + txt + reset
 
             if link:
@@ -1164,7 +1301,6 @@ def printc(
                 sys.stdout.write(out + end)
 
     except:  # --------------------------------------------------- fallback
-
         if return_string:
             return "".join(map(str, strings))
 
@@ -1175,7 +1311,7 @@ def printc(
 
     if flush:
         sys.stdout.flush()
-    return ''
+    return ""
 
 
 def printd(*strings, q=False):
@@ -1191,7 +1327,10 @@ def printd(*strings, q=False):
     cfi = getframeinfo(cf)
 
     fname = os.path.basename(getframeinfo(cf).filename)
-    print("\x1b[7m\x1b[3m\x1b[37m" + fname + " line:\x1b[1m" + str(cfi.lineno) + reset, end="")
+    print(
+        "\x1b[7m\x1b[3m\x1b[37m" + fname + " line:\x1b[1m" + str(cfi.lineno) + reset,
+        end="",
+    )
     print("\x1b[3m\x1b[37m\x1b[2m", "\U00002501" * 30, ctime(), reset)
     if strings:
         print("    \x1b[37m\x1b[1mMessage : ", *strings)
@@ -1200,11 +1339,15 @@ def printd(*strings, q=False):
     for loc in cf.f_locals.keys():
         obj = cf.f_locals[loc]
         var = repr(obj)
-        if 'module ' in var: continue
-        if 'function ' in var: continue
-        if 'class ' in var: continue
-        if loc.startswith('_'): continue
-        if hasattr(obj, 'name'):
+        if "module " in var:
+            continue
+        if "function " in var:
+            continue
+        if "class " in var:
+            continue
+        if loc.startswith("_"):
+            continue
+        if hasattr(obj, "name"):
             if not obj.name:
                 oname = str(type(obj))
             else:
@@ -1214,10 +1357,15 @@ def printd(*strings, q=False):
         var = var.replace("vtkmodules.", "")
         print("      \x1b[37m", loc, "\t\t=", var[:60].replace("\n", ""), reset)
         if vedo.utils.is_sequence(obj) and len(obj) > 4:
-            print('           \x1b[37m\x1b[2m\x1b[3m len:', len(obj),
-                  ' min:', vedo.utils.precision(min(obj), 4),
-                  ' max:', vedo.utils.precision(max(obj), 4),
-                  reset)
+            print(
+                "           \x1b[37m\x1b[2m\x1b[3m len:",
+                len(obj),
+                " min:",
+                vedo.utils.precision(min(obj), 4),
+                " max:",
+                vedo.utils.precision(max(obj), 4),
+                reset,
+            )
 
     if q:
         print(f"    \x1b[1m\x1b[37mExiting python now (q={bool(q)}).\x1b[0m\x1b[37m")

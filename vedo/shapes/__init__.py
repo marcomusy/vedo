@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Submodule to generate simple and complex geometric shapes."""
 
 from vedo.lazy_imports import build_attr_map, dir_lazy, getattr_lazy
@@ -68,7 +69,10 @@ _LAZY_EXPORT_MAP, _LAZY_EXPORTS = build_attr_map(
             "Hyperboloid",
         ],
     ),
-    ("vedo.shapes.markers", ["Marker", "Brace", "Star3D", "Cross3D", "ParametricShape"]),
+    (
+        "vedo.shapes.markers",
+        ["Marker", "Brace", "Star3D", "Cross3D", "ParametricShape"],
+    ),
     ("vedo.shapes.text", ["Text3D", "Text2D", "Latex", "_reps"]),
     ("vedo.shapes.analysis", ["ConvexHull"]),
 )

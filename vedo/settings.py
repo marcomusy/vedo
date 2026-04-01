@@ -248,8 +248,8 @@ class Settings:
         self.default_backend = "vtk"
         try:
             # adapted from: https://stackoverflow.com/a/39662359/2912349
-            shell = get_ipython().__class__.__name__ # type: ignore
-            if shell == 'ZMQInteractiveShell':
+            shell = get_ipython().__class__.__name__  # type: ignore
+            if shell == "ZMQInteractiveShell":
                 self.default_backend = "2d"
         except NameError:
             pass
@@ -316,7 +316,14 @@ class Settings:
         self.annotated_cube_color = (0.75, 0.75, 0.75)
         self.annotated_cube_text_color = None
         self.annotated_cube_text_scale = 0.2
-        self.annotated_cube_texts = ["right", "left ", "front", "back ", " top ", "bottom"]
+        self.annotated_cube_texts = [
+            "right",
+            "left ",
+            "front",
+            "back ",
+            " top ",
+            "bottom",
+        ]
         self.annotated_cube_text_rotations = [0, 0, 90]
 
         self.enable_print_color = True
@@ -325,18 +332,17 @@ class Settings:
 
         self.k3d_menu_visibility = True
         self.k3d_plot_height = 512
-        self.k3d_antialias   = True
-        self.k3d_lighting    = 1.5
+        self.k3d_antialias = True
+        self.k3d_lighting = 1.5
         self.k3d_camera_autofit = True
         self.k3d_grid_visible = None
-        self.k3d_grid_autofit= True
-        self.k3d_axes_color  = "k4"
+        self.k3d_grid_autofit = True
+        self.k3d_axes_color = "k4"
         self.k3d_axes_helper = 1.0
-        self.k3d_point_shader= "mesh"
+        self.k3d_point_shader = "mesh"
         self.k3d_line_shader = "thick"
 
         self.font_parameters = dict(
-
             Normografo=dict(
                 mono=False,
                 fscale=0.75,
@@ -697,7 +703,9 @@ class Settings:
         s = s.replace(".. code-block:: python\n", "")
         s = s.replace("```python\n", "")
         s = s.replace("```\n", "")
-        s = s.replace("\n\n", "\n #------------------------------------------------------\n")
+        s = s.replace(
+            "\n\n", "\n #------------------------------------------------------\n"
+        )
         s = s.replace("\n  ", "\n")
         s = s.replace("\n ", "\n")
         s = s.replace(" from", "from")
@@ -705,6 +713,7 @@ class Settings:
             from pygments import highlight
             from pygments.lexers import Python3Lexer
             from pygments.formatters import Terminal256Formatter
+
             s = highlight(s, Python3Lexer(), Terminal256Formatter(style="zenburn"))
         except (ModuleNotFoundError, ImportError):
             pass
@@ -761,17 +770,20 @@ class Settings:
 
         os.system("pip install pyvirtualdisplay")
 
-        from pyvirtualdisplay import Display # type: ignore
+        from pyvirtualdisplay import Display  # type: ignore
+
         Display(visible=0).start()
 
         if enable_k3d:
             os.system("pip install k3d")
 
-        from google.colab import output # type: ignore
+        from google.colab import output  # type: ignore
+
         output.enable_custom_widget_manager()
 
         if enable_k3d:
             import k3d
+
             try:
                 print("installing k3d...", end="")
                 os.system("jupyter nbextension install --py --user k3d")
@@ -796,7 +808,10 @@ class Settings:
         without showing any screen output.
         """
         print("starting xvfb (can take a minute) ...", end="")
-        if subprocess.run(["which", "Xvfb"], capture_output=True, text=True).returncode != 0:
+        if (
+            subprocess.run(["which", "Xvfb"], capture_output=True, text=True).returncode
+            != 0
+        ):
             subprocess.run(["apt-get", "install", "-y", "xvfb"], check=False)
         os.environ["DISPLAY"] = ":99.0"
         subprocess.Popen(
@@ -811,6 +826,7 @@ class Settings:
     def clear_cache(self) -> None:
         """Clear the cache directory."""
         import shutil
+
         try:
             home_directory = os.path.expanduser("~")
             cachedir = os.path.join(home_directory, self.cache_directory, "vedo")
@@ -819,7 +835,7 @@ class Settings:
         except FileNotFoundError:
             print(f"Cache directory '{cachedir}' not found.")
             pass
-    
+
     ############################################################
     def set_vtk_verbosity(self, level: int) -> None:
         """Set the verbosity level of VTK."""

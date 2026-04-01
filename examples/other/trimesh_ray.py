@@ -1,4 +1,5 @@
 """Trimesh interoperability example."""
+
 import trimesh
 import numpy as np
 from vedo import show, settings
@@ -9,8 +10,8 @@ settings.use_depth_peeling = True
 mesh = trimesh.creation.icosphere()
 
 # create some rays
-ray_origins    = np.array([[0, 0, -3], [1,  2, -3]])
-ray_directions = np.array([[0, 0,  1], [0, -1,  1]])
+ray_origins = np.array([[0, 0, -3], [1, 2, -3]])
+ray_directions = np.array([[0, 0, 1], [0, -1, 1]])
 
 # run the mesh-ray query
 locations, index_ray, index_tri = mesh.ray.intersects_location(
@@ -24,7 +25,9 @@ ray_visualize = trimesh.load_path(
 )
 
 print("The rays hit the mesh at coordinates:\n", locations)
-print(f"The rays with index: {index_ray} hit triangles stored at mesh.faces[{index_tri}]")
+print(
+    f"The rays with index: {index_ray} hit triangles stored at mesh.faces[{index_tri}]"
+)
 
 # stack rays into line segments for visualization as Path3D
 ray_visualize = trimesh.load_path(

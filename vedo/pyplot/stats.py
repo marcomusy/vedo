@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Statistical plotting helpers."""
 
 from typing_extensions import Self
@@ -22,6 +23,7 @@ from vedo.assembly import Assembly
 from .functions import _histogram_polar
 
 __all__ = ["pie_chart", "violin", "whisker", "matrix", "CornerPlot", "CornerHistogram"]
+
 
 def pie_chart(
     fractions,
@@ -222,7 +224,9 @@ def violin(
     return asse
 
 
-def whisker(data, s=0.25, c="k", lw=2, bc="blue", alpha=0.25, r=5, jitter=True, horizontal=False) -> Assembly:
+def whisker(
+    data, s=0.25, c="k", lw=2, bc="blue", alpha=0.25, r=5, jitter=True, horizontal=False
+) -> Assembly:
     """
     Generate a "whisker" bar from a 1-dimensional dataset.
 
@@ -267,7 +271,9 @@ def whisker(data, s=0.25, c="k", lw=2, bc="blue", alpha=0.25, r=5, jitter=True, 
 
     rec = shapes.Rectangle([-s / 2, dq25], [s / 2, dq75], c=bc, alpha=alpha)
     rec.properties.LightingOff()
-    rl = shapes.Line([[-s / 2, dq25], [s / 2, dq25], [s / 2, dq75], [-s / 2, dq75]], closed=True)
+    rl = shapes.Line(
+        [[-s / 2, dq25], [s / 2, dq25], [s / 2, dq75], [-s / 2, dq75]], closed=True
+    )
     l1 = shapes.Line([0, dq05, 0], [0, dq25, 0], c=c, lw=lw)
     l2 = shapes.Line([0, dq75, 0], [0, dq95, 0], c=c, lw=lw)
     lm = shapes.Line([-s / 2, dmean], [s / 2, dmean])
@@ -390,7 +396,9 @@ def matrix(
         if xrotation > 44:
             jus = "right-center"
         for i in range(m):
-            xl = shapes.Text3D(xlabels[i], font=font, s=0.02, justify=jus, c=c).rotate_z(xrotation)
+            xl = shapes.Text3D(
+                xlabels[i], font=font, s=0.02, justify=jus, c=c
+            ).rotate_z(xrotation)
             xl.shift((2 * i - m + 1) / (m + n), -n / (m + n) * 1.05)
             xlabs.append(xl)
 
@@ -399,7 +407,9 @@ def matrix(
         ylabels = list(reversed(ylabels))
         ylabs = []
         for i in range(n):
-            yl = shapes.Text3D(ylabels[i], font=font, s=0.02, justify="right-center", c=c)
+            yl = shapes.Text3D(
+                ylabels[i], font=font, s=0.02, justify="right-center", c=c
+            )
             yl.shift(-m / (m + n) * 1.05, (2 * i - n + 1) / (m + n))
             ylabs.append(yl)
 
@@ -412,7 +422,9 @@ def matrix(
             xt.shift(0, -(y1 - y0) - 0.55 / (m + n))
     yt = None
     if ytitle:
-        yt = shapes.Text3D(ytitle, font=font, s=0.035, justify="bottom-center", c=c).rotate_z(90)
+        yt = shapes.Text3D(
+            ytitle, font=font, s=0.035, justify="bottom-center", c=c
+        ).rotate_z(90)
         yt.shift(-m / (m + n) * 1.05, 0)
         if ylabs is not None:
             x0, x1 = ylabs[0].xbounds()

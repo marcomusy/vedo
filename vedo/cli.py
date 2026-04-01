@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """
 Command Line Interface module
 -----------------------------
@@ -43,6 +44,7 @@ __all__ = []
 def main():
     """Execute the command line interface and return the result."""
     return execute_cli()
+
 
 ##############################################################################################
 def execute_cli():
@@ -111,44 +113,185 @@ def get_parser():
         description=descr,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    pr.add_argument('files', nargs='*',             help="input filename(s)")
-    pr.add_argument("-c", "--color", type=str,      help="mesh color [integer or color name]", default=None, metavar='')
-    pr.add_argument("-a", "--alpha",    type=float, help="alpha value [0-1]", default=1, metavar='')
-    pr.add_argument("-w", "--wireframe",            help="use wireframe representation", action="store_true")
-    pr.add_argument("-p", "--point-size", type=float, help="specify point size", default=-1, metavar='')
-    pr.add_argument("-l", "--showedges",            help="show a thin line on mesh edges", action="store_true")
-    pr.add_argument("-k", "--lighting", type=str,   help="metallic, plastic, shiny, glossy or off", default='default', metavar='')
-    pr.add_argument("-K", "--flat",                 help="use flat shading", action="store_true")
-    pr.add_argument("-t", "--texture-file",         help="texture image file", default='', metavar='')
-    pr.add_argument("-x", "--axes-type", type=int,  help="specify axes type [0-14]", default=1, metavar='')
-    pr.add_argument("-i", "--no-camera-share",      help="do not share camera in renderers", action="store_true")
-    pr.add_argument("-f", "--full-screen",          help="full screen mode", action="store_true")
-    pr.add_argument("-bg","--background", type=str, help="background color [integer or color name]", default='', metavar='')
-    pr.add_argument("-bg2", "--background-grad",    help="use background color gradient", default='', metavar='')
-    pr.add_argument("-z", "--zoom", type=float,     help="zooming factor", default=1, metavar='')
-    pr.add_argument("-n", "--multirenderer-mode",   help="multi renderer mode: files go to separate renderers", action="store_true")
-    pr.add_argument("-s", "--sequence-mode",        help="sequence mode: use slider to browse files", action="store_true")
-    pr.add_argument("-g", "--ray-cast-mode",        help="GPU Ray-casting Mode for 3D image files", action="store_true")
-    pr.add_argument("-gx", "--x-spacing", type=float, help="volume x-spacing factor [1]", default=1, metavar='')
-    pr.add_argument("-gy", "--y-spacing", type=float, help="volume y-spacing factor [1]", default=1, metavar='')
-    pr.add_argument("-gz", "--z-spacing", type=float, help="volume z-spacing factor [1]", default=1, metavar='')
-    pr.add_argument("--mode",                       help="volume rendering style (composite/maxproj/...)", default=0, metavar='')
-    pr.add_argument("--cmap",                       help="volume rendering color map name", default='jet', metavar='')
-    pr.add_argument("-e", "--edit",                 help="free-hand edit the input Mesh", action="store_true")
-    pr.add_argument("--slicer2d",                   help="2D Slicer Mode for volumetric data", action="store_true")
-    pr.add_argument("--slicer3d",                   help="3D Slicer Mode for volumetric data", action="store_true")
-    pr.add_argument("-r", "--run",                  help="run example from vedo/examples", metavar='')
-    pr.add_argument("--search",           type=str, help="search/grep for word in vedo examples", default='', metavar='')
-    pr.add_argument("--search-vtk",       type=str, help="search examples for the input vtk class", default='', metavar='')
-    pr.add_argument("--search-code",      type=str, help="search keyword in source code", default='', metavar='')
-    pr.add_argument("--locate",           type=str, help="locate module path of a vedo class", default='', metavar='')
-    pr.add_argument("--reload",                     help="reload the file, ignoring any previous download", action="store_true")
-    pr.add_argument("--info", nargs='*',            help="get an info printout of the current installation")
-    pr.add_argument("--convert", nargs='*',         help="input file(s) to be converted")
-    pr.add_argument("--to",               type=str, help="convert to this target format", default='vtk', metavar='')
-    pr.add_argument("--image",                      help="image mode for 2d objects", action="store_true")
-    pr.add_argument("--eog",                        help="eog-like image visualizer", action="store_true")
-    pr.add_argument("--font",                       help="font name", default="Normografo", metavar='')
+    pr.add_argument("files", nargs="*", help="input filename(s)")
+    pr.add_argument(
+        "-c",
+        "--color",
+        type=str,
+        help="mesh color [integer or color name]",
+        default=None,
+        metavar="",
+    )
+    pr.add_argument(
+        "-a", "--alpha", type=float, help="alpha value [0-1]", default=1, metavar=""
+    )
+    pr.add_argument(
+        "-w", "--wireframe", help="use wireframe representation", action="store_true"
+    )
+    pr.add_argument(
+        "-p",
+        "--point-size",
+        type=float,
+        help="specify point size",
+        default=-1,
+        metavar="",
+    )
+    pr.add_argument(
+        "-l", "--showedges", help="show a thin line on mesh edges", action="store_true"
+    )
+    pr.add_argument(
+        "-k",
+        "--lighting",
+        type=str,
+        help="metallic, plastic, shiny, glossy or off",
+        default="default",
+        metavar="",
+    )
+    pr.add_argument("-K", "--flat", help="use flat shading", action="store_true")
+    pr.add_argument(
+        "-t", "--texture-file", help="texture image file", default="", metavar=""
+    )
+    pr.add_argument(
+        "-x",
+        "--axes-type",
+        type=int,
+        help="specify axes type [0-14]",
+        default=1,
+        metavar="",
+    )
+    pr.add_argument(
+        "-i",
+        "--no-camera-share",
+        help="do not share camera in renderers",
+        action="store_true",
+    )
+    pr.add_argument("-f", "--full-screen", help="full screen mode", action="store_true")
+    pr.add_argument(
+        "-bg",
+        "--background",
+        type=str,
+        help="background color [integer or color name]",
+        default="",
+        metavar="",
+    )
+    pr.add_argument(
+        "-bg2",
+        "--background-grad",
+        help="use background color gradient",
+        default="",
+        metavar="",
+    )
+    pr.add_argument(
+        "-z", "--zoom", type=float, help="zooming factor", default=1, metavar=""
+    )
+    pr.add_argument(
+        "-n",
+        "--multirenderer-mode",
+        help="multi renderer mode: files go to separate renderers",
+        action="store_true",
+    )
+    pr.add_argument(
+        "-s",
+        "--sequence-mode",
+        help="sequence mode: use slider to browse files",
+        action="store_true",
+    )
+    pr.add_argument(
+        "-g",
+        "--ray-cast-mode",
+        help="GPU Ray-casting Mode for 3D image files",
+        action="store_true",
+    )
+    pr.add_argument(
+        "-gx",
+        "--x-spacing",
+        type=float,
+        help="volume x-spacing factor [1]",
+        default=1,
+        metavar="",
+    )
+    pr.add_argument(
+        "-gy",
+        "--y-spacing",
+        type=float,
+        help="volume y-spacing factor [1]",
+        default=1,
+        metavar="",
+    )
+    pr.add_argument(
+        "-gz",
+        "--z-spacing",
+        type=float,
+        help="volume z-spacing factor [1]",
+        default=1,
+        metavar="",
+    )
+    pr.add_argument(
+        "--mode",
+        help="volume rendering style (composite/maxproj/...)",
+        default=0,
+        metavar="",
+    )
+    pr.add_argument(
+        "--cmap", help="volume rendering color map name", default="jet", metavar=""
+    )
+    pr.add_argument(
+        "-e", "--edit", help="free-hand edit the input Mesh", action="store_true"
+    )
+    pr.add_argument(
+        "--slicer2d", help="2D Slicer Mode for volumetric data", action="store_true"
+    )
+    pr.add_argument(
+        "--slicer3d", help="3D Slicer Mode for volumetric data", action="store_true"
+    )
+    pr.add_argument("-r", "--run", help="run example from vedo/examples", metavar="")
+    pr.add_argument(
+        "--search",
+        type=str,
+        help="search/grep for word in vedo examples",
+        default="",
+        metavar="",
+    )
+    pr.add_argument(
+        "--search-vtk",
+        type=str,
+        help="search examples for the input vtk class",
+        default="",
+        metavar="",
+    )
+    pr.add_argument(
+        "--search-code",
+        type=str,
+        help="search keyword in source code",
+        default="",
+        metavar="",
+    )
+    pr.add_argument(
+        "--locate",
+        type=str,
+        help="locate module path of a vedo class",
+        default="",
+        metavar="",
+    )
+    pr.add_argument(
+        "--reload",
+        help="reload the file, ignoring any previous download",
+        action="store_true",
+    )
+    pr.add_argument(
+        "--info", nargs="*", help="get an info printout of the current installation"
+    )
+    pr.add_argument("--convert", nargs="*", help="input file(s) to be converted")
+    pr.add_argument(
+        "--to",
+        type=str,
+        help="convert to this target format",
+        default="vtk",
+        metavar="",
+    )
+    pr.add_argument("--image", help="image mode for 2d objects", action="store_true")
+    pr.add_argument("--eog", help="eog-like image visualizer", action="store_true")
+    pr.add_argument("--font", help="font name", default="Normografo", metavar="")
     return pr
 
 
@@ -156,7 +299,10 @@ def get_parser():
 def system_info():
     from vtkmodules.all import vtkVersion
 
-    printc(f"vedo version      : {__version__}  (https://vedo.embl.es) ".ljust(65), invert=1)
+    printc(
+        f"vedo version      : {__version__}  (https://vedo.embl.es) ".ljust(65),
+        invert=1,
+    )
     printc("vtk version       :", vtkVersion().GetVTKVersion())
     printc("numpy version     :", np.__version__)
     printc("python version    :", sys.version.replace("\n", ""))
@@ -164,6 +310,7 @@ def system_info():
     printc("installation point:", vedo.installdir[:70])
     try:
         import platform
+
         printc(
             "system            :",
             platform.system(),
@@ -176,6 +323,7 @@ def system_info():
 
     try:
         import k3d
+
         printc("k3d version       :", k3d.__version__, bold=0, dim=1)
     except ModuleNotFoundError:
         pass
@@ -236,7 +384,7 @@ def exe_run(args):
                     print()
 
     if nmat > 30:
-        printc(f"... (and {nmat-30} more)", c="c")
+        printc(f"... (and {nmat - 30} more)", c="c")
 
     if nmat > 1:
         printc(":idea: Type 'vedo -r <name>' to run one of them", bold=0, c="c")
@@ -298,7 +446,9 @@ def exe_convert(args):
     target_ext = args.to.lower()
 
     if target_ext not in allowed_exts:
-        printc(f":sad: Sorry target cannot be {target_ext}\nMust be {allowed_exts}", c='r')
+        printc(
+            f":sad: Sorry target cannot be {target_ext}\nMust be {allowed_exts}", c="r"
+        )
         sys.exit()
 
     for f in args.convert:
@@ -409,7 +559,6 @@ def exe_search_code(args):
                 continue
 
             if key_lower in name_lower:
-
                 sname = inspect.getmodule(mm).__name__ + " -> " + name
                 if sname in snames:
                     continue
@@ -425,7 +574,9 @@ def exe_search_code(args):
                 )
                 mmdoc = mmdoc.replace("``", '"').replace("`", '"')
                 mmdoc = mmdoc.replace(".. warning::", "Warning!")
-                result = highlight(mmdoc, Python3Lexer(), Terminal256Formatter(style=style))
+                result = highlight(
+                    mmdoc, Python3Lexer(), Terminal256Formatter(style=style)
+                )
                 idcomment = result.rfind('"""')
                 print(result[: idcomment + 3], "\x1b[0m\n")
 
@@ -481,7 +632,9 @@ def exe_search_vtk(args):
         try:
             kv = d[vtk_class][lang].items()
         except KeyError as e:
-            print(f"For the combination {vtk_class} and {lang}, this key does not exist: {e}")
+            print(
+                f"For the combination {vtk_class} and {lang}, this key does not exist: {e}"
+            )
             return None, None
         total = len(kv)
         samples = list(kv)
@@ -522,7 +675,9 @@ def exe_locate(args):
     """Locate the fully qualified module path for a vedo class name."""
     target = (args.locate or "").strip()
     if not target:
-        printc(":sad: Please provide a class name, e.g. `vedo --locate Paraboloid`", c="y")
+        printc(
+            ":sad: Please provide a class name, e.g. `vedo --locate Paraboloid`", c="y"
+        )
         return
 
     matches = set()
@@ -537,9 +692,7 @@ def exe_locate(args):
 
     class_names_seen = set()
     class_names_lower = set()
-    skip_prefixes = (
-        "vedo.backends",
-    )
+    skip_prefixes = ("vedo.backends",)
     for module_info in pkgutil.walk_packages(vedo.__path__, prefix="vedo."):
         module_name = module_info.name
         if module_name.startswith(skip_prefixes):
@@ -565,7 +718,9 @@ def exe_locate(args):
 
     # Case-insensitive fallback and friendly hint.
     target_lower = target.lower()
-    fuzzy = sorted(name for name in class_names_seen if target_lower in name.lower())[:20]
+    fuzzy = sorted(name for name in class_names_seen if target_lower in name.lower())[
+        :20
+    ]
     if target_lower in class_names_lower:
         for module_info in pkgutil.walk_packages(vedo.__path__, prefix="vedo."):
             module_name = module_info.name
@@ -683,8 +838,9 @@ def exe_eog(args):
     lev, win = pic.level(), pic.window()
 
     if n > 1:
-
-        plt = vedo.Plotter(N=n, sharecam=True, bg=args.background, bg2=args.background_grad)
+        plt = vedo.Plotter(
+            N=n, sharecam=True, bg=args.background, bg2=args.background_grad
+        )
         plt.add_callback("key press", vfunc)
         for i in range(n):
             p = pics[i].pickable(True)
@@ -699,7 +855,6 @@ def exe_eog(args):
             plt.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
 
     else:
-
         shape = pic.shape
         if shape[0] > 1500:
             shape[1] = shape[1] / shape[0] * 1500
@@ -709,7 +864,9 @@ def exe_eog(args):
             shape[0] = shape[0] / shape[1] * 1200
             shape[1] = 1200
 
-        plt = vedo.Plotter(title=files[0], size=shape, bg=args.background, bg2=args.background_grad)
+        plt = vedo.Plotter(
+            title=files[0], size=shape, bg=args.background, bg2=args.background_grad
+        )
         plt.add_callback("key press", vfunc)
         plt.add_hover_legend(c="k8", bg="k2", alpha=0.4)
         plt.show(pic, mode="image", interactive=False)
@@ -750,7 +907,9 @@ def draw_scene(args):
 
     if nfiles == 1 and args.files[0].endswith(".gif"):  ###can be improved
         frames = vedo.load(args.files[0])
-        vedo.applications.Browser(frames).show(bg=args.background, bg2=args.background_grad)
+        vedo.applications.Browser(frames).show(
+            bg=args.background, bg2=args.background_grad
+        )
         return  ##########################################################
 
     if args.sequence_mode:
@@ -764,7 +923,9 @@ def draw_scene(args):
         if nfiles < 201:
             N = nfiles
         if nfiles > 200:
-            printc(":lightning: Warning: option '-n' allows a maximum of 200 files", c="y")
+            printc(
+                ":lightning: Warning: option '-n' allows a maximum of 200 files", c="y"
+            )
             printc("         you are trying to load ", nfiles, " files.\n", c="y")
             N = 200
         if N > 4:
@@ -801,7 +962,9 @@ def draw_scene(args):
             return
 
         sp = vol.spacing()
-        vol.spacing([sp[0] * args.x_spacing, sp[1] * args.y_spacing, sp[2] * args.z_spacing])
+        vol.spacing(
+            [sp[0] * args.x_spacing, sp[1] * args.y_spacing, sp[2] * args.z_spacing]
+        )
         vol.mode(int(args.mode)).color(args.cmap).jittering(True)
         plt = vedo.applications.RayCastPlotter(vol)
         plt.show(viewup="z", interactive=True).close()
@@ -822,7 +985,9 @@ def draw_scene(args):
         vol = vedo.file_io.load(args.files[0], force=args.reload)
 
         sp = vol.spacing()
-        vol.spacing([sp[0] * args.x_spacing, sp[1] * args.y_spacing, sp[2] * args.z_spacing])
+        vol.spacing(
+            [sp[0] * args.x_spacing, sp[1] * args.y_spacing, sp[2] * args.z_spacing]
+        )
 
         vedo.set_current_plotter(None)  # reset
 
@@ -867,7 +1032,9 @@ def draw_scene(args):
             return
         vol.cmap("bone_r")
         sp = vol.spacing()
-        vol.spacing([sp[0] * args.x_spacing, sp[1] * args.y_spacing, sp[2] * args.z_spacing])
+        vol.spacing(
+            [sp[0] * args.x_spacing, sp[1] * args.y_spacing, sp[2] * args.z_spacing]
+        )
         plt = vedo.set_current_plotter(vedo.applications.Slicer2DPlotter(vol))
         plt.show().close()
         return
@@ -893,9 +1060,9 @@ def draw_scene(args):
             return
 
         sp = vol.spacing()
-        vol.spacing([sp[0] * args.x_spacing,
-                     sp[1] * args.y_spacing,
-                     sp[2] * args.z_spacing])
+        vol.spacing(
+            [sp[0] * args.x_spacing, sp[1] * args.y_spacing, sp[2] * args.z_spacing]
+        )
         if not args.color:
             args.color = "gold"
         plt = vedo.applications.IsosurfaceBrowser(
@@ -916,11 +1083,11 @@ def draw_scene(args):
         ##########################################################
         # loading a full scene or list of objects
         if ".npy" in args.files[0] or ".npz" in args.files[0]:
-            try: # full scene
+            try:  # full scene
                 plt = vedo.file_io.import_window(args.files[0])
                 plt.show(mode=interactor_mode).close()
                 return
-            except KeyError: # list of objects, create Assembly
+            except KeyError:  # list of objects, create Assembly
                 objs = vedo.Assembly(args.files[0])
                 for i, ob in enumerate(objs):
                     if ob:
@@ -995,7 +1162,9 @@ def draw_scene(args):
 
                 except AttributeError:
                     # wildcards in quotes make glob return obj as a list :(
-                    vedo.logger.error("Please do not use wildcards within single or double quotes")
+                    vedo.logger.error(
+                        "Please do not use wildcards within single or double quotes"
+                    )
 
         if args.multirenderer_mode:
             plt.interactor.Start()
@@ -1003,7 +1172,6 @@ def draw_scene(args):
                 plt.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
 
         else:
-
             # scene is empty
             if all(a is None for a in objs):
                 vedo.logger.error("Could not load file(s). Quit.")

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Volume package facade."""
 
 from vedo.lazy_imports import build_attr_map, dir_lazy, getattr_lazy

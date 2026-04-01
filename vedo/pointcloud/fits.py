@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Standalone fitting and pointcloud helper functions."""
 
 from typing_extensions import Self
@@ -26,6 +27,7 @@ __all__ = [
     "pca_ellipsoid",
     "project_point_on_variety",
 ]
+
 
 def merge(*meshs, flag=False) -> vedo.Mesh | vedo.Points | None:
     """
@@ -74,7 +76,7 @@ def merge(*meshs, flag=False) -> vedo.Mesh | vedo.Points | None:
     if has_mesh:
         msh = vedo.Mesh(mpoly)
     else:
-        msh = Points(mpoly) # type: ignore
+        msh = Points(mpoly)  # type: ignore
 
     msh.copy_properties_from(objs[0])
 
@@ -259,8 +261,8 @@ def fit_plane(points: np.ndarray | vedo.Points, signed=False) -> vedo.shapes.Pla
 
 
 def project_point_on_variety(
-        pt, points, degree=3, compute_surface=False, compute_curvature=False
-    ) -> tuple:
+    pt, points, degree=3, compute_surface=False, compute_curvature=False
+) -> tuple:
     """
     Project a point in 3D space onto a polynomial surface defined by a set of points
     around it. The polynomial degree can be adjusted.
@@ -301,7 +303,7 @@ def project_point_on_variety(
         plotter += mesh, vedo.Point(pt), vpoints, res[0], f"Residue: {pt - pt_trans}"
         plotter.show(axes=1).close()
         ```
-    
+
     Check out also the `fit_plane()` function for a simpler case of plane fitting.
     """
 
@@ -326,9 +328,11 @@ def project_point_on_variety(
         return z_pred
 
     def _compute_curvature(coeffs, terms, degree):
-        if compute_curvature==False or degree < 2:
-            return 0, 0 
-        terms = [f"x^{i}y^{j}" for i in range(degree + 1) for j in range(degree + 1 - i)]
+        if compute_curvature == False or degree < 2:
+            return 0, 0
+        terms = [
+            f"x^{i}y^{j}" for i in range(degree + 1) for j in range(degree + 1 - i)
+        ]
         # Print coefficients
         # for term, coeff in zip(terms, coeffs):
         #     print(f"Coefficient for {term}: {coeff}")
@@ -458,7 +462,9 @@ def fit_sphere(coords: np.ndarray | vedo.Points) -> vedo.shapes.Sphere:
     return sph
 
 
-def pca_ellipse(points: np.ndarray | vedo.Points, pvalue=0.673, res=60) -> vedo.shapes.Circle | None:
+def pca_ellipse(
+    points: np.ndarray | vedo.Points, pvalue=0.673, res=60
+) -> vedo.shapes.Circle | None:
     """
     Create the oriented 2D ellipse that contains the fraction `pvalue` of points.
     PCA (Principal Component Analysis) is used to compute the ellipse orientation.
@@ -490,13 +496,13 @@ def pca_ellipse(points: np.ndarray | vedo.Points, pvalue=0.673, res=60) -> vedo.
         return None
 
     P = np.array(coords, dtype=float)[:, (0, 1)]
-    cov = np.cov(P, rowvar=0)      # type: ignore
-    _, s, R = np.linalg.svd(cov)   # singular value decomposition
+    cov = np.cov(P, rowvar=0)  # type: ignore
+    _, s, R = np.linalg.svd(cov)  # singular value decomposition
     p, n = s.size, P.shape[0]
-    fppf = f.ppf(pvalue, p, n - p) # f % point function
+    fppf = f.ppf(pvalue, p, n - p)  # f % point function
     u = np.sqrt(s * fppf / 2) * 2  # semi-axes (largest first)
     ua, ub = u
-    center = utils.make3d(np.mean(P, axis=0)) # centroid of the ellipse
+    center = utils.make3d(np.mean(P, axis=0))  # centroid of the ellipse
 
     t = LinearTransform(R.T * u).translate(center)
     elli = vedo.shapes.Circle(alpha=0.75, res=res)
@@ -519,7 +525,9 @@ def pca_ellipse(points: np.ndarray | vedo.Points, pvalue=0.673, res=60) -> vedo.
     return elli
 
 
-def pca_ellipsoid(points: np.ndarray | vedo.Points, pvalue=0.673, res=24) -> vedo.shapes.Ellipsoid | None:
+def pca_ellipsoid(
+    points: np.ndarray | vedo.Points, pvalue=0.673, res=24
+) -> vedo.shapes.Ellipsoid | None:
     """
     Create the oriented ellipsoid that contains the fraction `pvalue` of points.
     PCA (Principal Component Analysis) is used to compute the ellipsoid orientation.
@@ -554,16 +562,18 @@ def pca_ellipsoid(points: np.ndarray | vedo.Points, pvalue=0.673, res=24) -> ved
         return None
 
     P = np.array(coords, ndmin=2, dtype=float)
-    cov = np.cov(P, rowvar=0)     # type: ignore
+    cov = np.cov(P, rowvar=0)  # type: ignore
     _, s, R = np.linalg.svd(cov)  # singular value decomposition
     p, n = s.size, P.shape[0]
-    fppf = f.ppf(pvalue, p, n-p)*(n-1)*p*(n+1)/n/(n-p)  # f % point function
-    u = np.sqrt(s*fppf)
-    ua, ub, uc = u                # semi-axes (largest first)
-    center = np.mean(P, axis=0)   # centroid of the hyperellipsoid
+    fppf = (
+        f.ppf(pvalue, p, n - p) * (n - 1) * p * (n + 1) / n / (n - p)
+    )  # f % point function
+    u = np.sqrt(s * fppf)
+    ua, ub, uc = u  # semi-axes (largest first)
+    center = np.mean(P, axis=0)  # centroid of the hyperellipsoid
 
     t = LinearTransform(R.T * u).translate(center)
-    elli = vedo.shapes.Ellipsoid((0,0,0), (1,0,0), (0,1,0), (0,0,1), res=res)
+    elli = vedo.shapes.Ellipsoid((0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1), res=res)
     elli.apply_transform(t)
     elli.alpha(0.25)
     elli.properties.LightingOff()

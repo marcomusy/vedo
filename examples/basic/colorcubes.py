@@ -1,4 +1,5 @@
 """Show a cube for each available color name"""
+
 from operator import itemgetter
 from vedo import Cube, Text2D, show, settings
 from vedo.colors import colors
@@ -13,7 +14,7 @@ settings.immediate_rendering = False
 sorted_colors1 = sorted(colors.items(), key=itemgetter(1))
 
 # Create a list of cubes for each color name
-cbs=[]
+cbs = []
 for sc in sorted_colors1:
     # Get the color name
     cname = sc[0]
@@ -27,8 +28,14 @@ for sc in sorted_colors1:
     cbs.append([tname, cb])
 
 # Display the cubes and text objects in a grid
-plt1= show(cbs, N=len(cbs), azimuth=.2, size=(2100,1300),
-           title="matplotlib colors", interactive=False)
+plt1 = show(
+    cbs,
+    N=len(cbs),
+    azimuth=0.2,
+    size=(2100, 1300),
+    title="matplotlib colors",
+    interactive=False,
+)
 plt1.render()
 
 # Sort the colors by name (bootstrap5 colors)
@@ -43,13 +50,19 @@ for sc in sorted_colors2:
     if cname[-1] not in "123456789":
         continue
     # Create a cube for the color
-    cb = Cube().lw(1).lighting('off').color(cname)
+    cb = Cube().lw(1).lighting("off").color(cname)
     # Add the cube to the list
     cbs.append([cname, cb])
 
 # Display the cubes in a grid
-plt2= show(cbs, shape=(11,9), azimuth=0.2, size=(800,1000),
-           title="bootstrap5 colors", new=True)
+plt2 = show(
+    cbs,
+    shape=(11, 9),
+    azimuth=0.2,
+    size=(800, 1000),
+    title="bootstrap5 colors",
+    new=True,
+)
 
 # Close the plots
 plt2.close()

@@ -1,4 +1,4 @@
-"""Export a vedo scene as a 
+"""Export a vedo scene as a
 standalone Three.js webpage."""
 
 from pathlib import Path

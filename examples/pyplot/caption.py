@@ -1,24 +1,25 @@
 """Attach a 2D caption to an object"""
+
 from vedo import Cone, Axes, show
 
-cone = Cone().rotate_x(30).rotate_z(20).c('steelblue')
+cone = Cone().rotate_x(30).rotate_z(20).c("steelblue")
 
-txt  = "Japanese\nこれは青い円錐形です\n"
+txt = "Japanese\nこれは青い円錐形です\n"
 txt += "Chinese\n這是一個藍錐\n"
 txt += "Russian\nЭто синий конус\n"
 txt += "English\nThis is a blue cone"
 
 # Caption anchored to the actor in screen space.
-capt = cone.caption(txt, size=(0.4,0.3), font="LogoType", c='lb')
+capt = cone.caption(txt, size=(0.4, 0.3), font="LogoType", c="lb")
 
 axes = Axes(
     cone,
-    xtitle='マイクロメートル単位のx軸',
-    ytitle='y軸にも長い説明があります',
-    ztitle='Z軸始終來自中國',
-    title_font='LogoType',
+    xtitle="マイクロメートル単位のx軸",
+    ytitle="y軸にも長い説明があります",
+    ztitle="Z軸始終來自中國",
+    title_font="LogoType",
     text_scale=1.5,
-    c='white',
+    c="white",
 )
 
-show(cone, capt, axes, __doc__, viewup='z', bg='k', bg2='bb').close()
+show(cone, capt, axes, __doc__, viewup="z", bg="k", bg2="bb").close()

@@ -1,8 +1,9 @@
 """Extracts cells of a Mesh which satisfy
 the threshold criterion: 37 < scalar < 37.5"""
+
 from vedo import *
 
-man = Mesh(dataurl+"man.vtk")
+man = Mesh(dataurl + "man.vtk")
 
 scals = man.vertices[:, 0] + 37  # pick y coords of vertices
 

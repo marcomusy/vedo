@@ -26,6 +26,7 @@ from vedo.visual import MeshVisual
 from vedo.core.transformations import LinearTransform
 from .unstructured import UnstructuredGrid
 
+
 class StructuredGrid(PointAlgorithms, MeshVisual):
     """
     Build a structured grid.
@@ -94,7 +95,7 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
         self.filename = ""
 
         self.info = {}
-        self.time =  time.time()
+        self.time = time.time()
 
         ###############################
         if inputobj is None:
@@ -121,10 +122,8 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
         elif utils.is_sequence(inputobj):
             self.dataset = vtki.vtkStructuredGrid()
             x, y, z = inputobj
-            xyz = np.vstack((
-                x.flatten(order="F"),
-                y.flatten(order="F"),
-                z.flatten(order="F"))
+            xyz = np.vstack(
+                (x.flatten(order="F"), y.flatten(order="F"), z.flatten(order="F"))
             ).T
             dims = x.shape
             self.dataset.SetDimensions(dims)
@@ -133,10 +132,11 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
             vpoints.SetData(utils.numpy2vtk(xyz))
             self.dataset.SetPoints(vpoints)
 
-
         ###############################
         if not self.dataset:
-            vedo.logger.error(f"StructuredGrid: cannot understand input type {type(inputobj)}")
+            vedo.logger.error(
+                f"StructuredGrid: cannot understand input type {type(inputobj)}"
+            )
             return
 
         self.properties.SetColor(0.352, 0.612, 0.996)  # blue7
@@ -183,17 +183,34 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
         rows.append(("dimensions", str(self.dimensions())))
         rows.append(("center", utils.precision(self.dataset.GetCenter(), 6)))
         rows.append(("bounds", format_bounds(self.bounds(), utils.precision)))
-        rows.append(("memory size", utils.precision(self.dataset.GetActualMemorySize() / 1024, 2) + " MB"))
+        rows.append(
+            (
+                "memory size",
+                utils.precision(self.dataset.GetActualMemorySize() / 1024, 2) + " MB",
+            )
+        )
 
         for key in self.pointdata.keys():
             arr = self.pointdata[key]
             label = active_array_label(self.dataset, "point", key, "pointdata")
-            rows.append((label, f'"{key}" ' + summarize_array(arr, utils.precision, dim_label="ndim")))
+            rows.append(
+                (
+                    label,
+                    f'"{key}" '
+                    + summarize_array(arr, utils.precision, dim_label="ndim"),
+                )
+            )
 
         for key in self.celldata.keys():
             arr = self.celldata[key]
             label = active_array_label(self.dataset, "cell", key, "celldata")
-            rows.append((label, f'"{key}" ' + summarize_array(arr, utils.precision, dim_label="ndim")))
+            rows.append(
+                (
+                    label,
+                    f'"{key}" '
+                    + summarize_array(arr, utils.precision, dim_label="ndim"),
+                )
+            )
 
         for key in self.metadata.keys():
             arr = self.metadata[key]
@@ -216,7 +233,7 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
         help_url = "https://vedo.embl.es/docs/vedo/grids.html#StructuredGrid"
 
         m = self.tomesh().linewidth(1).lighting("off")
-        arr= m.thumbnail(zoom=1, elevation=-30, azimuth=-30)
+        arr = m.thumbnail(zoom=1, elevation=-30, azimuth=-30)
 
         im = Image.fromarray(arr)
         buffered = io.BytesIO()
@@ -235,7 +252,9 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
         help_text = ""
         if self.name:
             help_text += f"<b> {self.name}: &nbsp&nbsp</b>"
-        help_text += '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>"
+        help_text += (
+            '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>"
+        )
         if self.filename:
             dots = ""
             if len(self.filename) > 30:
@@ -246,13 +265,17 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
         if self.dataset.GetPointData().GetScalars():
             if self.dataset.GetPointData().GetScalars().GetName():
                 name = self.dataset.GetPointData().GetScalars().GetName()
-                pdata = "<tr><td><b> point data array </b></td><td>" + name + "</td></tr>"
+                pdata = (
+                    "<tr><td><b> point data array </b></td><td>" + name + "</td></tr>"
+                )
 
         cdata = ""
         if self.dataset.GetCellData().GetScalars():
             if self.dataset.GetCellData().GetScalars().GetName():
                 name = self.dataset.GetCellData().GetScalars().GetName()
-                cdata = "<tr><td><b> cell data array </b></td><td>" + name + "</td></tr>"
+                cdata = (
+                    "<tr><td><b> cell data array </b></td><td>" + name + "</td></tr>"
+                )
 
         pts = self.coordinates
         cm = np.mean(pts, axis=0)
@@ -260,13 +283,23 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
         _all = [
             "<table>",
             "<tr>",
-            "<td>", image, "</td>",
-            "<td style='text-align: center; vertical-align: center;'><br/>", help_text,
+            "<td>",
+            image,
+            "</td>",
+            "<td style='text-align: center; vertical-align: center;'><br/>",
+            help_text,
             "<table>",
-            "<tr><td><b> bounds </b> <br/> (x/y/z) </td><td>" + str(bounds) + "</td></tr>",
-            "<tr><td><b> center of mass </b></td><td>" + utils.precision(cm,3) + "</td></tr>",
+            "<tr><td><b> bounds </b> <br/> (x/y/z) </td><td>"
+            + str(bounds)
+            + "</td></tr>",
+            "<tr><td><b> center of mass </b></td><td>"
+            + utils.precision(cm, 3)
+            + "</td></tr>",
             "<tr><td><b> nr. points&nbsp/&nbspcells </b></td><td>"
-            + str(self.npoints) + "&nbsp/&nbsp" + str(self.ncells) + "</td></tr>",
+            + str(self.npoints)
+            + "&nbsp/&nbsp"
+            + str(self.ncells)
+            + "</td></tr>",
             pdata,
             cdata,
             "</table>",
@@ -279,7 +312,7 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
         try:
             dims = self.dataset.GetDimensions()
         except Exception:
-            dims = [0,0,0]
+            dims = [0, 0, 0]
             self.dataset.GetDimensions(dims)
             return np.array(dims)
         return np.array(dims)
@@ -298,7 +331,9 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
         prop.DeepCopy(self.properties)
         newvol.actor.SetProperty(prop)
         newvol.properties = prop
-        newvol.pipeline = utils.OperationNode("clone", parents=[self], c="#bbd0ff", shape="diamond")
+        newvol.pipeline = utils.OperationNode(
+            "clone", parents=[self], c="#bbd0ff", shape="diamond"
+        )
         return newvol
 
     def find_point(self, x: list) -> int:
@@ -309,7 +344,7 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
         """Given a position `x`, return the id of the closest cell."""
         cell = vtki.vtkHexagonalPrism()
         cellid = vtki.mutable(0)
-        tol2 = 0.001 # vtki.mutable(0)
+        tol2 = 0.001  # vtki.mutable(0)
         subid = vtki.mutable(0)
         pcoords = [0.0, 0.0, 0.0]
         weights = [0.0, 0.0, 0.0]
@@ -335,12 +370,18 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
         Returns an `UnstructuredGrid` object.
         """
         strn = str(normal)
-        if strn   ==  "x": normal = (1, 0, 0)
-        elif strn ==  "y": normal = (0, 1, 0)
-        elif strn ==  "z": normal = (0, 0, 1)
-        elif strn == "-x": normal = (-1, 0, 0)
-        elif strn == "-y": normal = (0, -1, 0)
-        elif strn == "-z": normal = (0, 0, -1)
+        if strn == "x":
+            normal = (1, 0, 0)
+        elif strn == "y":
+            normal = (0, 1, 0)
+        elif strn == "z":
+            normal = (0, 0, 1)
+        elif strn == "-x":
+            normal = (-1, 0, 0)
+        elif strn == "-y":
+            normal = (0, -1, 0)
+        elif strn == "-z":
+            normal = (0, 0, -1)
         plane = vtki.new("Plane")
         plane.SetOrigin(origin)
         plane.SetNormal(normal)
@@ -355,12 +396,16 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
         ug = vedo.UnstructuredGrid(cout)
         if isinstance(self, vedo.UnstructuredGrid):
             self._update(cout)
-            self.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
+            self.pipeline = utils.OperationNode(
+                "cut_with_plane", parents=[self], c="#9e2a2b"
+            )
             return self
         ug.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
         return ug
 
-    def cut_with_mesh(self, mesh: Mesh, invert=False, whole_cells=False, on_boundary=False) -> UnstructuredGrid:
+    def cut_with_mesh(
+        self, mesh: Mesh, invert=False, whole_cells=False, on_boundary=False
+    ) -> UnstructuredGrid:
         """
         Cut a `RectilinearGrid` with a `Mesh`.
 
@@ -441,4 +486,3 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
             c="#4cc9f0:#e9c46a",
         )
         return out
-

@@ -1,30 +1,31 @@
 """Load and render a 3D Volume
 mode=0, composite rendering
 mode=1, maximum-projection rendering"""
+
 from vedo import dataurl, Volume, show
 
 # Build the volumetric processing pipeline and render results.
-vol1 = Volume(dataurl+"vase.vti")
+vol1 = Volume(dataurl + "vase.vti")
 
 # can set colors and transparencies along the scalar range
 # from minimum to maximum value. In this example voxels with
 # the smallest value will be completely transparent (and white)
 # while voxels with highest value of the scalar will get alpha=0.8
 # and color will be=(0,0,1)
-vol1.color(["white", "fuchsia", "dg", (0,0,1)])
-#vol1.color('jet') # a matplotlib colormap name is also accepted
+vol1.color(["white", "fuchsia", "dg", (0, 0, 1)])
+# vol1.color('jet') # a matplotlib colormap name is also accepted
 vol1.alpha([0.0, 0.2, 0.3, 0.8])
 
 # a transparency for the GRADIENT of the scalar can also be set:
 # in this case when the scalar is ~constant the gradient is ~zero
 # and the voxel are made transparent:
 vol1.alpha_gradient([0.0, 0.5, 0.9])
-vol1.add_scalarbar3d('composite shade')
+vol1.add_scalarbar3d("composite shade")
 vol1.scalarbar = vol1.scalarbar.clone2d("center-right", size=0.2)
 
 # mode = 1 is maximum-projection volume rendering
-vol2 = Volume(dataurl+"vase.vti").mode(1)
-vol2.add_scalarbar3d('maximum-projection')
+vol2 = Volume(dataurl + "vase.vti").mode(1)
+vol2.add_scalarbar3d("maximum-projection")
 vol2.scalarbar = vol2.scalarbar.clone2d("center-right", size=0.2)
 
 # show command creates and returns an instance of class Plotter

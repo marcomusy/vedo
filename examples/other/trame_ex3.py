@@ -1,4 +1,5 @@
 """Trame integration example with interactive vedo updates."""
+
 from importlib import import_module
 
 from trame.app import get_server
@@ -34,6 +35,7 @@ plt += [cone, axes]
 server = get_server(client_type=client_type)
 state, ctrl = server.state, server.controller
 
+
 # -----------------------------------------------------------------------------
 # Functions
 # -----------------------------------------------------------------------------
@@ -42,9 +44,11 @@ def update_resolution(resolution, **kwargs):
     cone.color(resolution)
     ctrl.view_update()
 
+
 def reset_resolution():
     cone.color("red5")
     ctrl.view_update()
+
 
 # -----------------------------------------------------------------------------
 # GUI

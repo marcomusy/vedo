@@ -1,4 +1,5 @@
 """A model of an ideal gas with hard-sphere collisions"""
+
 ## Based on gas.py by Bruce Sherwood for a cube as a container
 ## Slightly modified by Andrey Antonov for a torus.
 ## Adapted by M. Musy for vedo
@@ -12,12 +13,13 @@ from vedo.addons import ProgressBarWidget
 Natoms = 400  # change this to have more or fewer atoms
 Nsteps = 200  # nr of steps in the simulation
 Matom = 4e-3 / 6e23  # helium mass
-Ratom = 0.025 
+Ratom = 0.025
 RingThickness = 0.3  # thickness of the toroid
 RingRadius = 1
 k = 1.4e-23  # Boltzmann constant
-T = 300      # room temperature
+T = 300  # room temperature
 dt = 1.5e-5
+
 
 ############################################################
 def reflection(p, pos):
@@ -28,12 +30,14 @@ def reflection(p, pos):
 
 plt = Plotter(title="gas in toroid", interactive=False)
 plt += __doc__
-plt += Torus(r1=RingRadius, r2=RingThickness).c("green",0.1).wireframe(True) 
+plt += Torus(r1=RingRadius, r2=RingThickness).c("green", 0.1).wireframe(True)
 
 poslist = []
 plist, mlist, rlist = [], [], []
 mass = Matom
-pavg = np.sqrt(2.0 * mass * 1.5 * k * T)  # average kinetic energy p**2/(2mass) = (3/2)kT
+pavg = np.sqrt(
+    2.0 * mass * 1.5 * k * T
+)  # average kinetic energy p**2/(2mass) = (3/2)kT
 colors = np.random.rand(Natoms)
 
 for i in range(Natoms):
@@ -47,9 +51,9 @@ for i in range(Natoms):
     py = pavg * np.sin(theta) * np.sin(phi)
     pz = pavg * np.cos(theta)
     poslist.append((x, y, z))
-    plist.append((px, py, pz))    
+    plist.append((px, py, pz))
     mlist.append(mass)
-    rlist.append(np.abs(Ratom + Ratom*np.random.rand() / 2))
+    rlist.append(np.abs(Ratom + Ratom * np.random.rand() / 2))
 
 pos = np.array(poslist)
 poscircle = pos
@@ -94,7 +98,7 @@ for it in range(Nsteps):
             continue  # exactly same velocities
         b = 2 * np.dot(pos[i] - pos[j], vj - vi)
         c = mag(pos[i] - pos[j]) ** 2 - (ri + rj) ** 2
-        d = b ** 2 - 4.0 * a * c
+        d = b**2 - 4.0 * a * c
         if d < 0:
             continue  # something wrong; ignore this rare case
         deltat = (-b + np.sqrt(d)) / (2.0 * a)  # t-deltat is when they made contact
@@ -124,7 +128,7 @@ for it in range(Nsteps):
     outside = np.greater_equal(mag(pos), RingRadius + RingThickness)
 
     pbw.update()  # update progress bar
-    plt.remove("Spheres").add(Spheres(pos, r=radius, c='b6'))
+    plt.remove("Spheres").add(Spheres(pos, r=radius, c="b6"))
     plt.render().reset_camera().azimuth(0.5)
 
 plt.interactive().close()

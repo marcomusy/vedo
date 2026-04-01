@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Axes construction helpers extracted from vedo.addons."""
 
 import os
@@ -23,7 +24,7 @@ from vedo.volume import Volume
 from vedo.visual import Actor2D
 from vedo.addons.measure import compute_visible_bounds, Ruler3D, RulerAxes
 from vedo.addons.cutters import BoxCutter, PlaneCutter, SphereCutter
-from vedo.addons.icon import Icon
+from vedo.addons.ui import Icon
 
 
 def Axes(
@@ -207,17 +208,23 @@ def Axes(
         except AttributeError:
             try:
                 bb = obj.GetBounds()
-                if xrange is None: xrange = (bb[0], bb[1])
-                if yrange is None: yrange = (bb[2], bb[3])
-                if zrange is None: zrange = (bb[4], bb[5])
-                obj = None # dont need it anymore
+                if xrange is None:
+                    xrange = (bb[0], bb[1])
+                if yrange is None:
+                    yrange = (bb[2], bb[3])
+                if zrange is None:
+                    zrange = (bb[4], bb[5])
+                obj = None  # dont need it anymore
             except AttributeError:
                 pass
         if utils.is_sequence(obj) and len(obj) == 6 and utils.is_number(obj[0]):
             # passing a list of numeric bounds
-            if xrange is None: xrange = (obj[0], obj[1])
-            if yrange is None: yrange = (obj[2], obj[3])
-            if zrange is None: zrange = (obj[4], obj[5])
+            if xrange is None:
+                xrange = (obj[0], obj[1])
+            if yrange is None:
+                yrange = (obj[2], obj[3])
+            if zrange is None:
+                zrange = (obj[4], obj[5])
 
     if use_global:
         vbb, drange, min_bns, max_bns = compute_visible_bounds()
@@ -318,7 +325,9 @@ def Axes(
             rx, ry, rz = np.ceil(drange / drangemax * number_of_divisions).astype(int)
 
     if xtitle:
-        xticks_float, xticks_str = utils.make_ticks(x0, x1, rx, x_values_and_labels, digits)
+        xticks_float, xticks_str = utils.make_ticks(
+            x0, x1, rx, x_values_and_labels, digits
+        )
         xticks_float = xticks_float * dx
         if x_inverted:
             xticks_float = np.flip(-(xticks_float - xticks_float[-1]))
@@ -326,7 +335,9 @@ def Axes(
             xticks_str[-1] = ""
             xhighlight_zero = False
     if ytitle:
-        yticks_float, yticks_str = utils.make_ticks(y0, y1, ry, y_values_and_labels, digits)
+        yticks_float, yticks_str = utils.make_ticks(
+            y0, y1, ry, y_values_and_labels, digits
+        )
         yticks_float = yticks_float * dy
         if y_inverted:
             yticks_float = np.flip(-(yticks_float - yticks_float[-1]))
@@ -334,7 +345,9 @@ def Axes(
             yticks_str[-1] = ""
             yhighlight_zero = False
     if ztitle:
-        zticks_float, zticks_str = utils.make_ticks(z0, z1, rz, z_values_and_labels, digits)
+        zticks_float, zticks_str = utils.make_ticks(
+            z0, z1, rz, z_values_and_labels, digits
+        )
         zticks_float = zticks_float * dz
         if z_inverted:
             zticks_float = np.flip(-(zticks_float - zticks_float[-1]))
@@ -345,19 +358,25 @@ def Axes(
     ################################################ axes lines
     lines = []
     if xtitle:
-        axlinex = shapes.Line([0,0,0], [dx,0,0], c=xline_color, lw=axes_linewidth)
-        axlinex.shift([0, zxshift*dy + xshift_along_y*dy, xyshift*dz + xshift_along_z*dz])
-        axlinex.name = 'xAxis'
+        axlinex = shapes.Line([0, 0, 0], [dx, 0, 0], c=xline_color, lw=axes_linewidth)
+        axlinex.shift(
+            [0, zxshift * dy + xshift_along_y * dy, xyshift * dz + xshift_along_z * dz]
+        )
+        axlinex.name = "xAxis"
         lines.append(axlinex)
     if ytitle:
-        axliney = shapes.Line([0,0,0], [0,dy,0], c=yline_color, lw=axes_linewidth)
-        axliney.shift([yzshift*dx + yshift_along_x*dx, 0, xyshift*dz + yshift_along_z*dz])
-        axliney.name = 'yAxis'
+        axliney = shapes.Line([0, 0, 0], [0, dy, 0], c=yline_color, lw=axes_linewidth)
+        axliney.shift(
+            [yzshift * dx + yshift_along_x * dx, 0, xyshift * dz + yshift_along_z * dz]
+        )
+        axliney.name = "yAxis"
         lines.append(axliney)
     if ztitle:
-        axlinez = shapes.Line([0,0,0], [0,0,dz], c=zline_color, lw=axes_linewidth)
-        axlinez.shift([yzshift*dx + zshift_along_x*dx, zxshift*dy + zshift_along_y*dy, 0])
-        axlinez.name = 'zAxis'
+        axlinez = shapes.Line([0, 0, 0], [0, 0, dz], c=zline_color, lw=axes_linewidth)
+        axlinez.shift(
+            [yzshift * dx + zshift_along_x * dx, zxshift * dy + zshift_along_y * dy, 0]
+        )
+        axlinez.name = "zAxis"
         lines.append(axlinez)
 
     ################################################ grid planes
@@ -368,15 +387,19 @@ def Axes(
         if not xygrid_transparent:
             gxy = shapes.Grid(s=(xticks_float, yticks_float))
             gxy.alpha(xyalpha).c(xyplane_color).lw(0)
-            if xyshift: gxy.shift([0,0,xyshift*dz])
-            elif tol:   gxy.shift([0,0,-tol*gscale])
+            if xyshift:
+                gxy.shift([0, 0, xyshift * dz])
+            elif tol:
+                gxy.shift([0, 0, -tol * gscale])
             gxy.name = "xyGrid"
             grids.append(gxy)
         if grid_linewidth:
             gxy_lines = shapes.Grid(s=(xticks_float, yticks_float))
             gxy_lines.c(xyplane_color).lw(grid_linewidth).alpha(xyalpha)
-            if xyshift: gxy_lines.shift([0,0,xyshift*dz])
-            elif tol:   gxy_lines.shift([0,0,-tol*gscale])
+            if xyshift:
+                gxy_lines.shift([0, 0, xyshift * dz])
+            elif tol:
+                gxy_lines.shift([0, 0, -tol * gscale])
             gxy_lines.name = "xyGridLines"
             grids.append(gxy_lines)
 
@@ -384,15 +407,19 @@ def Axes(
         if not yzgrid_transparent:
             gyz = shapes.Grid(s=(zticks_float, yticks_float))
             gyz.alpha(yzalpha).c(yzplane_color).lw(0).rotate_y(-90)
-            if yzshift: gyz.shift([yzshift*dx,0,0])
-            elif tol:   gyz.shift([-tol*gscale,0,0])
+            if yzshift:
+                gyz.shift([yzshift * dx, 0, 0])
+            elif tol:
+                gyz.shift([-tol * gscale, 0, 0])
             gyz.name = "yzGrid"
             grids.append(gyz)
         if grid_linewidth:
             gyz_lines = shapes.Grid(s=(zticks_float, yticks_float))
             gyz_lines.c(yzplane_color).lw(grid_linewidth).alpha(yzalpha).rotate_y(-90)
-            if yzshift: gyz_lines.shift([yzshift*dx,0,0])
-            elif tol:   gyz_lines.shift([-tol*gscale,0,0])
+            if yzshift:
+                gyz_lines.shift([yzshift * dx, 0, 0])
+            elif tol:
+                gyz_lines.shift([-tol * gscale, 0, 0])
             gyz_lines.name = "yzGridLines"
             grids.append(gyz_lines)
 
@@ -400,15 +427,19 @@ def Axes(
         if not zxgrid_transparent:
             gzx = shapes.Grid(s=(xticks_float, zticks_float))
             gzx.alpha(zxalpha).c(zxplane_color).lw(0).rotate_x(90)
-            if zxshift: gzx.shift([0,zxshift*dy,0])
-            elif tol:   gzx.shift([0,-tol*gscale,0])
+            if zxshift:
+                gzx.shift([0, zxshift * dy, 0])
+            elif tol:
+                gzx.shift([0, -tol * gscale, 0])
             gzx.name = "zxGrid"
             grids.append(gzx)
         if grid_linewidth:
             gzx_lines = shapes.Grid(s=(xticks_float, zticks_float))
             gzx_lines.c(zxplane_color).lw(grid_linewidth).alpha(zxalpha).rotate_x(90)
-            if zxshift: gzx_lines.shift([0,zxshift*dy,0])
-            elif tol:   gzx_lines.shift([0,-tol*gscale,0])
+            if zxshift:
+                gzx_lines.shift([0, zxshift * dy, 0])
+            elif tol:
+                gzx_lines.shift([0, -tol * gscale, 0])
             gzx_lines.name = "zxGridLines"
             grids.append(gzx_lines)
 
@@ -545,7 +576,6 @@ def Axes(
     cones = []
 
     if tip_size:
-
         if xtitle:
             if x_inverted:
                 cx = shapes.Cone(
@@ -651,7 +681,13 @@ def Axes(
                 xmajticks = merge(xticks).c(xlabel_color)
                 T = LinearTransform()
                 T.rotate_x(xaxis_rotation)
-                T.translate([0, zxshift*dy + xshift_along_y*dy, xyshift*dz + xshift_along_z*dz])
+                T.translate(
+                    [
+                        0,
+                        zxshift * dy + xshift_along_y * dy,
+                        xyshift * dz + xshift_along_z * dz,
+                    ]
+                )
                 xmajticks.apply_transform(T)
                 xmajticks.name = "xMajorTicks"
                 majorticks.append(xmajticks)
@@ -666,7 +702,13 @@ def Axes(
                 ymajticks = merge(yticks).c(ylabel_color)
                 T = LinearTransform()
                 T.rotate_y(yaxis_rotation)
-                T.translate([yzshift*dx + yshift_along_x*dx, 0, xyshift*dz + yshift_along_z*dz])
+                T.translate(
+                    [
+                        yzshift * dx + yshift_along_x * dx,
+                        0,
+                        xyshift * dz + yshift_along_z * dz,
+                    ]
+                )
                 ymajticks.apply_transform(T)
                 ymajticks.name = "yMajorTicks"
                 majorticks.append(ymajticks)
@@ -681,7 +723,13 @@ def Axes(
                 zmajticks = merge(zticks).c(zlabel_color)
                 T = LinearTransform()
                 T.rotate_y(-90).rotate_z(-45 + zaxis_rotation)
-                T.translate([yzshift*dx + zshift_along_x*dx, zxshift*dy + zshift_along_y*dy, 0])
+                T.translate(
+                    [
+                        yzshift * dx + zshift_along_x * dx,
+                        zxshift * dy + zshift_along_y * dy,
+                        0,
+                    ]
+                )
                 zmajticks.apply_transform(T)
                 zmajticks.name = "zMajorTicks"
                 majorticks.append(zmajticks)
@@ -727,7 +775,13 @@ def Axes(
                 xminticks = merge(ticks).c(xlabel_color)
                 T = LinearTransform()
                 T.rotate_x(xaxis_rotation)
-                T.translate([0, zxshift*dy + xshift_along_y*dy, xyshift*dz + xshift_along_z*dz])
+                T.translate(
+                    [
+                        0,
+                        zxshift * dy + xshift_along_y * dy,
+                        xyshift * dz + xshift_along_z * dz,
+                    ]
+                )
                 xminticks.apply_transform(T)
                 xminticks.name = "xMinorTicks"
                 minorticks.append(xminticks)
@@ -772,7 +826,13 @@ def Axes(
                 yminticks = merge(ticks).c(ylabel_color)
                 T = LinearTransform()
                 T.rotate_y(yaxis_rotation)
-                T.translate([yzshift*dx + yshift_along_x*dx, 0, xyshift*dz + yshift_along_z*dz])
+                T.translate(
+                    [
+                        yzshift * dx + yshift_along_x * dx,
+                        0,
+                        xyshift * dz + yshift_along_z * dz,
+                    ]
+                )
                 yminticks.apply_transform(T)
                 yminticks.name = "yMinorTicks"
                 minorticks.append(yminticks)
@@ -817,7 +877,13 @@ def Axes(
                 zminticks = merge(ticks).c(zlabel_color)
                 T = LinearTransform()
                 T.rotate_y(-90).rotate_z(-45 + zaxis_rotation)
-                T.translate([yzshift*dx + zshift_along_x*dx, zxshift*dy + zshift_along_y*dy, 0])
+                T.translate(
+                    [
+                        yzshift * dx + zshift_along_x * dx,
+                        zxshift * dy + zshift_along_y * dy,
+                        0,
+                    ]
+                )
                 zminticks.apply_transform(T)
                 zminticks.name = "zMinorTicks"
                 minorticks.append(zminticks)
@@ -827,7 +893,6 @@ def Axes(
     xlab, ylab, zlab = None, None, None
 
     if xlabel_size and xtitle:
-
         xRot, yRot, zRot = 0, 0, 0
         if utils.is_sequence(xlabel_rotation):  # unpck 3 rotations
             zRot, xRot, yRot = xlabel_rotation
@@ -838,14 +903,22 @@ def Axes(
 
         jus = "center-top"
         if zRot:
-            if zRot >  24: jus = "top-right"
-            if zRot >  67: jus = "center-right"
-            if zRot > 112: jus = "right-bottom"
-            if zRot > 157: jus = "center-bottom"
-            if zRot > 202: jus = "bottom-left"
-            if zRot > 247: jus = "center-left"
-            if zRot > 292: jus = "top-left"
-            if zRot > 337: jus = "top-center"
+            if zRot > 24:
+                jus = "top-right"
+            if zRot > 67:
+                jus = "center-right"
+            if zRot > 112:
+                jus = "right-bottom"
+            if zRot > 157:
+                jus = "center-bottom"
+            if zRot > 202:
+                jus = "bottom-left"
+            if zRot > 247:
+                jus = "center-left"
+            if zRot > 292:
+                jus = "top-left"
+            if zRot > 337:
+                jus = "top-center"
         if xlabel_justify is not None:
             jus = xlabel_justify
 
@@ -869,7 +942,13 @@ def Axes(
             T = LinearTransform()
             T.rotate_x(xaxis_rotation).rotate_y(yRot).rotate_x(xRot).rotate_z(zRot)
             T.translate(v + offs)
-            T.translate([0, zxshift*dy + xshift_along_y*dy, xyshift*dz + xshift_along_z*dz])
+            T.translate(
+                [
+                    0,
+                    zxshift * dy + xshift_along_y * dy,
+                    xyshift * dz + xshift_along_z * dz,
+                ]
+            )
             xlab.apply_transform(T)
 
             xlab.use_bounds(x_use_bounds)
@@ -882,7 +961,6 @@ def Axes(
             labels.append(xlab)
 
     if ylabel_size and ytitle:
-
         xRot, yRot, zRot = 0, 0, 0
         if utils.is_sequence(ylabel_rotation):  # unpck 3 rotations
             zRot, yRot, xRot = ylabel_rotation
@@ -893,14 +971,22 @@ def Axes(
 
         jus = "center-right"
         if zRot:
-            if zRot >  24: jus = "bottom-right"
-            if zRot >  67: jus = "center-bottom"
-            if zRot > 112: jus = "left-bottom"
-            if zRot > 157: jus = "center-left"
-            if zRot > 202: jus = "top-left"
-            if zRot > 247: jus = "center-top"
-            if zRot > 292: jus = "top-right"
-            if zRot > 337: jus = "right-center"
+            if zRot > 24:
+                jus = "bottom-right"
+            if zRot > 67:
+                jus = "center-bottom"
+            if zRot > 112:
+                jus = "left-bottom"
+            if zRot > 157:
+                jus = "center-left"
+            if zRot > 202:
+                jus = "top-left"
+            if zRot > 247:
+                jus = "center-top"
+            if zRot > 292:
+                jus = "top-right"
+            if zRot > 337:
+                jus = "right-center"
         if ylabel_justify is not None:
             jus = ylabel_justify
 
@@ -922,7 +1008,13 @@ def Axes(
             T = LinearTransform()
             T.rotate_y(yaxis_rotation).rotate_x(xRot).rotate_y(yRot).rotate_z(zRot)
             T.translate(v + offs)
-            T.translate([yzshift*dx + yshift_along_x*dx, 0, xyshift*dz + yshift_along_z*dz])
+            T.translate(
+                [
+                    yzshift * dx + yshift_along_x * dx,
+                    0,
+                    xyshift * dz + yshift_along_z * dz,
+                ]
+            )
             ylab.apply_transform(T)
 
             ylab.use_bounds(y_use_bounds)
@@ -935,24 +1027,32 @@ def Axes(
             labels.append(ylab)
 
     if zlabel_size and ztitle:
-
         xRot, yRot, zRot = 0, 0, 0
         if utils.is_sequence(zlabel_rotation):  # unpck 3 rotations
             xRot, yRot, zRot = zlabel_rotation
         else:
             xRot = zlabel_rotation
-        if xRot < 0: xRot += 360 # deal with negative angles
+        if xRot < 0:
+            xRot += 360  # deal with negative angles
 
         jus = "center-right"
         if xRot:
-            if xRot >  24: jus = "bottom-right"
-            if xRot >  67: jus = "center-bottom"
-            if xRot > 112: jus = "left-bottom"
-            if xRot > 157: jus = "center-left"
-            if xRot > 202: jus = "top-left"
-            if xRot > 247: jus = "center-top"
-            if xRot > 292: jus = "top-right"
-            if xRot > 337: jus = "right-center"
+            if xRot > 24:
+                jus = "bottom-right"
+            if xRot > 67:
+                jus = "center-bottom"
+            if xRot > 112:
+                jus = "left-bottom"
+            if xRot > 157:
+                jus = "center-left"
+            if xRot > 202:
+                jus = "top-left"
+            if xRot > 247:
+                jus = "center-top"
+            if xRot > 292:
+                jus = "top-right"
+            if xRot > 337:
+                jus = "right-center"
         if zlabel_justify is not None:
             jus = zlabel_justify
 
@@ -964,7 +1064,9 @@ def Axes(
                 xoffs, yoffs, zoffs = zlabel_offset
             else:
                 xoffs, yoffs, zoffs = zlabel_offset, zlabel_offset, 0
-            zlab = shapes.Text3D(t, s=zlabel_size*text_scale*gscale, font=label_font, justify=jus)
+            zlab = shapes.Text3D(
+                t, s=zlabel_size * text_scale * gscale, font=label_font, justify=jus
+            )
             tb = zlab.ybounds()  # must be ybounds: height of char
 
             v = (0, 0, zticks_float[i])
@@ -972,9 +1074,17 @@ def Axes(
             angle = np.arctan2(dy, dx) * 57.3
 
             T = LinearTransform()
-            T.rotate_x(90 + zRot).rotate_y(-xRot).rotate_z(angle + yRot + zaxis_rotation)
+            T.rotate_x(90 + zRot).rotate_y(-xRot).rotate_z(
+                angle + yRot + zaxis_rotation
+            )
             T.translate(v + offs)
-            T.translate([yzshift*dx + zshift_along_x*dx, zxshift*dy + zshift_along_y*dy, 0])
+            T.translate(
+                [
+                    yzshift * dx + zshift_along_x * dx,
+                    zxshift * dy + zshift_along_y * dy,
+                    0,
+                ]
+            )
             zlab.apply_transform(T)
 
             zlab.use_bounds(z_use_bounds)
@@ -1009,12 +1119,18 @@ def Axes(
             # find best justfication for given rotation(s)
             jus = "right-top"
             if zRot:
-                if zRot >  24: jus = "center-right"
-                if zRot >  67: jus = "right-bottom"
-                if zRot > 157: jus = "bottom-left"
-                if zRot > 202: jus = "center-left"
-                if zRot > 247: jus = "top-left"
-                if zRot > 337: jus = "top-right"
+                if zRot > 24:
+                    jus = "center-right"
+                if zRot > 67:
+                    jus = "right-bottom"
+                if zRot > 157:
+                    jus = "bottom-left"
+                if zRot > 202:
+                    jus = "center-left"
+                if zRot > 247:
+                    jus = "top-left"
+                if zRot > 337:
+                    jus = "top-right"
 
         xt = shapes.Text3D(
             xtitle,
@@ -1037,9 +1153,11 @@ def Axes(
         T = LinearTransform()
         T.rotate_x(xRot).rotate_y(yRot).rotate_z(zRot)
         T.set_position(
-            [(xoffs + xtitle_position) * dx,
-            -(yoffs + xtick_length / 2) * dy - shift,
-            zoffs * dz]
+            [
+                (xoffs + xtitle_position) * dx,
+                -(yoffs + xtick_length / 2) * dy - shift,
+                zoffs * dz,
+            ]
         )
         T.rotate_x(xaxis_rotation)
         T.translate([0, xshift_along_y * dy, xyshift * dz + xshift_along_z * dz])
@@ -1075,12 +1193,18 @@ def Axes(
         else:
             jus = "center-right"
             if zRot:
-                if zRot >  24: jus = "bottom-right"
-                if zRot > 112: jus = "left-bottom"
-                if zRot > 157: jus = "center-left"
-                if zRot > 202: jus = "top-left"
-                if zRot > 292: jus = "top-right"
-                if zRot > 337: jus = "right-center"
+                if zRot > 24:
+                    jus = "bottom-right"
+                if zRot > 112:
+                    jus = "left-bottom"
+                if zRot > 157:
+                    jus = "center-left"
+                if zRot > 202:
+                    jus = "top-left"
+                if zRot > 292:
+                    jus = "top-right"
+                if zRot > 337:
+                    jus = "right-center"
 
         yt = shapes.Text3D(
             ytitle,
@@ -1103,9 +1227,11 @@ def Axes(
         T = LinearTransform()
         T.rotate_x(xRot).rotate_y(yRot).rotate_z(zRot)
         T.set_position(
-            [-(xoffs + ytick_length / 2) * dx - shift,
-            (yoffs + ytitle_position) * dy,
-            zoffs * dz]
+            [
+                -(xoffs + ytick_length / 2) * dx - shift,
+                (yoffs + ytitle_position) * dy,
+                zoffs * dz,
+            ]
         )
         T.rotate_y(yaxis_rotation)
         T.translate([yshift_along_x * dx, 0, xyshift * dz + yshift_along_z * dz])
@@ -1136,12 +1262,18 @@ def Axes(
         else:
             jus = "center-right"
             if xRot:
-                if xRot >  24: jus = "bottom-right"
-                if xRot > 112: jus = "left-bottom"
-                if xRot > 157: jus = "center-left"
-                if xRot > 202: jus = "top-left"
-                if xRot > 292: jus = "top-right"
-                if xRot > 337: jus = "right-center"
+                if xRot > 24:
+                    jus = "bottom-right"
+                if xRot > 112:
+                    jus = "left-bottom"
+                if xRot > 157:
+                    jus = "center-left"
+                if xRot > 202:
+                    jus = "top-left"
+                if xRot > 292:
+                    jus = "top-right"
+                if xRot > 337:
+                    jus = "right-center"
 
         zt = shapes.Text3D(
             ztitle,
@@ -1165,10 +1297,12 @@ def Axes(
 
         T = LinearTransform()
         T.rotate_x(90 + zRot).rotate_y(-xRot).rotate_z(angle + yRot)
-        T.set_position([
-            -(ztitle_offset + ztick_length / 5) * dx - shift,
-            -(ztitle_offset + ztick_length / 5) * dy - shift,
-            ztitle_position * dz]
+        T.set_position(
+            [
+                -(ztitle_offset + ztick_length / 5) * dx - shift,
+                -(ztitle_offset + ztick_length / 5) * dy - shift,
+                ztitle_position * dz,
+            ]
         )
         T.rotate_z(zaxis_rotation)
         T.translate([zshift_along_x * dx, zxshift * dy + zshift_along_y * dy, 0])
@@ -1199,8 +1333,12 @@ def Axes(
             htitle_backface_color = 1 - np.array(get_color(htitle_color))
             htit.backcolor(htitle_backface_color)
         htit.rotate_x(htitle_rotation)
-        wpos = [htitle_offset[0]*dx, (1 + htitle_offset[1])*dy, htitle_offset[2]*dz]
-        htit.shift(np.array(wpos) + [0, 0, xyshift*dz])
+        wpos = [
+            htitle_offset[0] * dx,
+            (1 + htitle_offset[1]) * dy,
+            htitle_offset[2] * dz,
+        ]
+        htit.shift(np.array(wpos) + [0, 0, xyshift * dz])
         htit.name = "htitle"
         titles.append(htit)
 
@@ -1287,7 +1425,6 @@ def add_global_axes(axtype=None, c=None, bounds=()) -> None:
     ############################################################
     # custom grid walls
     if plt.axes == 1 or plt.axes is True or isinstance(plt.axes, dict):
-
         if len(bounds) == 6:
             bnds = bounds
             xrange = (bnds[0], bnds[1])
@@ -1344,7 +1481,9 @@ def add_global_axes(axtype=None, c=None, bounds=()) -> None:
             acts += [zero]
 
         if dx > aves / 100:
-            xl = shapes.Cylinder([[x0, 0, 0], [x1, 0, 0]], r=aves / 250 * s, c=xcol, alpha=alpha)
+            xl = shapes.Cylinder(
+                [[x0, 0, 0], [x1, 0, 0]], r=aves / 250 * s, c=xcol, alpha=alpha
+            )
             xc = shapes.Cone(
                 pos=[x1, 0, 0],
                 c=xcol,
@@ -1361,7 +1500,9 @@ def add_global_axes(axtype=None, c=None, bounds=()) -> None:
             acts += [xl, xc, xt]
 
         if dy > aves / 100:
-            yl = shapes.Cylinder([[0, y0, 0], [0, y1, 0]], r=aves / 250 * s, c=ycol, alpha=alpha)
+            yl = shapes.Cylinder(
+                [[0, y0, 0], [0, y1, 0]], r=aves / 250 * s, c=ycol, alpha=alpha
+            )
             yc = shapes.Cone(
                 pos=[0, y1, 0],
                 c=ycol,
@@ -1380,7 +1521,9 @@ def add_global_axes(axtype=None, c=None, bounds=()) -> None:
             acts += [yl, yc, yt]
 
         if dz > aves / 100:
-            zl = shapes.Cylinder([[0, 0, z0], [0, 0, z1]], r=aves / 250 * s, c=zcol, alpha=alpha)
+            zl = shapes.Cylinder(
+                [[0, 0, z0], [0, 0, z1]], r=aves / 250 * s, c=zcol, alpha=alpha
+            )
             zc = shapes.Cone(
                 pos=[0, 0, z1],
                 c=zcol,
@@ -1573,11 +1716,11 @@ def add_global_axes(axtype=None, c=None, bounds=()) -> None:
         x0 = (vbb[0] + vbb[1]) / 2, (vbb[3] + vbb[2]) / 2, (vbb[5] + vbb[4]) / 2
         rx, ry, rz = (vbb[1] - vbb[0]) / 2, (vbb[3] - vbb[2]) / 2, (vbb[5] - vbb[4]) / 2
         # compute diagonal length of the bounding box
-        rm = np.sqrt(rx ** 2 + ry ** 2 + rz ** 2)
+        rm = np.sqrt(rx**2 + ry**2 + rz**2)
         d = 0.005 * rm
-        xc = shapes.Disc(x0, r1=rm, r2=rm+d, c="lr", res=(1, 120))
-        yc = shapes.Disc(x0, r1=rm, r2=rm+d, c="lg", res=(1, 120)).rotate_x(90)
-        zc = shapes.Disc(x0, r1=rm, r2=rm+d, c="lb", res=(1, 120)).rotate_y(90)
+        xc = shapes.Disc(x0, r1=rm, r2=rm + d, c="lr", res=(1, 120))
+        yc = shapes.Disc(x0, r1=rm, r2=rm + d, c="lg", res=(1, 120)).rotate_x(90)
+        zc = shapes.Disc(x0, r1=rm, r2=rm + d, c="lb", res=(1, 120)).rotate_y(90)
         xc.pickable(0).lighting("off")
         yc.pickable(0).lighting("off")
         zc.pickable(0).lighting("off")
@@ -1605,7 +1748,7 @@ def add_global_axes(axtype=None, c=None, bounds=()) -> None:
         polaxes.SetPole(0, 0, vbb[4])
         rd = max(abs(vbb[0]), abs(vbb[2]), abs(vbb[1]), abs(vbb[3]))
         polaxes.SetMaximumRadius(rd)
-        try: # fails in vtk 9.5
+        try:  # fails in vtk 9.5
             polaxes.AutoSubdividePolarAxisOff()
             polaxes.SetNumberOfPolarAxisTicks(10)
             polaxes.SetNumberOfPolarAxisTicks(5)

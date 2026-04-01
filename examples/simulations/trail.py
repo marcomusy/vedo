@@ -1,11 +1,12 @@
 """Add a trailing line to a moving object"""
+
 from vedo import Plotter, sin, Sphere, Point
 
 
 s = Sphere().c("green").bc("tomato")
 s.cut_with_plane([-0.8, 0, 0])  # cut left part of sphere
 
-p = Point([-2,0,0]).ps(12).color("black")
+p = Point([-2, 0, 0]).ps(12).color("black")
 
 # Add a finite-length trail to visualize recent trajectory.
 p.add_trail(lw=3, n=50)
@@ -14,7 +15,7 @@ plt = Plotter(axes=6, interactive=False)
 plt.show(s, p, __doc__)
 
 for i in range(150):
-    p.pos(-2+i/100.0, sin(i/5.0)/15, 0).update_trail()
+    p.pos(-2 + i / 100.0, sin(i / 5.0) / 15, 0).update_trail()
     plt.azimuth(-0.2)
     plt.render()
 

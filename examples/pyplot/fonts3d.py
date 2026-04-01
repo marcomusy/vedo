@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Show available local/remote fonts in 2D and 3D."""
+
 import os
 from vedo import printc, Text2D, Text3D, show, Plotter
 from vedo import fonts, fonts_path, settings
@@ -8,7 +9,10 @@ import numpy as np
 
 ################################################################################## 2D
 inred = Text2D(
-    "°monospaced fonts are marked in red", c="r5", pos="bottom-center", font="VictorMono"
+    "°monospaced fonts are marked in red",
+    c="r5",
+    pos="bottom-center",
+    font="VictorMono",
 )
 acts2d = [inred]
 
@@ -17,7 +21,9 @@ for i, f in enumerate(fonts):
     bg = None
     if f in ["Calco", "Glasgo", "SmartCouric", "VictorMono"]:
         bg = "red5"
-    t = Text2D(f"{f}: {txt}", pos=(0.015, 1 - (i + 3) * 0.06), font=f, s=1.3, c="k", bg=bg)
+    t = Text2D(
+        f"{f}: {txt}", pos=(0.015, 1 - (i + 3) * 0.06), font=f, s=1.3, c="k", bg=bg
+    )
     acts2d.append(t)
 
 acts2d.append(Text2D("List of built-in fonts", pos="top-center", bg="k", s=1.3))

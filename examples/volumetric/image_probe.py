@@ -1,32 +1,37 @@
 """Probe image intensities along a set of radii"""
+
 from vedo import Image, dataurl, Circle, Lines, show
 from vedo.pyplot import plot
 import numpy as np
 
 # Build the volumetric processing pipeline and render results.
-img = Image(dataurl+'images/spheroid.jpg')
-cpt = [580,600,0]
+img = Image(dataurl + "images/spheroid.jpg")
+cpt = [580, 600, 0]
 circle = Circle(cpt, r=500, res=36).wireframe()
 
-pts = circle.points                   # 3d coords of the points of the circle
-centers = np.zeros_like(pts) + cpt    # create the same amount of center coords
-lines = Lines(centers, pts, res=50)   # create Lines with 50 pts of resolution each
+pts = circle.points  # 3d coords of the points of the circle
+centers = np.zeros_like(pts) + cpt  # create the same amount of center coords
+lines = Lines(centers, pts, res=50)  # create Lines with 50 pts of resolution each
 
-lines.interpolate_data_from(img, n=3) # interpolate all msh data onto the lines
-print(lines.pointdata)                # print all available arrays
-rgb = lines.pointdata['JPEGImage']    # extract the rgb intensities
-intensities = np.sum(rgb, axis=1)     # sum the rgb values into one single intensity
+lines.interpolate_data_from(img, n=3)  # interpolate all msh data onto the lines
+print(lines.pointdata)  # print all available arrays
+rgb = lines.pointdata["JPEGImage"]  # extract the rgb intensities
+intensities = np.sum(rgb, axis=1)  # sum the rgb values into one single intensity
 intensities_ray = np.split(intensities, 36)  # split array so we can index any radius
 mean_intensity = np.mean(intensities_ray, axis=0)  # compute the average intensity
 
 # add some optional plotting here:
 fig = plot(
     mean_intensity,
-    lc='black', lw=5, spline=True,
-    xtitle='radial distance', ytitle='intensity', aspect=16/9,
+    lc="black",
+    lw=5,
+    spline=True,
+    xtitle="radial distance",
+    ytitle="intensity",
+    aspect=16 / 9,
 )
-for i in range(0,36, 3):
+for i in range(0, 36, 3):
     fig += plot(intensities_ray[i], lc=i, lw=1, like=fig)
-fig.scale(21).shift(60,-800)          # scale up and move plot below the image
+fig.scale(21).shift(60, -800)  # scale up and move plot below the image
 
-show(img, circle, lines, fig, __doc__, size=(625,1000), zoom=1.5)
+show(img, circle, lines, fig, __doc__, size=(625, 1000), zoom=1.5)

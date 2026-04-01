@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Animation and timeline helper applications."""
 
 import os
@@ -17,6 +18,7 @@ from vedo.pointcloud import fit_plane, Points
 from vedo.shapes import Line, Ribbon, Spline, Text2D
 from vedo.pyplot import CornerHistogram, histogram
 from vedo.addons import SliderWidget
+
 
 class Animation(Plotter):
     """
@@ -260,12 +262,17 @@ class Animation(Plotter):
         if self.bookingMode:
             acts, t, duration, rng = self._parse(acts, t, duration)
 
-            c = (1,1,0.99)
-            if   style=='metallic': pars = [0.1, 0.3, 1.0, 10, c]
-            elif style=='plastic' : pars = [0.3, 0.4, 0.3,  5, c]
-            elif style=='shiny'   : pars = [0.2, 0.6, 0.8, 50, c]
-            elif style=='glossy'  : pars = [0.1, 0.7, 0.9, 90, c]
-            elif style=='default' : pars = [0.1, 1.0, 0.05, 5, c]
+            c = (1, 1, 0.99)
+            if style == "metallic":
+                pars = [0.1, 0.3, 1.0, 10, c]
+            elif style == "plastic":
+                pars = [0.3, 0.4, 0.3, 5, c]
+            elif style == "shiny":
+                pars = [0.2, 0.6, 0.8, 50, c]
+            elif style == "glossy":
+                pars = [0.1, 0.7, 0.9, 90, c]
+            elif style == "default":
+                pars = [0.1, 1.0, 0.05, 5, c]
             else:
                 vedo.logger.error(f"Unknown lighting style {style}")
 
@@ -370,7 +377,9 @@ class Animation(Plotter):
             for tt in rng:
                 d = lin_interpolate(tt, [t, t + duration], [dmin, diag * 1.01])
                 if d > 0:
-                    ids = acts[0].closest_point(corners[corner], radius=d, return_point_id=True)
+                    ids = acts[0].closest_point(
+                        corners[corner], radius=d, return_point_id=True
+                    )
                     if len(ids) <= acts[0].npoints:
                         self.events.append((tt, self.mesh_erode, acts, ids))
         return self
@@ -388,11 +397,12 @@ class Animation(Plotter):
             self.total_duration = self.events[-1][0] - self.events[0][0]
 
         if self.video_filename:
-            vd = vedo.Video(self.video_filename, fps=self.video_fps, duration=self.total_duration)
+            vd = vedo.Video(
+                self.video_filename, fps=self.video_fps, duration=self.total_duration
+            )
 
         ttlast = 0
         for e in self.events:
-
             tt, action, self._performers, self._inputvalues = e
             action(0, 0)
 
@@ -460,10 +470,10 @@ class AnimationPlayer(vedo.Plotter):
 
     # Original class contributed by @mikaeltulldahl (Mikael Tulldahl)
 
-    PLAY_SYMBOL        = "    \u23F5   "
-    PAUSE_SYMBOL       = "   \u23F8   "
-    ONE_BACK_SYMBOL    = " \u29CF"
-    ONE_FORWARD_SYMBOL = "\u29D0 "
+    PLAY_SYMBOL = "    \u23f5   "
+    PAUSE_SYMBOL = "   \u23f8   "
+    ONE_BACK_SYMBOL = " \u29cf"
+    ONE_FORWARD_SYMBOL = "\u29d0 "
 
     def __init__(
         self,
@@ -692,8 +702,12 @@ class Clock(vedo.Assembly):
             secs.z(0.003)
         back1 = vedo.shapes.Circle(res=180, c="k5")
         back2 = vedo.shapes.Circle(res=12).mirror().scale(0.84).rotate_z(-360 / 12)
-        labels = back2.labels(range(1, 13), justify="center", font=font, c=c, scale=0.14)
-        txt = vedo.shapes.Text3D(wd + title, font="VictorMono", justify="top-center", s=0.07, c=c)
+        labels = back2.labels(
+            range(1, 13), justify="center", font=font, c=c, scale=0.14
+        )
+        txt = vedo.shapes.Text3D(
+            wd + title, font="VictorMono", justify="top-center", s=0.07, c=c
+        )
         txt.pos(0, -0.25, 0.001)
         labels.z(0.001)
         minu.z(0.002)
@@ -703,6 +717,7 @@ class Clock(vedo.Assembly):
     def update(self, h=None, m=None, s=None) -> Clock:
         """Update clock with current or user time."""
         import time
+
         parts = self.unpack()
         self.elapsed = time.time() - self._start
 

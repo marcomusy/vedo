@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Default keyboard event handler for Plotter."""
 
 import os
@@ -43,7 +44,9 @@ def _print_color_picker_report(x: int, y: int, rgb) -> None:
         ):
             text.append(
                 "█",
-                style=Style(color=vedo.colors.rgb2hex(np.array(channel) / 255), bold=True),
+                style=Style(
+                    color=vedo.colors.rgb2hex(np.array(channel) / 255), bold=True
+                ),
             )
 
         text.append("] = ", style="white")
@@ -85,7 +88,12 @@ def _print_color_picker_report(x: int, y: int, rgb) -> None:
             vedo.printc("  -> " + color_name, c=color_name)
 
 
-def _print_keymap_notice(title: str, rows: list[tuple[str, str]] | None = None, message: str = "", color: str = "cyan") -> None:
+def _print_keymap_notice(
+    title: str,
+    rows: list[tuple[str, str]] | None = None,
+    message: str = "",
+    color: str = "cyan",
+) -> None:
     try:
         from rich.console import Console
         from rich.panel import Panel
@@ -252,7 +260,10 @@ def _key_toggle_actor_mode(_plotter, iren, _renderer) -> bool:
         iren.SetInteractorStyle(vtki.new("InteractorStyleTrackballCamera"))
         _print_keymap_notice(
             "Interactor Style",
-            rows=[("mode", "TrackballCamera"), ("status", "normal camera interaction restored")],
+            rows=[
+                ("mode", "TrackballCamera"),
+                ("status", "normal camera interaction restored"),
+            ],
             color="yellow",
         )
     return True
@@ -317,14 +328,23 @@ def _key_print_camera(_plotter, _iren, renderer) -> bool:
     vedo.printc("## Template python code to position this camera: ##", c="y")
     vedo.printc("cam = dict(", c="y")
     vedo.printc("    pos=" + utils.precision(cam.GetPosition(), 6) + ",", c="y")
-    vedo.printc("    focal_point=" + utils.precision(cam.GetFocalPoint(), 6) + ",", c="y")
+    vedo.printc(
+        "    focal_point=" + utils.precision(cam.GetFocalPoint(), 6) + ",", c="y"
+    )
     vedo.printc("    viewup=" + utils.precision(cam.GetViewUp(), 6) + ",", c="y")
     vedo.printc("    roll=" + utils.precision(cam.GetRoll(), 6) + ",", c="y")
     if cam.GetParallelProjection():
-        vedo.printc("    parallel_scale=" + utils.precision(cam.GetParallelScale(), 6) + ",", c="y")
+        vedo.printc(
+            "    parallel_scale=" + utils.precision(cam.GetParallelScale(), 6) + ",",
+            c="y",
+        )
     else:
-        vedo.printc("    distance=" + utils.precision(cam.GetDistance(), 6) + ",", c="y")
-    vedo.printc("    clipping_range=" + utils.precision(cam.GetClippingRange(), 6) + ",", c="y")
+        vedo.printc(
+            "    distance=" + utils.precision(cam.GetDistance(), 6) + ",", c="y"
+        )
+    vedo.printc(
+        "    clipping_range=" + utils.precision(cam.GetClippingRange(), 6) + ",", c="y"
+    )
     vedo.printc(")", c="y")
     vedo.printc("show(mymeshes, camera=cam)", c="y")
     vedo.printc("###################################################", c="y")
@@ -477,7 +497,8 @@ def handle_default_keypress(plotter, iren, event) -> None:
             ):
                 # put back
                 plotter.clicked_actor.SetBackfaceProperty(
-                    plotter.clicked_object.properties_backface)
+                    plotter.clicked_object.properties_backface
+                )
         else:
             for a in plotter.get_meshes():
                 if a:
@@ -564,7 +585,9 @@ def handle_default_keypress(plotter, iren, event) -> None:
         try:
             plotter._icol += 1
             plotter.clicked_object.mapper.ScalarVisibilityOff()
-            pal = vedo.colors.palettes[vedo.settings.palette % len(vedo.colors.palettes)]
+            pal = vedo.colors.palettes[
+                vedo.settings.palette % len(vedo.colors.palettes)
+            ]
             plotter.clicked_object.c(pal[(plotter._icol) % 10])
             plotter.remove(plotter.clicked_object.scalarbar)
         except AttributeError:
@@ -572,13 +595,36 @@ def handle_default_keypress(plotter, iren, event) -> None:
 
     elif key == "2":  # dark colors
         try:
-            bsc = ["k1", "k2", "k3", "k4",
-                "b1", "b2", "b3", "b4",
-                "p1", "p2", "p3", "p4",
-                "g1", "g2", "g3", "g4",
-                "r1", "r2", "r3", "r4",
-                "o1", "o2", "o3", "o4",
-                "y1", "y2", "y3", "y4"]
+            bsc = [
+                "k1",
+                "k2",
+                "k3",
+                "k4",
+                "b1",
+                "b2",
+                "b3",
+                "b4",
+                "p1",
+                "p2",
+                "p3",
+                "p4",
+                "g1",
+                "g2",
+                "g3",
+                "g4",
+                "r1",
+                "r2",
+                "r3",
+                "r4",
+                "o1",
+                "o2",
+                "o3",
+                "o4",
+                "y1",
+                "y2",
+                "y3",
+                "y4",
+            ]
             plotter._icol += 1
             if plotter.clicked_object:
                 plotter.clicked_object.mapper.ScalarVisibilityOff()
@@ -590,13 +636,36 @@ def handle_default_keypress(plotter, iren, event) -> None:
 
     elif key == "3":  # light colors
         try:
-            bsc = ["k6", "k7", "k8", "k9",
-                "b6", "b7", "b8", "b9",
-                "p6", "p7", "p8", "p9",
-                "g6", "g7", "g8", "g9",
-                "r6", "r7", "r8", "r9",
-                "o6", "o7", "o8", "o9",
-                "y6", "y7", "y8", "y9"]
+            bsc = [
+                "k6",
+                "k7",
+                "k8",
+                "k9",
+                "b6",
+                "b7",
+                "b8",
+                "b9",
+                "p6",
+                "p7",
+                "p8",
+                "p9",
+                "g6",
+                "g7",
+                "g8",
+                "g9",
+                "r6",
+                "r7",
+                "r8",
+                "r9",
+                "o6",
+                "o7",
+                "o8",
+                "o9",
+                "y6",
+                "y7",
+                "y8",
+                "y9",
+            ]
             plotter._icol += 1
             if plotter.clicked_object:
                 plotter.clicked_object.mapper.ScalarVisibilityOff()
@@ -662,8 +731,10 @@ def handle_default_keypress(plotter, iren, event) -> None:
 
         vedo.printc(
             f"Name:'{ob.name}'," if ob.name else "",
-            f"range:{utils.precision(ob.mapper.GetScalarRange(),3)},",
-            f"colormap:'{ob._cmap_name}'", c="g", bold=False,
+            f"range:{utils.precision(ob.mapper.GetScalarRange(), 3)},",
+            f"colormap:'{ob._cmap_name}'",
+            c="g",
+            bold=False,
         )
 
     elif key == "5":  # cycle pointdata array
@@ -768,7 +839,8 @@ def handle_default_keypress(plotter, iren, event) -> None:
             vedo.printc(
                 f"Name:'{ob.name}'," if ob.name else "",
                 f"active celldata array: '{arrnames[i]}'",
-                c="g", bold=False,
+                c="g",
+                bold=False,
             )
 
     elif key == "7":
@@ -839,19 +911,46 @@ def handle_default_keypress(plotter, iren, event) -> None:
         plotter.render()
 
     elif "KP_" in key or key in [
-            "Insert","End","Down","Next","Left","Begin","Right","Home","Up","Prior"
-        ]:
+        "Insert",
+        "End",
+        "Down",
+        "Next",
+        "Left",
+        "Begin",
+        "Right",
+        "Home",
+        "Up",
+        "Prior",
+    ]:
         asso = {  # change axes style
-            "KP_Insert": 0, "KP_0": 0, "Insert": 0,
-            "KP_End":    1, "KP_1": 1, "End":    1,
-            "KP_Down":   2, "KP_2": 2, "Down":   2,
-            "KP_Next":   3, "KP_3": 3, "Next":   3,
-            "KP_Left":   4, "KP_4": 4, "Left":   4,
-            "KP_Begin":  5, "KP_5": 5, "Begin":  5,
-            "KP_Right":  6, "KP_6": 6, "Right":  6,
-            "KP_Home":   7, "KP_7": 7, "Home":   7,
-            "KP_Up":     8, "KP_8": 8, "Up":     8,
-            "Prior":     9,  # on windows OS
+            "KP_Insert": 0,
+            "KP_0": 0,
+            "Insert": 0,
+            "KP_End": 1,
+            "KP_1": 1,
+            "End": 1,
+            "KP_Down": 2,
+            "KP_2": 2,
+            "Down": 2,
+            "KP_Next": 3,
+            "KP_3": 3,
+            "Next": 3,
+            "KP_Left": 4,
+            "KP_4": 4,
+            "Left": 4,
+            "KP_Begin": 5,
+            "KP_5": 5,
+            "Begin": 5,
+            "KP_Right": 6,
+            "KP_6": 6,
+            "Right": 6,
+            "KP_Home": 7,
+            "KP_7": 7,
+            "Home": 7,
+            "KP_Up": 8,
+            "KP_8": 8,
+            "Up": 8,
+            "Prior": 9,  # on windows OS
         }
         clickedr = plotter.renderers.index(renderer)
         if key in asso:
@@ -874,13 +973,17 @@ def handle_default_keypress(plotter, iren, event) -> None:
 
     elif key == "o":
         vbb, sizes, _, _ = addons.compute_visible_bounds()
-        cm = utils.vector((vbb[0] + vbb[1]) / 2, (vbb[2] + vbb[3]) / 2, (vbb[4] + vbb[5]) / 2)
+        cm = utils.vector(
+            (vbb[0] + vbb[1]) / 2, (vbb[2] + vbb[3]) / 2, (vbb[4] + vbb[5]) / 2
+        )
         if not plotter._extralight:
             vup = renderer.GetActiveCamera().GetViewUp()
             pos = cm + utils.vector(vup) * utils.mag(sizes)
             plotter._extralight = addons.Light(pos, focal_point=cm, intensity=0.4)
             renderer.AddLight(plotter._extralight)
-            vedo.printc("Press 'o' again to rotate light source, or 'O' to remove it.", c='y')
+            vedo.printc(
+                "Press 'o' again to rotate light source, or 'O' to remove it.", c="y"
+            )
         else:
             cpos = utils.vector(plotter._extralight.GetPosition())
             x, y, z = plotter._extralight.GetPosition() - cm
@@ -946,15 +1049,21 @@ def handle_default_keypress(plotter, iren, event) -> None:
             if not plotter.cutter_widget:
                 plotter.cutter_widget = addons.BoxCutter(plotter.clicked_object)
                 plotter.add(plotter.cutter_widget)
-                vedo.printc("Press i to toggle the cutter on/off", c='g', dim=1)
-                vedo.printc("      u to flip selection", c='g', dim=1)
-                vedo.printc("      r to reset cutting planes", c='g', dim=1)
-                vedo.printc("      Shift+X to close the cutter box widget", c='g', dim=1)
-                vedo.printc("      Ctrl+S to save the cut section to file.", c='g', dim=1)
+                vedo.printc("Press i to toggle the cutter on/off", c="g", dim=1)
+                vedo.printc("      u to flip selection", c="g", dim=1)
+                vedo.printc("      r to reset cutting planes", c="g", dim=1)
+                vedo.printc(
+                    "      Shift+X to close the cutter box widget", c="g", dim=1
+                )
+                vedo.printc(
+                    "      Ctrl+S to save the cut section to file.", c="g", dim=1
+                )
             else:
                 plotter.remove(plotter.cutter_widget)
                 plotter.cutter_widget = None
-            vedo.printc("Click object and press X to open the cutter box widget.", c='g')
+            vedo.printc(
+                "Click object and press X to open the cutter box widget.", c="g"
+            )
 
     if iren:
         iren.Render()

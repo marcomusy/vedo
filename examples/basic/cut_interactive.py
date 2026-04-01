@@ -5,6 +5,7 @@ i to invert the selection
 t to print the cutter's transform
 x to get the cut mesh
 q to break interaction"""
+
 from vedo import Mesh, settings, dataurl, Plotter
 from vedo import BoxCutter, PlaneCutter, SphereCutter
 
@@ -30,6 +31,7 @@ def func(evt):
     if k == "Escape":
         print("exit program")
         plt.close()
+
 
 ##################################################
 settings.enable_default_keyboard_callbacks = False

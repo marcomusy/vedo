@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
+
 """Guardrails for the slow VTK import notice."""
 
 import contextlib

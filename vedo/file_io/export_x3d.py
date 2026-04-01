@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """X3D scene export helpers."""
 
 import vedo.vtkclasses as vtki

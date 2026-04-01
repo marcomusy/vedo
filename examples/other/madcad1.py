@@ -1,4 +1,5 @@
 """madcad interoperability example."""
+
 # Example of usage of the madcad library
 # See https://pymadcad.readthedocs.io/en/latest/index.html
 from pathlib import Path
@@ -15,7 +16,7 @@ from madcad import *
 
 ##########################################################################
 points = [O, X, X + Z, 2 * X + Z, 2 * (X + Z), X + 2 * Z, X + 5 * Z, 5 * Z]
-section = Wire(points).segmented().flip() 
+section = Wire(points).segmented().flip()
 rev = revolution(section, (O, Z), 2 * pi)
 rev.mergeclose()
 vedo.show("Revolution of a wire", rev, axes=7).close()
@@ -39,9 +40,9 @@ vedo.show("Boolean difference", diff, axes=14).close()
 cube = brick(width=vec3(2))
 try:
     bevel(
-       cube,
-       [(0, 1), (1, 2), (2, 3), (0, 3), (1, 5), (0, 4)],  # Edges to smooth
-       ("width", 0.3),  # Cutting description, known as 'cutter'
+        cube,
+        [(0, 1), (1, 2), (2, 3), (0, 3), (1, 5), (0, 4)],  # Edges to smooth
+        ("width", 0.3),  # Cutting description, known as 'cutter'
     )
     vedo.show("A bevel cube", cube, axes=1).close()
 except TypeError:
@@ -52,7 +53,7 @@ except TypeError:
 ##########################################################################
 square_profile = square((O, Z), 5).flip()
 primitives = [
-    ArcCentered(( 5 * X,  Y),      O, 10 * X),
+    ArcCentered((5 * X, Y), O, 10 * X),
     ArcCentered((15 * X, -Y), 10 * X, 20 * X),
 ]
 # Generate a path

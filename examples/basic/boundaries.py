@@ -1,5 +1,6 @@
 """Extract points on the boundary of a mesh.
 Add an ID label to all vertices."""
+
 from vedo import Mesh, dataurl, Points, show
 
 # Load and pre-process mesh.

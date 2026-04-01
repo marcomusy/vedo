@@ -1,4 +1,5 @@
 """Probe a Volume with a line and plot the intensity values"""
+
 from vedo import dataurl, Volume, Line, show
 from vedo.pyplot import plot
 

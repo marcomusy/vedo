@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Interaction operations delegated from Plotter."""
 
 import time
@@ -121,7 +122,10 @@ def fill_event(plotter, ename="", pos=(), enable_picking=True) -> Event:
         event.isActor2D = isinstance(event.object, vtki.vtkActor2D)
     return event
 
-def add_callback(plotter, event_name: str, func: Callable, priority=0.0, enable_picking=True) -> int:
+
+def add_callback(
+    plotter, event_name: str, func: Callable, priority=0.0, enable_picking=True
+) -> int:
     """
     Add a function to be executed while show() is active.
 
@@ -194,7 +198,7 @@ def add_callback(plotter, event_name: str, func: Callable, priority=0.0, enable_
 
         - ..and many others!
     """
-    from vtkmodules.util.misc import calldata_type # noqa
+    from vtkmodules.util.misc import calldata_type  # noqa
 
     if not plotter.interactor:
         return 0
@@ -220,6 +224,7 @@ def add_callback(plotter, event_name: str, func: Callable, priority=0.0, enable_
     # print(f"Registering event: {event_name} with id={cid}")
     return cid
 
+
 def remove_callback(plotter, cid: int | str) -> Any:
     """
     Remove a callback function by its id
@@ -237,6 +242,7 @@ def remove_callback(plotter, cid: int | str) -> Any:
         else:
             plotter.interactor.RemoveObserver(cid)
     return plotter
+
 
 def remove_all_observers(plotter) -> Any:
     """
@@ -271,6 +277,7 @@ def remove_all_observers(plotter) -> Any:
         plotter.interactor.RemoveAllObservers()
     return plotter
 
+
 def timer_callback(plotter, action: str, timer_id=None, dt=1, one_shot=False) -> int:
     """
     Start or stop an existing timer.
@@ -292,7 +299,6 @@ def timer_callback(plotter, action: str, timer_id=None, dt=1, one_shot=False) ->
         ![](https://vedo.embl.es/images/advanced/timer_callback1.jpg)
     """
     if action in ("create", "start"):
-
         if "Windows" in vedo.sys_platform:
             # otherwise on windows it gets stuck
             plotter.initialize_interactor()
@@ -316,6 +322,7 @@ def timer_callback(plotter, action: str, timer_id=None, dt=1, one_shot=False) ->
         vedo.logger.error(e)
     return timer_id
 
+
 def add_observer(plotter, event_name: str, func: Callable, priority=0.0) -> int:
     """
     Add a callback function that will be called when an event occurs.
@@ -326,6 +333,7 @@ def add_observer(plotter, event_name: str, func: Callable, priority=0.0) -> int:
     event_name = utils.get_vtk_name_event(event_name)
     idd = plotter.interactor.AddObserver(event_name, func, priority)
     return idd
+
 
 def compute_world_coordinate(
     plotter,
@@ -392,6 +400,7 @@ def compute_world_coordinate(
     # validd = pp.ValidateDisplayPosition(renderer, pos2d)
     return np.array(worldPos)
 
+
 def compute_screen_coordinates(plotter, obj, full_window=False) -> np.ndarray:
     """
     Given a 3D points in the current renderer (or full window),
@@ -432,6 +441,7 @@ def compute_screen_coordinates(plotter, obj, full_window=False) -> np.ndarray:
         else:
             p2d.append(cs.GetComputedViewportValue(plotter.renderer))
     return np.array(p2d, dtype=int)
+
 
 def pick_area(plotter, pos1, pos2, at=None) -> vedo.Mesh:
     """
@@ -482,6 +492,7 @@ def pick_area(plotter, pos1, pos2, at=None) -> vedo.Mesh:
     afru.alpha(0.1).lw(1).pickable(False)
     afru.name = "Frustum"
     return afru
+
 
 def default_mouseleftclick(plotter, iren, event) -> None:
     x, y = iren.GetEventPosition()

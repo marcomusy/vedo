@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Data-array helper utilities for vedo objects."""
 
 from typing import Any
@@ -14,8 +15,9 @@ from vedo import utils
 
 __all__ = ["DataArrayHelper", "_get_data_legacy_format"]
 
+
 def _get_data_legacy_format(arr):
-    # try the old way then the new way to get the array in legacy format 
+    # try the old way then the new way to get the array in legacy format
     # #issue #1292
     if utils.vtk_version_at_least(6, 0):
         varr = vtki.vtkIdTypeArray()
@@ -34,6 +36,7 @@ class DataArrayHelper:
 
     Internal use only.
     """
+
     def __init__(self, obj, association):
 
         self.obj = obj
@@ -260,12 +263,12 @@ class DataArrayHelper:
         elif nc == 2:
             data.SetTCoords(arr)
         elif nc in (3, 4):
-            if "rgb" in key.lower(): # type: ignore
+            if "rgb" in key.lower():  # type: ignore
                 data.SetActiveScalars(key)
                 try:
                     # could be a volume mapper
                     self.obj.mapper.SetColorModeToDirectScalars()
-                    data.SetActiveVectors(None) # need this to fix bug in #1066
+                    data.SetActiveVectors(None)  # need this to fix bug in #1066
                     # print("SetColorModeToDirectScalars for", key)
                 except AttributeError:
                     pass
@@ -337,8 +340,13 @@ class DataArrayHelper:
                     out += "\nshape".ljust(15) + f": {shape}"
                     out += "\nrange".ljust(15) + f": {np.array(varr.GetRange())}"
                     out += "\nmax id".ljust(15) + f": {varr.GetMaxId()}"
-                    out += "\nlook up table".ljust(15) + f": {bool(varr.GetLookupTable())}"
-                    out += "\nin-memory size".ljust(15) + f": {varr.GetActualMemorySize()} KB"
+                    out += (
+                        "\nlook up table".ljust(15) + f": {bool(varr.GetLookupTable())}"
+                    )
+                    out += (
+                        "\nin-memory size".ljust(15)
+                        + f": {varr.GetActualMemorySize()} KB"
+                    )
             else:
                 out += " is empty.\x1b[0m"
             return out

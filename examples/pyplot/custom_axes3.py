@@ -1,6 +1,7 @@
 """Customizing Axes.
 Cartesian planes can be displaced
 from their lower-range default position"""
+
 from vedo import Sphere, Axes, precision, show
 
 

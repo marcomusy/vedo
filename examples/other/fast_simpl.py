@@ -1,7 +1,8 @@
 """Use fast-simplification to decimate a mesh and transfer
 data defined on the original vertices to the decimated ones."""
-# https://github.com/pyvista/fast-simplification
-# pip install fast-simplification
+
+# https://github.com/pyvista/fast-simplification
+# pip install fast-simplification
 # Credits: Louis Pujol, see #992
 import numpy as np
 import fast_simplification as fs

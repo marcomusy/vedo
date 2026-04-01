@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """LaTeX rendering helper class."""
 
 import vedo
@@ -10,12 +11,23 @@ from vedo import settings
 from vedo.colors import get_color
 from vedo.grids.image import Image
 
+
 class Latex(Image):
     """
     Render Latex text and formulas.
     """
 
-    def __init__(self, formula, pos=(0, 0, 0), s=1.0, bg=None, res=150, usetex=False, c="k", alpha=1.0) -> None:
+    def __init__(
+        self,
+        formula,
+        pos=(0, 0, 0),
+        s=1.0,
+        bg=None,
+        res=150,
+        usetex=False,
+        c="k",
+        alpha=1.0,
+    ) -> None:
         """
         Render Latex text and formulas.
 
@@ -88,4 +100,3 @@ class Latex(Image):
         #     printc(" latex or dvipng not installed?", c="r")
         #     printc(" Try: usetex=False", c="r")
         #     printc(" Try: sudo apt install dvipng", c="r")
-

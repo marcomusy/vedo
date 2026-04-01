@@ -1,4 +1,5 @@
 """Draw a continuous line on an image with the DrawingWidget."""
+
 from vedo import DrawingWidget, Plotter, Image, dataurl
 
 # Background image used by the drawing widget.

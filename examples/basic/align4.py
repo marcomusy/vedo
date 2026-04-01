@@ -1,4 +1,5 @@
 """Align a set of curves in space using Procrustes analysis."""
+
 from vedo import Assembly, dataurl, procrustes_alignment, Line, mag, show
 
 # Load splines (an Assembly of curves).

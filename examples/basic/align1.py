@@ -1,4 +1,5 @@
 """Align two shapes and report the average squared residual distance."""
+
 from vedo import Mesh, dataurl, mag2, printc, show
 
 # Reference surface and curve to be aligned onto it.

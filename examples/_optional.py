@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
+
 """Helper utilities for optional dependencies in examples."""
 
 import importlib
@@ -12,6 +13,8 @@ def require_module(module_name: str, pip_name: str | None = None):
         return importlib.import_module(module_name)
     except ModuleNotFoundError:
         pkg = pip_name or module_name
-        print(f"Skipping example: optional dependency '{module_name}' is not installed.")
+        print(
+            f"Skipping example: optional dependency '{module_name}' is not installed."
+        )
         print(f"Install with: pip install {pkg}")
         sys.exit(0)

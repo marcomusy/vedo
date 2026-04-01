@@ -1,4 +1,5 @@
 """Convert a vedo mesh to a madcad mesh and vice versa"""
+
 # See https://pymadcad.readthedocs.io/en/latest/index.html
 from pathlib import Path
 import sys
@@ -12,7 +13,7 @@ from _optional import require_module
 madcad = require_module("madcad", "pymadcad")
 
 # Configure inputs and run the visualization workflow.
-mesh = vedo.Mesh(vedo.dataurl+"bunny.obj")
+mesh = vedo.Mesh(vedo.dataurl + "bunny.obj")
 mesh.compute_normals()
 
 ############################################################

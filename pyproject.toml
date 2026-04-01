@@ -107,3 +107,7 @@ vedo = "vedo"
 
 [project.scripts]
 vedo = "vedo.cli:main"
+
+[tool.ruff.lint]
+select = ["E", "F"]
+ignore = ["F401", "E402", "E501"]

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Camera/view operations delegated from Plotter."""
 
 from typing import Any
@@ -42,6 +43,7 @@ def reset_camera(plotter, tight=None) -> Any:
         plotter.renderer.ResetCameraClippingRange(x0, x1, y0, y1, z0, z1)
     return plotter
 
+
 def reset_clipping_range(plotter, bounds=None) -> Any:
     """
     Reset the camera clipping range to include all visible actors.
@@ -52,6 +54,7 @@ def reset_clipping_range(plotter, bounds=None) -> Any:
     else:
         plotter.renderer.ResetCameraClippingRange(bounds)
     return plotter
+
 
 def reset_viewup(plotter, smooth=True) -> Any:
     """
@@ -117,7 +120,6 @@ def reset_viewup(plotter, smooth=True) -> Any:
         #     plotter.renderer.SetActiveCamera(c)
         #     plotter.render()
     else:
-
         plotter.camera.SetViewUp(viewups[vui])
         plotter.camera.SetPosition(positions[pui])
         plotter.camera.SetFocalPoint(mx, my, mz)
@@ -129,6 +131,7 @@ def reset_viewup(plotter, smooth=True) -> Any:
     # plotter.renderer.ResetCameraClippingRange(x0, x1, y0, y1, z0, z1)
     plotter.render()
     return plotter
+
 
 def move_camera(plotter, cameras, t=0, times=(), smooth=True, output_times=()) -> list:
     """
@@ -173,6 +176,7 @@ def move_camera(plotter, cameras, t=0, times=(), smooth=True, output_times=()) -
             vcams.append(c)
         return vcams
 
+
 def fly_to(plotter, point) -> Any:
     """
     Fly camera to the specified point.
@@ -196,6 +200,7 @@ def fly_to(plotter, point) -> Any:
         plotter.interactor.FlyTo(plotter.renderer, point)
     return plotter
 
+
 def look_at(plotter, plane="xy") -> Any:
     """Move the camera so that it looks at the specified cartesian plane"""
     cam = plotter.renderer.GetActiveCamera()
@@ -216,6 +221,7 @@ def look_at(plotter, plane="xy") -> Any:
         vedo.logger.error(f"in plotter.look() cannot understand argument {plane}")
     return plotter
 
+
 def parallel_projection(plotter, value=True, at=None) -> Any:
     """
     Use parallel projection `at` a specified renderer.
@@ -231,10 +237,12 @@ def parallel_projection(plotter, value=True, at=None) -> Any:
     r.Modified()
     return plotter
 
+
 def render_hidden_lines(plotter, value=True) -> Any:
     """Remove hidden lines when in wireframe mode."""
     plotter.renderer.SetUseHiddenLineRemoval(not value)
     return plotter
+
 
 def fov(plotter, angle: float) -> Any:
     """
@@ -249,15 +257,18 @@ def fov(plotter, angle: float) -> Any:
     plotter.renderer.GetActiveCamera().SetViewAngle(angle)
     return plotter
 
+
 def zoom(plotter, zoom: float) -> Any:
     """Apply a zooming factor for the current camera view"""
     plotter.renderer.GetActiveCamera().Zoom(zoom)
     return plotter
 
+
 def azimuth(plotter, angle: float) -> Any:
     """Rotate camera around the view up vector."""
     plotter.renderer.GetActiveCamera().Azimuth(angle)
     return plotter
+
 
 def elevation(plotter, angle: float) -> Any:
     """Rotate the camera around the cross product of the negative
@@ -265,10 +276,12 @@ def elevation(plotter, angle: float) -> Any:
     plotter.renderer.GetActiveCamera().Elevation(angle)
     return plotter
 
+
 def roll(plotter, angle: float) -> Any:
     """Roll the camera about the direction of projection."""
     plotter.renderer.GetActiveCamera().Roll(angle)
     return plotter
+
 
 def dolly(plotter, value: float) -> Any:
     """Move the camera towards (value>0) or away from (value<0) the focal point."""

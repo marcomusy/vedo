@@ -1,6 +1,7 @@
 """1D Moving Least Squares (MLS)
 to project a cloud of unordered points
 to become a smooth, ordered line"""
+
 from vedo import *
 
 settings.default_font = "Antares"
@@ -8,7 +9,7 @@ settings.default_font = "Antares"
 N = 3  # nr. of iterations
 
 # build some initial cloud of noisy points along a line
-pts = [(sin(6*x), cos(2*x)*x, cos(9*x)) for x in np.arange(0,2, 0.001)]
+pts = [(sin(6 * x), cos(2 * x) * x, cos(9 * x)) for x in np.arange(0, 2, 0.001)]
 # pts = [(0, sin(x), cos(x)) for x in np.arange(0,6, .002)]
 # pts = [(sqrt(x), sin(x), x/5) for x in np.arange(0, 16, 0.01)]
 
@@ -18,12 +19,12 @@ np.random.shuffle(pts)  # make sure points are not ordered
 pts = Points(pts, r=5)
 
 plt = Plotter(N=N, axes=1)
-plt.at(0).show(pts, __doc__, viewup='z')
+plt.at(0).show(pts, __doc__, viewup="z")
 
 for i in range(1, N):
     # Repeated MLS projection denoises and orders the cloud along a curve.
     pts = pts.clone().smooth_mls_1d(n=50).color(i)
-    if i == N-1:
+    if i == N - 1:
         # at the last iteration make sure points
         # are separated by tol (in % of the bounding box)
         pts.subsample(0.025)

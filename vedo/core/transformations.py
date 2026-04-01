@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing_extensions import Self
 from warnings import warn
 import numpy as np
-import vedo.vtkclasses as vtki # a wrapper for lazy imports
+import vedo.vtkclasses as vtki  # a wrapper for lazy imports
 from vedo.core.summary import summary_panel, summary_string
 
 __docformat__ = "google"
@@ -30,6 +30,7 @@ __all__ = [
     "pol2cart",
 ]
 
+
 ###################################################
 def _is_sequence(arg):
     if hasattr(arg, "strip"):
@@ -43,7 +44,9 @@ def _is_sequence(arg):
 
 def _is_vtk_quaternion(arg) -> bool:
     """Return ``True`` for VTK quaternion specializations."""
-    return all(hasattr(arg, name) for name in ("GetW", "GetX", "GetY", "GetZ", "ToMatrix3x3"))
+    return all(
+        hasattr(arg, name) for name in ("GetW", "GetX", "GetY", "GetZ", "ToMatrix3x3")
+    )
 
 
 ###################################################
@@ -115,6 +118,7 @@ class LinearTransform:
 
         elif isinstance(T, str):
             import json
+
             self.filename = str(T)
             try:
                 with open(self.filename, "r") as read_file:
@@ -165,7 +169,9 @@ class LinearTransform:
         rows.append(
             (
                 "matrix 4x4",
-                np.array2string(self.matrix, separator=", ", precision=6, suppress_small=True),
+                np.array2string(
+                    self.matrix, separator=", ", precision=6, suppress_small=True
+                ),
             )
         )
         return rows
@@ -277,11 +283,13 @@ class LinearTransform:
         m = self.matrix3x3
         eigval, eigvec = np.linalg.eig(m @ m.T)
         eigval = np.sqrt(eigval)
-        return  np.array([
-            eigvec[:,0] * eigval[0],
-            eigvec[:,1] * eigval[1],
-            eigvec[:,2] * eigval[2],
-        ])
+        return np.array(
+            [
+                eigvec[:, 0] * eigval[0],
+                eigvec[:, 1] * eigval[1],
+                eigvec[:, 2] * eigval[2],
+            ]
+        )
 
     def pop(self) -> Self:
         """Delete the transformation on the top of the stack
@@ -574,6 +582,7 @@ class LinearTransform:
     def write(self, filename="transform.mat") -> Self:
         """Save transformation to ASCII file."""
         import json
+
         m = self.T.GetMatrix()
         M = [[m.GetElement(i, j) for j in range(4)] for i in range(4)]
         arr = np.array(M)
@@ -659,7 +668,9 @@ class Quaternion:
 
         if axis is not None:
             if q is not None:
-                raise ValueError("Quaternion() accepts either q=... or axis/angle, not both")
+                raise ValueError(
+                    "Quaternion() accepts either q=... or axis/angle, not both"
+                )
             self.set_axis_angle(angle, axis, rad=rad)
             return
 
@@ -831,10 +842,7 @@ class Quaternion:
         theta0 = np.arccos(dot)
         theta = theta0 * t
         sin_theta0 = np.sin(theta0)
-        out = (
-            np.sin(theta0 - theta) / sin_theta0 * q0
-            + np.sin(theta) / sin_theta0 * q1
-        )
+        out = np.sin(theta0 - theta) / sin_theta0 * q0 + np.sin(theta) / sin_theta0 * q1
         return Quaternion(out)
 
     def rotate(self, p) -> np.ndarray:
@@ -1002,6 +1010,7 @@ class NonLinearTransform:
 
         elif isinstance(T, str):
             import json
+
             filename = str(T)
             self.filename = filename
             with open(filename, "r") as read_file:
@@ -1083,11 +1092,21 @@ class NonLinearTransform:
         rows.append(("mode", self.mode))
         rows.append(("sigma", str(self.sigma)))
         if len(p):
-            rows.append(("sources", f"{len(p)}, bounds {np.min(p, axis=0)}, {np.max(p, axis=0)}"))
+            rows.append(
+                (
+                    "sources",
+                    f"{len(p)}, bounds {np.min(p, axis=0)}, {np.max(p, axis=0)}",
+                )
+            )
         else:
             rows.append(("sources", "0"))
         if len(q):
-            rows.append(("targets", f"{len(q)}, bounds {np.min(q, axis=0)}, {np.max(q, axis=0)}"))
+            rows.append(
+                (
+                    "targets",
+                    f"{len(q)}, bounds {np.min(q, axis=0)}, {np.max(q, axis=0)}",
+                )
+            )
         else:
             rows.append(("targets", "0"))
         return rows
@@ -1183,7 +1202,6 @@ class NonLinearTransform:
             vpts.InsertNextPoint(p)
         self.T.SetTargetLandmarks(vpts)
 
-
     @property
     def sigma(self) -> float:
         """Set sigma."""
@@ -1257,7 +1275,7 @@ class NonLinearTransform:
         # use copy here not clone in case user passes a numpy array
         return self.move(obj.copy())
 
-    def compute_main_axes(self, pt=(0,0,0), ds=1) -> np.ndarray:
+    def compute_main_axes(self, pt=(0, 0, 0), ds=1) -> np.ndarray:
         """
         Compute main axes of the transformation.
         These are the axes of the ellipsoid that is the
@@ -1272,18 +1290,22 @@ class NonLinearTransform:
         if len(pt) == 2:
             pt = [pt[0], pt[1], 0]
         pt = np.asarray(pt)
-        m = np.array([
-            self.move(pt + [ds,0,0]),
-            self.move(pt + [0,ds,0]),
-            self.move(pt + [0,0,ds]),
-        ])
+        m = np.array(
+            [
+                self.move(pt + [ds, 0, 0]),
+                self.move(pt + [0, ds, 0]),
+                self.move(pt + [0, 0, ds]),
+            ]
+        )
         eigval, eigvec = np.linalg.eig(m @ m.T)
         eigval = np.sqrt(eigval)
-        return np.array([
-            eigvec[:, 0] * eigval[0],
-            eigvec[:, 1] * eigval[1],
-            eigvec[:, 2] * eigval[2],
-        ])
+        return np.array(
+            [
+                eigvec[:, 0] * eigval[0],
+                eigvec[:, 1] * eigval[1],
+                eigvec[:, 2] * eigval[2],
+            ]
+        )
 
     def transform_point(self, p) -> np.ndarray:
         """
@@ -1327,6 +1349,7 @@ class NonLinearTransform:
         obj.apply_transform(self)
         return obj
 
+
 ########################################################################
 class TransformInterpolator:
     """
@@ -1361,6 +1384,7 @@ class TransformInterpolator:
         ```
         ![](https://vedo.embl.es/images/other/transf_interp.png)
     """
+
     def __init__(self, mode="linear") -> None:
         """
         Interpolate between two or more linear transformations.
@@ -1423,7 +1447,9 @@ class TransformInterpolator:
         elif isinstance(T, vtki.vtkLinearTransform):
             LT = LinearTransform(T)
         else:
-            raise TypeError("TransformInterpolator.add() expects LinearTransform or vtkLinearTransform")
+            raise TypeError(
+                "TransformInterpolator.add() expects LinearTransform or vtkLinearTransform"
+            )
 
         self.TS.append(LT)
         self.vtk_interpolator.AddTransform(t, LT.T)
@@ -1454,7 +1480,10 @@ class TransformInterpolator:
         elif m == "spline":
             self.vtk_interpolator.SetInterpolationTypeToSpline()
         else:
-            warn('In TransformInterpolator mode can be either "linear" or "spline"', stacklevel=2)
+            warn(
+                'In TransformInterpolator mode can be either "linear" or "spline"',
+                stacklevel=2,
+            )
         return self
 
     @property

@@ -4,14 +4,16 @@ Possible operations are: +, -, /, 1/x, sin, cos, exp, log, abs, **2, sqrt,
   min, max, atan, atan2, median, mag, dot, gradient, divergence, laplacian.
 Alphas defines the opacity transfer function in the scalar range.
 """
+
 from vedo import *
+
 printc(__doc__)
 
 # Build the volumetric processing pipeline and render results.
 plt = Plotter(N=4)
 
-v0 = Volume(dataurl+'embryo.slc').cmap(0).add_scalarbar3d()
-v0.scalarbar = v0.scalarbar.clone2d("center-right", 0.1) # substitute to a 2d scalarbar
+v0 = Volume(dataurl + "embryo.slc").cmap(0).add_scalarbar3d()
+v0.scalarbar = v0.scalarbar.clone2d("center-right", 0.1)  # substitute to a 2d scalarbar
 plt.at(0).show("original", v0)
 
 v1 = v0.clone().operation("gradient").operation("mag").add_scalarbar3d()
@@ -30,7 +32,7 @@ plt.interactive().close()
 
 
 ####################################################################################
-#Start with creating a masked Volume then compute its gradient and probe 2 points
+# Start with creating a masked Volume then compute its gradient and probe 2 points
 msh = Ellipsoid()
 
 vol = msh.signed_distance(dims=[20, 20, 20])
@@ -39,17 +41,17 @@ vol.cmap("blue").alpha([0.9, 0.0]).alpha_unit(0.1).add_scalarbar3d()
 vol.scalarbar = vol.scalarbar.clone2d("center-right", 0.15)
 
 vgrad = vol.operation("gradient")
-printc(vgrad.pointdata, c='g')
+printc(vgrad.pointdata, c="g")
 
-grd = vgrad.pointdata['ImageScalarsGradient']
+grd = vgrad.pointdata["ImageScalarsGradient"]
 pts = vol.points  # coords as numpy array
-arrs = Arrows(pts, pts + grd*0.1, c="jet")
+arrs = Arrows(pts, pts + grd * 0.1, c="jet")
 
-pts_probes = [[0.2,0.5,0.5], [0.2,0.3,0.4]]
+pts_probes = [[0.2, 0.5, 0.5], [0.2, 0.3, 0.4]]
 vpts_probes = Points(pts_probes).probe(vgrad)
-vects = vpts_probes.pointdata['ImageScalarsGradient']
+vects = vpts_probes.pointdata["ImageScalarsGradient"]
 
-arrs_pts_probe = Arrows(pts_probes, pts_probes + vects, c='black')
+arrs_pts_probe = Arrows(pts_probes, pts_probes + vects, c="black")
 
 plt = Plotter(axes=1, N=2)
 plt.at(0).show("A masked Volume", vol)

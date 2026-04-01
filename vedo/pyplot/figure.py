@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Figure primitives for pyplot."""
 
 from typing_extensions import Self
@@ -21,12 +22,13 @@ from vedo.assembly import Assembly
 
 __all__ = ["LabelData", "Figure"]
 
+
 class LabelData:
     """Helper internal class to hold label information."""
 
     def __init__(self):
         """Helper internal class to hold label information."""
-        self.text   = "dataset"
+        self.text = "dataset"
         self.tcolor = "black"
         self.marker = "s"
         self.mcolor = "black"
@@ -36,7 +38,9 @@ class LabelData:
 class Figure(Assembly):
     """Format class for figures."""
 
-    def __init__(self, xlim, ylim, aspect=1.333, padding=(0.05, 0.05, 0.05, 0.05), **kwargs):
+    def __init__(
+        self, xlim, ylim, aspect=1.333, padding=(0.05, 0.05, 0.05, 0.05), **kwargs
+    ):
         """
         Create an empty formatted figure for plotting.
 
@@ -87,7 +91,7 @@ class Figure(Assembly):
 
         options = dict(kwargs)
 
-        self.title  = options.pop("title", "")
+        self.title = options.pop("title", "")
         self.xtitle = options.pop("xtitle", " ")
         self.ytitle = options.pop("ytitle", " ")
         number_of_divisions = 6
@@ -103,7 +107,9 @@ class Figure(Assembly):
             if self.axopts:
                 self.axopts = {}
         if self.axopts or isinstance(self.axopts, dict):
-            number_of_divisions = self.axopts.pop("number_of_divisions", number_of_divisions)
+            number_of_divisions = self.axopts.pop(
+                "number_of_divisions", number_of_divisions
+            )
 
             self.axopts["xtitle"] = self.xtitle
             self.axopts["ytitle"] = self.ytitle
@@ -136,7 +142,9 @@ class Figure(Assembly):
 
         self.axes = None
         if xlim[0] >= xlim[1] or ylim[0] >= ylim[1]:
-            vedo.logger.warning(f"Null range for Figure {self.title}... returning an empty Assembly.")
+            vedo.logger.warning(
+                f"Null range for Figure {self.title}... returning an empty Assembly."
+            )
             super().__init__()
             self.yscale = 0
             return
@@ -164,8 +172,9 @@ class Figure(Assembly):
             if self.axopts is True or self.axopts == 1:
                 axes_opts = {}
 
-            tp, ts = utils.make_ticks(y0lim / self.yscale,
-                                      y1lim / self.yscale, number_of_divisions)
+            tp, ts = utils.make_ticks(
+                y0lim / self.yscale, y1lim / self.yscale, number_of_divisions
+            )
             labs = []
             for i in range(1, len(tp) - 1):
                 ynew = utils.lin_interpolate(tp[i], [0, 1], [y0lim, y1lim])
@@ -188,7 +197,6 @@ class Figure(Assembly):
         self.name = "Figure"
 
         vedo.set_last_figure(self if settings.remember_last_figure_format else None)
-
 
     ##################################################################
     def _repr_html_(self):
@@ -216,7 +224,9 @@ class Figure(Assembly):
 
         bounds = "<br/>".join(
             [
-                vedo.utils.precision(min_x, 4) + " ... " + vedo.utils.precision(max_x, 4)
+                vedo.utils.precision(min_x, 4)
+                + " ... "
+                + vedo.utils.precision(max_x, 4)
                 for min_x, max_x in zip(self.bounds()[::2], self.bounds()[1::2])
             ]
         )
@@ -224,7 +234,9 @@ class Figure(Assembly):
         help_text = ""
         if self.name:
             help_text += f"<b> {self.name}: &nbsp&nbsp</b>"
-        help_text += '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>"
+        help_text += (
+            '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>"
+        )
         if self.filename:
             dots = ""
             if len(self.filename) > 30:
@@ -240,11 +252,21 @@ class Figure(Assembly):
             "<td style='text-align: center; vertical-align: center;'><br/>",
             help_text,
             "<table>",
-            "<tr><td><b> nr. of parts </b></td><td>" + str(self.actor.GetNumberOfPaths()) + "</td></tr>",
-            "<tr><td><b> position </b></td><td>" + str(self.actor.GetPosition()) + "</td></tr>",
-            "<tr><td><b> x-limits </b></td><td>" + utils.precision(self.xlim, 4) + "</td></tr>",
-            "<tr><td><b> y-limits </b></td><td>" + utils.precision(self.ylim, 4) + "</td></tr>",
-            "<tr><td><b> world bounds </b> <br/> (x/y/z) </td><td>" + str(bounds) + "</td></tr>",
+            "<tr><td><b> nr. of parts </b></td><td>"
+            + str(self.actor.GetNumberOfPaths())
+            + "</td></tr>",
+            "<tr><td><b> position </b></td><td>"
+            + str(self.actor.GetPosition())
+            + "</td></tr>",
+            "<tr><td><b> x-limits </b></td><td>"
+            + utils.precision(self.xlim, 4)
+            + "</td></tr>",
+            "<tr><td><b> y-limits </b></td><td>"
+            + utils.precision(self.ylim, 4)
+            + "</td></tr>",
+            "<tr><td><b> world bounds </b> <br/> (x/y/z) </td><td>"
+            + str(bounds)
+            + "</td></tr>",
             "</table>",
             "</table>",
         ]
@@ -267,30 +289,58 @@ class Figure(Assembly):
             self.labels.append(fig.label)
 
         if abs(self.yscale - fig.yscale) > 0.0001:
-
-            colors.printc(":bomb:ERROR: adding incompatible Figure. Y-scales are different:", c='r', invert=True)
-            colors.printc("  first  figure:", self.yscale, c='r')
-            colors.printc("  second figure:", fig.yscale, c='r')
+            colors.printc(
+                ":bomb:ERROR: adding incompatible Figure. Y-scales are different:",
+                c="r",
+                invert=True,
+            )
+            colors.printc("  first  figure:", self.yscale, c="r")
+            colors.printc("  second figure:", fig.yscale, c="r")
 
             colors.printc("One or more of these parameters can be the cause:", c="r")
             if list(self.xlim) != list(fig.xlim):
-                colors.printc("xlim --------------------------------------------\n",
-                              " first  figure:", self.xlim, "\n",
-                              " second figure:", fig.xlim, c='r')
+                colors.printc(
+                    "xlim --------------------------------------------\n",
+                    " first  figure:",
+                    self.xlim,
+                    "\n",
+                    " second figure:",
+                    fig.xlim,
+                    c="r",
+                )
             if list(self.ylim) != list(fig.ylim):
-                colors.printc("ylim --------------------------------------------\n",
-                              " first  figure:", self.ylim, "\n",
-                              " second figure:", fig.ylim, c='r')
+                colors.printc(
+                    "ylim --------------------------------------------\n",
+                    " first  figure:",
+                    self.ylim,
+                    "\n",
+                    " second figure:",
+                    fig.ylim,
+                    c="r",
+                )
             if list(self.padding) != list(fig.padding):
-                colors.printc("padding -----------------------------------------\n",
-                              " first  figure:", self.padding,
-                              " second figure:", fig.padding, c='r')
+                colors.printc(
+                    "padding -----------------------------------------\n",
+                    " first  figure:",
+                    self.padding,
+                    " second figure:",
+                    fig.padding,
+                    c="r",
+                )
             if self.aspect != fig.aspect:
-                colors.printc("aspect ------------------------------------------\n",
-                              " first  figure:", self.aspect, "\n",
-                              " second figure:", fig.aspect, c='r')
+                colors.printc(
+                    "aspect ------------------------------------------\n",
+                    " first  figure:",
+                    self.aspect,
+                    "\n",
+                    " second figure:",
+                    fig.aspect,
+                    c="r",
+                )
 
-            colors.printc("\n:idea: Consider using fig2 = histogram(..., like=fig1)", c="r")
+            colors.printc(
+                "\n:idea: Consider using fig2 = histogram(..., like=fig1)", c="r"
+            )
             colors.printc(" Or fig += histogram(..., like=fig)\n", c="r")
             return self
 
@@ -323,7 +373,6 @@ class Figure(Assembly):
                 cut off the parts of the object which go beyond the axes frame.
         """
         for a in objs:
-
             if a in self.objects:
                 # should not add twice the same object in plot
                 continue
@@ -363,11 +412,8 @@ class Figure(Assembly):
             #     a = b
 
             else:
-
                 if rescale:
-
                     if not isinstance(a, Figure):
-
                         if as3d and not isinstance(a, self.force_scaling_types):
                             if adjusted:
                                 scl = np.min([1, self.yscale])
@@ -586,7 +632,6 @@ class Figure(Assembly):
                 raise RuntimeError
 
         else:
-
             if relative:
                 rx, ry = pos[0], pos[1]
                 px = (xlim[1] - xlim[0]) * rx + xlim[0]
@@ -603,4 +648,3 @@ class Figure(Assembly):
         self.legend = aleg
         aleg.name = "Legend"
         return self
-

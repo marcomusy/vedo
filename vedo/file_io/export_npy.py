@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """NPY/NPZ scene export helpers."""
 
 import numpy as np

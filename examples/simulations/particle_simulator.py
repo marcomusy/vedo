@@ -1,6 +1,7 @@
 """
 Simulate interacting charged particles in 3D space.
 """
+
 # An example simulation of N particles scattering on a charged target.
 # See e.g. https://en.wikipedia.org/wiki/Rutherford_scattering
 # By Tommy Vandermolen
@@ -60,8 +61,8 @@ class ParticleSim:
                 a.pos += a.vel * self.dt
                 a.vsphere.pos(a.pos)
                 a.vsphere.update_trail()
-            if plt:                
-                if i==0:
+            if plt:
+                if i == 0:
                     plt.reset_camera()
                 plt.azimuth(1)
                 plt.render()
@@ -90,24 +91,33 @@ class Particle:
         self.negligible = negligible
         self.color = color
         if plt:
-            self.vsphere = Sphere(pos, r=radius, c=color).add_trail(lw=1, n=75, alpha=0.5)
+            self.vsphere = Sphere(pos, r=radius, c=color).add_trail(
+                lw=1, n=75, alpha=0.5
+            )
             plt.add(self.vsphere)  # Sphere representing the particle
 
 
 #####################################################################################################
 if __name__ == "__main__":
-
     plt = Plotter(title="Particle Simulator", bg="black", interactive=False)
 
-    plt += Cube().c('w').wireframe(True).lighting('off') # a wireframe cube
+    plt += Cube().c("w").wireframe(True).lighting("off")  # a wireframe cube
 
     sim = ParticleSim(dt=1e-5, iterations=50)
-    sim.add_particle((-0.4, 0, 0), color="w", charge=3e-6, radius=0.01, fixed=True)  # the target
+    sim.add_particle(
+        (-0.4, 0, 0), color="w", charge=3e-6, radius=0.01, fixed=True
+    )  # the target
 
     positions = np.random.randn(100, 3) / 60  # generate a beam of particles
     for p in positions:
-        p[0] = -0.5  # Fix x position. Their charge are small/negligible compared to target:
-        sim.add_particle(p, charge=0.01e-6, mass=0.1e-6, vel=(1000, 0, 0), negligible=True)
+        p[
+            0
+        ] = (
+            -0.5
+        )  # Fix x position. Their charge are small/negligible compared to target:
+        sim.add_particle(
+            p, charge=0.01e-6, mass=0.1e-6, vel=(1000, 0, 0), negligible=True
+        )
 
     sim.simulate()
     plt.interactive().close()

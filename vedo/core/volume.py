@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Volume-specific algorithm mixins."""
 
 import numpy as np
@@ -12,6 +13,7 @@ from vedo import utils
 from vedo.core.common import CommonAlgorithms
 
 __all__ = ["VolumeAlgorithms"]
+
 
 class VolumeAlgorithms(CommonAlgorithms):
     """Methods for Volume objects."""
@@ -76,8 +78,13 @@ class VolumeAlgorithms(CommonAlgorithms):
         return out
 
     def isosurface_discrete(
-            cls, values, background_label=None, internal_boundaries=True, use_quads=False, nsmooth=0,
-        ) -> vedo.mesh.Mesh:
+        cls,
+        values,
+        background_label=None,
+        internal_boundaries=True,
+        use_quads=False,
+        nsmooth=0,
+    ) -> vedo.mesh.Mesh:
         """
         Create boundary/isocontour surfaces from a label map (e.g., a segmented image) using a threaded,
         3D version of the multiple objects/labels Surface Nets algorithm.
@@ -165,7 +172,6 @@ class VolumeAlgorithms(CommonAlgorithms):
 
         logger.SetStderrVerbosity(logger.VERBOSITY_INFO)
         return out
-
 
     def legosurface(
         cls,

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Slider widgets extracted from vedo.addons."""
 
 import os
@@ -99,7 +100,7 @@ class SliderWidget(vtki.vtkSliderWidget):
         """Toggle the widget"""
         self.SetEnabled(not self.GetEnabled())
         return self
-    
+
     def is_enabled(self) -> bool:
         """Check if the widget is enabled."""
         return bool(self.GetEnabled())
@@ -114,6 +115,7 @@ class SliderWidget(vtki.vtkSliderWidget):
         """Render the widget."""
         self.Render()
         return self
+
 
 #####################################################################
 class Slider2D(SliderWidget):
@@ -189,13 +191,13 @@ class Slider2D(SliderWidget):
 
             ![](https://user-images.githubusercontent.com/32848391/50738848-be033480-11d8-11e9-9b1a-c13105423a79.jpg)
         """
-        slider_length = options.pop("slider_length",  0.015)
-        slider_width  = options.pop("slider_width",   0.025)
-        end_cap_length= options.pop("end_cap_length", 0.0015)
-        end_cap_width = options.pop("end_cap_width",  0.0125)
-        tube_width    = options.pop("tube_width",     0.0075)
-        title_height  = options.pop("title_height",   0.025)
-        tformat       = options.pop("tformat",        None)
+        slider_length = options.pop("slider_length", 0.015)
+        slider_width = options.pop("slider_width", 0.025)
+        end_cap_length = options.pop("end_cap_length", 0.0015)
+        end_cap_width = options.pop("end_cap_width", 0.0125)
+        tube_width = options.pop("tube_width", 0.0075)
+        title_height = options.pop("title_height", 0.025)
+        tformat = options.pop("tformat", None)
 
         if options:
             vedo.logger.warning(f"in Slider2D unknown option(s): {options}")
@@ -285,15 +287,21 @@ class Slider2D(SliderWidget):
 
         if show_value:
             if tformat is None:
-                if isinstance(xmin, int) and isinstance(xmax, int) and isinstance(value, int):
+                if (
+                    isinstance(xmin, int)
+                    and isinstance(xmax, int)
+                    and isinstance(value, int)
+                ):
                     tformat = "%0.0f"
                 else:
                     tformat = "%0.2f"
-            if utils.vtk_version_at_least(6,0):
+            if utils.vtk_version_at_least(6, 0):
                 # replace the default format of '%0.2g' to '{:0.2f}' to show more significant digits
-                tformat = tformat.replace("%", "{:").replace("f", "f}").replace("g", "g}")
+                tformat = (
+                    tformat.replace("%", "{:").replace("f", "f}").replace("g", "g}")
+                )
 
-            slider_rep.SetLabelFormat(tformat)  
+            slider_rep.SetLabelFormat(tformat)
             slider_rep.GetLabelProperty().SetShadow(0)
             slider_rep.GetLabelProperty().SetBold(0)
             slider_rep.GetLabelProperty().SetOpacity(alpha)
@@ -452,5 +460,3 @@ class Slider3D(SliderWidget):
         self.SetRepresentation(slider_rep)
         self.SetAnimationModeToJump()
         self.AddObserver("InteractionEvent", sliderfunc)
-
-

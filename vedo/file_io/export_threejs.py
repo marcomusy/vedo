@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Three.js scene export helpers."""
 
 import base64
@@ -699,13 +700,19 @@ def _extract_vertex_colors(obj: dict, npoints: int) -> list[float]:
     return []
 
 
-def _extract_texture_payload(obj: dict, pack_arrays=True) -> tuple[dict | None, dict | None]:
+def _extract_texture_payload(
+    obj: dict, pack_arrays=True
+) -> tuple[dict | None, dict | None]:
     """Extract mesh texture data when present and supported."""
     texture_array = obj.get("texture_array")
     if texture_array is None:
         return None, None
 
-    uvs = np.asarray(obj.get("texture_coordinates")) if obj.get("texture_coordinates") is not None else None
+    uvs = (
+        np.asarray(obj.get("texture_coordinates"))
+        if obj.get("texture_coordinates") is not None
+        else None
+    )
     if uvs is None or uvs.size == 0:
         label = obj.get("name") or obj.get("filename") or "Mesh"
         return None, {"label": f"{label} (texture without UVs)"}
@@ -727,7 +734,9 @@ def _extract_texture_payload(obj: dict, pack_arrays=True) -> tuple[dict | None, 
             "width": int(image.shape[1]),
             "height": int(image.shape[0]),
             "channels": int(image.shape[2]),
-            "data": _pack_numeric_array(image, np.uint8, min_values=256) if pack_arrays else image.reshape(-1).tolist(),
+            "data": _pack_numeric_array(image, np.uint8, min_values=256)
+            if pack_arrays
+            else image.reshape(-1).tolist(),
             "repeat": bool(obj.get("texture_repeat")),
             "interpolate": bool(obj.get("texture_interpolate")),
         },
@@ -735,7 +744,9 @@ def _extract_texture_payload(obj: dict, pack_arrays=True) -> tuple[dict | None, 
     )
 
 
-def _scene_object_to_threejs(obj: dict, pack_arrays=True) -> tuple[dict | None, dict | None]:
+def _scene_object_to_threejs(
+    obj: dict, pack_arrays=True
+) -> tuple[dict | None, dict | None]:
     """Convert a serialized scene object to a Three.js-friendly payload."""
     from .scene import _color_to_hex
 
@@ -780,18 +791,28 @@ def _scene_object_to_threejs(obj: dict, pack_arrays=True) -> tuple[dict | None, 
         "flat_shading": int(obj.get("shading", 1)) == 0,
         "wireframe": int(obj.get("representation", 0)) == 1,
         "edge_visibility": bool(obj.get("edge_visibility")),
-        "edge_color": _color_to_hex(obj.get("linecolor")) or _color_to_hex(obj.get("color")) or "#d9dde3",
-        "line_width": float(1.0 if obj.get("linewidth") is None else obj.get("linewidth")),
+        "edge_color": _color_to_hex(obj.get("linecolor"))
+        or _color_to_hex(obj.get("color"))
+        or "#d9dde3",
+        "line_width": float(
+            1.0 if obj.get("linewidth") is None else obj.get("linewidth")
+        ),
         "ambient": float(0.0 if obj.get("ambient") is None else obj.get("ambient")),
         "diffuse": float(1.0 if obj.get("diffuse") is None else obj.get("diffuse")),
         "specular": float(0.0 if obj.get("specular") is None else obj.get("specular")),
-        "specular_power": float(1.0 if obj.get("specularpower") is None else obj.get("specularpower")),
+        "specular_power": float(
+            1.0 if obj.get("specularpower") is None else obj.get("specularpower")
+        ),
         "specular_color": _color_to_hex(obj.get("specularcolor")) or "#111111",
-        "lighting": bool(True if obj.get("lighting_is_on") is None else obj.get("lighting_is_on")),
+        "lighting": bool(
+            True if obj.get("lighting_is_on") is None else obj.get("lighting_is_on")
+        ),
         "back_color": _color_to_hex(obj.get("backcolor")),
     }
     vertex_colors = _extract_vertex_colors(obj, len(points))
-    texture_payload, texture_warning = _extract_texture_payload(obj, pack_arrays=pack_arrays)
+    texture_payload, texture_warning = _extract_texture_payload(
+        obj, pack_arrays=pack_arrays
+    )
 
     cells = obj.get("cells")
     if cells is not None and len(np.asarray(cells).ravel()) > 0:
@@ -799,30 +820,39 @@ def _scene_object_to_threejs(obj: dict, pack_arrays=True) -> tuple[dict | None, 
             {
                 **base,
                 "kind": "mesh",
-                "positions": _pack_numeric_array(points, np.float32) if pack_arrays else points.reshape(-1).tolist(),
+                "positions": _pack_numeric_array(points, np.float32)
+                if pack_arrays
+                else points.reshape(-1).tolist(),
                 "indices": (
                     _pack_numeric_array(
                         _triangulate_flat_cells(cells),
                         np.uint16 if len(points) < 65536 else np.uint32,
                     )
-                    if pack_arrays else _triangulate_flat_cells(cells)
+                    if pack_arrays
+                    else _triangulate_flat_cells(cells)
                 ),
                 "normals": (
                     _pack_numeric_array(obj.get("point_normals"), np.float32)
-                    if pack_arrays else _flatten_numeric_array(obj.get("point_normals"))
+                    if pack_arrays
+                    else _flatten_numeric_array(obj.get("point_normals"))
                 ),
                 "uvs": (
                     _pack_numeric_array(obj.get("texture_coordinates"), np.float32)
-                    if pack_arrays else _flatten_numeric_array(obj.get("texture_coordinates"))
+                    if pack_arrays
+                    else _flatten_numeric_array(obj.get("texture_coordinates"))
                 ),
                 "vertex_colors": (
                     _pack_numeric_array(vertex_colors, np.float32)
-                    if pack_arrays else vertex_colors
+                    if pack_arrays
+                    else vertex_colors
                 ),
                 "texture": texture_payload,
                 "edge_segments": (
-                    _pack_numeric_array(_polygon_edge_segments(cells, points), np.float32)
-                    if pack_arrays else _polygon_edge_segments(cells, points)
+                    _pack_numeric_array(
+                        _polygon_edge_segments(cells, points), np.float32
+                    )
+                    if pack_arrays
+                    else _polygon_edge_segments(cells, points)
                 ),
             },
             texture_warning,
@@ -841,7 +871,9 @@ def _scene_object_to_threejs(obj: dict, pack_arrays=True) -> tuple[dict | None, 
                 **base,
                 "kind": "lines",
                 "polylines": polylines,
-                "vertex_colors": _pack_numeric_array(vertex_colors, np.float32) if pack_arrays else vertex_colors,
+                "vertex_colors": _pack_numeric_array(vertex_colors, np.float32)
+                if pack_arrays
+                else vertex_colors,
             },
             None,
         )
@@ -850,9 +882,16 @@ def _scene_object_to_threejs(obj: dict, pack_arrays=True) -> tuple[dict | None, 
         {
             **base,
             "kind": "points",
-            "positions": _pack_numeric_array(points, np.float32) if pack_arrays else points.reshape(-1).tolist(),
-            "point_size": max(float(4.0 if obj.get("pointsize") is None else obj.get("pointsize")), 1.0),
-            "vertex_colors": _pack_numeric_array(vertex_colors, np.float32) if pack_arrays else vertex_colors,
+            "positions": _pack_numeric_array(points, np.float32)
+            if pack_arrays
+            else points.reshape(-1).tolist(),
+            "point_size": max(
+                float(4.0 if obj.get("pointsize") is None else obj.get("pointsize")),
+                1.0,
+            ),
+            "vertex_colors": _pack_numeric_array(vertex_colors, np.float32)
+            if pack_arrays
+            else vertex_colors,
         },
         None,
     )
@@ -887,7 +926,9 @@ def _normalize_threejs_options(options: dict | None = None) -> dict:
     normalized["headlight_intensity"] = max(normalized["headlight_intensity"], 0.0)
     normalized["ambient_scale"] = max(normalized["ambient_scale"], 0.0)
     normalized["specular_scale"] = max(normalized["specular_scale"], 0.0)
-    normalized["fallback_specular_strength"] = max(normalized["fallback_specular_strength"], 0.0)
+    normalized["fallback_specular_strength"] = max(
+        normalized["fallback_specular_strength"], 0.0
+    )
     normalized["fallback_shininess"] = max(normalized["fallback_shininess"], 1.0)
     return normalized
 
@@ -898,7 +939,8 @@ def _scene_to_threejs_payload(plt, backend_options: dict | None = None) -> dict:
 
     scene = _plotter_to_scene_dict(plt)
     has_real_axes = any(
-        isinstance(obj.get("metadata"), dict) and obj["metadata"].get("assembly") == "Axes"
+        isinstance(obj.get("metadata"), dict)
+        and obj["metadata"].get("assembly") == "Axes"
         for obj in scene.get("objects", [])
     )
     payload = {
@@ -909,7 +951,9 @@ def _scene_to_threejs_payload(plt, backend_options: dict | None = None) -> dict:
             "viewup": _json_compatible(scene["camera"]["viewup"]),
             "parallel_projection": bool(scene.get("use_parallel_projection")),
             "parallel_scale": float(
-                1.0 if scene["camera"].get("parallel_scale") is None else scene["camera"].get("parallel_scale")
+                1.0
+                if scene["camera"].get("parallel_scale") is None
+                else scene["camera"].get("parallel_scale")
             ),
         },
         "background": {
@@ -938,7 +982,9 @@ def _scene_to_threejs_payload(plt, backend_options: dict | None = None) -> dict:
     return payload
 
 
-def _export_threejs(plt, fileoutput="scene.html", backend_options: dict | None = None) -> None:
+def _export_threejs(
+    plt, fileoutput="scene.html", backend_options: dict | None = None
+) -> None:
     """Export the current scene as a standalone Three.js HTML document."""
     from .scene import _json_compatible
 

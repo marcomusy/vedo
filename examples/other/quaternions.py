@@ -15,8 +15,19 @@ Right panel:
   Quaternion().slerp(t, q_target)
   for different values of t between 0 and 1.
 """
+
 import numpy as np
-from vedo import Plotter, Quaternion, Sphere, Cube, merge, Arrow, DashedLine, Text3D, settings
+from vedo import (
+    Plotter,
+    Quaternion,
+    Sphere,
+    Cube,
+    merge,
+    Arrow,
+    DashedLine,
+    Text3D,
+    settings,
+)
 
 
 settings.default_font = "Calco"
@@ -86,7 +97,7 @@ for x, t, color in zip(np.linspace(-3.9, 3.9, 7), np.linspace(0, 1, 7), palette)
     obj.c(color).alpha(0.85)
     slerp_objs.append(obj)
     slerp_objs += make_frame(origin=(x, 0, 0), quaternion=qi, scale=0.55, alpha=0.8)
-    slerp_objs.append(Text3D(f"{ang_i:3.0f}^o", s=0.08, c='r2').pos(x, -0.78, 0))
+    slerp_objs.append(Text3D(f"{ang_i:3.0f}^o", s=0.08, c="r2").pos(x, -0.78, 0))
 
 plt = Plotter(N=2, size=(1800, 850), axes=1, sharecam=False)
 plt.at(0).show(left_msg, *left_objs, viewup="z")

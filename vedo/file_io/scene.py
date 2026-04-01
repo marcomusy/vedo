@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Scene import/export, screenshots, and terminal interaction helpers."""
 
 import os
@@ -24,6 +25,7 @@ __all__ = [
     "import_window",
     "screenshot",
 ]
+
 
 def export_window(
     fileoutput: str | os.PathLike,
@@ -91,6 +93,7 @@ def export_window(
 
     return plt
 
+
 #########################################################################
 def to_numpy(act: Any) -> dict:
     """Encode a vedo object to numpy format."""
@@ -138,7 +141,7 @@ def to_numpy(act: Any) -> dict:
 
         adict["lines"] = None
         if poly.GetNumberOfLines():
-            adict["lines"] = obj.lines#_as_flat_array
+            adict["lines"] = obj.lines  # _as_flat_array
 
         adict["pointdata"] = {}
         for iname in obj.pointdata.keys():
@@ -159,18 +162,24 @@ def to_numpy(act: Any) -> dict:
         adict["point_normals"] = None
         normals = poly.GetPointData().GetNormals()
         if normals:
-            adict["point_normals"] = vedo.vtk2numpy(normals).astype(np.float32, copy=False)
+            adict["point_normals"] = vedo.vtk2numpy(normals).astype(
+                np.float32, copy=False
+            )
 
         adict["texture_coordinates"] = None
         tcoords = poly.GetPointData().GetTCoords()
         if tcoords:
-            adict["texture_coordinates"] = vedo.vtk2numpy(tcoords).astype(np.float32, copy=False)
+            adict["texture_coordinates"] = vedo.vtk2numpy(tcoords).astype(
+                np.float32, copy=False
+            )
 
         # NEW in vedo 5.0
         adict["scalar_mode"] = mapper.GetScalarMode()
         adict["array_name_to_color_by"] = mapper.GetArrayName()
         adict["color_mode"] = mapper.GetColorMode()
-        adict["interpolate_scalars_before_mapping"] = mapper.GetInterpolateScalarsBeforeMapping()
+        adict["interpolate_scalars_before_mapping"] = (
+            mapper.GetInterpolateScalarsBeforeMapping()
+        )
         adict["use_lookup_table_scalar_range"] = mapper.GetUseLookupTableScalarRange()
         adict["scalar_range"] = mapper.GetScalarRange()
         adict["scalar_visibility"] = mapper.GetScalarVisibility()
@@ -179,7 +188,7 @@ def to_numpy(act: Any) -> dict:
 
         # adict["color_map_colors"]  = mapper.GetColorMapColors()   #vtkUnsignedCharArray
         # adict["color_coordinates"] = mapper.GetColorCoordinates() #vtkFloatArray
-        texmap = mapper.GetColorTextureMap()  #vtkImageData
+        texmap = mapper.GetColorTextureMap()  # vtkImageData
         if texmap:
             adict["color_texture_map"] = vedo.Image(texmap).tonumpy()
             # print("color_texture_map", adict["color_texture_map"].shape)
@@ -217,7 +226,7 @@ def to_numpy(act: Any) -> dict:
 
         adict["linecolor"] = None
         adict["linewidth"] = None
-        adict["edge_visibility"] = prp.GetEdgeVisibility() # new in vedo 5.0
+        adict["edge_visibility"] = prp.GetEdgeVisibility()  # new in vedo 5.0
         if prp.GetEdgeVisibility():
             adict["linewidth"] = prp.GetLineWidth()
             adict["linecolor"] = prp.GetEdgeColor()
@@ -249,7 +258,9 @@ def to_numpy(act: Any) -> dict:
                 pdnorm.Update()
                 wn = pdnorm.GetOutput().GetPointData().GetNormals()
                 if wn:
-                    adict["point_normals"] = vedo.vtk2numpy(wn).astype(np.float32, copy=False)
+                    adict["point_normals"] = vedo.vtk2numpy(wn).astype(
+                        np.float32, copy=False
+                    )
 
     ######################################################## Volume
     elif isinstance(obj, Volume):
@@ -284,7 +295,7 @@ def to_numpy(act: Any) -> dict:
         adict["scale"] = obj.actor.GetScale()
         adict["position"] = obj.actor.GetPosition()
         adict["orientation"] = obj.actor.GetOrientation()
-        adict['origin'] = obj.actor.GetOrigin()
+        adict["origin"] = obj.actor.GetOrigin()
         adict["alpha"] = obj.alpha()
 
     ######################################################## Text2D
@@ -431,7 +442,9 @@ def _export_x3d(plt, fileoutput="scene.x3d", binary=False) -> None:
     _export_x3d_impl(plt, fileoutput, binary=binary)
 
 
-def _export_threejs(plt, fileoutput="scene.html", backend_options: dict | None = None) -> None:
+def _export_threejs(
+    plt, fileoutput="scene.html", backend_options: dict | None = None
+) -> None:
     """Compatibility wrapper for the dedicated Three.js exporter."""
     from .export_threejs import _export_threejs as _export_threejs_impl
 
@@ -463,7 +476,9 @@ def import_window(fileinput: str | os.PathLike) -> vedo.Plotter | None:
     return None
 
 
-def screenshot(filename="screenshot.png", scale=1, asarray=False) -> vedo.Plotter | np.ndarray | None:
+def screenshot(
+    filename="screenshot.png", scale=1, asarray=False
+) -> vedo.Plotter | np.ndarray | None:
     """
     Save a screenshot of the current rendering window.
 
@@ -493,7 +508,7 @@ def screenshot(filename="screenshot.png", scale=1, asarray=False) -> vedo.Plotte
     if asarray and scale == 1 and not plt.offscreen:
         nx, ny = plt.window.GetSize()
         arr = vtki.vtkUnsignedCharArray()
-        plt.window.GetRGBACharPixelData(0, 0, nx-1, ny-1, 0, arr)
+        plt.window.GetRGBACharPixelData(0, 0, nx - 1, ny - 1, 0, arr)
         narr = vedo.vtk2numpy(arr).T[:3].T.reshape([ny, nx, 3])
         narr = np.flip(narr, axis=0)
         return narr  ##########
@@ -553,7 +568,7 @@ def screenshot(filename="screenshot.png", scale=1, asarray=False) -> vedo.Plotte
         ydim, xdim, _ = w2if.GetOutput().GetDimensions()
         npdata = npdata.reshape([xdim, ydim, -1])
         npdata = np.flip(npdata, axis=0)
-        return npdata ###########################
+        return npdata  ###########################
 
     if filename.lower().endswith(".png"):
         writer = vtki.new("PNGWriter")

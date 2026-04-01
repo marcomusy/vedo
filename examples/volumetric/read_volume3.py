@@ -1,8 +1,9 @@
 """Open a 2D slicer application for interactive volume inspection."""
+
 from vedo import Volume, dataurl
 from vedo.applications import Slicer2DPlotter
 
-vol = Volume(dataurl+"embryo.slc")
+vol = Volume(dataurl + "embryo.slc")
 
 plt = Slicer2DPlotter(vol)
 

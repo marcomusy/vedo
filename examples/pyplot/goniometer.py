@@ -1,4 +1,5 @@
 """The 3D-ruler axes and a goniometer"""
+
 from vedo import *
 
 
@@ -9,8 +10,7 @@ mesh.c("steelblue")
 
 # measure the angle formed by 3 points
 gon = Goniometer(
-    [-0.5, 1, 2], [2.5, 2, 2], [-0.5, 3, 3], 
-    prefix=":alpha_c =~", lw=2, s=0.8
+    [-0.5, 1, 2], [2.5, 2, 2], [-0.5, 3, 3], prefix=":alpha_c =~", lw=2, s=0.8
 )
 
 # show distance of any 2 points

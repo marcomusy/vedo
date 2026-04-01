@@ -66,7 +66,6 @@ class CommonVisual:
 
         self.actor = None
 
-
     def print(self):
         """Print object info."""
         print(self.__str__())
@@ -114,7 +113,7 @@ class CommonVisual:
         if vmin is None and vmax is None:
             return np.array(self.mapper.GetScalarRange())
         if vmax is None:
-            vmin, vmax = vmin # assume it is a list
+            vmin, vmax = vmin  # assume it is a list
         self.mapper.SetScalarRange(float(vmin), float(vmax))
         return self
 
@@ -149,7 +148,9 @@ class CommonVisual:
         """
         return vedo.plotter.show(self, **options)
 
-    def thumbnail(self, zoom=1.25, size=(200, 200), bg="white", azimuth=0, elevation=0, axes=False) -> np.ndarray:
+    def thumbnail(
+        self, zoom=1.25, size=(200, 200), bg="white", azimuth=0, elevation=0, axes=False
+    ) -> np.ndarray:
         """Build a thumbnail of the object and return it as an array."""
         # speed is about 20Hz for size=[200,200]
         ren = vtki.vtkRenderer()
@@ -457,7 +458,7 @@ class CommonVisual:
 
         if col is None:
             return self
-        
+
         if vmin is None:
             vmin, _ = self.dataset.GetScalarRange()
         if vmax is None:
@@ -493,22 +494,22 @@ class CommonVisual:
             ctf.AddRGBPoint(vmin, r, g, b)  # constant color
             ctf.AddRGBPoint(vmax, r, g, b)
         elif isinstance(col, vtki.vtkLookupTable):
-            alpha=[]
+            alpha = []
             nt = col.GetNumberOfTableValues()
             for i in range(nt):
                 r, g, b, a = col.GetTableValue(i)
                 x = vmin + (vmax - vmin) * i / (nt - 1)
                 ctf.AddRGBPoint(x, r, g, b)
                 alpha.append(a)
-        elif hasattr(col, "resampled"): # cover the case of LinearSegmentedColormap
+        elif hasattr(col, "resampled"):  # cover the case of LinearSegmentedColormap
             N = col.N
-            cs = np.array([col(i/N) for i in range(N)])
-            alpha = cs[:,3].copy()
+            cs = np.array([col(i / N) for i in range(N)])
+            alpha = cs[:, 3].copy()
             for i, v in enumerate(cs):
                 r, g, b, _ = v
                 x = vmin + (vmax - vmin) * i / (N - 1)
                 ctf.AddRGBPoint(x, r, g, b)
-        elif hasattr(col, "to_rgba"):   # col is a matplotlib colormap
+        elif hasattr(col, "to_rgba"):  # col is a matplotlib colormap
             for i in range(256):
                 r, g, b, a = col(i / 255)
                 x = vmin + (vmax - vmin) * i / 255
@@ -554,7 +555,9 @@ class CommonVisual:
 
         if utils.is_sequence(alpha):
             alpha = np.array(alpha)
-            if len(alpha.shape) == 1:  # user passing a flat list e.g. (0.0, 0.3, 0.9, 1)
+            if (
+                len(alpha.shape) == 1
+            ):  # user passing a flat list e.g. (0.0, 0.3, 0.9, 1)
                 for i, al in enumerate(alpha):
                     xalpha = vmin + (vmax - vmin) * i / (len(alpha) - 1)
                     # Create transfer mapping scalar value to opacity
@@ -568,7 +571,6 @@ class CommonVisual:
                 otf.AddPoint(vmax, alpha[-1][1])
 
         else:
-
             otf.AddPoint(vmin, alpha)  # constant alpha
             otf.AddPoint(vmax, alpha)
 
@@ -587,7 +589,7 @@ class Actor2D(vtki.vtkActor2D):
         self.filename = ""
         self.file_size = 0
         self.pipeline = None
-        self.shape = [] # for images
+        self.shape = []  # for images
         self.coordinate = None
 
         if dataset is not None:
@@ -598,19 +600,17 @@ class Actor2D(vtki.vtkActor2D):
         self.dataset = dataset
         self.properties = self.GetProperty()
 
-
     @property
     def mapper(self):
         """Get the internal vtkMapper."""
         return self.GetMapper()
 
-    
     # not usable
     # @property
     # def properties(self):
     #     """Get the internal vtkProperty."""
     #     return self.GetProperty()
-    
+
     # @properties.setter
     # def properties(self, prop):
     #     """Set the internal vtkProperty."""
@@ -661,7 +661,7 @@ class Actor2D(vtki.vtkActor2D):
             return coor.GetCoordinateSystem()
         coor.SetCoordinateSystem(value)
         return self
-    
+
     def set_position_coordinates(self, p1, p2):
         """Set the position coordinates."""
         self.GetPositionCoordinate().SetValue(*p1)
@@ -740,6 +740,7 @@ class Actor2D(vtki.vtkActor2D):
         idd = self.AddObserver(event_name, func, priority)
         return idd
 
+
 ########################################################################################
 class Actor3DHelper:
     """Helper class for 3D actors."""
@@ -767,7 +768,7 @@ class Actor3DHelper:
             z = 0
 
         q = self.transform.position
-        LT = vedo.LinearTransform().translate([x,y,z]-q)
+        LT = vedo.LinearTransform().translate([x, y, z] - q)
         return self.apply_transform(LT)
 
     def shift(self, dx, dy=0, dz=0) -> Self:
@@ -840,8 +841,8 @@ class Actor3DHelper:
         direction = new_axis / np.linalg.norm(new_axis)
         angle = np.arccos(np.dot(axis, direction)) * 180 / np.pi
         self.actor.RotateZ(rotation)
-        a,b,c = np.cross(axis, direction)
-        self.actor.RotateWXYZ(angle, c,b,a)
+        a, b, c = np.cross(axis, direction)
+        self.actor.RotateWXYZ(angle, c, b, a)
         return self
 
     def bounds(self) -> np.ndarray:
@@ -879,10 +880,13 @@ class Actor3DHelper:
     def diagonal_size(self) -> float:
         """Get the diagonal size of the bounding box."""
         b = self.bounds()
-        return np.sqrt((b[1]-b[0])**2 + (b[3]-b[2])**2 + (b[5]-b[4])**2)
+        return np.sqrt((b[1] - b[0]) ** 2 + (b[3] - b[2]) ** 2 + (b[5] - b[4]) ** 2)
+
 
 ###################################################
-class PointsVisual(PointsVisualEffectsMixin, PointsVisualAnnotationsMixin, CommonVisual):
+class PointsVisual(
+    PointsVisualEffectsMixin, PointsVisualAnnotationsMixin, CommonVisual
+):
     """Class to manage the visual aspects of a ``Points`` object."""
 
     def __init__(self):
@@ -894,7 +898,6 @@ class PointsVisual(PointsVisualEffectsMixin, PointsVisualAnnotationsMixin, Commo
         self.trail_offset = 0
         self.trail_points = []
         self._caption = None
-
 
     def clone2d(self, size=None, offset=(), scale=None):
         """
@@ -961,7 +964,7 @@ class PointsVisual(PointsVisualEffectsMixin, PointsVisualAnnotationsMixin, Commo
         act2d.properties.SetOpacity(self.alpha())
         act2d.properties.SetLineWidth(self.properties.GetLineWidth())
         act2d.properties.SetPointSize(self.properties.GetPointSize())
-        act2d.properties.SetDisplayLocation(0) # 0 = back, 1 = front
+        act2d.properties.SetDisplayLocation(0)  # 0 = back, 1 = front
         act2d.PickableOff()
         return act2d
 
@@ -1005,9 +1008,7 @@ class PointsVisual(PointsVisualEffectsMixin, PointsVisualAnnotationsMixin, Commo
         self.mapper.SetInterpolateScalarsBeforeMapping(
             mp.GetInterpolateScalarsBeforeMapping()
         )
-        self.mapper.SetUseLookupTableScalarRange(
-            mp.GetUseLookupTableScalarRange()
-        )
+        self.mapper.SetUseLookupTableScalarRange(mp.GetUseLookupTableScalarRange())
 
         self.actor.SetPickable(sa.GetPickable())
         self.actor.SetDragable(sa.GetDragable())
@@ -1064,7 +1065,7 @@ class PointsVisual(PointsVisualEffectsMixin, PointsVisualAnnotationsMixin, Commo
         lut = self.mapper.GetLookupTable()
         if not lut:
             return None
-        rgb = [0,0,0]
+        rgb = [0, 0, 0]
         lut.GetColor(value, rgb)
         alpha = lut.GetOpacity(value)
         return np.array(rgb + [alpha])
@@ -1074,14 +1075,14 @@ class PointsVisual(PointsVisualEffectsMixin, PointsVisualAnnotationsMixin, Commo
         return self.alpha(alpha)
 
     def force_opaque(self, value=True) -> Self:
-        """ Force the Mesh, Line or point cloud to be treated as opaque"""
+        """Force the Mesh, Line or point cloud to be treated as opaque"""
         ## force the opaque pass, fixes picking in vtk9
         # but causes other bad troubles with lines..
         self.actor.SetForceOpaque(value)
         return self
 
     def force_translucent(self, value=True) -> Self:
-        """ Force the Mesh, Line or point cloud to be treated as translucent"""
+        """Force the Mesh, Line or point cloud to be treated as translucent"""
         self.actor.SetForceTranslucent(value)
         return self
 
@@ -1140,7 +1141,6 @@ class PointsVisual(PointsVisualEffectsMixin, PointsVisualAnnotationsMixin, Commo
         pr = self.properties
 
         if style:
-
             if style != "off":
                 pr.LightingOn()
 
@@ -1154,17 +1154,25 @@ class PointsVisual(PointsVisualEffectsMixin, PointsVisualAnnotationsMixin, Commo
             else:
                 c = (1, 1, 0.99)
             mpr = self.mapper
-            if hasattr(mpr, 'GetScalarVisibility') and mpr.GetScalarVisibility():
-                c = (1,1,0.99)
-            if   style=='metallic': pars = [0.1, 0.3, 1.0, 10, c]
-            elif style=='plastic' : pars = [0.3, 0.4, 0.3,  5, c]
-            elif style=='shiny'   : pars = [0.2, 0.6, 0.8, 50, c]
-            elif style=='glossy'  : pars = [0.1, 0.7, 0.9, 90, (1,1,0.99)]
-            elif style=='ambient' : pars = [0.8, 0.1, 0.0,  1, (1,1,1)]
-            elif style=='default' : pars = [0.1, 1.0, 0.05, 5, c]
+            if hasattr(mpr, "GetScalarVisibility") and mpr.GetScalarVisibility():
+                c = (1, 1, 0.99)
+            if style == "metallic":
+                pars = [0.1, 0.3, 1.0, 10, c]
+            elif style == "plastic":
+                pars = [0.3, 0.4, 0.3, 5, c]
+            elif style == "shiny":
+                pars = [0.2, 0.6, 0.8, 50, c]
+            elif style == "glossy":
+                pars = [0.1, 0.7, 0.9, 90, (1, 1, 0.99)]
+            elif style == "ambient":
+                pars = [0.8, 0.1, 0.0, 1, (1, 1, 1)]
+            elif style == "default":
+                pars = [0.1, 1.0, 0.05, 5, c]
             else:
                 vedo.logger.error("in lighting(): Available styles are")
-                vedo.logger.error("[default, metallic, plastic, shiny, glossy, ambient, off]")
+                vedo.logger.error(
+                    "[default, metallic, plastic, shiny, glossy, ambient, off]"
+                )
                 raise RuntimeError()
             pr.SetAmbient(pars[0])
             pr.SetDiffuse(pars[1])
@@ -1173,11 +1181,16 @@ class PointsVisual(PointsVisualEffectsMixin, PointsVisualAnnotationsMixin, Commo
             if hasattr(pr, "GetColor"):
                 pr.SetSpecularColor(pars[4])
 
-        if ambient is not None: pr.SetAmbient(ambient)
-        if diffuse is not None: pr.SetDiffuse(diffuse)
-        if specular is not None: pr.SetSpecular(specular)
-        if specular_power is not None: pr.SetSpecularPower(specular_power)
-        if specular_color is not None: pr.SetSpecularColor(colors.get_color(specular_color))
+        if ambient is not None:
+            pr.SetAmbient(ambient)
+        if diffuse is not None:
+            pr.SetDiffuse(diffuse)
+        if specular is not None:
+            pr.SetSpecular(specular)
+        if specular_power is not None:
+            pr.SetSpecularPower(specular_power)
+        if specular_color is not None:
+            pr.SetSpecularColor(colors.get_color(specular_color))
         if metallicity is not None:
             pr.SetInterpolationToPBR()
             pr.SetMetallic(metallicity)
@@ -1327,7 +1340,7 @@ class PointsVisual(PointsVisualEffectsMixin, PointsVisualAnnotationsMixin, Commo
         assert n == value.shape[0]
 
         self.pointdata["PointsRGBA"] = value.astype(np.uint8)
-        self.mapper.SetColorModeToDirectScalars() # also done in select()
+        self.mapper.SetColorModeToDirectScalars()  # also done in select()
         self.pointdata.select("PointsRGBA")
 
     #####################################################################################
@@ -1380,7 +1393,7 @@ class PointsVisual(PointsVisualEffectsMixin, PointsVisualAnnotationsMixin, Commo
         if on == "":
             try:
                 on = self.mapper.GetScalarModeAsString().replace("Use", "")
-                if on not in ["PointData", "CellData"]: # can be "Default"
+                if on not in ["PointData", "CellData"]:  # can be "Default"
                     on = "points"
                     self.mapper.SetScalarModeToUsePointData()
             except AttributeError:
@@ -1403,13 +1416,16 @@ class PointsVisual(PointsVisualEffectsMixin, PointsVisualAnnotationsMixin, Commo
             n = self.dataset.GetNumberOfCells()
         else:
             vedo.logger.error(
-                f"Must specify in cmap(on=...) to either 'cells' or 'points', not {on}")
+                f"Must specify in cmap(on=...) to either 'cells' or 'points', not {on}"
+            )
             raise RuntimeError()
 
         if input_array is None:  # if None try to fetch the active scalars
             arr = data.GetScalars()
             if not arr:
-                vedo.logger.error(f"in cmap(), cannot find any {on} active array ...skip coloring.")
+                vedo.logger.error(
+                    f"in cmap(), cannot find any {on} active array ...skip coloring."
+                )
                 return self
 
             if not arr.GetName():  # sometimes arrays dont have a name..
@@ -1418,20 +1434,26 @@ class PointsVisual(PointsVisualEffectsMixin, PointsVisualAnnotationsMixin, Commo
         elif isinstance(input_array, str):  # if a string is passed
             arr = data.GetArray(input_array)
             if not arr:
-                vedo.logger.error(f"in cmap(), cannot find {on} array {input_array} ...skip coloring.")
+                vedo.logger.error(
+                    f"in cmap(), cannot find {on} array {input_array} ...skip coloring."
+                )
                 return self
 
         elif isinstance(input_array, int):  # if an int is passed
             if input_array < data.GetNumberOfArrays():
                 arr = data.GetArray(input_array)
             else:
-                vedo.logger.error(f"in cmap(), cannot find {on} array at {input_array} ...skip coloring.")
+                vedo.logger.error(
+                    f"in cmap(), cannot find {on} array at {input_array} ...skip coloring."
+                )
                 return self
 
         elif utils.is_sequence(input_array):  # if a numpy array is passed
             npts = len(input_array)
             if npts != n:
-                vedo.logger.error(f"in cmap(), nr. of input {on} scalars {npts} != {n} ...skip coloring.")
+                vedo.logger.error(
+                    f"in cmap(), nr. of input {on} scalars {npts} != {n} ...skip coloring."
+                )
                 return self
             arr = utils.numpy2vtk(input_array, name=name, dtype=float)
             data.AddArray(arr)
@@ -1443,7 +1465,9 @@ class PointsVisual(PointsVisualEffectsMixin, PointsVisualAnnotationsMixin, Commo
             data.Modified()
 
         else:
-            vedo.logger.error(f"in cmap(), cannot understand input type {type(input_array)}")
+            vedo.logger.error(
+                f"in cmap(), cannot understand input type {type(input_array)}"
+            )
             raise RuntimeError()
 
         # Now we have array "arr"
@@ -1536,6 +1560,7 @@ class PointsVisual(PointsVisualEffectsMixin, PointsVisualAnnotationsMixin, Commo
         #     self.mapper.SetArrayName(array_name)
         # return self
 
+
 #####################################################################
 class MeshVisual(MeshVisualTextureMixin, PointsVisual):
     """Class to manage the visual aspects of a `Mesh` object."""
@@ -1595,7 +1620,7 @@ class MeshVisual(MeshVisualTextureMixin, PointsVisual):
             self.properties.SetRepresentationToSurface()
         return self
 
-    def flat(self)  -> Self:
+    def flat(self) -> Self:
         """Set surface interpolation to flat.
 
         <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/Phong_components_version_4.png" width="700">
@@ -1679,6 +1704,7 @@ class MeshVisual(MeshVisualTextureMixin, PointsVisual):
         """Set/get color of mesh edges. Same as `linecolor()`."""
         return self.linecolor(linecolor)
 
+
 ########################################################################################
 class VolumeVisual(CommonVisual):
     """Class to manage the visual aspects of a ``Volume`` object."""
@@ -1728,7 +1754,9 @@ class VolumeVisual(CommonVisual):
         gotf = self.properties.GetGradientOpacity()
         if utils.is_sequence(alpha_grad):
             alpha_grad = np.array(alpha_grad)
-            if len(alpha_grad.shape) == 1:  # user passing a flat list e.g. (0.0, 0.3, 0.9, 1)
+            if (
+                len(alpha_grad.shape) == 1
+            ):  # user passing a flat list e.g. (0.0, 0.3, 0.9, 1)
                 for i, al in enumerate(alpha_grad):
                     xalpha = vmin + (vmax - vmin) * i / (len(alpha_grad) - 1)
                     # Create transfer mapping scalar value to gradient opacity
@@ -1829,7 +1857,6 @@ class VolumeVisual(CommonVisual):
         except AttributeError:
             vedo.logger.error("volume.mask() must specify volume.mapper = 'gpu'")
         return self
-
 
     def mode(self, mode=None) -> Self | int:
         """
@@ -2014,11 +2041,14 @@ class LightKit:
         plt.show().close()
         ```
     """
-    def __init__(self, key=(), fill=(), back=(), head=(), maintain_luminance=False) -> None:
+
+    def __init__(
+        self, key=(), fill=(), back=(), head=(), maintain_luminance=False
+    ) -> None:
 
         self.lightkit = vtki.new("LightKit")
         self.lightkit.SetMaintainLuminance(maintain_luminance)
-        self.key  = dict(key)
+        self.key = dict(key)
         self.head = dict(head)
         self.fill = dict(fill)
         self.back = dict(back)

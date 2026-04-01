@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """PointAnalyzeMixin extracted from pointcloud core."""
 
 from typing_extensions import Self
@@ -14,8 +15,11 @@ from vedo import colors
 from vedo import utils
 from vedo.core.transformations import LinearTransform, NonLinearTransform
 
+
 class PointAnalyzeMixin:
-    def compute_normals_with_pca(self, n=20, orientation_point=None, invert=False) -> Self:
+    def compute_normals_with_pca(
+        self, n=20, orientation_point=None, invert=False
+    ) -> Self:
         """
         Generate point normals using PCA (principal component analysis).
         This algorithm estimates a local tangent plane around each sample point p
@@ -79,7 +83,9 @@ class PointAnalyzeMixin:
         elif "cell" in on:
             pts = self.cell_centers().coordinates
         else:
-            raise ValueError(f"In compute_acoplanarity() set on to either 'cells' or 'points', not {on}")
+            raise ValueError(
+                f"In compute_acoplanarity() set on to either 'cells' or 'points', not {on}"
+            )
 
         for p in utils.progressbar(pts, delay=5, width=15, title=f"{on} acoplanarity"):
             if n:
@@ -102,7 +108,9 @@ class PointAnalyzeMixin:
             self.celldata["Acoplanarity"] = np.array(acoplanarities, dtype=float)
         return self
 
-    def distance_to(self, pcloud, signed=False, invert=False, name="Distance") -> np.ndarray:
+    def distance_to(
+        self, pcloud, signed=False, invert=False, name="Distance"
+    ) -> np.ndarray:
         """
         Computes the distance from one point cloud or mesh to another point cloud or mesh.
         This new `pointdata` array is saved with default name "Distance".
@@ -117,7 +125,6 @@ class PointAnalyzeMixin:
                 ![](https://vedo.embl.es/images/basic/distance2mesh.png)
         """
         if pcloud.dataset.GetNumberOfPolys():
-
             poly1 = self.dataset
             poly2 = pcloud.dataset
             df = vtki.new("DistancePolyDataFilter")
@@ -131,9 +138,10 @@ class PointAnalyzeMixin:
             dists = utils.vtk2numpy(scals)
 
         else:  # has no polygons
-
             if signed:
-                vedo.logger.warning("distance_to() called with signed=True but input object has no polygons")
+                vedo.logger.warning(
+                    "distance_to() called with signed=True but input object has no polygons"
+                )
 
             if not pcloud.point_locator:
                 pcloud.point_locator = vtki.new("PointLocator")
@@ -226,7 +234,9 @@ class PointAnalyzeMixin:
         self.ps(ps)
 
         self.pipeline = utils.OperationNode(
-            "subsample", parents=[self], comment=f"#pts {self.dataset.GetNumberOfPoints()}"
+            "subsample",
+            parents=[self],
+            comment=f"#pts {self.dataset.GetNumberOfPoints()}",
         )
         return self
 
@@ -387,7 +397,6 @@ class PointAnalyzeMixin:
             ########
 
         else:
-
             if not self.cell_locator:
                 poly = self.dataset
 
@@ -402,10 +411,16 @@ class PointAnalyzeMixin:
                 self.cell_locator.BuildLocator()
 
             if radius is not None:
-                vedo.printc("Warning: closest_point() with radius is not implemented for cells.", c='r')
+                vedo.printc(
+                    "Warning: closest_point() with radius is not implemented for cells.",
+                    c="r",
+                )
 
             if n != 1:
-                vedo.printc("Warning: closest_point() with n>1 is not implemented for cells.", c='r')
+                vedo.printc(
+                    "Warning: closest_point() with n>1 is not implemented for cells.",
+                    c="r",
+                )
 
             trgp = [0, 0, 0]
             cid = vtki.mutable(0)
@@ -550,14 +565,14 @@ class PointAnalyzeMixin:
         return self
 
     def relax_point_positions(
-            self,
-            n=10,
-            iters=10,
-            sub_iters=10,
-            packing_factor=1,
-            max_step=0,
-            constraints=(),
-        ) -> Self:
+        self,
+        n=10,
+        iters=10,
+        sub_iters=10,
+        packing_factor=1,
+        max_step=0,
+        constraints=(),
+    ) -> Self:
         """
         Smooth mesh or points with a
         [Laplacian algorithm](https://vtk.org/doc/nightly/html/classvtkPointSmoothingFilter.html)
@@ -802,10 +817,14 @@ class PointAnalyzeMixin:
             # Update any points that have drifted beyond the boundaries of this space
             if bounds is not None:
                 for point in points:
-                    if point[0] < bounds[0]: point[0] = bounds[0]
-                    if point[0] > bounds[1]: point[0] = bounds[1]
-                    if point[1] < bounds[2]: point[1] = bounds[2]
-                    if point[1] > bounds[3]: point[1] = bounds[3]
+                    if point[0] < bounds[0]:
+                        point[0] = bounds[0]
+                    if point[0] > bounds[1]:
+                        point[0] = bounds[1]
+                    if point[1] < bounds[2]:
+                        point[1] = bounds[2]
+                    if point[1] > bounds[3]:
+                        point[1] = bounds[3]
             return points
 
         def _find_centroid(vertices):
@@ -815,7 +834,9 @@ class PointAnalyzeMixin:
             centroid_x = 0
             centroid_y = 0
             for i in range(len(vertices) - 1):
-                step = (vertices[i, 0] * vertices[i + 1, 1]) - (vertices[i + 1, 0] * vertices[i, 1])
+                step = (vertices[i, 0] * vertices[i + 1, 1]) - (
+                    vertices[i + 1, 0] * vertices[i, 1]
+                )
                 centroid_x += (vertices[i, 0] + vertices[i + 1, 0]) * step
                 centroid_y += (vertices[i, 1] + vertices[i + 1, 1]) * step
                 area += step
@@ -878,7 +899,9 @@ class PointAnalyzeMixin:
         )
         return self
 
-    def compute_connections(self, radius, mode=0, regions=(), vrange=(0, 1), seeds=(), angle=0.0) -> Self:
+    def compute_connections(
+        self, radius, mode=0, regions=(), vrange=(0, 1), seeds=(), angle=0.0
+    ) -> Self:
         """
         Extracts and/or segments points from a point cloud based on geometric distance measures
         (e.g., proximity, normal alignments, etc.) and optional measures such as scalar range.
@@ -977,7 +1000,9 @@ class PointAnalyzeMixin:
             return self.pointdata["DistanceToCamera"]
         return np.array([])
 
-    def densify(self, target_distance=0.1, nclosest=6, radius=None, niter=1, nmax=None) -> Self:
+    def densify(
+        self, target_distance=0.1, nclosest=6, radius=None, niter=1, nmax=None
+    ) -> Self:
         """
         Return a copy of the cloud with new added points.
         The new points are created in such a way that all points in any local neighborhood are
@@ -1059,7 +1084,12 @@ class PointAnalyzeMixin:
         return cld
 
     def density(
-        self, dims=(40, 40, 40), bounds=None, radius=None, compute_gradient=False, locator=None
+        self,
+        dims=(40, 40, 40),
+        bounds=None,
+        radius=None,
+        compute_gradient=False,
+        locator=None,
     ) -> vedo.Volume:
         """
         Generate a density field from a point cloud. Input can also be a set of 3D coordinates.

@@ -1,5 +1,6 @@
 """Set a loop of random points on a sphere
 to cut a region of the mesh"""
+
 from vedo import *
 
 # This affects how colors are interpolated between points
@@ -7,7 +8,7 @@ settings.interpolate_scalars_before_mapping = True
 
 s = Sphere()
 s.color("white").alpha(0.25).backface_culling()
-s.pointdata['myscalars'] = s.coordinates[:,1]
+s.pointdata["myscalars"] = s.coordinates[:, 1]
 print(s)
 
 # Pick a few points on the sphere

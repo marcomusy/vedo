@@ -1,4 +1,5 @@
 """Insert 2D and 3D scalarbars in the rendering scene"""
+
 from vedo import Mesh, dataurl, show
 
 shape = Mesh(dataurl + "lamp.vtk")
@@ -26,7 +27,7 @@ sc = ms[2].add_scalarbar3d(
     title_xoffset=-2,  # offset of labels
     title_size=1.5,
 )
-sc.scalarbar.rotate_x(90).scale(1.2).shift(0,2,0)  # make it vertical
+sc.scalarbar.rotate_x(90).scale(1.2).shift(0, 2, 0)  # make it vertical
 
 # create a 2D copy scalarbar to the 3D one
 sc2d = sc.scalarbar.clone2d(size=0.3, ontop=True)

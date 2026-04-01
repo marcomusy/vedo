@@ -1,15 +1,18 @@
 """Use a repeating timer callback to animate an actor."""
+
 from vedo import *
 from time import time
+
 
 def loop_func(event):
     msh.rotate_z(0.1)
     txt.text(f"time: {event.time - t0} sec")
     plt.render()
 
+
 t0 = time()
 msh = Cube()
-txt = Text2D(bg='yellow', font="Calco")
+txt = Text2D(bg="yellow", font="Calco")
 
 plt = Plotter(axes=1)
 # plt.initialize_interactor() # on windows this is needed

@@ -26,6 +26,7 @@ from vedo.visual import MeshVisual
 from vedo.core.transformations import LinearTransform
 from .unstructured import UnstructuredGrid
 
+
 class TetMesh(UnstructuredGrid):
     """The class describing tetrahedral meshes."""
 
@@ -185,12 +186,24 @@ class TetMesh(UnstructuredGrid):
         for key in self.pointdata.keys():
             arr = self.pointdata[key]
             label = active_array_label(self.dataset, "point", key, "pointdata")
-            rows.append((label, f'"{key}" ' + summarize_array(arr, utils.precision, dim_label="ndim")))
+            rows.append(
+                (
+                    label,
+                    f'"{key}" '
+                    + summarize_array(arr, utils.precision, dim_label="ndim"),
+                )
+            )
 
         for key in self.celldata.keys():
             arr = self.celldata[key]
             label = active_array_label(self.dataset, "cell", key, "celldata")
-            rows.append((label, f'"{key}" ' + summarize_array(arr, utils.precision, dim_label="ndim")))
+            rows.append(
+                (
+                    label,
+                    f'"{key}" '
+                    + summarize_array(arr, utils.precision, dim_label="ndim"),
+                )
+            )
 
         for key in self.metadata.keys():
             arr = self.metadata[key]
@@ -230,7 +243,9 @@ class TetMesh(UnstructuredGrid):
         help_text = ""
         if self.name:
             help_text += f"<b> {self.name}: &nbsp&nbsp</b>"
-        help_text += '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>"
+        help_text += (
+            '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>"
+        )
         if self.filename:
             dots = ""
             if len(self.filename) > 30:
@@ -241,13 +256,17 @@ class TetMesh(UnstructuredGrid):
         if self.dataset.GetPointData().GetScalars():
             if self.dataset.GetPointData().GetScalars().GetName():
                 name = self.dataset.GetPointData().GetScalars().GetName()
-                pdata = "<tr><td><b> point data array </b></td><td>" + name + "</td></tr>"
+                pdata = (
+                    "<tr><td><b> point data array </b></td><td>" + name + "</td></tr>"
+                )
 
         cdata = ""
         if self.dataset.GetCellData().GetScalars():
             if self.dataset.GetCellData().GetScalars().GetName():
                 name = self.dataset.GetCellData().GetScalars().GetName()
-                cdata = "<tr><td><b> cell data array </b></td><td>" + name + "</td></tr>"
+                cdata = (
+                    "<tr><td><b> cell data array </b></td><td>" + name + "</td></tr>"
+                )
 
         pts = self.coordinates
         cm = np.mean(pts, axis=0)
@@ -255,13 +274,23 @@ class TetMesh(UnstructuredGrid):
         allt = [
             "<table>",
             "<tr>",
-            "<td>", image, "</td>",
-            "<td style='text-align: center; vertical-align: center;'><br/>", help_text,
+            "<td>",
+            image,
+            "</td>",
+            "<td style='text-align: center; vertical-align: center;'><br/>",
+            help_text,
             "<table>",
-            "<tr><td><b> bounds </b> <br/> (x/y/z) </td><td>" + str(bounds) + "</td></tr>",
-            "<tr><td><b> center of mass </b></td><td>" + utils.precision(cm,3) + "</td></tr>",
+            "<tr><td><b> bounds </b> <br/> (x/y/z) </td><td>"
+            + str(bounds)
+            + "</td></tr>",
+            "<tr><td><b> center of mass </b></td><td>"
+            + utils.precision(cm, 3)
+            + "</td></tr>",
             "<tr><td><b> nr. points&nbsp/&nbsptets </b></td><td>"
-            + str(self.npoints) + "&nbsp/&nbsp" + str(self.ncells) + "</td></tr>",
+            + str(self.npoints)
+            + "&nbsp/&nbsp"
+            + str(self.ncells)
+            + "</td></tr>",
             pdata,
             cdata,
             "</table>",
@@ -425,7 +454,8 @@ class TetMesh(UnstructuredGrid):
         vpts.point_size(5).color("k1")
         vpts.name = "RandomPoints"
         vpts.pipeline = utils.OperationNode(
-            "generate_random_points", c="#edabab", parents=[self])
+            "generate_random_points", c="#edabab", parents=[self]
+        )
         return vpts
 
     def isosurface(self, value=True, flying_edges=None) -> vedo.Mesh:
@@ -443,8 +473,7 @@ class TetMesh(UnstructuredGrid):
 
         if not self.dataset.GetPointData().GetScalars():
             vedo.logger.warning(
-                "in isosurface() no scalar pointdata found. "
-                "Mappping cells to points."
+                "in isosurface() no scalar pointdata found. Mappping cells to points."
             )
             self.map_cells_to_points()
         scrange = self.dataset.GetPointData().GetScalars().GetRange()
@@ -472,12 +501,18 @@ class TetMesh(UnstructuredGrid):
         Return a 2D slice of the mesh by a plane passing through origin and assigned normal.
         """
         strn = str(normal)
-        if   strn ==  "x": normal = (1, 0, 0)
-        elif strn ==  "y": normal = (0, 1, 0)
-        elif strn ==  "z": normal = (0, 0, 1)
-        elif strn == "-x": normal = (-1, 0, 0)
-        elif strn == "-y": normal = (0, -1, 0)
-        elif strn == "-z": normal = (0, 0, -1)
+        if strn == "x":
+            normal = (1, 0, 0)
+        elif strn == "y":
+            normal = (0, 1, 0)
+        elif strn == "z":
+            normal = (0, 0, 1)
+        elif strn == "-x":
+            normal = (-1, 0, 0)
+        elif strn == "-y":
+            normal = (0, -1, 0)
+        elif strn == "-z":
+            normal = (0, 0, -1)
         plane = vtki.new("Plane")
         plane.SetOrigin(origin)
         plane.SetNormal(normal)

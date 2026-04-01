@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Measurement helpers extracted from vedo.addons."""
 
 from typing_extensions import Self
@@ -291,7 +292,14 @@ def compute_visible_bounds(objs=None) -> list:
         if bns:
             max_bns = np.max(bns, axis=0)
             min_bns = np.min(bns, axis=0)
-            vbb = [min_bns[0], max_bns[1], min_bns[2], max_bns[3], min_bns[4], max_bns[5]]
+            vbb = [
+                min_bns[0],
+                max_bns[1],
+                min_bns[2],
+                max_bns[3],
+                min_bns[4],
+                max_bns[5],
+            ]
         elif plt and plt.renderer:
             vbb = list(plt.renderer.ComputeVisiblePropBounds())
             max_bns = vbb

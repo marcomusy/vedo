@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Graph plotting utilities."""
 
 from typing_extensions import Self
@@ -20,6 +21,7 @@ from vedo.mesh import Mesh
 from vedo.assembly import Assembly
 
 __all__ = ["DirectedGraph"]
+
 
 class DirectedGraph(Assembly):
     """
@@ -143,7 +145,16 @@ class DirectedGraph(Assembly):
 
         s = kargs.pop("layout", "2d")
         if isinstance(s, int):
-            ss = ["2d", "fast2d", "clustering2d", "circular", "circular3d", "cone", "force", "tree"]
+            ss = [
+                "2d",
+                "fast2d",
+                "clustering2d",
+                "circular",
+                "circular3d",
+                "cone",
+                "force",
+                "tree",
+            ]
             s = ss[s]
         self.layout = s
 
@@ -223,7 +234,9 @@ class DirectedGraph(Assembly):
 
         else:
             vedo.logger.error(f"Cannot understand layout {s}. Available layouts:")
-            vedo.logger.error("[2d,fast2d,clustering2d,circular,circular3d,cone,force,tree]")
+            vedo.logger.error(
+                "[2d,fast2d,clustering2d,circular,circular3d,cone,force,tree]"
+            )
             raise RuntimeError()
 
         self.gl.SetLayoutStrategy(self.strategy)
@@ -344,7 +357,11 @@ class DirectedGraph(Assembly):
         edge_labels = None
         if self._edge_labels:
             edge_labels = dgraph.labels(
-                self._edge_labels, on="cells", scale=self.edge_label_scale, precision=0, font=self.font
+                self._edge_labels,
+                on="cells",
+                scale=self.edge_label_scale,
+                precision=0,
+                font=self.font,
             )
             edge_labels.color(self._c).pickable(True)
             edge_labels.name = "DirectedGraphEdgeLabels"

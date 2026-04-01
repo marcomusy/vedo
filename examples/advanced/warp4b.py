@@ -1,10 +1,14 @@
 """Interactive 3D surface morphing with applications.MorphPlotter."""
+
 # Same as warp4b.py but using the applications.MorphPlotter class
 from vedo import Mesh, settings, dataurl, printc, vtk_version
 from vedo.applications import MorphPlotter
 
 if vtk_version > (9, 3, 0):
-    printc("Warning: this example works properly with VTK <= 9.3 (regression in newer VTK).", c="y")
+    printc(
+        "Warning: this example works properly with VTK <= 9.3 (regression in newer VTK).",
+        c="y",
+    )
 
 
 ####################################################################################
@@ -12,7 +16,7 @@ if vtk_version > (9, 3, 0):
 ####################################################################################
 # from vedo import Plotter, Points, Text2D, Axes
 # class MorphPlotter(Plotter):
-#     
+#
 #     def __init__(self, source, target, **kwargs):
 #         kwargs.update(dict(N=3, sharecam=0))
 #         super().__init__(**kwargs)
@@ -99,15 +103,15 @@ if vtk_version > (9, 3, 0):
 #             self.msg1.text("")
 #             self.source.pickable(True)
 #             self.target.pickable(False)
-#             self.update()            
+#             self.update()
 ################################################################################
 
 settings.default_font = "Calco"
 
-source = Mesh(dataurl+"limb_surface.vtk").color("k5")
+source = Mesh(dataurl + "limb_surface.vtk").color("k5")
 source.rotate_y(90).rotate_z(-60).rotate_x(40)
 
-target = Mesh(dataurl+"290.vtk").color("yellow5")
+target = Mesh(dataurl + "290.vtk").color("yellow5")
 target.rotate_y(-40)
 
 plt = MorphPlotter(source, target, size=(2400, 850), axes=14)

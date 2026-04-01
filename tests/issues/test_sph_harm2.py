@@ -3,11 +3,13 @@ Morph one shape into another using spherical harmonics package shtools.
 
 In this example we morph a sphere into a octahedron and vice-versa.
 """
+
 import numpy as np
 from vedo import settings, Plotter, Points, Sphere, cos, dataurl, mag, sin, Mesh
 
 try:
     import pyshtools
+
     print(__doc__)
 except ModuleNotFoundError:
     print("Please install pyshtools to run this example")
@@ -60,6 +62,7 @@ def morph(clm1, clm2, t, lmax):
             p = np.array([sin(th) * cos(ph), sin(th) * sin(ph), cos(th)]) * r
             pts.append(p)
     return pts
+
 
 settings.use_depth_peeling = True
 

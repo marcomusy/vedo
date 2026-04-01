@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Scene operations delegated from Plotter."""
 
 from typing import Any
@@ -30,7 +31,6 @@ def add(plotter, *objs, at=None) -> Any:
     acts = plotter._scan_input_return_acts(objs)
 
     for a in acts:
-
         if ren:
             if isinstance(a, vedo.addons.BaseCutter):
                 a.add_to(plotter)  # from cutters
@@ -57,6 +57,7 @@ def add(plotter, *objs, at=None) -> Any:
                 a.lightkit.AddLightsToRenderer(ren)
 
     return plotter
+
 
 def remove(plotter, *objs, at=None) -> Any:
     """
@@ -97,7 +98,7 @@ def remove(plotter, *objs, at=None) -> Any:
                         objs_to_remove.append(a)
                 except AttributeError:
                     pass
-        
+
         elif isinstance(ob, vedo.addons.BaseCutter):
             ob.remove_from(plotter)  # from cutters
             continue
@@ -115,37 +116,42 @@ def remove(plotter, *objs, at=None) -> Any:
         if hasattr(ob, "rendered_at"):
             ob.rendered_at.discard(ir)
 
-        try: # vtk actor
+        try:  # vtk actor
             ren.RemoveActor(ob)
         except TypeError:
-            try: # vedo object
+            try:  # vedo object
                 ren.RemoveActor(ob.actor)
                 if hasattr(ob, "scalarbar") and ob.scalarbar:
                     ren.RemoveActor(ob.scalarbar)
                 if hasattr(ob, "_caption") and ob._caption:
                     ren.RemoveActor(ob._caption)
                 if hasattr(ob, "shadows") and ob.shadows:
-                    for sha in ob.shadows: ren.RemoveActor(sha.actor)
+                    for sha in ob.shadows:
+                        ren.RemoveActor(sha.actor)
                 if hasattr(ob, "trail") and ob.trail:
                     ren.RemoveActor(ob.trail.actor)
                     ob.trail_points = []
                     if hasattr(ob.trail, "shadows") and ob.trail.shadows:
-                        for sha in ob.trail.shadows: ren.RemoveActor(sha.actor)
+                        for sha in ob.trail.shadows:
+                            ren.RemoveActor(sha.actor)
             except AttributeError:
                 pass
 
     plotter.objects = [ele for ele in plotter.objects if ele not in objs_to_remove]
     return plotter
 
+
 def actors(plotter):
     """Return the list of actors."""
     return [ob.actor for ob in plotter.objects if hasattr(ob, "actor")]
+
 
 def remove_lights(plotter) -> Any:
     """Remove all the present lights in the current renderer."""
     if plotter.renderer:
         plotter.renderer.RemoveAllLights()
     return plotter
+
 
 def pop(plotter, at=None) -> Any:
     """
@@ -161,7 +167,10 @@ def pop(plotter, at=None) -> Any:
         plotter.remove(plotter.objects[-1], at)
     return plotter
 
-def get_meshes(plotter, at=None, include_non_pickables=False, unpack_assemblies=True) -> list:
+
+def get_meshes(
+    plotter, at=None, include_non_pickables=False, unpack_assemblies=True
+) -> list:
     """
     Return a list of Meshes from the specified renderer.
 
@@ -191,7 +200,6 @@ def get_meshes(plotter, at=None, include_non_pickables=False, unpack_assemblies=
     objs = []
     acs.InitTraversal()
     for _ in range(acs.GetNumberOfItems()):
-
         if unpack_assemblies:
             a = acs.GetNextItem()
         else:
@@ -210,6 +218,7 @@ def get_meshes(plotter, at=None, include_non_pickables=False, unpack_assemblies=
             except AttributeError:
                 pass
     return objs
+
 
 def get_volumes(plotter, at=None, include_non_pickables=False) -> list:
     """
@@ -234,6 +243,7 @@ def get_volumes(plotter, at=None, include_non_pickables=False) -> list:
             except AttributeError:
                 pass
     return vols
+
 
 def get_actors(plotter, at=None, include_non_pickables=False) -> list:
     """

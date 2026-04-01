@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """
 Submodule to read/write meshes and other objects in different formats,
 and other I/O functionalities.
@@ -29,7 +30,10 @@ _LAZY_EXPORT_MAP, __all__ = build_attr_map(
         ],
     ),
     ("vedo.file_io.network", ["download", "file_info", "gunzip"]),
-    ("vedo.file_io.scene", ["export_window", "import_window", "screenshot", "to_numpy"]),
+    (
+        "vedo.file_io.scene",
+        ["export_window", "import_window", "screenshot", "to_numpy"],
+    ),
     ("vedo.file_io.terminal", ["ask"]),
     ("vedo.file_io.video", ["Video"]),
     ("vedo.file_io.writers", ["read", "save", "write"]),

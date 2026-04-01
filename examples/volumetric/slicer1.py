@@ -1,5 +1,6 @@
 """Use sliders to slice a Volume
 (click button to change colormap)"""
+
 from vedo import dataurl, Volume, Text2D
 from vedo.applications import Slicer3DPlotter
 
@@ -17,5 +18,5 @@ plt = Slicer3DPlotter(
 # Can now add any other vedo object to the Plotter scene:
 plt += Text2D(__doc__)
 
-plt.show(viewup='z')
+plt.show(viewup="z")
 plt.close()

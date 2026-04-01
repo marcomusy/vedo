@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Glyph-related shapes extracted from vedo.shapes."""
 
 import numpy as np
@@ -12,6 +13,8 @@ from vedo import utils
 from vedo.colors import cmaps_names, get_color
 from vedo.mesh import Mesh
 from vedo.pointcloud import Points
+
+
 class Glyph(Mesh):
     """
     At each vertex of a mesh, another mesh, i.e. a "glyph", is shown with
@@ -196,11 +199,11 @@ class Tensors(Mesh):
         """
         if isinstance(source, Points):
             src = source.dataset
-        else: # is string
+        else:  # is string
             if "ellip" in source:
                 src = vtki.new("SphereSource")
                 src.SetPhiResolution(res)
-                src.SetThetaResolution(res*2)
+                src.SetThetaResolution(res * 2)
             elif "cyl" in source:
                 src = vtki.new("CylinderSource")
                 src.SetResolution(res)

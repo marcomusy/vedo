@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Core curve and spline primitives."""
 
 from typing import Any
@@ -15,6 +16,7 @@ from vedo.colors import get_color, printc
 from vedo.pointcloud import Points, merge
 from vedo.mesh import Mesh
 
+
 class Line(Mesh):
     """
     Build the line segment between point `p0` and point `p1`.
@@ -24,7 +26,9 @@ class Line(Mesh):
     A 2D set of coords can also be passed as `p0=[x..], p1=[y..]`.
     """
 
-    def __init__(self, p0, p1=None, closed=False, res=2, lw=1, c="k1", alpha=1.0) -> None:
+    def __init__(
+        self, p0, p1=None, closed=False, res=2, lw=1, c="k1", alpha=1.0
+    ) -> None:
         """
         Arguments:
             closed : (bool)
@@ -47,11 +51,10 @@ class Line(Mesh):
 
         if isinstance(p0, vtki.vtkPolyData):
             poly = p0
-            top  = np.array([0,0,1])
-            base = np.array([0,0,0])
+            top = np.array([0, 0, 1])
+            base = np.array([0, 0, 0])
 
-        elif utils.is_sequence(p0[0]): # detect if user is passing a list of points
-
+        elif utils.is_sequence(p0[0]):  # detect if user is passing a list of points
             p0 = utils.make3d(p0)
             ppoints = vtki.vtkPoints()  # Generate the polyline
             ppoints.SetData(utils.numpy2vtk(np.asarray(p0), dtype=np.float32))
@@ -71,11 +74,10 @@ class Line(Mesh):
             top = p0[-1]
             base = p0[0]
             if res != 2:
-                printc(f"Warning: calling Line(res={res}), try remove []?", c='y')
+                printc(f"Warning: calling Line(res={res}), try remove []?", c="y")
                 res = 2
 
         else:  # or just 2 points to link
-
             line_source = vtki.new("LineSource")
             p0 = utils.make3d(p0)
             p1 = utils.make3d(p1)
@@ -138,7 +140,8 @@ class Line(Mesh):
         ln.base = self.base
         ln.top = self.top
         ln.pipeline = utils.OperationNode(
-            "clone", parents=[self], shape="diamond", c="#edede9")
+            "clone", parents=[self], shape="diamond", c="#edede9"
+        )
         return ln
 
     def linecolor(self, lc=None) -> Line:
@@ -187,7 +190,7 @@ class Line(Mesh):
         idx = np.where((xcoords[:-1] <= x) & (xcoords[1:] >= x))[0]
         if len(idx) > 0:
             i = idx[0]
-            return np.array([x, np.interp(x, xcoords[i:i+2], ycoords[i:i+2])])
+            return np.array([x, np.interp(x, xcoords[i : i + 2], ycoords[i : i + 2])])
         return np.array([x, 0.0])
 
     def find_index_at_position(self, p) -> float:
@@ -207,7 +210,7 @@ class Line(Mesh):
             self.cell_locator = vtki.new("StaticCellLocator")
             self.cell_locator.SetDataSet(polyline)
             self.cell_locator.BuildLocator()
-        
+
         q = [0, 0, 0]
         cid = vtki.mutable(0)
         dist2 = vtki.mutable(0)
@@ -357,12 +360,12 @@ class Line(Mesh):
         return self
 
     def plot_scalar(
-            self,
-            radius=0.0,
-            height=1.1,
-            normal=(),
-            camera=None,
-        ) -> Line:
+        self,
+        radius=0.0,
+        height=1.1,
+        normal=(),
+        camera=None,
+    ) -> Line:
         """
         Generate a new `Line` which plots the active scalar along the line.
 
@@ -394,12 +397,12 @@ class Line(Mesh):
         ap.SetCamera(camera)
         ap.SetRadius(radius)
         ap.SetHeight(height)
-        if len(normal)>0:
+        if len(normal) > 0:
             ap.UseDefaultNormalOn()
             ap.SetDefaultNormal(normal)
         ap.Update()
         vap = Line(ap.GetOutput())
-        vap.linewidth(3).lighting('off')
+        vap.linewidth(3).lighting("off")
         vap.name = "ArcPlot"
         return vap
 
@@ -480,7 +483,9 @@ class DashedLine(Mesh):
     A 2D set of coords can also be passed as `p0=[x..], p1=[y..]`.
     """
 
-    def __init__(self, p0, p1=None, spacing=0.1, closed=False, lw=2, c="k5", alpha=1.0) -> None:
+    def __init__(
+        self, p0, p1=None, spacing=0.1, closed=False, lw=2, c="k5", alpha=1.0
+    ) -> None:
         """
         Arguments:
             closed : (bool)
@@ -499,7 +504,11 @@ class DashedLine(Mesh):
 
         # detect if user is passing a 2D list of points as p0=xlist, p1=ylist:
         if len(p0) > 3:
-            if not utils.is_sequence(p0[0]) and not utils.is_sequence(p1[0]) and len(p0) == len(p1):
+            if (
+                not utils.is_sequence(p0[0])
+                and not utils.is_sequence(p1[0])
+                and len(p0) == len(p1)
+            ):
                 # assume input is 2D xlist, ylist
                 p0 = np.stack((p0, p1), axis=1)
                 p1 = None
@@ -692,7 +701,15 @@ class Lines(Mesh):
     """
 
     def __init__(
-        self, start_pts, end_pts=None, dotted=False, res=1, scale=1.0, lw=1, c="k4", alpha=1.0
+        self,
+        start_pts,
+        end_pts=None,
+        dotted=False,
+        res=1,
+        scale=1.0,
+        lw=1,
+        c="k4",
+        alpha=1.0,
     ) -> None:
         """
         Arguments:
@@ -716,13 +733,17 @@ class Lines(Mesh):
             ![](https://user-images.githubusercontent.com/32848391/52503049-ac9cb600-2be4-11e9-86af-72a538af14ef.png)
         """
 
-        if isinstance(start_pts, vtki.vtkPolyData):########
+        if isinstance(start_pts, vtki.vtkPolyData):  ########
             super().__init__(start_pts, c, alpha)
             self.lw(lw).lighting("off")
             self.name = "Lines"
-            return ########################################
+            return  ########################################
 
-        if utils.is_sequence(start_pts) and len(start_pts)>1 and isinstance(start_pts[0], Line):
+        if (
+            utils.is_sequence(start_pts)
+            and len(start_pts) > 1
+            and isinstance(start_pts[0], Line)
+        ):
             # passing a list of Line, see tests/issues/issue_950.py
             polylns = vtki.new("AppendPolyData")
             for ln in start_pts:
@@ -735,7 +756,7 @@ class Lines(Mesh):
                 self.properties.SetLineStipplePattern(0xF0F0)
                 self.properties.SetLineStippleRepeatFactor(1)
             self.name = "Lines"
-            return ########################################
+            return  ########################################
 
         if isinstance(start_pts, Points):
             start_pts = start_pts.coordinates
@@ -748,7 +769,6 @@ class Lines(Mesh):
         polylns = vtki.new("AppendPolyData")
 
         if not utils.is_ragged(start_pts):
-
             for twopts in start_pts:
                 line_source = vtki.new("LineSource")
                 line_source.SetResolution(res)
@@ -770,7 +790,6 @@ class Lines(Mesh):
                 polylns.AddInputConnection(line_source.GetOutputPort())
 
         else:
-
             polylns = vtki.new("AppendPolyData")
             for t in start_pts:
                 t = utils.make3d(t)
@@ -853,8 +872,8 @@ class Arc(Line):
             point1 = utils.make3d(point1)
             point2 = utils.make3d(point2)
             ar.UseNormalAndAngleOff()
-            ar.SetPoint1(point1-center)
-            ar.SetPoint2(point2-center)
+            ar.SetPoint1(point1 - center)
+            ar.SetPoint2(point2 - center)
         elif normal is not None and angle and point1 is not None:
             normal = utils.make3d(normal)
             point1 = utils.make3d(point1)
@@ -872,7 +891,7 @@ class Arc(Line):
 
         super().__init__(ar.GetOutput(), c, alpha)
         self.lw(2).lighting("off")
-        if point2 is not None: # nb: not center
+        if point2 is not None:  # nb: not center
             self.pos(center)
         self.name = "Arc"
 
@@ -883,7 +902,9 @@ class Spline(Line):
     pass exactly through all the input points. Needs to import `scipy`.
     """
 
-    def __init__(self, points, smooth=0.0, degree=2, closed=False, res=None, easing="") -> None:
+    def __init__(
+        self, points, smooth=0.0, degree=2, closed=False, res=None, easing=""
+    ) -> None:
         """
         Arguments:
             smooth : (float)
@@ -972,8 +993,9 @@ class KSpline(Line):
     which runs exactly through all the input points.
     """
 
-    def __init__(self, points,
-                 continuity=0.0, tension=0.0, bias=0.0, closed=False, res=None) -> None:
+    def __init__(
+        self, points, continuity=0.0, tension=0.0, bias=0.0, closed=False, res=None
+    ) -> None:
         """
         Arguments:
             continuity : (float)
@@ -1138,7 +1160,7 @@ class Bezier(Line):
             coeff = binom(n, k)
 
             def _bpoly(x):
-                return coeff * x ** k * (1 - x) ** (n - k)
+                return coeff * x**k * (1 - x) ** (n - k)
 
             return _bpoly
 
@@ -1351,7 +1373,7 @@ def ThickTube(pts, r1, r2, res=12, c=None, alpha=1.0) -> Mesh | None:
     if thick_tube:
         thick_tube.c(c).alpha(alpha)
         thick_tube.base = t1.base
-        thick_tube.top  = t1.top
+        thick_tube.top = t1.top
         thick_tube.name = "ThickTube"
         return thick_tube
     return None
@@ -1361,18 +1383,19 @@ class Tubes(Mesh):
     """
     Build tubes around a `Lines` object.
     """
+
     def __init__(
-            self,
-            lines,
-            r=1,
-            vary_radius_by_scalar=False,
-            vary_radius_by_vector=False,
-            vary_radius_by_vector_norm=False,
-            vary_radius_by_absolute_scalar=False,
-            max_radius_factor=100,
-            cap=True,
-            res=12
-        ) -> None:
+        self,
+        lines,
+        r=1,
+        vary_radius_by_scalar=False,
+        vary_radius_by_vector=False,
+        vary_radius_by_vector_norm=False,
+        vary_radius_by_absolute_scalar=False,
+        max_radius_factor=100,
+        cap=True,
+        res=12,
+    ) -> None:
         """
         Wrap tubes around the input `Lines` object.
 
@@ -1425,4 +1448,3 @@ class Tubes(Mesh):
 
         super().__init__(tuf.GetOutput())
         self.name = "Tubes"
-

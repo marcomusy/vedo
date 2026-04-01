@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """PointCutMixin extracted from pointcloud core."""
 
 from typing_extensions import Self
@@ -14,13 +15,14 @@ from vedo import colors
 from vedo import utils
 from vedo.core.transformations import LinearTransform, NonLinearTransform
 
+
 class PointCutMixin:
     def cut_with_plane(
-            self,
-            origin=(0, 0, 0),
-            normal=(1, 0, 0),
-            invert=False,
-            # generate_ids=False,
+        self,
+        origin=(0, 0, 0),
+        normal=(1, 0, 0),
+        invert=False,
+        # generate_ids=False,
     ) -> Self:
         """
         Cut the mesh with the plane defined by a point and a normal.
@@ -302,7 +304,9 @@ class PointCutMixin:
         self.pipeline = utils.OperationNode("cut_with_cookiecutter", parents=[self])
         return self
 
-    def cut_with_cylinder(self, center=(0, 0, 0), axis=(0, 0, 1), r=1, invert=False) -> Self:
+    def cut_with_cylinder(
+        self, center=(0, 0, 0), axis=(0, 0, 1), r=1, invert=False
+    ) -> Self:
         """
         Cut the current mesh with an infinite cylinder.
         This is much faster than `cut_with_mesh()`.
@@ -398,28 +402,28 @@ class PointCutMixin:
 
     def cut_with_mesh(self, mesh, invert=False, keep=False) -> Self | vedo.Assembly:
         """
-        Cut an `Mesh` mesh with another `Mesh`.
+         Cut an `Mesh` mesh with another `Mesh`.
 
-        Use `invert` to invert the selection.
+         Use `invert` to invert the selection.
 
-        Use `keep` to keep the cutoff part, in this case an `Assembly` is returned:
-        the "cut" object and the "discarded" part of the original object.
-        You can access both via `assembly.unpack()` method.
+         Use `keep` to keep the cutoff part, in this case an `Assembly` is returned:
+         the "cut" object and the "discarded" part of the original object.
+         You can access both via `assembly.unpack()` method.
 
-        Example:
-        ```python
-        from vedo import *
-        arr = np.random.randn(100000, 3)/2
-        pts = Points(arr).c('red3').pos(5,0,0)
-        cube = Cube().pos(4,0.5,0)
-        assem = pts.cut_with_mesh(cube, keep=True)
-        show(assem.unpack(), axes=1).close()
-        ```
-        ![](https://vedo.embl.es/images/feats/cut_with_mesh.png)
+         Example:
+         ```python
+         from vedo import *
+         arr = np.random.randn(100000, 3)/2
+         pts = Points(arr).c('red3').pos(5,0,0)
+         cube = Cube().pos(4,0.5,0)
+         assem = pts.cut_with_mesh(cube, keep=True)
+         show(assem.unpack(), axes=1).close()
+         ```
+         ![](https://vedo.embl.es/images/feats/cut_with_mesh.png)
 
-       Check out also:
-            `cut_with_box()`, `cut_with_plane()`, `cut_with_cylinder()`
-       """
+        Check out also:
+             `cut_with_box()`, `cut_with_plane()`, `cut_with_cylinder()`
+        """
         polymesh = mesh.dataset
         poly = self.dataset
 
@@ -577,9 +581,16 @@ class PointCutMixin:
         self.pipeline = utils.OperationNode("cut_with_scalar", parents=[self])
         return self
 
-    def crop(self,
-             top=None, bottom=None, right=None, left=None, front=None, back=None,
-             bounds=()) -> Self:
+    def crop(
+        self,
+        top=None,
+        bottom=None,
+        right=None,
+        left=None,
+        front=None,
+        back=None,
+        bounds=(),
+    ) -> Self:
         """
         Crop an `Mesh` object.
 

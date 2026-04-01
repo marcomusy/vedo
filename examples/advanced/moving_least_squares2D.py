@@ -2,16 +2,20 @@
 algorithm to project a cloud of points to become a smooth surface.
 In the second window we show the error estimated for
 each point in color scale (left) or in size scale (right)."""
+
 from vedo import *
+
 printc(__doc__, invert=1)
 
 plt1 = Plotter(N=3, axes=1)
 
-mesh = Mesh(dataurl+"bunny.obj").normalize().subdivide()
+mesh = Mesh(dataurl + "bunny.obj").normalize().subdivide()
 
 pts = mesh.coordinates
 # Add synthetic measurement noise before MLS projection.
-pts += np.random.randn(len(pts), 3)/20  # add noise, will not mess up the original points
+pts += (
+    np.random.randn(len(pts), 3) / 20
+)  # add noise, will not mess up the original points
 
 
 #################################### smooth cloud with MLS
@@ -37,8 +41,8 @@ vmin, vmax = np.min(variances), np.max(variances)
 print("min and max of variances:", vmin, vmax)
 vcols = [color_map(v, "jet", vmin, vmax) for v in variances]  # scalars->colors
 
-sp0 = Spheres(mls2.coordinates, c=vcols, r=0.02)         # error as color
-sp1 = Spheres(mls2.coordinates, c="red5", r=variances/4) # error as point size
+sp0 = Spheres(mls2.coordinates, c=vcols, r=0.02)  # error as color
+sp1 = Spheres(mls2.coordinates, c="red5", r=variances / 4)  # error as point size
 
 mesh.color("k").alpha(0.05).wireframe()
 

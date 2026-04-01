@@ -1,4 +1,5 @@
 """Animated plot showing multiple temporal data lines"""
+
 # Copyright (c) 2021, Nicolas P. Rougier. License: BSD 2-Clause*
 # Adapted for vedo by M. Musy, February 2021
 import numpy as np
@@ -11,31 +12,29 @@ settings.default_font = "Theemim"
 np.random.seed(1)
 data = np.random.uniform(0, 1, (25, 100))
 X = np.linspace(-1, 1, data.shape[-1])
-G = 0.15 * np.exp(-4 * X**2) # use a  gaussian as a weight
+G = 0.15 * np.exp(-4 * X**2)  # use a  gaussian as a weight
 
 # Generate line plots
 lines = []
 for i, d in enumerate(data):
-    pts = np.c_[X, np.zeros_like(X)+i/10, G*d]
+    pts = np.c_[X, np.zeros_like(X) + i / 10, G * d]
     lines.append(Line(pts, lw=3))
 
 # Set up the first frame
-axes = dict(xtitle=':Deltat /:mus', ytitle="source", ztitle="")
-plt = show(lines, __doc__, axes=axes, elevation=-30, interactive=False, bg='k8')
+axes = dict(xtitle=":Deltat /:mus", ytitle="source", ztitle="")
+plt = show(lines, __doc__, axes=axes, elevation=-30, interactive=False, bg="k8")
 
 for i in range(50):
-    data[:, 1:] = data[:, :-1]                      # Shift data to the right
-    data[:, 0] = np.random.uniform(0, 1, len(data)) # Fill-in new values
-    for line, d in zip(lines, data):                    # Update data
+    data[:, 1:] = data[:, :-1]  # Shift data to the right
+    data[:, 0] = np.random.uniform(0, 1, len(data))  # Fill-in new values
+    for line, d in zip(lines, data):  # Update data
         v = line.points
-        v[:,2] = G * d
+        v[:, 2] = G * d
         line.points = v
-        line.cmap('gist_heat_r', v[:,2])
+        line.cmap("gist_heat_r", v[:, 2])
     plt.render()
 
 plt.interactive().close()
-
-
 
 
 #############################################################################
@@ -66,4 +65,3 @@ plt.interactive().close()
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # Original version at: https://github.com/rougier/unknown-pleasures
-

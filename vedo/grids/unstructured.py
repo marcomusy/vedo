@@ -25,6 +25,7 @@ from vedo.file_io import download
 from vedo.visual import MeshVisual
 from vedo.core.transformations import LinearTransform
 
+
 class UnstructuredGrid(PointAlgorithms, MeshVisual):
     """Support for UnstructuredGrid objects."""
 
@@ -70,7 +71,6 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
             self.dataset = vtki.vtkUnstructuredGrid()
 
         elif utils.is_sequence(inputobj):
-
             pts, cells, celltypes = inputobj
             if len(cells) != len(celltypes):
                 raise ValueError(
@@ -100,7 +100,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
             # Fill cells
             # https://vtk.org/doc/nightly/html/vtkCellType_8h_source.html
             for i, ct in enumerate(celltypes):
-                if   ct == vtki.cell_types["VERTEX"]:
+                if ct == vtki.cell_types["VERTEX"]:
                     cell = vtki.vtkVertex()
                 elif ct == vtki.cell_types["POLY_VERTEX"]:
                     cell = vtki.vtkPolyVertex()
@@ -134,94 +134,130 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
                     cell = vtki.vtkPentagonalPrism()
                 elif ct == vtki.cell_types["QUADRATIC_TETRA"]:
                     from vtkmodules.vtkCommonDataModel import vtkQuadraticTetra
+
                     cell = vtkQuadraticTetra()
                 elif ct == vtki.cell_types["QUADRATIC_HEXAHEDRON"]:
                     from vtkmodules.vtkCommonDataModel import vtkQuadraticHexahedron
+
                     cell = vtkQuadraticHexahedron()
                 elif ct == vtki.cell_types["QUADRATIC_WEDGE"]:
                     from vtkmodules.vtkCommonDataModel import vtkQuadraticWedge
+
                     cell = vtkQuadraticWedge()
                 elif ct == vtki.cell_types["QUADRATIC_PYRAMID"]:
                     from vtkmodules.vtkCommonDataModel import vtkQuadraticPyramid
+
                     cell = vtkQuadraticPyramid()
                 elif ct == vtki.cell_types["QUADRATIC_LINEAR_QUAD"]:
                     from vtkmodules.vtkCommonDataModel import vtkQuadraticLinearQuad
+
                     cell = vtkQuadraticLinearQuad()
                 elif ct == vtki.cell_types["QUADRATIC_LINEAR_WEDGE"]:
                     from vtkmodules.vtkCommonDataModel import vtkQuadraticLinearWedge
+
                     cell = vtkQuadraticLinearWedge()
                 elif ct == vtki.cell_types["BIQUADRATIC_QUADRATIC_WEDGE"]:
-                    from vtkmodules.vtkCommonDataModel import vtkBiQuadraticQuadraticWedge
+                    from vtkmodules.vtkCommonDataModel import (
+                        vtkBiQuadraticQuadraticWedge,
+                    )
+
                     cell = vtkBiQuadraticQuadraticWedge()
                 elif ct == vtki.cell_types["BIQUADRATIC_QUADRATIC_HEXAHEDRON"]:
-                    from vtkmodules.vtkCommonDataModel import vtkBiQuadraticQuadraticHexahedron
+                    from vtkmodules.vtkCommonDataModel import (
+                        vtkBiQuadraticQuadraticHexahedron,
+                    )
+
                     cell = vtkBiQuadraticQuadraticHexahedron()
                 elif ct == vtki.cell_types["BIQUADRATIC_TRIANGLE"]:
                     from vtkmodules.vtkCommonDataModel import vtkBiQuadraticTriangle
+
                     cell = vtkBiQuadraticTriangle()
                 elif ct == vtki.cell_types["CUBIC_LINE"]:
                     from vtkmodules.vtkCommonDataModel import vtkCubicLine
+
                     cell = vtkCubicLine()
                 elif ct == vtki.cell_types["CONVEX_POINT_SET"]:
                     from vtkmodules.vtkCommonDataModel import vtkConvexPointSet
+
                     cell = vtkConvexPointSet()
                 elif ct == vtki.cell_types["POLYHEDRON"]:
                     from vtkmodules.vtkCommonDataModel import vtkPolyhedron
+
                     cell = vtkPolyhedron()
                 elif ct == vtki.cell_types["HIGHER_ORDER_TRIANGLE"]:
                     from vtkmodules.vtkCommonDataModel import vtkHigherOrderTriangle
+
                     cell = vtkHigherOrderTriangle()
                 elif ct == vtki.cell_types["HIGHER_ORDER_QUAD"]:
-                    from vtkmodules.vtkCommonDataModel import vtkHigherOrderQuadrilateral
+                    from vtkmodules.vtkCommonDataModel import (
+                        vtkHigherOrderQuadrilateral,
+                    )
+
                     cell = vtkHigherOrderQuadrilateral()
                 elif ct == vtki.cell_types["HIGHER_ORDER_TETRAHEDRON"]:
                     from vtkmodules.vtkCommonDataModel import vtkHigherOrderTetra
+
                     cell = vtkHigherOrderTetra()
                 elif ct == vtki.cell_types["HIGHER_ORDER_WEDGE"]:
                     from vtkmodules.vtkCommonDataModel import vtkHigherOrderWedge
+
                     cell = vtkHigherOrderWedge()
                 elif ct == vtki.cell_types["HIGHER_ORDER_HEXAHEDRON"]:
                     from vtkmodules.vtkCommonDataModel import vtkHigherOrderHexahedron
+
                     cell = vtkHigherOrderHexahedron()
                 elif ct == vtki.cell_types["LAGRANGE_CURVE"]:
                     from vtkmodules.vtkCommonDataModel import vtkLagrangeCurve
+
                     cell = vtkLagrangeCurve()
                 elif ct == vtki.cell_types["LAGRANGE_TRIANGLE"]:
                     from vtkmodules.vtkCommonDataModel import vtkLagrangeTriangle
+
                     cell = vtkLagrangeTriangle()
                 elif ct == vtki.cell_types["LAGRANGE_QUADRILATERAL"]:
                     from vtkmodules.vtkCommonDataModel import vtkLagrangeQuadrilateral
+
                     cell = vtkLagrangeQuadrilateral()
                 elif ct == vtki.cell_types["LAGRANGE_TETRAHEDRON"]:
                     from vtkmodules.vtkCommonDataModel import vtkLagrangeTetra
+
                     cell = vtkLagrangeTetra()
                 elif ct == vtki.cell_types["LAGRANGE_HEXAHEDRON"]:
                     from vtkmodules.vtkCommonDataModel import vtkLagrangeHexahedron
+
                     cell = vtkLagrangeHexahedron()
                 elif ct == vtki.cell_types["LAGRANGE_WEDGE"]:
                     from vtkmodules.vtkCommonDataModel import vtkLagrangeWedge
+
                     cell = vtkLagrangeWedge()
                 elif ct == vtki.cell_types["BEZIER_CURVE"]:
                     from vtkmodules.vtkCommonDataModel import vtkBezierCurve
+
                     cell = vtkBezierCurve()
                 elif ct == vtki.cell_types["BEZIER_TRIANGLE"]:
                     from vtkmodules.vtkCommonDataModel import vtkBezierTriangle
+
                     cell = vtkBezierTriangle()
                 elif ct == vtki.cell_types["BEZIER_QUADRILATERAL"]:
                     from vtkmodules.vtkCommonDataModel import vtkBezierQuadrilateral
+
                     cell = vtkBezierQuadrilateral()
                 elif ct == vtki.cell_types["BEZIER_TETRAHEDRON"]:
                     from vtkmodules.vtkCommonDataModel import vtkBezierTetra
+
                     cell = vtkBezierTetra()
                 elif ct == vtki.cell_types["BEZIER_HEXAHEDRON"]:
                     from vtkmodules.vtkCommonDataModel import vtkBezierHexahedron
+
                     cell = vtkBezierHexahedron()
                 elif ct == vtki.cell_types["BEZIER_WEDGE"]:
                     from vtkmodules.vtkCommonDataModel import vtkBezierWedge
+
                     cell = vtkBezierWedge()
                 else:
                     vedo.logger.error(
-                        f"UnstructuredGrid: cell type {ct} not supported. Skip.")
+                        f"UnstructuredGrid: cell type {ct} not supported. Skip."
+                    )
                     continue
 
                 cpids = cell.GetPointIds()
@@ -298,12 +334,24 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         for key in self.pointdata.keys():
             arr = self.pointdata[key]
             label = active_array_label(self.dataset, "point", key, "pointdata")
-            rows.append((label, f'"{key}" ' + summarize_array(arr, utils.precision, dim_label="ndim")))
+            rows.append(
+                (
+                    label,
+                    f'"{key}" '
+                    + summarize_array(arr, utils.precision, dim_label="ndim"),
+                )
+            )
 
         for key in self.celldata.keys():
             arr = self.celldata[key]
             label = active_array_label(self.dataset, "cell", key, "celldata")
-            rows.append((label, f'"{key}" ' + summarize_array(arr, utils.precision, dim_label="ndim")))
+            rows.append(
+                (
+                    label,
+                    f'"{key}" '
+                    + summarize_array(arr, utils.precision, dim_label="ndim"),
+                )
+            )
 
         for key in self.metadata.keys():
             arr = self.metadata[key]
@@ -343,7 +391,9 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         help_text = ""
         if self.name:
             help_text += f"<b> {self.name}: &nbsp&nbsp</b>"
-        help_text += '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>"
+        help_text += (
+            '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>"
+        )
         if self.filename:
             dots = ""
             if len(self.filename) > 30:
@@ -354,13 +404,17 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         if self.dataset.GetPointData().GetScalars():
             if self.dataset.GetPointData().GetScalars().GetName():
                 name = self.dataset.GetPointData().GetScalars().GetName()
-                pdata = "<tr><td><b> point data array </b></td><td>" + name + "</td></tr>"
+                pdata = (
+                    "<tr><td><b> point data array </b></td><td>" + name + "</td></tr>"
+                )
 
         cdata = ""
         if self.dataset.GetCellData().GetScalars():
             if self.dataset.GetCellData().GetScalars().GetName():
                 name = self.dataset.GetCellData().GetScalars().GetName()
-                cdata = "<tr><td><b> cell data array </b></td><td>" + name + "</td></tr>"
+                cdata = (
+                    "<tr><td><b> cell data array </b></td><td>" + name + "</td></tr>"
+                )
 
         pts = self.coordinates
         cm = np.mean(pts, axis=0)
@@ -368,14 +422,24 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         _all = [
             "<table>",
             "<tr>",
-            "<td>", image, "</td>",
-            "<td style='text-align: center; vertical-align: center;'><br/>", help_text,
+            "<td>",
+            image,
+            "</td>",
+            "<td style='text-align: center; vertical-align: center;'><br/>",
+            help_text,
             "<table>",
-            "<tr><td><b> bounds </b> <br/> (x/y/z) </td><td>" + str(bounds) + "</td></tr>",
-            "<tr><td><b> center of mass </b></td><td>" + utils.precision(cm,3) + "</td></tr>",
+            "<tr><td><b> bounds </b> <br/> (x/y/z) </td><td>"
+            + str(bounds)
+            + "</td></tr>",
+            "<tr><td><b> center of mass </b></td><td>"
+            + utils.precision(cm, 3)
+            + "</td></tr>",
             # "<tr><td><b> average size </b></td><td>" + str(average_size) + "</td></tr>",
             "<tr><td><b> nr. points&nbsp/&nbspcells </b></td><td>"
-            + str(self.npoints) + "&nbsp/&nbsp" + str(self.ncells) + "</td></tr>",
+            + str(self.npoints)
+            + "&nbsp/&nbsp"
+            + str(self.ncells)
+            + "</td></tr>",
             pdata,
             cdata,
             "</table>",
@@ -602,7 +666,9 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
             try:
                 ctype = vtki.cell_types[ctype.upper()]
             except KeyError:
-                vedo.logger.error(f"extract_cells_by_type: cell type {ctype} does not exist. Skip.")
+                vedo.logger.error(
+                    f"extract_cells_by_type: cell type {ctype} does not exist. Skip."
+                )
                 return self
         uarr = self.dataset.GetCellTypesArray()
         ctarrtyp = np.where(utils.vtk2numpy(uarr) == ctype)[0]
@@ -737,7 +803,9 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         )
         return self
 
-    def extract_cells_on_cylinder(self, center: tuple, axis: tuple, radius: float) -> Self:
+    def extract_cells_on_cylinder(
+        self, center: tuple, axis: tuple, radius: float
+    ) -> Self:
         """
         Extract cells that are lying of the specified surface.
         """
@@ -777,12 +845,18 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         #     raise RuntimeError("cut_with_plane() is not applicable to Volume objects.")
 
         strn = str(normal)
-        if strn   ==  "x": normal = (1, 0, 0)
-        elif strn ==  "y": normal = (0, 1, 0)
-        elif strn ==  "z": normal = (0, 0, 1)
-        elif strn == "-x": normal = (-1, 0, 0)
-        elif strn == "-y": normal = (0, -1, 0)
-        elif strn == "-z": normal = (0, 0, -1)
+        if strn == "x":
+            normal = (1, 0, 0)
+        elif strn == "y":
+            normal = (0, 1, 0)
+        elif strn == "z":
+            normal = (0, 0, 1)
+        elif strn == "-x":
+            normal = (-1, 0, 0)
+        elif strn == "-y":
+            normal = (0, -1, 0)
+        elif strn == "-z":
+            normal = (0, 0, -1)
         plane = vtki.new("Plane")
         plane.SetOrigin(origin)
         plane.SetNormal(normal)
@@ -799,14 +873,20 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
             ug = vedo.UnstructuredGrid(cout)
             if isinstance(self, vedo.UnstructuredGrid):
                 self._update(cout)
-                self.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
+                self.pipeline = utils.OperationNode(
+                    "cut_with_plane", parents=[self], c="#9e2a2b"
+                )
                 return self
-            ug.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
+            ug.pipeline = utils.OperationNode(
+                "cut_with_plane", parents=[self], c="#9e2a2b"
+            )
             return ug
 
         else:
             self._update(cout)
-            self.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
+            self.pipeline = utils.OperationNode(
+                "cut_with_plane", parents=[self], c="#9e2a2b"
+            )
             return self
 
     def cut_with_box(self, box: Any) -> UnstructuredGrid:
@@ -845,7 +925,9 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         tm.pipeline = utils.OperationNode("cut_with_box", parents=[self], c="#9e2a2b")
         return tm
 
-    def cut_with_mesh(self, mesh: Mesh, invert=False, whole_cells=False, on_boundary=False) -> UnstructuredGrid:
+    def cut_with_mesh(
+        self, mesh: Mesh, invert=False, whole_cells=False, on_boundary=False
+    ) -> UnstructuredGrid:
         """
         Cut a `UnstructuredGrid` or `TetMesh` with a `Mesh`.
 
@@ -885,4 +967,3 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         out = vedo.UnstructuredGrid(clipper.GetOutput())
         out.pipeline = utils.OperationNode("cut_with_mesh", parents=[self], c="#9e2a2b")
         return out
-

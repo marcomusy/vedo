@@ -1,7 +1,8 @@
 """Cut an UnstructuredGrid with a Mesh"""
+
 from vedo import *
 
-ug1 = UnstructuredGrid(dataurl+'ugrid.vtk')
+ug1 = UnstructuredGrid(dataurl + "ugrid.vtk")
 print(ug1)
 
 # Clip the unstructured grid with a geometric mesh.

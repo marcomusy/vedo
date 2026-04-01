@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Cutter widgets and frame/progress helpers extracted from vedo.addons."""
 
 from typing_extensions import Self
@@ -41,7 +42,6 @@ class BaseCutter:
         self.can_rotate = True
         self.is_inverted = False
 
-
     @property
     def transform(self) -> LinearTransform:
         """Get the transformation matrix."""
@@ -68,7 +68,7 @@ class BaseCutter:
         self.clipper.SetInsideOut(not self.clipper.GetInsideOut())
         self.is_inverted = not self.clipper.GetInsideOut()
         return self
-    
+
     def on(self) -> Self:
         """Switch the widget on or off."""
         self.widget.On()
@@ -139,7 +139,7 @@ class BaseCutter:
         """Enable or disable keypress activation of the widget."""
         self.widget.SetKeyPressActivation(value)
         return self
-    
+
     def render(self) -> Self:
         """Render the current state of the widget."""
         if self.widget.GetInteractor() and self.widget.GetInteractor().GetInitialized():
@@ -272,18 +272,18 @@ class PlaneCutter(BaseCutter, vtki.vtkPlaneWidget):
         self.widget.SetOriginTranslation(value)
         self.can_translate = bool(value)
         return self
-    
+
     def enable_origin_translation(self, value=True) -> Self:
         """Enable or disable rotation of the widget."""
         self.widget.SetOriginTranslation(value)
         return self
-    
+
     def enable_scaling(self, value=True) -> Self:
         """Enable or disable scaling of the widget."""
         self.widget.SetScaleEnabled(value)
         self.can_scale = bool(value)
         return self
-    
+
     def enable_rotation(self, value=True) -> Self:
         """Dummy."""
         self.can_rotate = bool(value)
@@ -388,18 +388,19 @@ class BoxCutter(BaseCutter, vtki.vtkBoxWidget):
         self.widget.SetTranslationEnabled(value)
         self.can_translate = bool(value)
         return self
-    
+
     def enable_scaling(self, value=True) -> Self:
         """Enable or disable scaling of the widget."""
         self.widget.SetScalingEnabled(value)
         self.can_scale = bool(value)
         return self
-    
+
     def enable_rotation(self, value=True) -> Self:
         """Enable or disable rotation of the widget."""
         self.widget.SetRotationEnabled(value)
         self.can_rotate = bool(value)
         return self
+
 
 class SphereCutter(BaseCutter, vtki.vtkSphereWidget):
     """
@@ -498,7 +499,6 @@ class SphereCutter(BaseCutter, vtki.vtkSphereWidget):
     def _select_polygons(self, vobj, _event):
         vobj.GetSphere(self.__implicit_func)
 
-
     @property
     def center(self):
         """Get the center of the sphere."""
@@ -524,13 +524,13 @@ class SphereCutter(BaseCutter, vtki.vtkSphereWidget):
         self.widget.SetTranslation(value)
         self.can_translate = bool(value)
         return self
-    
+
     def enable_scaling(self, value=True) -> Self:
         """Enable or disable scaling of the widget."""
         self.widget.SetScale(value)
         self.can_scale = bool(value)
         return self
-    
+
     def enable_rotation(self, value=True) -> Self:
         """Enable or disable rotation of the widget."""
         # This is dummy anyway
@@ -612,8 +612,10 @@ class RendererFrame(Actor2D):
         elif "l" in pattern:
             psqr = [p0, p3]
         else:
-            vedo.printc("Error in RendererFrame: pattern not recognized", pattern, c='r')
-       
+            vedo.printc(
+                "Error in RendererFrame: pattern not recognized", pattern, c="r"
+            )
+
         ppoints = vtki.vtkPoints()  # Generate the polyline
         for i, pt in enumerate(psqr):
             ppoints.InsertPoint(i, pt[0], pt[1], 0)
@@ -638,7 +640,7 @@ class RendererFrame(Actor2D):
 
         super().__init__(polydata)
         self.name = "RendererFrame"
-        
+
         self.coordinate = vtki.vtkCoordinate()
         self.coordinate.SetCoordinateSystemToNormalizedViewport()
         self.mapper.SetTransformCoordinate(self.coordinate)
@@ -647,7 +649,6 @@ class RendererFrame(Actor2D):
         self.color(c)
         self.alpha(alpha)
         self.lw(lw)
-
 
 
 #####################################################################
@@ -705,7 +706,9 @@ class ProgressBarWidget(Actor2D):
         """Update progress bar to fraction of the window width."""
         if fraction is None:
             if self.iterations is None:
-                vedo.printc("Error in ProgressBarWindow: must specify iterations", c='r')
+                vedo.printc(
+                    "Error in ProgressBarWindow: must specify iterations", c="r"
+                )
                 return self
             self.n += 1
             fraction = self.n / self.iterations

@@ -4,7 +4,7 @@ from vedo import *
 def func(widget, e):
     x = widget.value
     m = msh.clone()
-    ids = m.find_cells_in_bounds(xbounds=(-10,x))
+    ids = m.find_cells_in_bounds(xbounds=(-10, x))
     m.delete_cells(ids)
     plt.remove("frog").add(m).render()
 

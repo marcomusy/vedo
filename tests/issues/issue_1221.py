@@ -1,4 +1,3 @@
-
 import numpy as np
 from vedo import download, dataurl, precision, settings
 from vedo import Volume, Point, Plotter, Axes
@@ -44,11 +43,12 @@ def slider_isovalue(widget, _event, init_value=None):
         m.name = "AnomalyIsoSurface"
     plt.remove("AnomalyIsoSurface").add(torender)
 
+
 ######################################################
 # general settings
 settings.default_font = "Roboto"
 
-path = download(dataurl+"geo_dataset.npy")
+path = download(dataurl + "geo_dataset.npy")
 dataset = np.load(path)
 
 # invert the 'z-axis' in a way the shallow depth values
@@ -79,7 +79,9 @@ vol1 = Volume(vol1, spacing=[15, 15, 2])
 
 txt = "Central-western geoanomaly\n"
 txt += "(mid to strong S-wave values)"
-capt1 = Point((581, 207, 212)).caption(txt, size=(0.2, 0.05), justify='center-left', c="k")
+capt1 = Point((581, 207, 212)).caption(
+    txt, size=(0.2, 0.05), justify="center-left", c="k"
+)
 
 
 ###########################
@@ -91,7 +93,9 @@ vol2 = Volume(vol2, spacing=[15, 15, 2])
 
 txt = "Central geoanomaly\n"
 txt += "(low to mid S-wave values)"
-capt2 = Point([514, 475, 193]).caption(txt, size=(0.2, 0.05), justify='center-left', c="k")
+capt2 = Point([514, 475, 193]).caption(
+    txt, size=(0.2, 0.05), justify="center-left", c="k"
+)
 
 ###########################
 # get the south-eastern geoanomaly defined by:
@@ -102,7 +106,9 @@ vol3 = Volume(vol3, spacing=[15, 15, 2])
 
 txt = "Soth-eastern geoanomaly\n"
 txt += "(mid to strong S-wave values)"
-capt3 = Point([215, 500, 211]).caption(txt, size=(0.2, 0.05), justify='center-left', c="k")
+capt3 = Point([215, 500, 211]).caption(
+    txt, size=(0.2, 0.05), justify="center-left", c="k"
+)
 
 ###########################
 # get the north-eastern geoanomaly defined by:
@@ -113,7 +119,9 @@ vol4 = Volume(vol4, spacing=[15, 15, 2])
 
 txt = "North-eastern geoanomaly\n"
 txt += "(mid to strong S-wave values)"
-capt4 = Point([712, 630, 201]).caption(txt, size=(0.2, 0.05), justify='center-left', c="k")
+capt4 = Point([712, 630, 201]).caption(
+    txt, size=(0.2, 0.05), justify="center-left", c="k"
+)
 
 ###########################
 # add slider options to rendered window based on code at
@@ -148,10 +156,14 @@ axs = Axes(
 plt = Plotter(size=(1400, 1200))
 plt.add_slider(
     slider_isovalue,
-    scalar_range[0], scalar_range[1], 
-    value=scalar_range[0], 
-    pos=4, title="value", show_value=True, delayed=False
+    scalar_range[0],
+    scalar_range[1],
+    value=scalar_range[0],
+    pos=4,
+    title="value",
+    show_value=True,
+    delayed=False,
 )
 plt.show(iso, axs, capt1, capt2, capt3, capt4, viewup="z", interactive=False)
-slider_isovalue(None, None, init_value=scalar_range[0]) # init the first value
+slider_isovalue(None, None, init_value=scalar_range[0])  # init the first value
 plt.interactive().close()

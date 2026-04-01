@@ -1,4 +1,5 @@
 """External-tools interoperability example."""
+
 # Example usage with pygmsh package:
 # https://github.com/nschloe/pygmsh
 import pygmsh  # pip install pygmsh

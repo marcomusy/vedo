@@ -56,11 +56,13 @@ __all__ = [
     "andrews_curves",
 ]
 
+
 ###########################################################################
 class OperationNode:
     """
     Keep track of the operations which led to a final state.
     """
+
     # https://www.graphviz.org/doc/info/shapes.html#html
     # Mesh     #e9c46a
     # Follower #d9ed92
@@ -71,7 +73,13 @@ class OperationNode:
     # Assembly #f08080
 
     def __init__(
-        self, operation, parents=(), comment="", shape="none", c="#e9c46a", style="filled"
+        self,
+        operation,
+        parents=(),
+        comment="",
+        shape="none",
+        c="#e9c46a",
+        style="filled",
     ) -> None:
         """
         Keep track of the operations which led to a final object.
@@ -179,18 +187,21 @@ class OperationNode:
                 if par:
                     op = par.operation_plain
                     tree.create_node(
-                        op, op + str(par.time), parent=parent.operation_plain + str(parent.time)
+                        op,
+                        op + str(par.time),
+                        parent=parent.operation_plain + str(parent.time),
                     )
                     _build_tree(par)
+
         try:
             tree = Tree()
-            tree.create_node(self.operation_plain, self.operation_plain + str(self.time))
+            tree.create_node(
+                self.operation_plain, self.operation_plain + str(self.time)
+            )
             _build_tree(self)
             out = tree.show(stdout=False)
         except Exception as e:
-            out = (
-                f"Sorry treelib failed to build the tree for '{self.operation_plain}()': {e}."
-            )
+            out = f"Sorry treelib failed to build the tree for '{self.operation_plain}()': {e}."
         return out
 
     def print(self) -> None:
@@ -205,13 +216,19 @@ class OperationNode:
         try:
             from graphviz import Digraph
         except ImportError:
-            vedo.logger.error("please install graphviz with command\n  pip install graphviz")
+            vedo.logger.error(
+                "please install graphviz with command\n  pip install graphviz"
+            )
             vedo.logger.error("  sudo apt-get install graphviz -y")
             return
 
         # visualize the entire tree
         dot = Digraph(
-            node_attr={"fontcolor": "#201010", "fontname": "Helvetica", "fontsize": "12"},
+            node_attr={
+                "fontcolor": "#201010",
+                "fontname": "Helvetica",
+                "fontsize": "12",
+            },
             edge_attr={"fontname": "Helvetica", "fontsize": "6", "arrowsize": "0.4"},
         )
         dot.attr(rankdir=orientation)
@@ -222,7 +239,8 @@ class OperationNode:
 
         home_dir = os.path.expanduser("~")
         gpath = os.path.join(
-            home_dir, vedo.settings.cache_directory, "vedo", "pipeline_graphviz")
+            home_dir, vedo.settings.cache_directory, "vedo", "pipeline_graphviz"
+        )
 
         dot.render(gpath, view=popup)
 
@@ -337,7 +355,6 @@ class ProgressBar:
             self._oldbar = self.pbar
 
             if self.eta and self._counts > 1:
-
                 tdenom = time.time() - self.t0
                 if tdenom:
                     vel = self._counts / tdenom
@@ -402,13 +419,12 @@ class ProgressBar:
         af = self.width - 2
         nh = int(round(self.percent_int / 100 * af))
         pbar_background = "\x1b[2m" + self.char_back * (af - nh)
-        self.pbar = f"{self.title}{self.char * (nh-1)}{pbar_background}"
+        self.pbar = f"{self.title}{self.char * (nh - 1)}{pbar_background}"
         if self.percent < 100.0:
             ps = f" {self.percent_int}%"
         else:
             ps = ""
         self.pbar += ps
-
 
 
 # class _ProgressBar:
@@ -681,10 +697,15 @@ class ProgressBar:
 
 #####################################
 def progressbar(
-        iterable,
-        c=None, bold=True, italic=False, title="",
-        eta=True, width=25, delay=-1,
-    ):
+    iterable,
+    c=None,
+    bold=True,
+    italic=False,
+    title="",
+    eta=True,
+    width=25,
+    delay=-1,
+):
     """
     Function to print a progress bar with optional text message.
 
@@ -735,8 +756,15 @@ def progressbar(
         total = len(iterable)
 
     pb = ProgressBar(
-        0, total, c=c, bold=bold, italic=italic, title=title,
-        eta=eta, delay=delay, width=width,
+        0,
+        total,
+        c=c,
+        bold=bold,
+        italic=italic,
+        title=title,
+        eta=eta,
+        delay=delay,
+        width=width,
     )
     for item in iterable:
         pb.print()
@@ -774,14 +802,15 @@ class Minimizer:
     Example:
         - [nelder-mead.py](https://github.com/marcomusy/vedo/blob/master/examples/others/nelder-mead.py)
     """
+
     def __init__(
-            self,
-            function=None,
-            max_iterations=10000,
-            contraction_ratio=0.5,
-            expansion_ratio=2.0,
-            tol=1e-5,
-        ) -> None:
+        self,
+        function=None,
+        max_iterations=10000,
+        contraction_ratio=0.5,
+        expansion_ratio=2.0,
+        tol=1e-5,
+    ) -> None:
         self.function = function
         self.tolerance = tol
         self.contraction_ratio = contraction_ratio
@@ -865,11 +894,16 @@ class Minimizer:
                 the errors on the parameters
         """
         n = self.minimizer.GetNumberOfParameters()
-        out = [(
-            self.minimizer.GetParameterName(i),
-            (self.minimizer.GetParameterValue(i),
-             self.minimizer.GetParameterScale(i))
-        ) for i in range(n)]
+        out = [
+            (
+                self.minimizer.GetParameterName(i),
+                (
+                    self.minimizer.GetParameterValue(i),
+                    self.minimizer.GetParameterScale(i),
+                ),
+            )
+            for i in range(n)
+        ]
         self.results["init_parameters"] = dict(out)
 
         self.minimizer.SetTolerance(self.tolerance)
@@ -880,10 +914,13 @@ class Minimizer:
         self.minimizer.Minimize()
         self.results["convergence_flag"] = not bool(self.minimizer.Iterate())
 
-        out = [(
-            self.minimizer.GetParameterName(i),
-            self.minimizer.GetParameterValue(i),
-        ) for i in range(n)]
+        out = [
+            (
+                self.minimizer.GetParameterName(i),
+                self.minimizer.GetParameterValue(i),
+            )
+            for i in range(n)
+        ]
 
         self.results["parameters"] = dict(out)
         self.results["min_value"] = self.minimizer.GetFunctionValue()
@@ -894,15 +931,15 @@ class Minimizer:
         self.results["contraction_ratio"] = self.contraction_ratio
         self.results["parameters_path"] = np.array(self.parameters_path)
         self.results["function_path"] = np.array(self.function_path)
-        self.results["hessian"] = np.zeros((n,n))
+        self.results["hessian"] = np.zeros((n, n))
         self.results["parameter_errors"] = np.zeros(n)
         return self.results
-    
+
     @property
     def x(self):
         """Return the final parameters."""
         return self.results["parameters"]
-    
+
     @property
     def fun(self):
         """Return the final score value."""
@@ -961,15 +998,17 @@ class Minimizer:
                 line += f" ± {err:.4f}"
             final_lines.append(line)
         rows.append(("final params", "\n".join(final_lines)))
-        rows.append(("Value at minimum", f'{self.results["min_value"]}'))
-        rows.append(("Iterations", f'{self.results["iterations"]}'))
-        rows.append(("Max iterations", f'{self.results["max_iterations"]}'))
-        rows.append(("Convergence flag", f'{self.results["convergence_flag"]}'))
-        rows.append(("Tolerance", f'{self.results["tolerance"]}'))
+        rows.append(("Value at minimum", f"{self.results['min_value']}"))
+        rows.append(("Iterations", f"{self.results['iterations']}"))
+        rows.append(("Max iterations", f"{self.results['max_iterations']}"))
+        rows.append(("Convergence flag", f"{self.results['convergence_flag']}"))
+        rows.append(("Tolerance", f"{self.results['tolerance']}"))
         try:
             arr = np.array2string(
                 self.compute_hessian(),
-                separator=', ', precision=6, suppress_small=True,
+                separator=", ",
+                precision=6,
+                suppress_small=True,
             )
             rows.append(("Hessian Matrix", arr))
         except Exception:
@@ -977,9 +1016,11 @@ class Minimizer:
         return rows
 
 
-def compute_hessian(func, params, bounds=None, epsilon=1e-5, verbose=True) -> np.ndarray:
+def compute_hessian(
+    func, params, bounds=None, epsilon=1e-5, verbose=True
+) -> np.ndarray:
     """
-    Compute the Hessian matrix of a scalar function `func` at `params`, 
+    Compute the Hessian matrix of a scalar function `func` at `params`,
     accounting for parameter boundaries.
 
     Arguments:
@@ -996,7 +1037,7 @@ def compute_hessian(func, params, bounds=None, epsilon=1e-5, verbose=True) -> np
 
     Returns:
         Hessian matrix of shape (n_params, n_params).
-    
+
     Example:
     ```python
     from vedo import *
@@ -1007,7 +1048,7 @@ def compute_hessian(func, params, bounds=None, epsilon=1e-5, verbose=True) -> np
         a, b = params[0], params[1]
         score = (a-5)**2 + (b-2)**2 #+a*b
         #print(a, b, score)
-        return score  
+        return score
 
     # 2. Fit parameters (example result)
     mle_params = np.array([4.97, 1.95])  # Assume obtained via optimization
@@ -1030,7 +1071,7 @@ def compute_hessian(func, params, bounds=None, epsilon=1e-5, verbose=True) -> np
     # Diagonal elements (second derivatives)
     for i in range(n):
         if verbose:
-            vedo.printc(f"Computing Hessian: {i+1}/{n} for diagonal", delay=0)
+            vedo.printc(f"Computing Hessian: {i + 1}/{n} for diagonal", delay=0)
         if bounds:
             lb, ub = bounds[i]
         else:
@@ -1038,7 +1079,7 @@ def compute_hessian(func, params, bounds=None, epsilon=1e-5, verbose=True) -> np
 
         # Adaptive step size to stay within bounds
         h_plus = min(epsilon, ub - params[i])  # Max allowed step upward
-        h_minus = min(epsilon, params[i] - lb) # Max allowed step downward
+        h_minus = min(epsilon, params[i] - lb)  # Max allowed step downward
         h = min(h_plus, h_minus)  # Use symmetric step where possible
 
         # Avoid zero step size (if parameter is at a boundary)
@@ -1055,12 +1096,12 @@ def compute_hessian(func, params, bounds=None, epsilon=1e-5, verbose=True) -> np
         f_minus = func(params_minus)
 
         # Central difference for diagonal
-        hessian[i, i] = (f_plus - 2*f_0 + f_minus) / (h**2)
+        hessian[i, i] = (f_plus - 2 * f_0 + f_minus) / (h**2)
 
     # Off-diagonal elements (mixed partial derivatives)
     for i in range(n):
         if verbose:
-            vedo.printc(f"Computing Hessian: {i+1}/{n} for off-diagonal", delay=0)
+            vedo.printc(f"Computing Hessian: {i + 1}/{n} for off-diagonal", delay=0)
         for j in range(i + 1, n):
             if bounds:
                 lb_i, ub_i = bounds[i]
@@ -1144,7 +1185,7 @@ def andrews_curves(M, res=100) -> np.ndarray:
     A = np.empty((m, n))
 
     # setting first column of A
-    A[:, 0] = [1/np.sqrt(2)] * m
+    A[:, 0] = [1 / np.sqrt(2)] * m
 
     # filling columns of A
     for i in range(1, n):
@@ -1218,6 +1259,7 @@ def numpy2vtk(arr, dtype=None, deep=True, name="", as_image=False, dims=None):
         return img
 
     return varr
+
 
 def vtk2numpy(varr):
     """Convert a `vtkDataArray`, `vtkIdList` or `vtTransform` into a numpy array."""
@@ -1299,7 +1341,9 @@ def geometry(obj, extent=None) -> vedo.Mesh:
     return vedo.Mesh(gf.GetOutput())
 
 
-def buildPolyData(vertices, faces=None, lines=None, strips=None, index_offset=0) -> vtki.vtkPolyData:
+def buildPolyData(
+    vertices, faces=None, lines=None, strips=None, index_offset=0
+) -> vtki.vtkPolyData:
     """
     Build a `vtkPolyData` object from a list of vertices
     where faces represents the connectivity of the polygonal mesh.
@@ -1317,11 +1361,11 @@ def buildPolyData(vertices, faces=None, lines=None, strips=None, index_offset=0)
     Use `index_offset=1` if face numbering starts from 1 instead of 0.
     """
     if is_sequence(faces) and len(faces) == 0:
-        faces=None
+        faces = None
     if is_sequence(lines) and len(lines) == 0:
-        lines=None
+        lines = None
     if is_sequence(strips) and len(strips) == 0:
-        strips=None
+        strips = None
 
     poly = vtki.vtkPolyData()
 
@@ -1357,7 +1401,9 @@ def buildPolyData(vertices, faces=None, lines=None, strips=None, index_offset=0)
             while i < nvals:
                 npts = int(lines[i])
                 if npts < 2:
-                    raise ValueError("buildPolyData(lines): each cell must have at least 2 points")
+                    raise ValueError(
+                        "buildPolyData(lines): each cell must have at least 2 points"
+                    )
                 end = i + 1 + npts
                 if end > nvals:
                     raise ValueError(
@@ -1380,7 +1426,6 @@ def buildPolyData(vertices, faces=None, lines=None, strips=None, index_offset=0)
         poly.SetLines(linesarr)
 
     if faces is not None:
-
         source_polygons = vtki.vtkCellArray()
 
         if isinstance(faces, np.ndarray) or not is_ragged(faces):
@@ -1476,9 +1521,13 @@ def get_font_path(font: str) -> str:
             fl = os.path.join(vedo.fonts_path, f"{font}.ttf")
         else:
             try:
-                fl = vedo.file_io.download(f"https://vedo.embl.es/fonts/{font}.ttf", verbose=False)
+                fl = vedo.file_io.download(
+                    f"https://vedo.embl.es/fonts/{font}.ttf", verbose=False
+                )
             except Exception:
-                vedo.logger.warning(f"Could not download https://vedo.embl.es/fonts/{font}.ttf")
+                vedo.logger.warning(
+                    f"Could not download https://vedo.embl.es/fonts/{font}.ttf"
+                )
                 fl = os.path.join(vedo.fonts_path, "Normografo.ttf")
     else:
         if font.startswith("https://"):
@@ -1696,13 +1745,13 @@ def triangle_solver(**input_dict):
         bc = np.pi - ab - ac
 
     if a is not None and b is not None and c is not None:
-        ab = np.arccos((a ** 2 + b ** 2 - c ** 2) / (2 * a * b))
+        ab = np.arccos((a**2 + b**2 - c**2) / (2 * a * b))
         sinab = np.sin(ab)
         ac = np.arcsin(a / c * sinab)
         bc = np.arcsin(b / c * sinab)
 
     elif a is not None and b is not None and ab is not None:
-        c = np.sqrt(a ** 2 + b ** 2 - 2 * a * b * np.cos(ab))
+        c = np.sqrt(a**2 + b**2 - 2 * a * b * np.cos(ab))
         sinab = np.sin(ab)
         ac = np.arcsin(a / c * sinab)
         bc = np.arcsin(b / c * sinab)
@@ -1795,9 +1844,10 @@ def circle_from_3points(p1, p2, p3) -> np.ndarray:
     v22 = np.dot(v2, v2)
     v12 = np.dot(v1, v2)
     f = 1.0 / (2 * (v11 * v22 - v12 * v12))
-    k1 = f * v22 * (v11-v12)
-    k2 = f * v11 * (v22-v12)
+    k1 = f * v22 * (v11 - v12)
+    k2 = f * v11 * (v22 - v12)
     return p1 + k1 * v1 + k2 * v2
+
 
 def point_line_distance(p, p1, p2) -> float:
     """
@@ -1806,7 +1856,10 @@ def point_line_distance(p, p1, p2) -> float:
     """
     return np.sqrt(vtki.vtkLine.DistanceToLine(p, p1, p2))
 
-def line_line_distance(p1, p2, q1, q2) -> tuple[float, np.ndarray, np.ndarray, float, float]:
+
+def line_line_distance(
+    p1, p2, q1, q2
+) -> tuple[float, np.ndarray, np.ndarray, float, float]:
     """
     Compute the distance of a line to a line (not the segment)
     defined by `p1` and `p2` and `q1` and `q2`.
@@ -1815,12 +1868,14 @@ def line_line_distance(p1, p2, q1, q2) -> tuple[float, np.ndarray, np.ndarray, f
     the closest point on line 1, the closest point on line 2.
     Their parametric coords (-inf <= t0, t1 <= inf) are also returned.
     """
-    closest_pt1: MutableSequence[float] = [0,0,0]
-    closest_pt2: MutableSequence[float] = [0,0,0]
+    closest_pt1: MutableSequence[float] = [0, 0, 0]
+    closest_pt2: MutableSequence[float] = [0, 0, 0]
     t1, t2 = 0.0, 0.0
     d = vtki.vtkLine.DistanceBetweenLines(
-        p1, p2, q1, q2, closest_pt1, closest_pt2, t1, t2)
+        p1, p2, q1, q2, closest_pt1, closest_pt2, t1, t2
+    )
     return np.sqrt(d), closest_pt1, closest_pt2, t1, t2
+
 
 def segment_segment_distance(p1, p2, q1, q2):
     """
@@ -1831,11 +1886,12 @@ def segment_segment_distance(p1, p2, q1, q2):
     the closest point on line 1, the closest point on line 2.
     Their parametric coords (-inf <= t0, t1 <= inf) are also returned.
     """
-    closest_pt1 = [0,0,0]
-    closest_pt2 = [0,0,0]
+    closest_pt1 = [0, 0, 0]
+    closest_pt2 = [0, 0, 0]
     t1, t2 = 0.0, 0.0
     d = vtki.vtkLine.DistanceBetweenLineSegments(
-        p1, p2, q1, q2, closest_pt1, closest_pt2, t1, t2)
+        p1, p2, q1, q2, closest_pt1, closest_pt2, t1, t2
+    )
     return np.sqrt(d), closest_pt1, closest_pt2, t1, t2
 
 
@@ -1901,7 +1957,7 @@ def otsu_threshold(image):
     numerator = (mu_total * omega - mu) ** 2
     denominator = omega * (1 - omega)
 
-    with np.errstate(divide='ignore', invalid='ignore'):
+    with np.errstate(divide="ignore", invalid="ignore"):
         sigma_b_squared = np.divide(numerator, denominator, where=denominator > 0)
 
     idx = np.argmax(sigma_b_squared)
@@ -1937,7 +1993,6 @@ def lin_interpolate(x, rangeX, rangeY):
         out = y0 * (t / st) + y1 * (s / st)
 
     else:  # faster
-
         x0 = rangeX[0]
         dx = rangeX[1] - x0
         if not dx:
@@ -2140,7 +2195,6 @@ def precision(x, p: int, vrange=None, delimiter="e") -> str:
         out = "("
         nn = len(x) - 1
         for i, ix in enumerate(x):
-
             try:
                 if np.isnan(ix):
                     return "NaN"
@@ -2185,7 +2239,7 @@ def precision(x, p: int, vrange=None, delimiter="e") -> str:
         n = n + 1
 
     # if n >= np.power(10, p):
-    if n >= 10 ** p:
+    if n >= 10**p:
         n = n / 10.0
         e = e + 1
 
@@ -2231,6 +2285,7 @@ def grep(filename: str, tag: str, column=None, first_occurrence_only=False) -> l
                     break
     return content
 
+
 def string_match(pattern: str, text: str) -> bool:
     """
     Check if the text matches the provided pattern with wildcards.
@@ -2245,17 +2300,18 @@ def string_match(pattern: str, text: str) -> bool:
     # Characters we DON'T want to escape: *, ?, [, ]
     # Step 1: Temporarily replace wildcards with placeholders
     pattern = pattern.replace("*", "__STAR__").replace("?", "__QMARK__")
-    
+
     # Step 2: Escape everything else
     pattern = re.escape(pattern)
-    
+
     # Step 3: Restore wildcards (and allow [] to be unescaped)
     pattern = pattern.replace("__STAR__", ".*").replace("__QMARK__", ".")
     pattern = pattern.replace(r"\[", "[").replace(r"\]", "]")
-    
+
     # Step 4: Anchor for full match
     pattern = "^" + pattern + "$"
     return bool(re.match(pattern, text))
+
 
 def print_histogram(
     data,
@@ -2325,12 +2381,12 @@ def print_histogram(
 
     # remove out of range values
     if len(vrange):
-            if vrange[0] is None:
-                data = data[data <= vrange[1]]
-            elif vrange[1] is None:
-                data = data[data >= vrange[0]]
-            else:
-                data = data[(data >= vrange[0]) & (data <= vrange[1])]
+        if vrange[0] is None:
+            data = data[data <= vrange[1]]
+        elif vrange[1] is None:
+            data = data[data >= vrange[0]]
+        else:
+            data = data[(data >= vrange[0]) & (data <= vrange[1])]
 
     if isinstance(data, vtki.vtkImageData):
         dims = data.GetDimensions()
@@ -2444,12 +2500,16 @@ def print_table(*columns, headers=None, c="g") -> None:
 
     # Find the maximum length of the elements in each column and header
     max_lens = [max(len(str(x)) for x in column) for column in columns]
-    max_len_headers = [max(len(str(header)), max_len) for header, max_len in zip(headers, max_lens)]
+    max_len_headers = [
+        max(len(str(header)), max_len) for header, max_len in zip(headers, max_lens)
+    ]
 
     # Construct the table header
     header = (
         "│ "
-        + " │ ".join(header.ljust(max_len) for header, max_len in zip(headers, max_len_headers))
+        + " │ ".join(
+            header.ljust(max_len) for header, max_len in zip(headers, max_len_headers)
+        )
         + " │"
     )
 
@@ -2466,7 +2526,9 @@ def print_table(*columns, headers=None, c="g") -> None:
     for row in zip(*columns):
         row = (
             "│ "
-            + " │ ".join(str(col).ljust(max_len) for col, max_len in zip(row, max_len_headers))
+            + " │ ".join(
+                str(col).ljust(max_len) for col, max_len in zip(row, max_len_headers)
+            )
             + " │"
         )
         vedo.printc(row, bold=False, c=c)
@@ -2474,8 +2536,10 @@ def print_table(*columns, headers=None, c="g") -> None:
     # Print the line separator again to close the table
     vedo.printc(line2, c=c)
 
+
 def print_inheritance_tree(C) -> None:
     """Prints the inheritance tree of class C."""
+
     # Adapted from: https://stackoverflow.com/questions/26568976/
     def class_tree(cls):
         subc = [class_tree(sub_class) for sub_class in cls.__subclasses__()]
@@ -2525,7 +2589,9 @@ def make_bands(inputlist, n):
 #################################################################
 # Functions adapted from:
 # https://github.com/sdorkenw/MeshParty/blob/master/meshparty/trimesh_vtk.py
-def camera_from_quaternion(pos, quaternion, distance=10000, ngl_correct=True) -> vtki.vtkCamera:
+def camera_from_quaternion(
+    pos, quaternion, distance=10000, ngl_correct=True
+) -> vtki.vtkCamera:
     """
     Define a `vtkCamera` with a particular orientation.
 
@@ -2639,28 +2705,40 @@ def camera_from_dict(camera, modify_inplace=None) -> vtki.vtkCamera:
 
     camera = dict(camera)  # make a copy so input is not emptied by pop()
 
-    cm_pos         = camera.pop("position", camera.pop("pos", None))
+    cm_pos = camera.pop("position", camera.pop("pos", None))
     cm_focal_point = camera.pop("focal_point", camera.pop("focalPoint", None))
-    cm_viewup      = camera.pop("viewup", None)
-    cm_distance    = camera.pop("distance", None)
+    cm_viewup = camera.pop("viewup", None)
+    cm_distance = camera.pop("distance", None)
     cm_clipping_range = camera.pop("clipping_range", camera.pop("clippingRange", None))
     cm_parallel_scale = camera.pop("parallel_scale", camera.pop("parallelScale", None))
-    cm_thickness   = camera.pop("thickness", None)
-    cm_view_angle  = camera.pop("view_angle", camera.pop("viewAngle", None))
-    cm_roll        = camera.pop("roll", None)
+    cm_thickness = camera.pop("thickness", None)
+    cm_view_angle = camera.pop("view_angle", camera.pop("viewAngle", None))
+    cm_roll = camera.pop("roll", None)
 
     if len(camera.keys()) > 0:
-        vedo.logger.warning(f"in camera_from_dict, key(s) not recognized: {camera.keys()}")
-    if cm_pos is not None:            vcam.SetPosition(cm_pos)
-    if cm_focal_point is not None:    vcam.SetFocalPoint(cm_focal_point)
-    if cm_viewup is not None:         vcam.SetViewUp(cm_viewup)
-    if cm_distance is not None:       vcam.SetDistance(cm_distance)
-    if cm_clipping_range is not None: vcam.SetClippingRange(cm_clipping_range)
-    if cm_parallel_scale is not None: vcam.SetParallelScale(cm_parallel_scale)
-    if cm_thickness is not None:      vcam.SetThickness(cm_thickness)
-    if cm_view_angle is not None:     vcam.SetViewAngle(cm_view_angle)
-    if cm_roll is not None:           vcam.SetRoll(cm_roll)
+        vedo.logger.warning(
+            f"in camera_from_dict, key(s) not recognized: {camera.keys()}"
+        )
+    if cm_pos is not None:
+        vcam.SetPosition(cm_pos)
+    if cm_focal_point is not None:
+        vcam.SetFocalPoint(cm_focal_point)
+    if cm_viewup is not None:
+        vcam.SetViewUp(cm_viewup)
+    if cm_distance is not None:
+        vcam.SetDistance(cm_distance)
+    if cm_clipping_range is not None:
+        vcam.SetClippingRange(cm_clipping_range)
+    if cm_parallel_scale is not None:
+        vcam.SetParallelScale(cm_parallel_scale)
+    if cm_thickness is not None:
+        vcam.SetThickness(cm_thickness)
+    if cm_view_angle is not None:
+        vcam.SetViewAngle(cm_view_angle)
+    if cm_roll is not None:
+        vcam.SetRoll(cm_roll)
     return vcam
+
 
 def camera_to_dict(vtkcam) -> dict:
     """
@@ -2710,14 +2788,14 @@ def vtkCameraToK3D(vtkcam) -> np.ndarray:
 
 
 def make_ticks(
-        x0: float,
-        x1: float,
-        n=None,
-        labels=None,
-        digits=None,
-        logscale=False,
-        useformat="",
-    ) -> tuple[np.ndarray, list[str]]:
+    x0: float,
+    x1: float,
+    n=None,
+    labels=None,
+    digits=None,
+    logscale=False,
+    useformat="",
+) -> tuple[np.ndarray, list[str]]:
     """
     Generate numeric labels for the `[x0, x1]` range.
 
@@ -2823,7 +2901,9 @@ def make_ticks(
             np.set_printoptions(suppress=None)  # set back to default
         else:
             sas = precision(fulaxis, digits, vrange=(x0, x1))
-            sas = sas.replace("[", "").replace("]", "").replace(")", "").replace(",", "")
+            sas = (
+                sas.replace("[", "").replace("]", "").replace(")", "").replace(",", "")
+            )
 
         sas2 = []
         for s in sas.split():
@@ -2859,7 +2939,9 @@ def make_ticks(
     return np.array(ticks_float), ticks_str
 
 
-def grid_corners(i: int, nm: list, size: list, margin=0, yflip=True) -> tuple[np.ndarray, np.ndarray]:
+def grid_corners(
+    i: int, nm: list, size: list, margin=0, yflip=True
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Compute the 2 corners coordinates of the i-th box in a grid of shape n*m.
     The top-left square is square number 1.
@@ -3001,9 +3083,23 @@ def get_vtk_name_event(name: str) -> str:
         event_name = "MouseMove"
 
     words = [
-        "pick", "timer", "reset", "enter", "leave", "char",
-        "error", "warning", "start", "end", "wheel", "clipping",
-        "range", "camera", "render", "interaction", "modified",
+        "pick",
+        "timer",
+        "reset",
+        "enter",
+        "leave",
+        "char",
+        "error",
+        "warning",
+        "start",
+        "end",
+        "wheel",
+        "clipping",
+        "range",
+        "camera",
+        "render",
+        "interaction",
+        "modified",
     ]
     for w in words:
         if w in ln:
@@ -3017,10 +3113,9 @@ def get_vtk_name_event(name: str) -> str:
         event_name += "Event"
 
     if vtki.vtkCommand.GetEventIdFromString(event_name) == 0:
-        vedo.printc(
-            f"Error: '{name}' is not a valid event name.", c='r')
-        vedo.printc("Check the list of events here:", c='r')
-        vedo.printc("\thttps://vtk.org/doc/nightly/html/classvtkCommand.html", c='r')
+        vedo.printc(f"Error: '{name}' is not a valid event name.", c="r")
+        vedo.printc("Check the list of events here:", c="r")
+        vedo.printc("\thttps://vtk.org/doc/nightly/html/classvtkCommand.html", c="r")
         raise ValueError(f"Invalid VTK event name: {name!r}")
 
     return event_name

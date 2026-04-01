@@ -246,20 +246,19 @@ def show(
         plt = current_plt
 
     else:  # Plotter must be created
-
         if utils.is_sequence(at):  # user passed a sequence for "at"
-
             if not utils.is_sequence(objects):
                 vedo.logger.error("in show() input must be a list.")
                 raise RuntimeError()
             if len(at) != len(objects):
-                vedo.logger.error("in show() lists 'input' and 'at' must have equal lengths")
+                vedo.logger.error(
+                    "in show() lists 'input' and 'at' must have equal lengths"
+                )
                 raise RuntimeError()
             if shape == (1, 1) and N is None:
                 N = max(at) + 1
 
         elif at is None and (N or shape != (1, 1)):
-
             if not utils.is_sequence(objects):
                 e = "in show(), N or shape is set, but input is not a sequence\n"
                 e += "              you may need to specify e.g. at=0"
@@ -290,7 +289,6 @@ def show(
     _plt_to_return = None
 
     if utils.is_sequence(at):
-
         for i, act in enumerate(objects):
             _plt_to_return = plt.show(
                 act,
@@ -316,7 +314,11 @@ def show(
             or (isinstance(shape[0], int) and len(at) == shape[0] * shape[1])
         ):
             # note that shape can be a string
-            if plt.interactor and not offscreen and (interactive is None or interactive):
+            if (
+                plt.interactor
+                and not offscreen
+                and (interactive is None or interactive)
+            ):
                 plt.interactor.Start()
                 if plt._must_close_now:
                     plt.interactor.GetRenderWindow().Finalize()
@@ -328,7 +330,6 @@ def show(
                     plt.camera = None
 
     else:
-
         _plt_to_return = plt.show(
             objects,
             at=at,
@@ -436,22 +437,22 @@ class Plotter:
         self._interactive = interactive
         # print("interactive", interactive, N, shape)
 
-        self.objects = []           # list of objects to be shown
+        self.objects = []  # list of objects to be shown
         self.clicked_object = None  # holds the object that has been clicked
-        self.clicked_actor = None   # holds the actor that has been clicked
+        self.clicked_actor = None  # holds the actor that has been clicked
 
-        self.shape = shape   # nr. of subwindows in grid
-        self.axes = axes     # show axes type nr.
-        self.title = title   # window title
-        self.size = size     # window size
+        self.shape = shape  # nr. of subwindows in grid
+        self.axes = axes  # show axes type nr.
+        self.title = title  # window title
+        self.size = size  # window size
         self.backgrcol = bg  # used also by backend notebooks
 
-        self.offscreen= offscreen
+        self.offscreen = offscreen
         self.resetcam = resetcam
         self.sharecam = sharecam  # share the same camera if multiple renderers
-        self.pos      = pos       # used by vedo.file_io
+        self.pos = pos  # used by vedo.file_io
 
-        self.picker   = None  # hold the vtkPicker object
+        self.picker = None  # hold the vtkPicker object
         self.picked2d = None  # 2d coords of a clicked point on the rendering window
         self.picked3d = None  # 3d coords of a clicked point on an actor
 
@@ -520,7 +521,6 @@ class Plotter:
 
         #############################################################
         if N:  # N = number of renderers. Find out the best
-
             if shape != (1, 1):  # arrangement based on minimum nr. of empty renderers
                 vedo.logger.warning("having set N, shape is ignored.")
 
@@ -548,7 +548,6 @@ class Plotter:
 
         ##################################################
         if isinstance(shape, str):
-
             if "|" in shape:
                 if self.size == "auto":
                     self.size = (800, 1200)
@@ -616,7 +615,6 @@ class Plotter:
             self.shape = (len(shape),)
 
         else:
-
             if isinstance(self.size, str) and self.size == "auto":
                 # figure out a reasonable window size
                 f = 1.5
@@ -653,7 +651,9 @@ class Plotter:
             for i in reversed(range(shape[0])):
                 for j in range(shape[1]):
                     arenderer = vtki.vtkRenderer()
-                    configure_renderer_common(arenderer, self.backgrcol, bg2, two_sided=True)
+                    configure_renderer_common(
+                        arenderer, self.backgrcol, bg2, two_sided=True
+                    )
 
                     if image_actor:
                         arenderer.SetLayer(1)
@@ -695,7 +695,9 @@ class Plotter:
             if vedo.settings.enable_default_keyboard_callbacks:
                 self.interactor.AddObserver("KeyPressEvent", self._default_keypress)
             if vedo.settings.enable_default_mouse_callbacks:
-                self.interactor.AddObserver("LeftButtonPressEvent", self._default_mouseleftclick)
+                self.interactor.AddObserver(
+                    "LeftButtonPressEvent", self._default_mouseleftclick
+                )
             return  ################
             ########################
 
@@ -728,7 +730,9 @@ class Plotter:
         if vedo.settings.enable_default_keyboard_callbacks:
             self.interactor.AddObserver("KeyPressEvent", self._default_keypress)
         if vedo.settings.enable_default_mouse_callbacks:
-            self.interactor.AddObserver("LeftButtonPressEvent", self._default_mouseleftclick)
+            self.interactor.AddObserver(
+                "LeftButtonPressEvent", self._default_mouseleftclick
+            )
 
     ##################################################################### ..init ends here.
 
@@ -762,8 +766,18 @@ class Plotter:
         rows = []
         if self.interactor:
             rows.append(("window title", self.title))
-            rows.append(("window size", f"{self.window.GetSize()}, full_screen={self.window.GetScreenSize()}"))
-            rows.append(("activ renderer", f"nr.{self.renderers.index(self.renderer)} (out of {len(self.renderers)} renderers)"))
+            rows.append(
+                (
+                    "window size",
+                    f"{self.window.GetSize()}, full_screen={self.window.GetScreenSize()}",
+                )
+            )
+            rows.append(
+                (
+                    "activ renderer",
+                    f"nr.{self.renderers.index(self.renderer)} (out of {len(self.renderers)} renderers)",
+                )
+            )
 
         bns, totpt = [], 0
         for a in self.objects:
@@ -784,13 +798,22 @@ class Plotter:
         if len(bns) > 0:
             min_bns = np.min(bns, axis=0)
             max_bns = np.max(bns, axis=0)
-            rows.append((
-                "bounds",
-                format_bounds(
-                    [min_bns[0], max_bns[1], min_bns[2], max_bns[3], min_bns[4], max_bns[5]],
-                    utils.precision,
-                ),
-            ))
+            rows.append(
+                (
+                    "bounds",
+                    format_bounds(
+                        [
+                            min_bns[0],
+                            max_bns[1],
+                            min_bns[2],
+                            max_bns[3],
+                            min_bns[4],
+                            max_bns[5],
+                        ],
+                        utils.precision,
+                    ),
+                )
+            )
 
         if utils.is_integer(self.axes):
             rows.append(("axes style", f"{self.axes} {axtype[self.axes]}"))
@@ -821,8 +844,6 @@ class Plotter:
         # context manager like in "with Plotter() as plt:"
         self.close()
 
-
-
     def at(self, nren: int, yren=None) -> Self:
         """
         Select the current renderer number as an int.
@@ -832,7 +853,9 @@ class Plotter:
             if len(nren) == 2:
                 nren, yren = nren
             else:
-                vedo.logger.error("at() argument must be a single number or a list of two numbers")
+                vedo.logger.error(
+                    "at() argument must be a single number or a list of two numbers"
+                )
                 raise TypeError
 
         if yren is not None:
@@ -847,7 +870,6 @@ class Plotter:
 
         self.renderer = self.renderers[nren]
         return self
-
 
     ############################################################################
 
@@ -900,8 +922,6 @@ class Plotter:
 
     ##################################################################
 
-
-
     def check_actors_trasform(self, at=None) -> Self:
         """
         Reset the transformation matrix of all actors at specified renderer.
@@ -925,12 +945,6 @@ class Plotter:
                 except AttributeError:
                     pass
         return self
-
-
-
-
-
-
 
     def record(self, filename="") -> str:
         """
@@ -960,7 +974,8 @@ class Plotter:
                 os.makedirs(vedo.settings.cache_directory)
             home_dir = os.path.expanduser("~")
             filename = os.path.join(
-                home_dir, vedo.settings.cache_directory, "vedo", "recorded_events.log")
+                home_dir, vedo.settings.cache_directory, "vedo", "recorded_events.log"
+            )
             print("Events will be recorded in", filename)
         erec.SetFileName(filename)
         erec.SetKeyPressActivationValue("R")
@@ -1000,7 +1015,8 @@ class Plotter:
         if not recorded_events:
             home_dir = os.path.expanduser("~")
             recorded_events = os.path.join(
-                home_dir, vedo.settings.cache_directory, "vedo", "recorded_events.log")
+                home_dir, vedo.settings.cache_directory, "vedo", "recorded_events.log"
+            )
 
         if recorded_events.endswith(".log"):
             erec.ReadFromInputStringOff()
@@ -1016,14 +1032,6 @@ class Plotter:
         erec.EnabledOff()
         erec = None
         return self
-
-
-
-
-
-
-
-
 
     ##################################################################
     def add_slider(
@@ -1247,7 +1255,9 @@ class Plotter:
             ![](https://user-images.githubusercontent.com/32848391/50738870-c0fe2500-11d8-11e9-9b78-92754f5c5968.jpg)
         """
         if self.interactor:
-            bu = addons.Button(fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle)
+            bu = addons.Button(
+                fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle
+            )
             self.renderer.AddActor2D(bu.actor)
             bu.function_id = bu.actor.AddObserver("PickEvent", bu.function)
             self.buttons.append(bu)
@@ -1299,7 +1309,9 @@ class Plotter:
 
             ![](https://vedo.embl.es/images/basic/spline_tool.png)
         """
-        sw = addons.SplineTool(points, pc, ps, lc, ac, lw, alpha, closed, ontop, can_add_nodes)
+        sw = addons.SplineTool(
+            points, pc, ps, lc, ac, lw, alpha, closed, ontop, can_add_nodes
+        )
         sw.interactor = self.interactor
         sw.on()
         sw.Initialize(sw.points.dataset)
@@ -1493,7 +1505,9 @@ class Plotter:
             self.renderer.SetPass(camerapass)
         return self
 
-    def add_ambient_occlusion(self, radius: float, bias=0.01, blur=True, samples=100) -> Self:
+    def add_ambient_occlusion(
+        self, radius: float, bias=0.01, blur=True, samples=100
+    ) -> Self:
         """
         Screen Space Ambient Occlusion.
 
@@ -1609,9 +1623,9 @@ class Plotter:
         self.renderer.AddActor(self.skybox)
         return self
 
-    def add_renderer_frame(self, 
-            c=None, alpha=None, lw=None, 
-            padding=None, pattern="brtl") -> vedo.addons.RendererFrame:
+    def add_renderer_frame(
+        self, c=None, alpha=None, lw=None, padding=None, pattern="brtl"
+    ) -> vedo.addons.RendererFrame:
         """
         Add a frame to the renderer subwindow.
 
@@ -1625,7 +1639,7 @@ class Plotter:
             padding : (float)
                 padding space in pixels.
             pattern : (str)
-                a string made of characters 'b', 'r', 't', 'l' 
+                a string made of characters 'b', 'r', 't', 'l'
                 to show the frame line at the bottom, right, top, left.
         """
         if c is None:  # automatic black or white
@@ -1682,7 +1696,9 @@ class Plotter:
 
             ![](https://vedo.embl.es/images/pyplot/earthquake_browser.jpg)
         """
-        hoverlegend = vedo.shapes.Text2D(pos=pos, font=font, c=c, s=s, alpha=alpha, bg=bg)
+        hoverlegend = vedo.shapes.Text2D(
+            pos=pos, font=font, c=c, s=s, alpha=alpha, bg=bg
+        )
 
         if at is None:
             at = self.renderers.index(self.renderer)
@@ -1730,10 +1746,14 @@ class Plotter:
 
                 if evt.object.filename:
                     t += f"{tp}filename: "
-                    t += f"{os.path.basename(evt.object.filename[-maxlength:])}".ljust(maxlength)
+                    t += f"{os.path.basename(evt.object.filename[-maxlength:])}".ljust(
+                        maxlength
+                    )
                     t += "\n"
                     if not evt.object.file_size:
-                        evt.object.file_size, evt.object.created = vedo.file_io.file_info(evt.object.filename)
+                        evt.object.file_size, evt.object.created = (
+                            vedo.file_io.file_info(evt.object.filename)
+                        )
                     if evt.object.file_size:
                         t += "             : "
                         sz, created = evt.object.file_size, evt.object.created
@@ -1750,18 +1770,26 @@ class Plotter:
                     cdata = indata.GetCellData()
                     if pdata.GetScalars() and pdata.GetScalars().GetName():
                         t += f"\nPoint array  : {pdata.GetScalars().GetName()}"
-                        if pdata.GetScalars().GetName() == evt.object.mapper.GetArrayName():
+                        if (
+                            pdata.GetScalars().GetName()
+                            == evt.object.mapper.GetArrayName()
+                        ):
                             t += " *"
                     if cdata.GetScalars() and cdata.GetScalars().GetName():
                         t += f"\nCell  array  : {cdata.GetScalars().GetName()}"
-                        if cdata.GetScalars().GetName() == evt.object.mapper.GetArrayName():
+                        if (
+                            cdata.GetScalars().GetName()
+                            == evt.object.mapper.GetArrayName()
+                        ):
                             t += " *"
 
                 if evt.isImage:
-                    t = f"{os.path.basename(evt.object.filename[:maxlength+10])}".ljust(maxlength+10)
+                    t = f"{os.path.basename(evt.object.filename[: maxlength + 10])}".ljust(
+                        maxlength + 10
+                    )
                     t += f"\nImage shape: {evt.object.shape}"
                     pcol = self.color_picker(evt.picked2d)
-                    t += f"\nPixel color: {vedo.colors.rgb2hex(pcol/255)} {pcol}"
+                    t += f"\nPixel color: {vedo.colors.rgb2hex(pcol / 255)} {pcol}"
 
             # change box color if needed in 'auto' mode
             if evt.isPoints and "auto" in str(bg):
@@ -1848,7 +1876,9 @@ class Plotter:
 
         wsx, wsy = self.window.GetSize()
         if not self.camera.GetParallelProjection():
-            vedo.logger.warning("add_scale_indicator called with use_parallel_projection OFF. Skip.")
+            vedo.logger.warning(
+                "add_scale_indicator called with use_parallel_projection OFF. Skip."
+            )
             return None
 
         rlabel = vtki.new("VectorText")
@@ -1895,15 +1925,6 @@ class Plotter:
         sifunc(0, 0)
         return fractor
 
-
-
-
-
-
-
-
-
-
     def _scan_input_return_acts(self, objs) -> Any:
         # scan the input and return a list of actors
         if not utils.is_sequence(objs):
@@ -1912,7 +1933,6 @@ class Plotter:
         #################
         wannabe_acts = []
         for a in objs:
-
             try:
                 wannabe_acts.append(a.actor)
             except AttributeError:
@@ -1940,7 +1960,6 @@ class Plotter:
         #################
         scanned_acts = []
         for a in wannabe_acts:  # scan content of list
-
             if a is None:
                 pass
 
@@ -2146,12 +2165,10 @@ class Plotter:
             return self
 
         if self.renderers:  # in case of notebooks
-
             if at is None:
                 at = self.renderers.index(self.renderer)
 
             else:
-
                 if at >= len(self.renderers):
                     t = f"trying to show(at={at}) but only {len(self.renderers)} renderers exist"
                     vedo.logger.error(t)
@@ -2278,7 +2295,9 @@ class Plotter:
                 self.camera.SetViewUp([0, 1, 0])
                 self.camera.SetPosition(cm + sz)
             elif viewup == "z":
-                sz = np.array([(b[1]-b[0])*0.7, -(b[3]-b[2])*1.0, (b[5]-b[4])*1.2])
+                sz = np.array(
+                    [(b[1] - b[0]) * 0.7, -(b[3] - b[2]) * 1.0, (b[5] - b[4]) * 1.2]
+                )
                 self.camera.SetViewUp([0, 0, 1])
                 self.camera.SetPosition(cm + 2 * sz)
             elif utils.is_sequence(viewup):
@@ -2295,7 +2314,6 @@ class Plotter:
             self.window.Render()  ##################### <-------------- Render
 
         if self.interactor:  # can be offscreen or not the vtk backend..
-
             self.window.SetWindowName(self.title)
 
             # pic = vedo.Image(vedo.dataurl+'images/vtk_logo.png')
@@ -2311,9 +2329,15 @@ class Plotter:
                     and not self.offscreen
                 ):
                     self._cocoa_initialized = True
-                    from Cocoa import NSRunningApplication, NSApplicationActivateIgnoringOtherApps # type: ignore
+                    from Cocoa import (
+                        NSRunningApplication,
+                        NSApplicationActivateIgnoringOtherApps,
+                    )  # type: ignore
+
                     pid = os.getpid()
-                    x = NSRunningApplication.runningApplicationWithProcessIdentifier_(int(pid))
+                    x = NSRunningApplication.runningApplicationWithProcessIdentifier_(
+                        int(pid)
+                    )
                     x.activateWithOptions_(NSApplicationActivateIgnoringOtherApps)
             except:
                 # vedo.logger.debug("On Mac OSX try: pip install pyobjc")
@@ -2359,9 +2383,7 @@ class Plotter:
 
         return self
 
-    def add_inset(
-        self, *objects, **options
-    ) -> vtki.vtkOrientationMarkerWidget | None:
+    def add_inset(self, *objects, **options) -> vtki.vtkOrientationMarkerWidget | None:
         """Add a draggable inset space into a renderer.
 
         Arguments:
@@ -2386,7 +2408,9 @@ class Plotter:
             return None
 
         if not self.renderer:
-            vedo.logger.warning("call add_inset() only after first rendering of the scene.")
+            vedo.logger.warning(
+                "call add_inset() only after first rendering of the scene."
+            )
             return None
 
         options = dict(options)
@@ -2407,7 +2431,9 @@ class Plotter:
         widget.SetInteractor(self.interactor)
 
         if utils.is_sequence(pos):
-            widget.SetViewport(pos[0] - size, pos[1] - size, pos[0] + size, pos[1] + size)
+            widget.SetViewport(
+                pos[0] - size, pos[1] - size, pos[0] + size, pos[1] + size
+            )
         else:
             if pos < 2:
                 widget.SetViewport(0, 1 - 2 * size, size * 2, 1)
@@ -2458,7 +2484,6 @@ class Plotter:
             return rgb
 
         return None
-
 
     #######################################################################
     def _default_keypress(self, iren, event) -> None:

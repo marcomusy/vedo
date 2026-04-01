@@ -1,4 +1,5 @@
 """Embed both vedo and matplotlib charts in a single interactive scene."""
+
 import numpy as np
 from vedo import Plotter, Points, Image, settings
 from vedo.pyplot import histogram, plot
@@ -44,7 +45,7 @@ def func(w, evt=""):
 
     ############################################# Matplotlib histogram
     fig.clf()  # clear the figure
-    plt.hist(1-d*d, bins=20, color="green", edgecolor="black")
+    plt.hist(1 - d * d, bins=20, color="green", edgecolor="black")
     img = Image(fig).clone2d("middle-left", size=0.4)
     img.name = "myplots"
     vplt.remove("myplots").add(xy, hi, img)

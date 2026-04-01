@@ -1,4 +1,5 @@
 """MeshLib processing example."""
+
 from pathlib import Path
 import sys
 

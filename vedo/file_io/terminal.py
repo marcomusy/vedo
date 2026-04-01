@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Terminal interaction helpers."""
 
 from vedo import colors

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Lifecycle/runtime operations delegated from Plotter."""
 
 from typing import Any
@@ -20,6 +21,7 @@ def initialize_interactor(plotter) -> Any:
             plotter.interactor.RemoveObservers("CharEvent")
     return plotter
 
+
 def process_events(plotter) -> Any:
     """Process all pending events."""
     plotter.initialize_interactor()
@@ -29,6 +31,7 @@ def process_events(plotter) -> Any:
         except AttributeError:
             pass
     return plotter
+
 
 def render(plotter, resetcam=False) -> Any:
     """Render the scene. This method is typically used in loops or callback functions."""
@@ -46,11 +49,16 @@ def render(plotter, resetcam=False) -> Any:
 
     plotter.window.Render()
 
-    if plotter._cocoa_process_events and plotter.interactor and plotter.interactor.GetInitialized():
+    if (
+        plotter._cocoa_process_events
+        and plotter.interactor
+        and plotter.interactor.GetInitialized()
+    ):
         if "Darwin" in vedo.sys_platform and not plotter.offscreen:
             plotter.interactor.ProcessEvents()
             plotter._cocoa_process_events = False
     return plotter
+
 
 def interactive(plotter) -> Any:
     """
@@ -76,6 +84,7 @@ def interactive(plotter) -> Any:
             plotter.camera = None
     return plotter
 
+
 def use_depth_peeling(plotter, at=None, value=True) -> Any:
     """
     Specify whether use depth peeling algorithm at this specific renderer
@@ -84,6 +93,7 @@ def use_depth_peeling(plotter, at=None, value=True) -> Any:
     ren = plotter.renderer if at is None else plotter.renderers[at]
     ren.SetUseDepthPeeling(value)
     return plotter
+
 
 def clear(plotter, at=None, deep=False) -> Any:
     """Clear the scene from all meshes and volumes."""
@@ -110,12 +120,14 @@ def clear(plotter, at=None, deep=False) -> Any:
                 pass
     return plotter
 
+
 def break_interaction(plotter) -> Any:
     """Break window interaction and return to the python execution flow"""
     if plotter.interactor:
         plotter.check_actors_trasform()
         plotter.interactor.ExitCallback()
     return plotter
+
 
 def freeze(plotter, value=True) -> Any:
     """Freeze the current renderer. Use this with `sharecam=False`."""
@@ -125,6 +137,7 @@ def freeze(plotter, value=True) -> Any:
         return plotter
     plotter.renderer.SetInteractive(not value)
     return plotter
+
 
 def user_mode(plotter, mode) -> Any:
     """
@@ -153,23 +166,37 @@ def user_mode(plotter, mode) -> Any:
     if isinstance(mode, (str, int)):
         # Set the style of interaction
         # see https://vtk.org/doc/nightly/html/classvtkInteractorStyle.html
-        if   mode in (0, "TrackballCamera"):
-            plotter.interactor.SetInteractorStyle(vtki.new("InteractorStyleTrackballCamera"))
+        if mode in (0, "TrackballCamera"):
+            plotter.interactor.SetInteractorStyle(
+                vtki.new("InteractorStyleTrackballCamera")
+            )
             plotter.interactor.RemoveObservers("CharEvent")
         elif mode in (1, "TrackballActor"):
-            plotter.interactor.SetInteractorStyle(vtki.new("InteractorStyleTrackballActor"))
+            plotter.interactor.SetInteractorStyle(
+                vtki.new("InteractorStyleTrackballActor")
+            )
         elif mode in (2, "JoystickCamera"):
-            plotter.interactor.SetInteractorStyle(vtki.new("InteractorStyleJoystickCamera"))
+            plotter.interactor.SetInteractorStyle(
+                vtki.new("InteractorStyleJoystickCamera")
+            )
         elif mode in (3, "JoystickActor"):
-            plotter.interactor.SetInteractorStyle(vtki.new("InteractorStyleJoystickActor"))
+            plotter.interactor.SetInteractorStyle(
+                vtki.new("InteractorStyleJoystickActor")
+            )
         elif mode in (4, "Flight"):
             plotter.interactor.SetInteractorStyle(vtki.new("InteractorStyleFlight"))
         elif mode in (5, "RubberBand2D"):
-            plotter.interactor.SetInteractorStyle(vtki.new("InteractorStyleRubberBand2D"))
+            plotter.interactor.SetInteractorStyle(
+                vtki.new("InteractorStyleRubberBand2D")
+            )
         elif mode in (6, "RubberBand3D"):
-            plotter.interactor.SetInteractorStyle(vtki.new("InteractorStyleRubberBand3D"))
+            plotter.interactor.SetInteractorStyle(
+                vtki.new("InteractorStyleRubberBand3D")
+            )
         elif mode in (7, "RubberBandZoom"):
-            plotter.interactor.SetInteractorStyle(vtki.new("InteractorStyleRubberBandZoom"))
+            plotter.interactor.SetInteractorStyle(
+                vtki.new("InteractorStyleRubberBandZoom")
+            )
         elif mode in (8, "Terrain"):
             plotter.interactor.SetInteractorStyle(vtki.new("InteractorStyleTerrain"))
         elif mode in (9, "Unicam"):
@@ -191,6 +218,7 @@ def user_mode(plotter, mode) -> Any:
         plotter.interactor.SetInteractorStyle(mode)
 
     return plotter
+
 
 def close(plotter) -> Any:
     """Close the plotter."""
@@ -241,4 +269,4 @@ def close(plotter) -> Any:
         plotter.window = None
         plotter.interactor = None
 
-    return plotter # must return plotter for consistency
+    return plotter  # must return plotter for consistency

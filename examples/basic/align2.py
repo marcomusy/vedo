@@ -1,4 +1,5 @@
 """Align two random point clouds with the ICP algorithm."""
+
 from random import uniform as u
 from vedo import settings, Points, Arrows, Plotter
 

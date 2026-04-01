@@ -1,5 +1,6 @@
 """Isosurface extraction from a volume dataset
 with discrete values (labels)."""
+
 from vedo import *
 
 # Build the volumetric processing pipeline and render results.
@@ -50,4 +51,3 @@ for i in isovalues:
     separate_blobs.append(b)
 
 show([[iso_discrete, box, __doc__], [separate_blobs, txt_vols, box]], N=2, axes=1)
-

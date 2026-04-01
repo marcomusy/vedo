@@ -10,12 +10,14 @@ def render_slice(vslice, name):
     isos.name = name
     plt.remove(name).add(vslice, isos)
 
+
 def slider_function_x(widget, event):
     i = int(widget.value)
     if i == widget.previous_value:
         return
     widget.previous_value = i
     render_slice(vol.xslice(i), "XSlice")
+
 
 def slider_function_y(widget, event):
     j = int(widget.value)
@@ -34,11 +36,10 @@ def slider_function_z(widget, event):
 
 
 if __name__ == "__main__":
-
     settings.default_font = "Roboto"
     cmap_slicer = "RdBu"
 
-    datapath = download(dataurl+"geo_dataset.npy")
+    datapath = download(dataurl + "geo_dataset.npy")
     dataset = np.load(datapath)
     min_value = np.nanmin(dataset)
     max_value = np.nanmax(dataset)
@@ -57,13 +58,16 @@ if __name__ == "__main__":
     iso.cmap(cmap_slicer, vmin=min_value, vmax=max_value)
     iso.add_scalarbar3d(c="black", title="scalar value")
     iso.scalarbar = iso.scalarbar.clone2d("center-right", size=0.2)
-    iso.c("k5").alpha(0.1).lighting("off").wireframe().pickable(False).backface_culling()
+    iso.c("k5").alpha(0.1).lighting("off").wireframe().pickable(
+        False
+    ).backface_culling()
 
     plt = Plotter(size=(1400, 1200))
 
     plt.add_slider(
         slider_function_x,
-        0, dims[0],
+        0,
+        dims[0],
         pos=[(0.7, 0.12), (0.95, 0.12)],
         show_value=False,
         c="dr",
@@ -71,7 +75,8 @@ if __name__ == "__main__":
 
     plt.add_slider(
         slider_function_y,
-        0, dims[1],
+        0,
+        dims[1],
         pos=[(0.7, 0.08), (0.95, 0.08)],
         show_value=False,
         c="dg",
@@ -79,7 +84,8 @@ if __name__ == "__main__":
 
     plt.add_slider(
         slider_function_z,
-        0, dims[2],
+        0,
+        dims[2],
         pos=[(0.7, 0.04), (0.95, 0.04)],
         show_value=False,
         c="db",

@@ -186,7 +186,9 @@ class Image(vedo.visual.ImageVisual):
             if min(channel_ids) < 0 or max(channel_ids) > 3:
                 raise ValueError("in Image: channels ids must be in [0, 3]")
         else:
-            raise ValueError("in Image: channels must be int or sequence of channel ids")
+            raise ValueError(
+                "in Image: channels must be int or sequence of channel ids"
+            )
         self.name = "Image"
         self.filename = ""
         self.file_size = 0
@@ -223,8 +225,7 @@ class Image(vedo.visual.ImageVisual):
             # self.array = self.array.reshape(fig.canvas.get_width_height()[::-1] + (3,))
             width, height = fig.get_size_inches() * fig.get_dpi()
             self.array = np.frombuffer(
-                fig.canvas.buffer_rgba(),
-                dtype=np.uint8
+                fig.canvas.buffer_rgba(), dtype=np.uint8
             ).reshape((int(height), int(width), 4))
             img = _get_img(self.array)
 
@@ -243,12 +244,16 @@ class Image(vedo.visual.ImageVisual):
             channel_ids = list(range(n))
             nchans = len(channel_ids)
         if max(channel_ids) >= n:
-            raise ValueError(f"in Image: requested channels {channel_ids} not available for {n}-component image")
+            raise ValueError(
+                f"in Image: requested channels {channel_ids} not available for {n}-component image"
+            )
         if nchans and n > nchans:
             pec = vtki.new("ImageExtractComponents")
             pec.SetInputData(img)
             if nchans == 4:
-                pec.SetComponents(channel_ids[0], channel_ids[1], channel_ids[2], channel_ids[3])
+                pec.SetComponents(
+                    channel_ids[0], channel_ids[1], channel_ids[2], channel_ids[3]
+                )
             elif nchans == 3:
                 pec.SetComponents(channel_ids[0], channel_ids[1], channel_ids[2])
             elif nchans == 2:
@@ -264,7 +269,9 @@ class Image(vedo.visual.ImageVisual):
 
         sx, sy, _ = self.dataset.GetDimensions()
         shape = np.array([sx, sy])
-        self.pipeline = utils.OperationNode("Image", comment=f"#shape {shape}", c="#f28482")
+        self.pipeline = utils.OperationNode(
+            "Image", comment=f"#shape {shape}", c="#f28482"
+        )
 
     ######################################################################
 
@@ -316,7 +323,9 @@ class Image(vedo.visual.ImageVisual):
         help_text = ""
         if self.name:
             help_text += f"<b> {self.name}: &nbsp&nbsp</b>"
-        help_text += '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>"
+        help_text += (
+            '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>"
+        )
         if self.filename:
             dots = ""
             if len(self.filename) > 30:
@@ -327,13 +336,17 @@ class Image(vedo.visual.ImageVisual):
         if self.dataset.GetPointData().GetScalars():
             if self.dataset.GetPointData().GetScalars().GetName():
                 name = self.dataset.GetPointData().GetScalars().GetName()
-                pdata = "<tr><td><b> point data array </b></td><td>" + name + "</td></tr>"
+                pdata = (
+                    "<tr><td><b> point data array </b></td><td>" + name + "</td></tr>"
+                )
 
         cdata = ""
         if self.dataset.GetCellData().GetScalars():
             if self.dataset.GetCellData().GetScalars().GetName():
                 name = self.dataset.GetCellData().GetScalars().GetName()
-                cdata = "<tr><td><b> voxel data array </b></td><td>" + name + "</td></tr>"
+                cdata = (
+                    "<tr><td><b> voxel data array </b></td><td>" + name + "</td></tr>"
+                )
 
         img = self.dataset
 
@@ -346,13 +359,17 @@ class Image(vedo.visual.ImageVisual):
             "<td style='text-align: center; vertical-align: center;'><br/>",
             help_text,
             "<table>",
-            "<tr><td><b> shape </b></td><td>" + str(img.GetDimensions()[:2]) + "</td></tr>",
+            "<tr><td><b> shape </b></td><td>"
+            + str(img.GetDimensions()[:2])
+            + "</td></tr>",
             "<tr><td><b> in memory size </b></td><td>"
             + str(int(img.GetActualMemorySize()))
             + " KB</td></tr>",
             pdata,
             cdata,
-            "<tr><td><b> intensity range </b></td><td>" + str(img.GetScalarRange()) + "</td></tr>",
+            "<tr><td><b> intensity range </b></td><td>"
+            + str(img.GetScalarRange())
+            + "</td></tr>",
             "<tr><td><b> level&nbsp/&nbspwindow </b></td><td>"
             + str(self.level())
             + "&nbsp/&nbsp"
@@ -415,10 +432,14 @@ class Image(vedo.visual.ImageVisual):
         pic.properties = vtki.vtkImageProperty()
         pic.properties.DeepCopy(self.properties)
         pic.actor.SetProperty(pic.properties)
-        pic.pipeline = utils.OperationNode("clone", parents=[self], c="#f7dada", shape="diamond")
+        pic.pipeline = utils.OperationNode(
+            "clone", parents=[self], c="#f7dada", shape="diamond"
+        )
         return pic
 
-    def clone2d(self, pos=(0, 0), size=1, justify="", ontop=False) -> vedo.visual.Actor2D:
+    def clone2d(
+        self, pos=(0, 0), size=1, justify="", ontop=False
+    ) -> vedo.visual.Actor2D:
         """
         Embed an image as a static 2D image in the canvas.
 
@@ -474,9 +495,10 @@ class Image(vedo.visual.ImageVisual):
         else:
             pic.properties.SetDisplayLocationToBackground()
 
-        pic.pipeline = utils.OperationNode("clone2d", parents=[self], c="#f7dada", shape="diamond")
+        pic.pipeline = utils.OperationNode(
+            "clone2d", parents=[self], c="#f7dada", shape="diamond"
+        )
         return pic
-
 
     def crop(self, top=None, bottom=None, right=None, left=None, pixels=False) -> Self:
         """
@@ -502,11 +524,15 @@ class Image(vedo.visual.ImageVisual):
         if pixels:
             extractVOI.SetVOI(left, d[0] - right - 1, bottom, d[1] - top - 1, 0, 0)
         else:
-            bx0, bx1, by0, by1 = 0, d[0]-1, 0, d[1]-1
-            if left is not None:   bx0 = int((d[0]-1)*left)
-            if right is not None:  bx1 = int((d[0]-1)*(1-right))
-            if bottom is not None: by0 = int((d[1]-1)*bottom)
-            if top is not None:    by1 = int((d[1]-1)*(1-top))
+            bx0, bx1, by0, by1 = 0, d[0] - 1, 0, d[1] - 1
+            if left is not None:
+                bx0 = int((d[0] - 1) * left)
+            if right is not None:
+                bx1 = int((d[0] - 1) * (1 - right))
+            if bottom is not None:
+                by0 = int((d[1] - 1) * bottom)
+            if top is not None:
+                by1 = int((d[1] - 1) * (1 - top))
             extractVOI.SetVOI(bx0, bx1, by0, by1, 0, 0)
         extractVOI.Update()
 
@@ -533,15 +559,11 @@ class Image(vedo.visual.ImageVisual):
         pf.SetConstant(value)
         if utils.is_sequence(pixels):
             pf.SetOutputWholeExtent(
-                x0 - pixels[0], x1 + pixels[1],
-                y0 - pixels[2], y1 + pixels[3],
-                0, 0
+                x0 - pixels[0], x1 + pixels[1], y0 - pixels[2], y1 + pixels[3], 0, 0
             )
         else:
             pf.SetOutputWholeExtent(
-                x0 - pixels, x1 + pixels,
-                y0 - pixels, y1 + pixels,
-                0, 0
+                x0 - pixels, x1 + pixels, y0 - pixels, y1 + pixels, 0, 0
             )
         pf.Update()
         self._update(pf.GetOutput())
@@ -675,7 +697,9 @@ class Image(vedo.visual.ImageVisual):
             raise RuntimeError()
         ff.Update()
         self._update(ff.GetOutput())
-        self.pipeline = utils.OperationNode(f"mirror {axis}", parents=[self], c="#f28482")
+        self.pipeline = utils.OperationNode(
+            f"mirror {axis}", parents=[self], c="#f28482"
+        )
         return self
 
     def flip(self, axis="y") -> Self:
@@ -758,7 +782,7 @@ class Image(vedo.visual.ImageVisual):
         self._update(medf.GetOutput())
         self.pipeline = utils.OperationNode("median", parents=[self], c="#f28482")
         return self
-    
+
     def adjust(self, window=255, level=127.5) -> Self:
         """
         Adjust the brightness and contrast of the image.
@@ -771,13 +795,17 @@ class Image(vedo.visual.ImageVisual):
         """
         adjust = vtki.new("ImageMapToWindowLevelColors")
         adjust.SetInputData(self.dataset)
-        if window: adjust.SetWindow(window)
-        if level: adjust.SetLevel(level)
+        if window:
+            adjust.SetWindow(window)
+        if level:
+            adjust.SetLevel(level)
         adjust.Update()
         self._update(adjust.GetOutput())
         self.pipeline = utils.OperationNode(
-            "adjust", comment=f"window={window}, level={level}",
-            parents=[self], c="#f28482"
+            "adjust",
+            comment=f"window={window}, level={level}",
+            parents=[self],
+            c="#f28482",
         )
         return self
 
@@ -1035,7 +1063,9 @@ class Image(vedo.visual.ImageVisual):
             ns = len(source_pts)
             nt = len(target_pts)
             if ns != nt:
-                colors.printc("Error in image.warp(): #source != #target points", ns, nt, c="r")
+                colors.printc(
+                    "Error in image.warp(): #source != #target points", ns, nt, c="r"
+                )
                 raise RuntimeError()
 
             ptsou = vtki.vtkPoints()
@@ -1210,7 +1240,9 @@ class Image(vedo.visual.ImageVisual):
         )
         return self
 
-    def rotate(self, angle: float, center=(), scale=1.0, mirroring=False, bc="w", alpha=1.0) -> Self:
+    def rotate(
+        self, angle: float, center=(), scale=1.0, mirroring=False, bc="w", alpha=1.0
+    ) -> Self:
         """
         Rotate by the specified angle (anticlockwise).
 
@@ -1263,7 +1295,9 @@ class Image(vedo.visual.ImageVisual):
             s=(dims[0] - 1, dims[1] - 1),
             res=(dims[0] - 1, dims[1] - 1),
         )
-        gr.pos((dims[0] - 1) / 2, (dims[1] - 1) / 2).pickable(True).wireframe(False).lw(0)
+        gr.pos((dims[0] - 1) / 2, (dims[1] - 1) / 2).pickable(True).wireframe(False).lw(
+            0
+        )
         self.dataset.GetPointData().GetScalars().SetName("RGBA")
         gr.dataset.GetPointData().AddArray(self.dataset.GetPointData().GetScalars())
         gr.dataset.GetPointData().SetActiveScalars("RGBA")
@@ -1303,12 +1337,16 @@ class Image(vedo.visual.ImageVisual):
             narray = utils.vtk2numpy(self.dataset.GetPointData().GetScalars())
             return narray
         else:
-            narray = utils.vtk2numpy(self.dataset.GetPointData().GetScalars()).reshape(ny, nx, nchan)
+            narray = utils.vtk2numpy(self.dataset.GetPointData().GetScalars()).reshape(
+                ny, nx, nchan
+            )
 
         narray = np.flip(narray, axis=0).astype(np.uint8)
         return narray.squeeze()
 
-    def add_rectangle(self, xspan: list[float], yspan: list[float], c="green5", alpha=1.0) -> Self:
+    def add_rectangle(
+        self, xspan: list[float], yspan: list[float], c="green5", alpha=1.0
+    ) -> Self:
         """Draw a rectangle box on top of current image. Units are pixels.
 
         Example:
@@ -1361,7 +1399,9 @@ class Image(vedo.visual.ImageVisual):
         self.pipeline = utils.OperationNode("rectangle", parents=[self], c="#f28482")
         return self
 
-    def add_line(self, p1: list[float], p2: list[float], lw=2, c="k2", alpha=1.0) -> Self:
+    def add_line(
+        self, p1: list[float], p2: list[float], lw=2, c="k2", alpha=1.0
+    ) -> Self:
         """Draw a line on top of current image. Units are pixels."""
         x1, x2 = p1
         y1, y2 = p2
@@ -1402,7 +1442,9 @@ class Image(vedo.visual.ImageVisual):
         self.pipeline = utils.OperationNode("line", parents=[self], c="#f28482")
         return self
 
-    def add_triangle(self, p1: list[float], p2: list[float], p3: list[float], c="red3", alpha=1.0) -> Self:
+    def add_triangle(
+        self, p1: list[float], p2: list[float], p3: list[float], c="red3", alpha=1.0
+    ) -> Self:
         """Draw a triangle on top of current image. Units are pixels."""
         x1, y1 = p1
         x2, y2 = p2
@@ -1479,9 +1521,12 @@ class Image(vedo.visual.ImageVisual):
         if "right" in justify:
             tp.SetJustificationToRight()
 
-        if   font.lower() == "courier": tp.SetFontFamilyToCourier()
-        elif font.lower() == "times": tp.SetFontFamilyToTimes()
-        elif font.lower() == "arial": tp.SetFontFamilyToArial()
+        if font.lower() == "courier":
+            tp.SetFontFamilyToCourier()
+        elif font.lower() == "times":
+            tp.SetFontFamilyToTimes()
+        elif font.lower() == "arial":
+            tp.SetFontFamilyToArial()
         else:
             tp.SetFontFamily(vtki.VTK_FONT_FILE)
             tp.SetFontFile(utils.get_font_path(font))

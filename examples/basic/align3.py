@@ -1,4 +1,5 @@
 """Align three random point sets with Procrustes analysis."""
+
 from random import uniform as u
 from vedo import Plotter, procrustes_alignment, Points
 

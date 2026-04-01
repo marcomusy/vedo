@@ -6,7 +6,7 @@ settings.default_font = "Antares"
 
 man = Mesh(dataurl + "man.vtk")
 h_knees = -0.5
-over_limit  =  1.5
+over_limit = 1.5
 under_limit = -1.4
 
 # let the scalar be the z coordinate of the mesh vertices

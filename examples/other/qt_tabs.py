@@ -1,4 +1,5 @@
 """Qt integration example."""
+
 import sys
 from PyQt5 import QtCore, QtWidgets
 from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
@@ -7,15 +8,16 @@ from vedo.pyplot import np, plot
 
 try:
     _encoding = QtWidgets.QApplication.UnicodeUTF8
+
     def _translate(context, text, disambig):
         return QtWidgets.QApplication.translate(context, text, disambig, _encoding)
 except AttributeError:
+
     def _translate(context, text, disambig):
         return QtWidgets.QApplication.translate(context, text, disambig)
 
 
 class Ui_MainWindow(object):
-
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(800, 600)
@@ -64,7 +66,6 @@ class Ui_MainWindow(object):
 
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
-
     def __init__(self, parent=None):
         QtWidgets.QMainWindow.__init__(self, parent)
         self.setupUi(self)
@@ -74,7 +75,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.plt1 = Plotter(qt_widget=self.vtkWidget1, axes=1)
         self.id2 = self.plt1.add_callback("key press", self.onKeypress)
-        self.plt1 += Mesh(dataurl+'shark.ply').c('cyan')
+        self.plt1 += Mesh(dataurl + "shark.ply").c("cyan")
         self.plt1.show()
 
         self.vtkWidget2 = QVTKRenderWindowInteractor(self)
@@ -86,25 +87,26 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         x = np.random.randn(100) + 10
         y = np.random.randn(100) * 20 + 20
         fig = plot(
-            x, y,
-            lw=0,         # do not join points with lines
+            x,
+            y,
+            lw=0,  # do not join points with lines
             xtitle="variable x",
             ytitle="variable y",
-            marker="*",   # marker style
-            mc="dr",      # marker color
-            aspect=16/9,  # aspect ratio
+            marker="*",  # marker style
+            mc="dr",  # marker color
+            aspect=16 / 9,  # aspect ratio
         )
         self.plt2 += fig
 
         ##################################################### show
-        self.plt2.show(zoom=1.8, mode='image')
+        self.plt2.show(zoom=1.8, mode="image")
 
     def onClose(self):
         self.vtkWidget1.close()
 
     def onKeypress(self, evt):
         print("You have pressed key:", evt.keypress)
-        if evt.keypress=='q':
+        if evt.keypress == "q":
             sys.exit(0)
 
 

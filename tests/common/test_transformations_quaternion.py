@@ -28,12 +28,18 @@ def main() -> None:
     print("linear transform", lt.transform_point([1, 0, 0]))
     assert np.allclose(lt.transform_point([1, 0, 0]), [0, 1, 0], atol=1e-6)
 
-    q_half = vedo.Quaternion().slerp(0.5, vedo.Quaternion.from_axis_angle(180, (0, 0, 1)))
+    q_half = vedo.Quaternion().slerp(
+        0.5, vedo.Quaternion.from_axis_angle(180, (0, 0, 1))
+    )
     print("slerp", q_half.rotate([1, 0, 0]))
     assert np.allclose(q_half.rotate([1, 0, 0]), [0, 1, 0], atol=1e-6)
 
-    print("camera", vedo.camera_from_quaternion([1, 2, 3], [0, 0, 0, 1]).GetFocalPoint())
-    assert np.allclose(vedo.camera_from_quaternion([1, 2, 3], [0, 0, 0, 1]).GetFocalPoint(), [1, 2, 3])
+    print(
+        "camera", vedo.camera_from_quaternion([1, 2, 3], [0, 0, 0, 1]).GetFocalPoint()
+    )
+    assert np.allclose(
+        vedo.camera_from_quaternion([1, 2, 3], [0, 0, 0, 1]).GetFocalPoint(), [1, 2, 3]
+    )
 
     console = Console(record=True, force_terminal=False, width=100)
     console.print(q_from_matrix)

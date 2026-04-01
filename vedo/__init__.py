@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 #
 ##### To generate documentation
 # cd ~/Projects/vedo/docs/pdoc
@@ -31,25 +32,29 @@ except ModuleNotFoundError:
 try:
     __version__ = pkg_version("vedo")
 except PackageNotFoundError:
-    __version__ = "2026.6.1.dev02"  # fallback version if package metadata is not available
+    __version__ = (
+        "2026.6.1.dev02"  # fallback version if package metadata is not available
+    )
 
 from vedo.plotter import session as _session
 
 from vedo.settings import Settings
+
 settings = Settings()
 
 try:
     import platform
+
     sys_platform = platform.system()
 except (ModuleNotFoundError, AttributeError):
     sys_platform = ""
 
 ######################################################################### GLOBALS
-__author__     = "Marco Musy"
-__license__    = "MIT"
+__author__ = "Marco Musy"
+__license__ = "MIT"
 __maintainer__ = "M. Musy"
-__email__      = "marco.musy@embl.es"
-__website__    = "https://github.com/marcomusy/vedo"
+__email__ = "marco.musy@embl.es"
+__website__ = "https://github.com/marcomusy/vedo"
 
 
 ##########################################################################
@@ -94,7 +99,18 @@ else:
 last_figure = None
 
 _LAZY_EXPORT_MAP, _LAZY_EXPORTS = build_attr_map(
-    ("vedo.colors", ["printc", "printd", "get_color", "get_color_name", "color_map", "build_palette", "build_lut"]),
+    (
+        "vedo.colors",
+        [
+            "printc",
+            "printd",
+            "get_color",
+            "get_color_name",
+            "color_map",
+            "build_palette",
+            "build_lut",
+        ],
+    ),
     (
         "vedo.core.transformations",
         [
@@ -150,7 +166,10 @@ _LAZY_EXPORT_MAP, _LAZY_EXPORTS = build_attr_map(
             "andrews_curves",
         ],
     ),
-    ("vedo.core", ["DataArrayHelper", "CommonAlgorithms", "PointAlgorithms", "VolumeAlgorithms"]),
+    (
+        "vedo.core",
+        ["DataArrayHelper", "CommonAlgorithms", "PointAlgorithms", "VolumeAlgorithms"],
+    ),
     (
         "vedo.shapes",
         [
@@ -262,7 +281,16 @@ _LAZY_EXPORT_MAP, _LAZY_EXPORTS = build_attr_map(
     ("vedo.mesh", ["Mesh"]),
     ("vedo.grids.image", ["Image"]),
     ("vedo.volume", ["Volume"]),
-    ("vedo.grids", ["UnstructuredGrid", "TetMesh", "RectilinearGrid", "StructuredGrid", "ExplicitStructuredGrid"]),
+    (
+        "vedo.grids",
+        [
+            "UnstructuredGrid",
+            "TetMesh",
+            "RectilinearGrid",
+            "StructuredGrid",
+            "ExplicitStructuredGrid",
+        ],
+    ),
     (
         "vedo.addons",
         [
@@ -292,7 +320,18 @@ _LAZY_EXPORT_MAP, _LAZY_EXPORTS = build_attr_map(
         ],
     ),
     ("vedo.plotter", ["Plotter", "show", "close"]),
-    ("vedo.visual", ["CommonVisual", "PointsVisual", "VolumeVisual", "MeshVisual", "ImageVisual", "Actor2D", "LightKit"]),
+    (
+        "vedo.visual",
+        [
+            "CommonVisual",
+            "PointsVisual",
+            "VolumeVisual",
+            "MeshVisual",
+            "ImageVisual",
+            "Actor2D",
+            "LightKit",
+        ],
+    ),
 )
 
 _LAZY_MODULES = {
@@ -352,7 +391,6 @@ __all__ = [
 
 ######################################################################### LOGGING
 class _LoggingCustomFormatter(logging.Formatter):
-
     logformat = "[vedo.%(filename)s:%(lineno)d] %(levelname)s: %(message)s"
 
     white = "\x1b[1m"
@@ -363,7 +401,7 @@ class _LoggingCustomFormatter(logging.Formatter):
     reset = "\x1b[0m"
 
     FORMATS = {
-        logging.DEBUG: grey  + logformat + reset,
+        logging.DEBUG: grey + logformat + reset,
         logging.INFO: white + logformat + reset,
         logging.WARNING: yellow + logformat + reset,
         logging.ERROR: red + logformat + reset,
@@ -375,6 +413,7 @@ class _LoggingCustomFormatter(logging.Formatter):
         formatter = logging.Formatter(log_fmt)
         return formatter.format(record).replace(".py", "")
 
+
 logger = logging.getLogger("vedo")
 
 _log_stream = sys.stdout if sys.stdout is not None else sys.__stdout__
@@ -385,8 +424,7 @@ _chsh.setLevel(logging.DEBUG)
 _chsh.setFormatter(_LoggingCustomFormatter())
 # Avoid duplicate handlers when vedo is re-imported/reloaded.
 if not any(
-    isinstance(h, logging.StreamHandler)
-    and getattr(h, "_vedo_default_handler", False)
+    isinstance(h, logging.StreamHandler) and getattr(h, "_vedo_default_handler", False)
     for h in logger.handlers
 ):
     _chsh._vedo_default_handler = True  # type: ignore[attr-defined]

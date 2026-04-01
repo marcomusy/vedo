@@ -76,8 +76,10 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
 
         elif is_sequence(inputobj):
             ninp = len(inputobj)
-            if   ninp == 4:  # assume input is [vertices, faces, lines, strips]
-                self.dataset = buildPolyData(inputobj[0], inputobj[1], inputobj[2], inputobj[3])
+            if ninp == 4:  # assume input is [vertices, faces, lines, strips]
+                self.dataset = buildPolyData(
+                    inputobj[0], inputobj[1], inputobj[2], inputobj[3]
+                )
             elif ninp == 3:  # assume input is [vertices, faces, lines]
                 self.dataset = buildPolyData(inputobj[0], inputobj[1], inputobj[2])
             elif ninp == 2:  # assume input is [vertices, faces]
@@ -112,7 +114,8 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             self.dataset = vedo.external.meshlab2vedo(inputobj).dataset
 
         elif "meshlib" in str(type(inputobj)):
-            import meshlib.mrmeshnumpy as mrmeshnumpy # type: ignore
+            import meshlib.mrmeshnumpy as mrmeshnumpy  # type: ignore
+
             self.dataset = buildPolyData(
                 mrmeshnumpy.getNumpyVerts(inputobj),
                 mrmeshnumpy.getNumpyFaces(inputobj.topology),
@@ -139,7 +142,9 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
                         vdata.SetName(str(k))
                         self.dataset.GetPointData().AddArray(vdata)
             except Exception as e:
-                vedo.logger.warning(f"Could not add meshio point data, skip. Reason: {e}")
+                vedo.logger.warning(
+                    f"Could not add meshio point data, skip. Reason: {e}"
+                )
 
         else:
             try:
@@ -203,7 +208,9 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         help_text = ""
         if self.name:
             help_text += f"<b> {self.name}: &nbsp&nbsp</b>"
-        help_text += '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>"
+        help_text += (
+            '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>"
+        )
         if self.filename:
             dots = ""
             if len(self.filename) > 30:
@@ -214,13 +221,17 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         if self.dataset.GetPointData().GetScalars():
             if self.dataset.GetPointData().GetScalars().GetName():
                 name = self.dataset.GetPointData().GetScalars().GetName()
-                pdata = "<tr><td><b> point data array </b></td><td>" + name + "</td></tr>"
+                pdata = (
+                    "<tr><td><b> point data array </b></td><td>" + name + "</td></tr>"
+                )
 
         cdata = ""
         if self.dataset.GetCellData().GetScalars():
             if self.dataset.GetCellData().GetScalars().GetName():
                 name = self.dataset.GetCellData().GetScalars().GetName()
-                cdata = "<tr><td><b> cell data array </b></td><td>" + name + "</td></tr>"
+                cdata = (
+                    "<tr><td><b> cell data array </b></td><td>" + name + "</td></tr>"
+                )
 
         allt = [
             "<table>",
@@ -231,7 +242,9 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             "<td style='text-align: center; vertical-align: center;'><br/>",
             help_text,
             "<table>",
-            "<tr><td><b> bounds </b> <br/> (x/y/z) </td><td>" + str(bounds) + "</td></tr>",
+            "<tr><td><b> bounds </b> <br/> (x/y/z) </td><td>"
+            + str(bounds)
+            + "</td></tr>",
             "<tr><td><b> center of mass </b></td><td>"
             + precision(self.center_of_mass(), 3)
             + "</td></tr>",
@@ -305,14 +318,6 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         self.pipeline = OperationNode("reverse", parents=[self])
         return self
 
-
-
-
-
-
-
-
-
     def to_reeb_graph(self, field_id=0):
         """
         Convert the mesh into a Reeb graph.
@@ -350,7 +355,6 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         gr.mdg = rg.GetOutput()
         gr.build()
         return gr
-
 
     def shrink(self, fraction=0.85) -> Self:
         """
@@ -514,7 +518,6 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         """
         vlines = []
         for _ipiece, outline in enumerate(self.split(must_share_edge=False)):
-
             outline.clean()
             pts = outline.coordinates
             if len(pts) < 3:
@@ -529,7 +532,6 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             for _ in range(len(pts)):
                 pk = pts[k]
                 for j, line in enumerate(lines):
-
                     id0, id1 = line[0], line[-1]
                     p0, p1 = pts[id0], pts[id1]
 
@@ -586,7 +588,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
 
         lines0 = b0.lines
         lines1 = b1.lines
-        m =  len(lines0)
+        m = len(lines0)
         if m != len(lines1):
             raise ValueError(
                 "lines must have the same number of points\n"
@@ -597,7 +599,6 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         points: list[Any] = []
 
         for j in range(m):
-
             ids0j = list(lines0[j])
             ids1j = list(lines1[j])
 
@@ -621,7 +622,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
                 points.append(vertices0[ids0j[ipt]])
                 points.append(vertices1[ids1j[ipt]])
 
-            strip = list(range(npt, npt + 2*n))
+            strip = list(range(npt, npt + 2 * n))
             strips.append(strip)
 
         return Mesh([points, [], [], strips], c="k6")
@@ -636,8 +637,9 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         self._update(tf.GetOutput(), reset_locators=False)
         self.lw(0).lighting("default").pickable()
         self.pipeline = OperationNode(
-            "split_polylines", parents=[self],
-            comment=f"#lines {self.dataset.GetNumberOfLines()}"
+            "split_polylines",
+            parents=[self],
+            comment=f"#lines {self.dataset.GetNumberOfLines()}",
         )
         return self
 
@@ -667,7 +669,9 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         mslices = vedo.pointcloud.merge(slices)
         if mslices:
             mslices.name = "MeshSlice"
-            mslices.pipeline = OperationNode("slice", parents=[self], comment=f"normal = {normal}")
+            mslices.pipeline = OperationNode(
+                "slice", parents=[self], comment=f"normal = {normal}"
+            )
         return mslices
 
     def triangulate(self, verts=True, lines=True) -> Self:
@@ -708,10 +712,11 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         self.lw(0).lighting("default").pickable()
 
         self.pipeline = OperationNode(
-            "triangulate", parents=[self], comment=f"#cells {self.dataset.GetNumberOfCells()}"
+            "triangulate",
+            parents=[self],
+            comment=f"#cells {self.dataset.GetNumberOfCells()}",
         )
         return self
-
 
     def laplacian_diffusion(self, array_name, dt, num_steps) -> Self:
         """
@@ -749,14 +754,14 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
                         cols.append(v)
                         rows.append(v)
                         cols.append(u)
-                        data.append(-1/avg_area)
-                        data.append(-1/avg_area)
+                        data.append(-1 / avg_area)
+                        data.append(-1 / avg_area)
 
             L = scipy.sparse.coo_matrix(
                 (data, (rows, cols)), shape=(n_points, n_points)
             ).tocsc()
 
-            degree = -np.array(L.sum(axis=1)).flatten() # adjust the diagonal
+            degree = -np.array(L.sum(axis=1)).flatten()  # adjust the diagonal
             # print("degree", degree)
             L.setdiag(degree)
             return L
@@ -766,7 +771,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             # print("mean_area", mean_area)
             mean_area = 1
             I = scipy.sparse.eye(L.shape[0], format="csc")
-            A = I - (dt/mean_area) * L
+            A = I - (dt / mean_area) * L
             u = u0
             for _ in range(int(num_steps)):
                 u = A.dot(u)
@@ -783,7 +788,6 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         u = _diffuse(u0, L, dt, num_steps)
         self.pointdata[array_name] = u
         return self
-
 
     def subdivide(self, n=1, method=0, mel=None) -> Self:
         """
@@ -808,7 +812,9 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         elif method == 2:
             sdf = vtki.new("AdaptiveSubdivisionFilter")
             if mel is None:
-                mel = self.diagonal_size() / np.sqrt(self.dataset.GetNumberOfPoints()) / n
+                mel = (
+                    self.diagonal_size() / np.sqrt(self.dataset.GetNumberOfPoints()) / n
+                )
             sdf.SetMaximumEdgeLength(mel)
         elif method == 3:
             sdf = vtki.new("ButterflySubdivisionFilter")
@@ -833,8 +839,9 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         )
         return self
 
-
-    def decimate(self, fraction=0.5, n=None, preserve_volume=True, regularization=0.0) -> Self:
+    def decimate(
+        self, fraction=0.5, n=None, preserve_volume=True, regularization=0.0
+    ) -> Self:
         """
         Downsample the number of vertices in a mesh to `fraction`.
 
@@ -898,17 +905,17 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         return self
 
     def decimate_pro(
-            self,
-            fraction=0.5,
-            n=None,
-            preserve_topology=True,
-            preserve_boundaries=True,
-            splitting=False,
-            splitting_angle=75,
-            feature_angle=0,
-            inflection_point_ratio=10,
-            vertex_degree=0,
-        ) -> Self:
+        self,
+        fraction=0.5,
+        n=None,
+        preserve_topology=True,
+        preserve_boundaries=True,
+        splitting=False,
+        splitting_angle=75,
+        feature_angle=0,
+        inflection_point_ratio=10,
+        vertex_degree=0,
+    ) -> Self:
         """
         Downsample the number of vertices in a mesh to `fraction`.
 
@@ -1071,7 +1078,9 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         vertices = cmesh.vertices
         areas = np.asarray(cmesh.celldata["Area"])
         if areas.size == 0 or triangles is None or len(triangles) == 0:
-            raise ValueError("generate_random_points() requires a mesh with valid triangulated cells")
+            raise ValueError(
+                "generate_random_points() requires a mesh with valid triangulated cells"
+            )
         cumul = np.cumsum(areas)
 
         out_pts = []
@@ -1099,7 +1108,8 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         vpts.point_size(5).color("k1")
         vpts.name = "RandomPoints"
         vpts.pipeline = OperationNode(
-            "generate_random_points", c="#edabab", parents=[self])
+            "generate_random_points", c="#edabab", parents=[self]
+        )
         return vpts
 
     def delete_cells(self, ids: list[int]) -> Self:
@@ -1168,7 +1178,8 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
                 if len(e) == 2:
                     id0, id1 = e
                     p0, p1 = pts[id0], pts[id1]
-                    if (np.linalg.norm(p1-p0) < distance
+                    if (
+                        np.linalg.norm(p1 - p0) < distance
                         and id0 not in moved
                         and id1 not in moved
                     ):
@@ -1231,7 +1242,9 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         if not (0 <= index < k):
             raise IndexError(f"index {index} out of range [0, {k})")
         if len(adjacency_list) != k:
-            raise ValueError(f"adjacency_list must have {k} entries, got {len(adjacency_list)}")
+            raise ValueError(
+                f"adjacency_list must have {k} entries, got {len(adjacency_list)}"
+            )
         ball = {index}
         i = 0
         while i < depth and len(ball) < k:
@@ -1240,7 +1253,9 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             i += 1
         return np.array(list(ball), dtype=int)
 
-    def smooth(self, niter=15, pass_band=0.1, edge_angle=15, feature_angle=60, boundary=False) -> Self:
+    def smooth(
+        self, niter=15, pass_band=0.1, edge_angle=15, feature_angle=60, boundary=False
+    ) -> Self:
         """
         Adjust mesh point positions using the so-called "Windowed Sinc" method.
 
@@ -1341,7 +1356,9 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         sep.Update()
         return bool(sep.IsInside(0))
 
-    def inside_points(self, pts: Points | list, invert=False, tol=1e-05, return_ids=False) -> Points | np.ndarray:
+    def inside_points(
+        self, pts: Points | list, invert=False, tol=1e-05, return_ids=False
+    ) -> Points | np.ndarray:
         """
         Return the point cloud that is inside mesh surface as a new Points object.
 
@@ -1436,7 +1453,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         fe.SetNonManifoldEdges(non_manifold_edges)
         fe.SetManifoldEdges(manifold_edges)
         try:
-            fe.SetPassLines(True) # vtk9.2
+            fe.SetPassLines(True)  # vtk9.2
         except AttributeError:
             pass
         fe.ColoringOff()
@@ -1448,7 +1465,9 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         if return_point_ids or return_cell_ids:
             ids = vtki.new_ids_filter()
             if ids is None:
-                vedo.logger.error("boundaries(): cannot instantiate vtkIdFilter/vtkGenerateIds")
+                vedo.logger.error(
+                    "boundaries(): cannot instantiate vtkIdFilter/vtkGenerateIds"
+                )
                 raise RuntimeError("boundaries(): missing VTK ids filter")
             ids.SetInputData(self.dataset)
             ids.SetPointIdsArrayName("BoundaryIds")
@@ -1481,7 +1500,6 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             return self
 
         else:
-
             fe.SetInputData(self.dataset)
             fe.Update()
             msh = Mesh(fe.GetOutput(), c="p").lw(5).lighting("off")
@@ -1631,7 +1649,9 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         gf.Update()
         return Mesh(gf.GetOutput()).lw(1)
 
-    def silhouette(self, direction=None, border_edges=True, feature_angle=False) -> Self:
+    def silhouette(
+        self, direction=None, border_edges=True, feature_angle=False
+    ) -> Self:
         """
         Return a new line `Mesh` which corresponds to the outer `silhouette`
         of the input as seen along a specified `direction`, this can also be
@@ -1685,8 +1705,12 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             sil.Update()
             m = Mesh(sil.GetOutput())
         else:
-            vedo.logger.error(f"in silhouette() unknown direction type {type(direction)}")
-            vedo.logger.error("first render the scene with show() or specify camera/direction")
+            vedo.logger.error(
+                f"in silhouette() unknown direction type {type(direction)}"
+            )
+            vedo.logger.error(
+                "first render the scene with show() or specify camera/direction"
+            )
             return self
 
         m.lw(2).c((0, 0, 0)).lighting("off")
@@ -1782,13 +1806,13 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         if vmax is None:
             vmax = r1
         if is_sequence(n):
-            i=0
+            i = 0
             for j in range(len(n)):
-                if vmin<=n[j]<=vmax:
+                if vmin <= n[j] <= vmax:
                     bcf.SetValue(i, n[i])
                     i += 1
                 else:
-                    #print("value out of range")
+                    # print("value out of range")
                     continue
         else:
             bcf.GenerateValues(n, vmin, vmax)
@@ -1806,7 +1830,9 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         msh.name = "IsoLines"
         return msh
 
-    def extrude(self, zshift=1.0, direction=(), rotation=0.0, dr=0.0, cap=True, res=1) -> Self:
+    def extrude(
+        self, zshift=1.0, direction=(), rotation=0.0, dr=0.0, cap=True, res=1
+    ) -> Self:
         """
         Sweep a polygonal data creating a "skirt" from free edges and lines, and lines from vertices.
         The input dataset is swept around the z-axis to create new polygonal primitives.
@@ -1871,18 +1897,13 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             p = self.pos()
             LT = vedo.LinearTransform()
             LT.translate(-p)
-            LT.concatenate([
-                [1, 0, direction[0]],
-                [0, 1, direction[1]],
-                [0, 0, 1]
-            ])
+            LT.concatenate([[1, 0, direction[0]], [0, 1, direction[1]], [0, 0, 1]])
             LT.translate(p)
             m.apply_transform(LT)
 
         m.copy_properties_from(self).flat().lighting("default")
         m.pipeline = OperationNode(
-            "extrude", parents=[self],
-            comment=f"#pts {m.dataset.GetNumberOfPoints()}"
+            "extrude", parents=[self], comment=f"#pts {m.dataset.GetNumberOfPoints()}"
         )
         m.name = "ExtrudedMesh"
         return m
@@ -1921,7 +1942,9 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         else:
             lf.SetExtrusionTypeToVectorExtrusion()
             if len(direction) != 3:
-                vedo.logger.error("in extrude_linear(), direction must have 3 components")
+                vedo.logger.error(
+                    "in extrude_linear(), direction must have 3 components"
+                )
                 raise ValueError("direction must have 3 components")
             lf.SetVector(direction[0], direction[1], direction[2])
 
@@ -1938,12 +1961,12 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         return m
 
     def extrude_and_trim_with(
-            self,
-            surface: "Mesh",
-            direction=(),
-            strategy="all",
-            cap=True,
-            cap_strategy="max",
+        self,
+        surface: "Mesh",
+        direction=(),
+        strategy="all",
+        cap=True,
+        cap_strategy="max",
     ) -> Self:
         """
         Extrude a Mesh and trim it with an input surface mesh.
@@ -2028,7 +2051,9 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         elif "ave" in cap_strategy:
             trimmer.SetCappingStrategyToAverageDistance()
         else:
-            vedo.logger.warning(f"extrude_and_trim(): unknown cap_strategy {cap_strategy}")
+            vedo.logger.warning(
+                f"extrude_and_trim(): unknown cap_strategy {cap_strategy}"
+            )
         # print (trimmer.GetCappingStrategy())
 
         trimmer.Update()
@@ -2036,8 +2061,9 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         m = Mesh(trimmer.GetOutput())
         m.copy_properties_from(self).flat().lighting("default")
         m.pipeline = OperationNode(
-            "extrude_and_trim", parents=[self, surface],
-            comment=f"#pts {m.dataset.GetNumberOfPoints()}"
+            "extrude_and_trim",
+            parents=[self, surface],
+            comment=f"#pts {m.dataset.GetNumberOfPoints()}",
         )
         m.name = "ExtrudedAndTrimmedMesh"
         return m
@@ -2226,7 +2252,9 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         msh.name = "SurfaceIntersection"
         return msh
 
-    def intersect_with_line(self, p0, p1=None, return_ids=False, tol=0) -> np.ndarray | tuple[np.ndarray, np.ndarray]:
+    def intersect_with_line(
+        self, p0, p1=None, return_ids=False, tol=0
+    ) -> np.ndarray | tuple[np.ndarray, np.ndarray]:
         """
         Return the list of points intersecting the mesh
         along the segment defined by two points `p0` and `p1`.
@@ -2300,7 +2328,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         cutter.Update()
 
         msh = Mesh(cutter.GetOutput())
-        msh.c('k').lw(3).lighting("off")
+        msh.c("k").lw(3).lighting("off")
         msh.pipeline = OperationNode(
             "intersect_with_plan",
             parents=[self],
@@ -2309,7 +2337,9 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         msh.name = "PlaneIntersection"
         return msh
 
-    def cut_closed_surface(self, origins, normals, invert=False, return_assembly=False) -> Self | vedo.Assembly:
+    def cut_closed_surface(
+        self, origins, normals, invert=False, return_assembly=False
+    ) -> Self | vedo.Assembly:
         """
         Cut/clip a closed surface mesh with a collection of planes.
         This will produce a new closed surface by creating new polygonal
@@ -2537,7 +2567,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         if spacing is None:  # compute spacing
             spacing = [0, 0, 0]
             diagonal = np.sqrt(
-                  (bounds[1] - bounds[0]) ** 2
+                (bounds[1] - bounds[0]) ** 2
                 + (bounds[3] - bounds[2]) ** 2
                 + (bounds[5] - bounds[4]) ** 2
             )
@@ -2546,14 +2576,14 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         if dims is None:  # compute dimensions
             dim = [0, 0, 0]
             for i in [0, 1, 2]:
-                dim[i] = int(np.ceil((bounds[i*2+1] - bounds[i*2]) / spacing[i]))
+                dim[i] = int(np.ceil((bounds[i * 2 + 1] - bounds[i * 2]) / spacing[i]))
         else:
             dim = dims
 
         white_img = vtki.vtkImageData()
         white_img.SetDimensions(dim)
         white_img.SetSpacing(spacing)
-        white_img.SetExtent(0, dim[0]-1, 0, dim[1]-1, 0, dim[2]-1)
+        white_img.SetExtent(0, dim[0] - 1, 0, dim[1] - 1, 0, dim[2] - 1)
 
         if origin is None:
             origin = [0, 0, 0]
@@ -2596,7 +2626,9 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         )
         return vol
 
-    def signed_distance(self, bounds=None, dims=(20, 20, 20), invert=False, maxradius=None) -> vedo.Volume:
+    def signed_distance(
+        self, bounds=None, dims=(20, 20, 20), invert=False, maxradius=None
+    ) -> vedo.Volume:
         """
         Compute the `Volume` object whose voxels contains
         the signed distance from the mesh.
@@ -2704,10 +2736,14 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
 
         if uniform:
             pts = vedo.utils.pack_spheres([x0, x1, y0, y1, z0, z1], side * d * 1.42)
-            pts += rng.normal(size=(len(pts), 3)) * side * d * 1.42 / 100  # some small jitter
+            pts += (
+                rng.normal(size=(len(pts), 3)) * side * d * 1.42 / 100
+            )  # some small jitter
         else:
             disp = np.array([x0 + x1, y0 + y1, z0 + z1]) / 2
-            pts = (rng.random((n, 3)) - 0.5) * np.array([x1 - x0, y1 - y0, z1 - z0]) + disp
+            pts = (rng.random((n, 3)) - 0.5) * np.array(
+                [x1 - x0, y1 - y0, z1 - z0]
+            ) + disp
 
         normals = surf.celldata["Normals"]
         cc = surf.cell_centers().coordinates
@@ -2740,7 +2776,9 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             edges = self.edges
             points = self.coordinates
             elen = mag(points[edges][:, 0, :] - points[edges][:, 1, :])
-            histo = vedo.pyplot.histogram(elen, xtitle="edge length", xlim=(0, 3 * side * d))
+            histo = vedo.pyplot.histogram(
+                elen, xtitle="edge length", xlim=(0, 3 * side * d)
+            )
             print(".. edges min, max", elen.min(), elen.max())
             fillpts.cmap("bone")
             vedo.show(
@@ -2752,7 +2790,10 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
                         fillpts,
                         Points(subpts).c("r4").ps(3),
                     ],
-                    [f"Edges mean length: {np.mean(elen)}\n\nPress q to continue", histo],
+                    [
+                        f"Edges mean length: {np.mean(elen)}\n\nPress q to continue",
+                        histo,
+                    ],
                 ],
                 N=2,
                 sharecam=False,

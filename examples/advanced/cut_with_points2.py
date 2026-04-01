@@ -1,4 +1,5 @@
 """Select cells inside a point loop"""
+
 from vedo import *
 
 mesh = Mesh(dataurl + "dolfin_fine.vtk").lw(1)
@@ -13,7 +14,10 @@ pts = [
 
 # Make a copy and cut it
 cmesh = mesh.clone().cut_with_point_loop(
-    pts, on="cells", include_boundary=False, invert=False,
+    pts,
+    on="cells",
+    include_boundary=False,
+    invert=False,
 )
 cmesh.lw(1).c("tomato")
 

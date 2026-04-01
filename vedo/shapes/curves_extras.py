@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Advanced curve connectors and arrow-like helpers."""
 
 import numpy as np
@@ -15,6 +16,7 @@ from vedo.mesh import Mesh
 from vedo.pointcloud import Points
 from vedo.shapes.glyphs import Glyph
 from vedo.shapes.curves_core import Line
+
 
 class Ribbon(Mesh):
     """
@@ -246,9 +248,9 @@ class Arrow(Mesh):
         self.actor.PickableOff()
         self.actor.DragableOff()
         self.base = np.array(start_pt, dtype=float)  # used by pyplot
-        self.top  = np.array(end_pt,   dtype=float)  # used by pyplot
+        self.top = np.array(end_pt, dtype=float)  # used by pyplot
         self.top_index = self.source.GetTipResolution() * 4
-        self.fill = True                    # used by pyplot.__iadd__()
+        self.fill = True  # used by pyplot.__iadd__()
         self.s = s if s is not None else 1  # used by pyplot.__iadd__()
         self.name = "Arrow"
 
@@ -259,6 +261,7 @@ class Arrow(Mesh):
     def base_point(self):
         """Return the current coordinates of the base of the Arrow."""
         return self.transform.transform_point(self.base)
+
 
 class Arrows(Glyph):
     """
@@ -275,7 +278,7 @@ class Arrows(Glyph):
         head_length=None,
         thickness=1.0,
         res=6,
-        c='k3',
+        c="k3",
         alpha=1.0,
     ) -> None:
         """
@@ -377,7 +380,7 @@ class Arrow2D(Mesh):
         fill=True,
         c="red4",
         alpha=1.0,
-   ) -> None:
+    ) -> None:
         """
         Build a 2D arrow from `start_pt` to `end_pt`.
 
@@ -396,7 +399,7 @@ class Arrow2D(Mesh):
                 if False only generate the outline
         """
         self.fill = fill  ## needed by pyplot.__iadd()
-        self.s = s        ## needed by pyplot.__iadd()
+        self.s = s  ## needed by pyplot.__iadd()
 
         if s != 1:
             shaft_width *= s
@@ -464,8 +467,8 @@ class Arrow2D(Mesh):
         self.lighting("off")
         self.actor.DragableOff()
         self.actor.PickableOff()
-        self.base = np.array(start_pt, dtype=float) # used by pyplot
-        self.top  = np.array(end_pt,   dtype=float) # used by pyplot
+        self.base = np.array(start_pt, dtype=float)  # used by pyplot
+        self.top = np.array(end_pt, dtype=float)  # used by pyplot
         self.name = "Arrow2D"
 
 
@@ -581,7 +584,10 @@ class FlatArrow(Ribbon):
         pm1 = (sm1 + sm2) / 2
         pm2 = (np.array(line1[-2]) + np.array(line2[-2])) / 2
         pm12 = pm1 - pm2
-        tip = pm12 / np.linalg.norm(pm12) * np.linalg.norm(v) * 3 * tip_size / tip_width + pm1
+        tip = (
+            pm12 / np.linalg.norm(pm12) * np.linalg.norm(v) * 3 * tip_size / tip_width
+            + pm1
+        )
 
         line1.append(p1)
         line1.append(tip)

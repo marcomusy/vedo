@@ -9,15 +9,16 @@ from a point cloud:
  4. A triangular mesh is extracted from
     this set of sparse Points.
 """
+
 from vedo import dataurl, printc, Plotter, Points, Mesh, Text2D
 
 
-plt = Plotter(shape=(1,5))
+plt = Plotter(shape=(1, 5))
 # Show each reconstruction stage in its own panel.
-plt.at(0).show(Text2D(__doc__, s=0.75, font='Theemim', bg='green5'))
+plt.at(0).show(Text2D(__doc__, s=0.75, font="Theemim", bg="green5"))
 
 # 1. load a mesh
-mesh = Mesh(dataurl+"apple.ply").subdivide()
+mesh = Mesh(dataurl + "apple.ply").subdivide()
 plt.at(1).show(mesh)
 
 # Add noise

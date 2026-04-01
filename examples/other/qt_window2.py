@@ -1,11 +1,12 @@
 """Qt integration example."""
+
 import sys
 from PyQt5 import Qt
 from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 from vedo import Plotter, Image, Text2D, printc
 
-class MainWindow(Qt.QMainWindow):
 
+class MainWindow(Qt.QMainWindow):
     def __init__(self, parent=None):
 
         Qt.QMainWindow.__init__(self, parent)
@@ -16,7 +17,9 @@ class MainWindow(Qt.QMainWindow):
         # Create vedo renderer and add objects and callbacks
         self.plt = Plotter(qt_widget=self.vtkWidget)
         self.cbid = self.plt.add_callback("key press", self.onKeypress)
-        self.imgActor = Image("https://icatcare.org/app/uploads/2018/07/Helping-your-new-cat-or-kitten-settle-in-1.png")
+        self.imgActor = Image(
+            "https://icatcare.org/app/uploads/2018/07/Helping-your-new-cat-or-kitten-settle-in-1.png"
+        )
         self.text2d = Text2D("Use slider to change contrast")
 
         self.slider = Qt.QSlider(1)
@@ -26,24 +29,26 @@ class MainWindow(Qt.QMainWindow):
 
         self.frame.setLayout(self.layout)
         self.setCentralWidget(self.frame)
-        self.plt.show(self.imgActor, self.text2d, mode='image') # build the vedo rendering
-        self.show()                                            # show the Qt Window
-
+        self.plt.show(
+            self.imgActor, self.text2d, mode="image"
+        )  # build the vedo rendering
+        self.show()  # show the Qt Window
 
     def onSlider(self, value):
-        self.imgActor.window(value*10) # change image contrast
-        self.text2d.text(f"window level is now: {value*10}")
+        self.imgActor.window(value * 10)  # change image contrast
+        self.text2d.text(f"window level is now: {value * 10}")
         self.plt.render()
 
     def onKeypress(self, evt):
-        printc("You have pressed key:", evt.keypress, c='b')
-        if evt.keypress=='q':
+        printc("You have pressed key:", evt.keypress, c="b")
+        if evt.keypress == "q":
             self.plt.close()
             self.vtkWidget.close()
             exit()
 
     def onClose(self):
         self.vtkWidget.close()
+
 
 if __name__ == "__main__":
     app = Qt.QApplication(sys.argv)

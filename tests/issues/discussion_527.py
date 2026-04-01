@@ -23,6 +23,7 @@ def slider1(widget, event):
     s0.rotate_y(value)
     s1.rotate_y(-value)
 
+
 opts = dict(
     slider_length=0.06,
     slider_width=0.6,

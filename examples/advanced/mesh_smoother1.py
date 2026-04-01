@@ -1,4 +1,5 @@
 """Compare a mesh before and after iterative smoothing."""
+
 from vedo import dataurl, Plotter, Volume
 
 

@@ -20,10 +20,12 @@ def make_volume(shape, center, sigma, scale=1.0, bias=0.0):
     vol = Volume(field.astype(np.float32))
     return vol
 
+
 def update_status():
     name, vol = volumes[state["index"]]
     dims = vol.dimensions()
     status.text(f"Volume: {name} | dims={dims}")
+
 
 def swap_volume(reset_slices):
     state["index"] = 1 - state["index"]
@@ -31,6 +33,7 @@ def swap_volume(reset_slices):
     plt.set_volume(new_volume, reset_slices=reset_slices)
     update_status()
     plt.render()
+
 
 def on_key_press(evt):
     if evt.keypress == "space":

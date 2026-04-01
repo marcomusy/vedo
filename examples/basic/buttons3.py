@@ -1,5 +1,7 @@
 """Create a button using an Image icon to show its state"""
+
 from vedo import Cone, Image, dataurl, ButtonWidget, Plotter
+
 
 def button_func(widget, evtname):
     print("button_func called")
@@ -10,11 +12,13 @@ def button_func(widget, evtname):
     else:
         plt.background("white")
 
+
 def on_mouse_click(event):
     # Update cone color only when something is clicked in the scene.
     if event.object:
         print("on_mouse_click", event)
         cone.color(button.state)
+
 
 cone = Cone().color(0)
 

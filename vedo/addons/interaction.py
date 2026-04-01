@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Interactive contour and point-cloud tools extracted from vedo.addons."""
 
 
@@ -242,7 +243,7 @@ class SplineTool(vtki.vtkContourWidget):
         """Set the position of a specific node by index."""
         n = self.representation.GetNumberOfNodes()
         if i < 0 or i >= n:
-            vedo.logger.error(f"SplineTool: index {i} out of range [0-{n-1}]")
+            vedo.logger.error(f"SplineTool: index {i} out of range [0-{n - 1}]")
             return self
         if onscreen:
             self.representation.SetNthNodeDisplayPosition(i, pt[0], pt[1])

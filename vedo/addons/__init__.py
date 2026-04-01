@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Compatibility facade for add-on actors, widgets and utilities."""
 
 from vedo.lazy_imports import build_attr_map, dir_lazy, getattr_lazy
@@ -18,7 +19,7 @@ _LAZY_EXPORT_MAP, __all__ = build_attr_map(
     ("vedo.addons.axes", ["Axes", "add_global_axes"]),
     ("vedo.addons.widgets", ["ButtonWidget", "Button", "DrawingWidget"]),
     ("vedo.addons.interaction", ["PointCloudWidget", "SplineTool"]),
-    ("vedo.addons.ui", ["Flagpost", "LegendBox"]),
+    ("vedo.addons.ui", ["Flagpost", "Icon", "LegendBox"]),
     ("vedo.addons.sliders", ["SliderWidget", "Slider2D", "Slider3D"]),
     (
         "vedo.addons.cutters",
@@ -31,8 +32,10 @@ _LAZY_EXPORT_MAP, __all__ = build_attr_map(
             "ProgressBarWidget",
         ],
     ),
-    ("vedo.addons.icon", ["Icon"]),
-    ("vedo.addons.measure", ["Ruler2D", "Ruler3D", "RulerAxes", "DistanceTool", "compute_visible_bounds"]),
+    (
+        "vedo.addons.measure",
+        ["Ruler2D", "Ruler3D", "RulerAxes", "DistanceTool", "compute_visible_bounds"],
+    ),
 )
 
 

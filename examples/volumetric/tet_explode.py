@@ -1,11 +1,12 @@
 """Segment a TetMesh with a custom scalar.
 Press q to make it explode"""
+
 from vedo import TetMesh, Plotter, Text2D, dataurl
 
 # Build the volumetric processing pipeline and render results.
 n = 20000
 f1 = 0.005  # control the tetras resolution
-f2 = 0.15   # control the nr of seeds
+f2 = 0.15  # control the nr of seeds
 
 tmesh = TetMesh(dataurl + "limb.vtu")
 surf = tmesh.tomesh(fill=False)
@@ -23,7 +24,7 @@ tmesh.celldata["fragment"] = cids
 
 pieces = []
 for i in range(seeds.npoints):
-    tc = tmesh.clone().threshold(name="fragment", above=i-0.1, below=i+0.1)
+    tc = tmesh.clone().threshold(name="fragment", above=i - 0.1, below=i + 0.1)
     mc = tc.tomesh(fill=False).color(i)
     pieces.append(mc)
 

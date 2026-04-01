@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Core utility functions extracted from vedo.addons."""
 
 import numpy as np
@@ -73,12 +74,18 @@ def Goniometer(
 
             ![](https://vedo.embl.es/images/pyplot/goniometer.png)
     """
-    if isinstance(p1, Points): p1 = p1.pos()
-    if isinstance(p2, Points): p2 = p2.pos()
-    if isinstance(p3, Points): p3 = p3.pos()
-    if len(p1)==2: p1=[p1[0], p1[1], 0.0]
-    if len(p2)==2: p2=[p2[0], p2[1], 0.0]
-    if len(p3)==2: p3=[p3[0], p3[1], 0.0]
+    if isinstance(p1, Points):
+        p1 = p1.pos()
+    if isinstance(p2, Points):
+        p2 = p2.pos()
+    if isinstance(p3, Points):
+        p3 = p3.pos()
+    if len(p1) == 2:
+        p1 = [p1[0], p1[1], 0.0]
+    if len(p2) == 2:
+        p2 = [p2[0], p2[1], 0.0]
+    if len(p3) == 2:
+        p3 = [p3[0], p3[1], 0.0]
     p1, p2, p3 = np.array(p1), np.array(p2), np.array(p3)
 
     acts = []
@@ -306,32 +313,36 @@ def ScalarBar(
                 pos = ((0.5, 0.05), (0.97, 0.15))
         sb.SetTextPositionToPrecedeScalarBar()
         if horizontal:
-            if not nlabels: sb.SetNumberOfLabels(3)
+            if not nlabels:
+                sb.SetNumberOfLabels(3)
             sb.SetOrientationToHorizontal()
             sb.SetTextPositionToSucceedScalarBar()
     else:
-
         if horizontal:
             size = (size[1], size[0])  # swap size
-            sb.SetPosition(pos[0]-0.7, pos[1])
-            if not nlabels: sb.SetNumberOfLabels(3)
+            sb.SetPosition(pos[0] - 0.7, pos[1])
+            if not nlabels:
+                sb.SetNumberOfLabels(3)
             sb.SetOrientationToHorizontal()
             sb.SetTextPositionToSucceedScalarBar()
         else:
             sb.SetPosition(pos[0], pos[1])
-            if not nlabels: sb.SetNumberOfLabels(7)
+            if not nlabels:
+                sb.SetNumberOfLabels(7)
             sb.SetTextPositionToPrecedeScalarBar()
         sb.SetHeight(1)
         sb.SetWidth(1)
-        if size[0] is not None: sb.SetMaximumWidthInPixels(size[0])
-        if size[1] is not None: sb.SetMaximumHeightInPixels(size[1])
+        if size[0] is not None:
+            sb.SetMaximumWidthInPixels(size[0])
+        if size[1] is not None:
+            sb.SetMaximumHeightInPixels(size[1])
 
     sb.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
     sb.GetPosition2Coordinate().SetCoordinateSystemToNormalizedViewport()
 
     s = np.array(pos[1]) - np.array(pos[0])
     sb.GetPositionCoordinate().SetValue(pos[0][0], pos[0][1])
-    sb.GetPosition2Coordinate().SetValue(s[0], s[1]) # size !!??
+    sb.GetPosition2Coordinate().SetValue(s[0], s[1])  # size !!??
 
     sctxt = sb.GetLabelTextProperty()
     sctxt.SetFontFamily(vtki.VTK_FONT_FILE)
@@ -441,8 +452,9 @@ def ScalarBar3D(
 
     if categories is not None:  ################################
         ncats = len(categories)
-        scale = shapes.Grid([-float(sx) * label_offset, 0, 0],
-                            c=c, alpha=1, s=(sx, sy), res=(1, ncats))
+        scale = shapes.Grid(
+            [-float(sx) * label_offset, 0, 0], c=c, alpha=1, s=(sx, sy), res=(1, ncats)
+        )
         cols, alphas = [], []
         ticks_pos, ticks_txt = [0.0], [""]
         for i, cat in enumerate(categories):
@@ -463,7 +475,6 @@ def ScalarBar3D(
         scale.cellcolors = rgba
 
     else:  ########################################################
-
         # build the color scale part
         scale = shapes.Grid(
             [-float(sx) * label_offset, 0, 0],
@@ -471,7 +482,9 @@ def ScalarBar3D(
             s=(sx, sy),
             res=(1, lut.GetTable().GetNumberOfTuples()),
         )
-        cscals = np.linspace(vmin, vmax, lut.GetTable().GetNumberOfTuples(), endpoint=True)
+        cscals = np.linspace(
+            vmin, vmax, lut.GetTable().GetNumberOfTuples(), endpoint=True
+        )
 
         if lut.GetScale():  # logarithmic scale
             lut10 = vtki.vtkLookupTable()
@@ -479,12 +492,16 @@ def ScalarBar3D(
             lut10.SetScaleToLinear()
             lut10.Build()
             scale.cmap(lut10, cscals, on="cells")
-            tk = utils.make_ticks(vmin, vmax, nlabels, logscale=True, useformat=label_format)
+            tk = utils.make_ticks(
+                vmin, vmax, nlabels, logscale=True, useformat=label_format
+            )
         else:
             # for i in range(lut.GetTable().GetNumberOfTuples()):
             #     print("LUT i=", i, lut.GetTableValue(i))
             scale.cmap(lut, cscals, on="cells")
-            tk = utils.make_ticks(vmin, vmax, nlabels, logscale=False, useformat=label_format)
+            tk = utils.make_ticks(
+                vmin, vmax, nlabels, logscale=False, useformat=label_format
+            )
         ticks_pos, ticks_txt = tk
 
     scale.lw(0).wireframe(False).lighting("off")
@@ -526,7 +543,9 @@ def ScalarBar3D(
             tacts.append(a)
 
             # build ticks
-            tic = shapes.Line([xbns[1], y, 0], [xbns[1] + sx * label_offset / 4, y, 0], lw=2, c=c)
+            tic = shapes.Line(
+                [xbns[1], y, 0], [xbns[1] + sx * label_offset / 4, y, 0], lw=2, c=c
+            )
             tacts.append(tic)
 
     # build title

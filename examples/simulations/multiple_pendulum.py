@@ -1,4 +1,5 @@
 """Simulate a chain of coupled pendulum bobs with collisions."""
+
 import numpy as np
 from vedo import Plotter, mag, versor, vector
 from vedo import Cylinder, Line, Box, Sphere
@@ -15,8 +16,8 @@ Dt = 0.03  # time step
 # Create the initial positions and velocitites (0,0) of the bobs
 bob_x = [0]
 bob_y = [0]
-x_dot = np.zeros(N+1)  # velocities
-y_dot = np.zeros(N+1)
+x_dot = np.zeros(N + 1)  # velocities
+y_dot = np.zeros(N + 1)
 
 # Create the bobs
 for k in range(1, N + 1):
@@ -24,7 +25,7 @@ for k in range(1, N + 1):
     bob_x.append(bob_x[k - 1] + np.cos(alpha) + np.random.normal(0, 0.1))
     bob_y.append(bob_y[k - 1] + np.sin(alpha) + np.random.normal(0, 0.1))
 
-plt = Plotter(title="Multiple Pendulum", bg2='ly')
+plt = Plotter(title="Multiple Pendulum", bg2="ly")
 plt += Box(pos=(0, -5, 0), size=(12, 12, 0.7)).color("k").wireframe(1)
 sph = Sphere(pos=(bob_x[0], bob_y[0], 0), r=R / 2).color("gray")
 plt += sph
@@ -35,10 +36,10 @@ for k in range(1, N + 1):
     bob.append(c)
 
 # Create some auxiliary variables
-x_dot_m = np.zeros(N+1)
-y_dot_m = np.zeros(N+1)
-dij     = np.zeros(N+1) # array with distances to previous bob
-dij_m   = np.zeros(N+1)
+x_dot_m = np.zeros(N + 1)
+y_dot_m = np.zeros(N + 1)
+dij = np.zeros(N + 1)  # array with distances to previous bob
+dij_m = np.zeros(N + 1)
 for k in range(1, N + 1):
     dij[k] = mag([bob_x[k] - bob_x[k - 1], bob_y[k] - bob_y[k - 1]])
 
@@ -52,13 +53,19 @@ def loop_func(evt):
     """Advance one midpoint-integration step and refresh actors."""
     global bob_x, bob_y
 
-    bob_x_m = list(map((lambda x, dx: x + Dt2 * dx), bob_x, x_dot))  # midpoint variables
+    bob_x_m = list(
+        map((lambda x, dx: x + Dt2 * dx), bob_x, x_dot)
+    )  # midpoint variables
     bob_y_m = list(map((lambda y, dy: y + Dt2 * dy), bob_y, y_dot))
 
     for k in range(1, N + 1):
         factor = fctr(dij[k])
-        x_dot_m[k] = x_dot[k] - Dt2 * (Ks * (bob_x[k] - bob_x[k - 1]) * factor + gamma * x_dot[k])
-        y_dot_m[k] = y_dot[k] - Dt2 * (Ks * (bob_y[k] - bob_y[k - 1]) * factor + gamma * y_dot[k] + g)
+        x_dot_m[k] = x_dot[k] - Dt2 * (
+            Ks * (bob_x[k] - bob_x[k - 1]) * factor + gamma * x_dot[k]
+        )
+        y_dot_m[k] = y_dot[k] - Dt2 * (
+            Ks * (bob_y[k] - bob_y[k - 1]) * factor + gamma * y_dot[k] + g
+        )
 
     for k in range(1, N):
         factor = fctr(dij[k + 1])
@@ -73,8 +80,12 @@ def loop_func(evt):
         dij[k] = mag([bob_x[k] - bob_x[k - 1], bob_y[k] - bob_y[k - 1]])
         dij_m[k] = mag([bob_x_m[k] - bob_x_m[k - 1], bob_y_m[k] - bob_y_m[k - 1]])
         factor = fctr(dij_m[k])
-        x_dot[k] -= Dt * (Ks * (bob_x_m[k] - bob_x_m[k - 1]) * factor + gamma * x_dot_m[k])
-        y_dot[k] -= Dt * (Ks * (bob_y_m[k] - bob_y_m[k - 1]) * factor + gamma * y_dot_m[k] + g)
+        x_dot[k] -= Dt * (
+            Ks * (bob_x_m[k] - bob_x_m[k - 1]) * factor + gamma * x_dot_m[k]
+        )
+        y_dot[k] -= Dt * (
+            Ks * (bob_y_m[k] - bob_y_m[k - 1]) * factor + gamma * y_dot_m[k] + g
+        )
 
     for k in range(1, N):
         factor = fctr(dij_m[k + 1])
@@ -108,6 +119,7 @@ def loop_func(evt):
         plt.add(sp)
 
     plt.render()
+
 
 plt.add_callback("timer", loop_func)
 plt.timer_callback("start")

@@ -1,11 +1,12 @@
 """Cut a TetMesh with an arbitrary polygonal Mesh"""
+
 from vedo import *
 
 # Build the volumetric processing pipeline and render results.
 sphere = Sphere(r=500).x(400)
-sphere.color('green5', 0.2).wireframe()
+sphere.color("green5", 0.2).wireframe()
 
-tmesh = TetMesh(dataurl + 'limb.vtu')
+tmesh = TetMesh(dataurl + "limb.vtu")
 print(tmesh)
 
 ugrid = tmesh.cut_with_mesh(sphere, invert=True).cmap("Reds_r")

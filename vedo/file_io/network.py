@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Network and filesystem utilities for file I/O."""
 
 import os
@@ -9,6 +10,7 @@ from vedo import colors, settings
 
 __docformat__ = "google"
 __all__ = ["download", "gunzip", "file_info"]
+
 
 def download(url: str, force=False, verbose=True) -> str:
     """
@@ -42,17 +44,23 @@ def download(url: str, force=False, verbose=True) -> str:
 
     try:
         from urllib.request import urlopen, Request
+
         req = Request(url, headers={"User-Agent": "Mozilla/5.0"})
         if verbose:
-            colors.printc("reading", basename, "from", url.split("/")[2][:40], "...", end="")
+            colors.printc(
+                "reading", basename, "from", url.split("/")[2][:40], "...", end=""
+            )
 
     except ImportError:
-        import urllib2 # type: ignore
+        import urllib2  # type: ignore
         import contextlib
+
         urlopen = lambda url_: contextlib.closing(urllib2.urlopen(url_))
         req = url
         if verbose:
-            colors.printc("reading", basename, "from", url.split("/")[2][:40], "...", end="")
+            colors.printc(
+                "reading", basename, "from", url.split("/")[2][:40], "...", end=""
+            )
 
     with urlopen(req) as response, open(fname, "wb") as output:
         output.write(response.read())
@@ -60,6 +68,7 @@ def download(url: str, force=False, verbose=True) -> str:
     if verbose:
         colors.printc(" done.")
     return fname
+
 
 ########################################################################
 def gunzip(filename: str) -> str:
@@ -79,6 +88,7 @@ def gunzip(filename: str) -> str:
         outF.write(inF.read())
     inF.close()
     return tmp_file.name
+
 
 ########################################################################
 def file_info(file_path: str) -> tuple[str, str]:

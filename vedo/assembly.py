@@ -41,7 +41,6 @@ class Group:
         elif vedo.utils.is_sequence(objects):
             self.objects = list(objects)
 
-
         self.actor = vtki.vtkPropAssembly()
         self.actor.retrieve_object = weak_ref_to(self)
 
@@ -61,7 +60,6 @@ class Group:
                 self.actor.AddPart(a.actor)
 
         self.actor.PickableOff()
-
 
     def __str__(self):
         return summary_string(self, self._summary_rows())
@@ -114,7 +112,7 @@ class Group:
                 if a in self.objects:
                     self.objects.remove(a)
         return self
-    
+
     def rename(self, name: str) -> Group:
         """Set a new name for the Group object."""
         self.name = name
@@ -253,11 +251,11 @@ class Assembly(CommonVisual, Actor3DHelper):
                 meshs = vedo.utils.flatten(meshs)
 
         self.objects = [m for m in meshs if m]
-        self.actors  = [m.actor for m in self.objects]
+        self.actors = [m.actor for m in self.objects]
 
         scalarbars = []
         for a in self.actors:
-            if isinstance(a, vtki.get_class("Prop3D")): # and a.GetNumberOfPoints():
+            if isinstance(a, vtki.get_class("Prop3D")):  # and a.GetNumberOfPoints():
                 self.actor.AddPart(a)
             if hasattr(a, "scalarbar") and a.scalarbar is not None:
                 scalarbars.append(a.scalarbar)
@@ -300,24 +298,26 @@ class Assembly(CommonVisual, Actor3DHelper):
             value += " " + str(names).replace("'", "")[:56]
         rows.append(("n. of objects", value))
         rows.append(("position", str(self.actor.GetPosition())))
-        rows.append(("bounds", format_bounds(self.actor.GetBounds(), vedo.utils.precision)))
+        rows.append(
+            ("bounds", format_bounds(self.actor.GetBounds(), vedo.utils.precision))
+        )
 
         if "Histogram1D" in cname:
-            if self.title != '':
+            if self.title != "":
                 rows.append(("title", f"{self.title}"))
-            if self.xtitle and self.xtitle != ' ':
+            if self.xtitle and self.xtitle != " ":
                 rows.append(("xtitle", f"{self.xtitle}"))
-            if self.ytitle and self.ytitle != ' ':
+            if self.ytitle and self.ytitle != " ":
                 rows.append(("ytitle", f"{self.ytitle}"))
             rows.append(("entries", f"{self.entries}"))
             rows.append(("mean, mode", f"{self.mean:.6f}, {self.mode:.6f}"))
             rows.append(("std", f"{self.std:.6f}"))
         elif "Histogram2D" in cname:
-            if self.title != '':
+            if self.title != "":
                 rows.append(("title", f"{self.title}"))
-            if self.xtitle and self.xtitle != ' ':
+            if self.xtitle and self.xtitle != " ":
                 rows.append(("xtitle", f"{self.xtitle}"))
-            if self.ytitle and self.ytitle != ' ':
+            if self.ytitle and self.ytitle != " ":
                 rows.append(("ytitle", f"{self.ytitle}"))
             rows.append(("entries", f"{self.entries}"))
             rows.append(("mean", f"{vedo.utils.precision(self.mean, 6)}"))
@@ -351,7 +351,9 @@ class Assembly(CommonVisual, Actor3DHelper):
         # statisitics
         bounds = "<br/>".join(
             [
-                vedo.utils.precision(min_x, 4) + " ... " + vedo.utils.precision(max_x, 4)
+                vedo.utils.precision(min_x, 4)
+                + " ... "
+                + vedo.utils.precision(max_x, 4)
                 for min_x, max_x in zip(self.bounds()[::2], self.bounds()[1::2])
             ]
         )
@@ -359,7 +361,9 @@ class Assembly(CommonVisual, Actor3DHelper):
         help_text = ""
         if self.name:
             help_text += f"<b> {self.name}: &nbsp&nbsp</b>"
-        help_text += '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>"
+        help_text += (
+            '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>"
+        )
         if self.filename:
             dots = ""
             if len(self.filename) > 30:
@@ -378,11 +382,15 @@ class Assembly(CommonVisual, Actor3DHelper):
             "<tr><td><b> nr. of objects </b></td><td>"
             + str(self.actor.GetNumberOfPaths())
             + "</td></tr>",
-            "<tr><td><b> position </b></td><td>" + str(self.actor.GetPosition()) + "</td></tr>",
+            "<tr><td><b> position </b></td><td>"
+            + str(self.actor.GetPosition())
+            + "</td></tr>",
             "<tr><td><b> diagonal size </b></td><td>"
             + vedo.utils.precision(self.diagonal_size(), 5)
             + "</td></tr>",
-            "<tr><td><b> bounds </b> <br/> (x/y/z) </td><td>" + str(bounds) + "</td></tr>",
+            "<tr><td><b> bounds </b> <br/> (x/y/z) </td><td>"
+            + str(bounds)
+            + "</td></tr>",
             "</table>",
             "</table>",
         ]
@@ -393,7 +401,6 @@ class Assembly(CommonVisual, Actor3DHelper):
         Add an object to the assembly
         """
         if isinstance(getattr(obj, "actor", None), vtki.get_class("Prop3D")):
-
             self.objects.append(obj)
             self.actors.append(obj.actor)
             self.actor.AddPart(obj.actor)
@@ -412,8 +419,12 @@ class Assembly(CommonVisual, Actor3DHelper):
                 if isinstance(self.scalarbar, Group):
                     self.scalarbar += unpack_group(obj.scalarbar)
                 else:
-                    self.scalarbar = Group([unpack_group(self.scalarbar), unpack_group(obj.scalarbar)])
-            self.pipeline = vedo.utils.OperationNode("add mesh", parents=[self, obj], c="#f08080")
+                    self.scalarbar = Group(
+                        [unpack_group(self.scalarbar), unpack_group(obj.scalarbar)]
+                    )
+            self.pipeline = vedo.utils.OperationNode(
+                "add mesh", parents=[self, obj], c="#f08080"
+            )
         return self
 
     def __isub__(self, obj):
@@ -552,7 +563,9 @@ class Assembly(CommonVisual, Actor3DHelper):
             newlist.append(a.clone())
         return Assembly(newlist)
 
-    def clone2d(self, pos="bottom-left", size=1, rotation=0, ontop=False, justify="bottom-left") -> Group:
+    def clone2d(
+        self, pos="bottom-left", size=1, rotation=0, ontop=False, justify="bottom-left"
+    ) -> Group:
         """
         Convert the `Assembly` into a `Group` of 2D objects.
 
@@ -615,7 +628,7 @@ class Assembly(CommonVisual, Actor3DHelper):
         # choose position
         if "cent" in pos:
             offset = [(x0 + x1) / 2, (y0 + y1) / 2]
-            position = [0., 0.]
+            position = [0.0, 0.0]
             if "right" in pos:
                 offset[0] = x1
                 position = [1 - padding, 0]
@@ -674,7 +687,7 @@ class Assembly(CommonVisual, Actor3DHelper):
             a2d.pos(position).ontop(ontop)
             group += a2d
 
-        try: # copy info from Histogram1D
+        try:  # copy info from Histogram1D
             group.entries = self.entries
             group.frequencies = self.frequencies
             group.errors = self.errors

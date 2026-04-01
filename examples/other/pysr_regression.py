@@ -1,10 +1,11 @@
 """This script shows how to fit a symbolic regression model to a 2D dataset.
 The dataset is generated from a simple function and some noise is added.
 The script then shows the true function and learned function on a 2D grid."""
+
 # Check out the documentation for more information:
 # https://astroautomata.com/PySR/
 # https://github.com/MilesCranmer/PySR
-# install with: 
+# install with:
 #   pip install pysr
 #
 from pathlib import Path
@@ -38,8 +39,10 @@ model = PySRRegressor(
     # ^ Custom loss function (use julia syntax)
 )
 
+
 def compute_z(X):
-    return 0.42345 * np.cos(X[:,1]) + 0.1 * X[:,0]**2 - 0.5
+    return 0.42345 * np.cos(X[:, 1]) + 0.1 * X[:, 0] ** 2 - 0.5
+
 
 X = 2 * np.random.randn(100, 2)
 z = compute_z(X)
@@ -49,12 +52,12 @@ z += 0.15 * np.random.randn(100)
 model.fit(X, z)
 print(model)
 
-grid = vedo.Grid(pos=(0,0,0), res=(100,100)).scale(10)
+grid = vedo.Grid(pos=(0, 0, 0), res=(100, 100)).scale(10)
 X_grid = grid.points[:, :2]  # 2D points on the grid
 z_pred = model.predict(X_grid)
 grid.points[:, 2] = z_pred
 
-coords = np.c_[X[:,0], X[:,1], z]
+coords = np.c_[X[:, 0], X[:, 1], z]
 
 # the truth
 grid_truth = grid.clone().alpha(0.1).c("black")
@@ -63,7 +66,7 @@ grid_truth.points[:, 2] = z_truth
 
 grid.compute_normals().cmap("ocean", z_pred)
 grid.wireframe(False).lw(0).lighting("glossy")
-levels = grid.isolines(n=10).color('white')
+levels = grid.isolines(n=10).color("white")
 
 loss = model.equations_["loss"]
 complexity = model.equations_["complexity"]

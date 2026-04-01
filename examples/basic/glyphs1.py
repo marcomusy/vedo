@@ -1,6 +1,7 @@
 """Glyphs:
 at each vertex of a mesh, another mesh
 is shown with various orientation options"""
+
 from vedo import Sphere, Ellipsoid, Mesh, dataurl, Glyph, show
 import numpy as np
 
@@ -36,11 +37,9 @@ gsphere2 = Glyph(
 )
 
 # Show two groups of objects on N=2 renderers:
-show([
-        (sph, gsphere1, __doc__),
-        (sph, gsphere2)
-    ],
-    N=2, 
-    bg="bb", 
+show(
+    [(sph, gsphere1, __doc__), (sph, gsphere2)],
+    N=2,
+    bg="bb",
     zoom=1.4,
 ).close()

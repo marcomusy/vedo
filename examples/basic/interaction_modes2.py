@@ -1,16 +1,18 @@
 """Use the mouse to select objects and vertices in a mesh.
 Middle-click and drag to interact with the scene."""
+
 from vedo import settings, Mesh, dataurl, Plotter
 from vedo.plotter.modes import BlenderStyle
 import numpy as np
 
 settings.enable_default_mouse_callbacks = False
 
+
 def mode_select(objs):
     """Selection callback for Blender-like interaction mode."""
     print("Selected objects:", objs)
     d0 = mode.start_x, mode.start_y  # display coords
-    d1 = mode.end_x,   mode.end_y
+    d1 = mode.end_x, mode.end_y
 
     frustum = plt.pick_area(d0, d1)
     infru = frustum.inside_points(mesh, return_ids=False)
@@ -18,8 +20,9 @@ def mode_select(objs):
     infru.ps(10).c(color)
     plt.add(frustum, infru).render()
 
+
 # Scene object to interact with.
-mesh = Mesh(dataurl+"cow.vtk").c("k5").lw(1)
+mesh = Mesh(dataurl + "cow.vtk").c("k5").lw(1)
 
 mode = BlenderStyle()
 mode.callback_select = mode_select

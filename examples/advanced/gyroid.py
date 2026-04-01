@@ -1,20 +1,21 @@
 """A textured gyroid shape cut by a sphere"""
+
 from vedo import *
 
 # Equation of a "gyroid" (https://en.wikipedia.org/wiki/Gyroid)
-x, y, z = np.mgrid[:30,:30,:30] * 0.4
-U = sin(x)*cos(y) + sin(y)*cos(z) + sin(z)*cos(x)
+x, y, z = np.mgrid[:30, :30, :30] * 0.4
+U = sin(x) * cos(y) + sin(y) * cos(z) + sin(z) * cos(x)
 
 # Create a Volume, take the isosurface at 0, smooth and subdivide it
 gyr = Volume(U).isosurface(0).smooth().subdivide()
 
 # Intersect with a sphere to expose the inner gyroid structure.
-sph = Sphere(pos=(15,15,15), r=14, quads=True, res=30).triangulate()
-printc("Please wait a few secs while I'm cutting your gyroid", c='y')
-gxs = gyr.boolean('intersect', sph)
-gxs.texture('https://vedo.embl.es/examples/data/images/marblings.jpg')
+sph = Sphere(pos=(15, 15, 15), r=14, quads=True, res=30).triangulate()
+printc("Please wait a few secs while I'm cutting your gyroid", c="y")
+gxs = gyr.boolean("intersect", sph)
+gxs.texture("https://vedo.embl.es/examples/data/images/marblings.jpg")
 
-plt = Plotter(bg='wheat', bg2='lightblue', axes=5)
+plt = Plotter(bg="wheat", bg2="lightblue", axes=5)
 plt.add_ambient_occlusion(10)
 plt.show(gxs, __doc__, zoom=1.4)
 # Video('gyroid.mp4').action().close().interactive() # shoot video

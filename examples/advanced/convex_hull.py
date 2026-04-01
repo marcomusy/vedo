@@ -1,11 +1,12 @@
 """Create the Convex Hull of a Mesh or a set of input points"""
+
 from vedo import *
 
-settings.default_font = 'Bongas'
+settings.default_font = "Bongas"
 settings.use_depth_peeling = True
 
 # Source mesh and its convex envelope.
-spid = Mesh(dataurl+"spider.ply").c("brown")
+spid = Mesh(dataurl + "spider.ply").c("brown")
 
 ch = ConvexHull(spid).alpha(0.2)
 

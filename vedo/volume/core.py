@@ -39,6 +39,7 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
     Class to describe dataset that are defined on "voxels",
     the 3D equivalent of 2D pixels.
     """
+
     def __init__(
         self,
         input_obj=None,
@@ -91,7 +92,7 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         self.file_size = ""
 
         self.info = {}
-        self.time =  time.time()
+        self.time = time.time()
 
         self.actor = vtki.vtkVolume()
         self.actor.retrieve_object = weak_ref_to(self)
@@ -121,7 +122,6 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
             img = vtki.vtkImageData()
 
         elif utils.is_sequence(input_obj):
-
             if isinstance(input_obj[0], str) and ".bmp" in input_obj[0].lower():
                 # scan sequence of BMP files
                 ima = vtki.new("ImageAppend")
@@ -129,7 +129,7 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
                 pb = utils.ProgressBar(0, len(input_obj))
                 for i in pb.range():
                     f = input_obj[i]
-                    if "_rec_spr" in f: # OPT specific
+                    if "_rec_spr" in f:  # OPT specific
                         continue
                     picr = vtki.new("BMPReader")
                     picr.SetFileName(f)
@@ -143,7 +143,6 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
                 img = ima.GetOutput()
 
             else:
-
                 if len(input_obj.shape) == 1:
                     varr = utils.numpy2vtk(input_obj)
                 else:
@@ -155,7 +154,9 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
                     img.SetDimensions(dims[2], dims[1], dims[0])
                 else:
                     if len(input_obj.shape) == 1:
-                        vedo.logger.error("must set dimensions (dims keyword) in Volume")
+                        vedo.logger.error(
+                            "must set dimensions (dims keyword) in Volume"
+                        )
                         raise RuntimeError()
                     img.SetDimensions(input_obj.shape)
                 img.GetPointData().AddArray(varr)
@@ -201,7 +202,9 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
                 # sigmoid = np.clip(1/(1+np.exp(-20*(xvalues-0.5))), 0, 1)
                 # print("Volume: setting sigmoidal transfer function", xvalues, sigmoid)
                 # self.alpha(sigmoid)
-                self.alpha([0.0, 0.001, 0.3, 0.5, 0.7, 0.8, 1.0]) # we need to revert this..
+                self.alpha(
+                    [0.0, 0.001, 0.3, 0.5, 0.7, 0.8, 1.0]
+                )  # we need to revert this..
                 self.alpha_gradient(None)
                 self.properties.SetScalarOpacityUnitDistance(1.0)
 
@@ -224,8 +227,8 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
             mapper : (str, vtkMapper)
                 either 'gpu', 'opengl_gpu', 'fixed' or 'smart'
         """
-        if isinstance(mapper,
-            (vtki.get_class("Mapper"), vtki.get_class("ImageResliceMapper"))
+        if isinstance(
+            mapper, (vtki.get_class("Mapper"), vtki.get_class("ImageResliceMapper"))
         ):
             pass
         elif mapper is None:
@@ -276,7 +279,12 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         rows.append(("center", utils.precision(self.center(), 6)))
         rows.append(("spacing", utils.precision(self.spacing(), 6)))
         rows.append(("bounds", format_bounds(self.bounds(), utils.precision)))
-        rows.append(("memory size", f"{int(self.dataset.GetActualMemorySize() / 1024 + 0.5)} MB"))
+        rows.append(
+            (
+                "memory size",
+                f"{int(self.dataset.GetActualMemorySize() / 1024 + 0.5)} MB",
+            )
+        )
         st = self.dataset.GetScalarTypeAsString()
         rows.append(("scalar size", f"{self.dataset.GetScalarSize()} bytes ({st})"))
         rows.append(("scalar range", str(self.dataset.GetScalarRange())))
@@ -316,7 +324,9 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         help_text = ""
         if self.name:
             help_text += f"<b> {self.name}: &nbsp&nbsp</b>"
-        help_text += '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>"
+        help_text += (
+            '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>"
+        )
         if self.filename:
             dots = ""
             if len(self.filename) > 30:
@@ -327,13 +337,17 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         if self.dataset.GetPointData().GetScalars():
             if self.dataset.GetPointData().GetScalars().GetName():
                 name = self.dataset.GetPointData().GetScalars().GetName()
-                pdata = "<tr><td><b> point data array </b></td><td>" + name + "</td></tr>"
+                pdata = (
+                    "<tr><td><b> point data array </b></td><td>" + name + "</td></tr>"
+                )
 
         cdata = ""
         if self.dataset.GetCellData().GetScalars():
             if self.dataset.GetCellData().GetScalars().GetName():
                 name = self.dataset.GetCellData().GetScalars().GetName()
-                cdata = "<tr><td><b> voxel data array </b></td><td>" + name + "</td></tr>"
+                cdata = (
+                    "<tr><td><b> voxel data array </b></td><td>" + name + "</td></tr>"
+                )
 
         img = self.dataset
 
@@ -346,8 +360,12 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
             "<td style='text-align: center; vertical-align: center;'><br/>",
             help_text,
             "<table>",
-            "<tr><td><b> bounds </b> <br/> (x/y/z) </td><td>" + str(bounds) + "</td></tr>",
-            "<tr><td><b> dimensions </b></td><td>" + str(img.GetDimensions()) + "</td></tr>",
+            "<tr><td><b> bounds </b> <br/> (x/y/z) </td><td>"
+            + str(bounds)
+            + "</td></tr>",
+            "<tr><td><b> dimensions </b></td><td>"
+            + str(img.GetDimensions())
+            + "</td></tr>",
             "<tr><td><b> voxel spacing </b></td><td>"
             + utils.precision(img.GetSpacing(), 3)
             + "</td></tr>",
@@ -383,7 +401,9 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         newvol.actor.SetProperty(prop)
         newvol.properties = prop
 
-        newvol.pipeline = utils.OperationNode("clone", parents=[self], c="#bbd0ff", shape="diamond")
+        newvol.pipeline = utils.OperationNode(
+            "clone", parents=[self], c="#bbd0ff", shape="diamond"
+        )
         return newvol
 
     def astype(self, dtype: str | int) -> Self:
@@ -395,14 +415,25 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
                 the type of the scalars array in
                 `["int8", "uint8", "int16", "uint16", "int32", "uint32", "float32", "float64"]`
         """
-        if dtype in ["int8", "uint8", "int16", "uint16", "int32", "uint32", "float32", "float64"]:
+        if dtype in [
+            "int8",
+            "uint8",
+            "int16",
+            "uint16",
+            "int32",
+            "uint32",
+            "float32",
+            "float64",
+        ]:
             caster = vtki.new("ImageCast")
             caster.SetInputData(self.dataset)
             caster.SetOutputScalarType(int(vtki.array_types[dtype]))
             caster.ClampOverflowOn()
             caster.Update()
             self._update(caster.GetOutput())
-            self.pipeline = utils.OperationNode(f"astype({dtype})", parents=[self], c="#4cc9f0")
+            self.pipeline = utils.OperationNode(
+                f"astype({dtype})", parents=[self], c="#4cc9f0"
+            )
         else:
             vedo.logger.error(f"astype(): unknown type {dtype}")
             raise ValueError()
@@ -413,18 +444,14 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         self.properties.SetComponentWeight(i, weight)
         return self
 
-
-
-
-
-
-
     def warp(
-            self,
-            source: vedo.Points | list,
-            target: vedo.Points | list,
-            sigma=1, mode="3d", fit=True,
-        ) -> Self:
+        self,
+        source: vedo.Points | list,
+        target: vedo.Points | list,
+        sigma=1,
+        mode="3d",
+        fit=True,
+    ) -> Self:
         """
         Warp volume scalars within a Volume by specifying
         source and target sets of points.
@@ -453,10 +480,11 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         return self
 
     def apply_transform(
-            self,
-            T: transformations.LinearTransform | transformations.NonLinearTransform,
-            fit=True, interpolation="cubic",
-        ) -> Self:
+        self,
+        T: transformations.LinearTransform | transformations.NonLinearTransform,
+        fit=True,
+        interpolation="cubic",
+    ) -> Self:
         """
         Apply a transform to the scalars in the volume.
 
@@ -485,14 +513,16 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
             reslice.SetInterpolationModeToCubic()
         else:
             vedo.logger.error(
-                f"in apply_transform: unknown interpolation mode {interpolation}")
+                f"in apply_transform: unknown interpolation mode {interpolation}"
+            )
             raise ValueError()
         reslice.SetAutoCropOutput(fit)
         reslice.Update()
         self._update(reslice.GetOutput())
         self.transform = T
         self.pipeline = utils.OperationNode(
-            "apply_transform", parents=[self], c="#4cc9f0")
+            "apply_transform", parents=[self], c="#4cc9f0"
+        )
         return self
 
     def imagedata(self) -> vtki.vtkImageData:
@@ -663,7 +693,7 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         imp.Update()
         self._update(imp.GetOutput())
         self.pipeline = utils.OperationNode(
-            f"permute_axes({(x,y,z)})", parents=[self], c="#4cc9f0"
+            f"permute_axes({(x, y, z)})", parents=[self], c="#4cc9f0"
         )
         return self
 
@@ -692,12 +722,16 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         rsp.Update()
         self._update(rsp.GetOutput())
         self.pipeline = utils.OperationNode(
-            "resample", comment=f"spacing: {tuple(new_spacing)}", parents=[self], c="#4cc9f0"
+            "resample",
+            comment=f"spacing: {tuple(new_spacing)}",
+            parents=[self],
+            c="#4cc9f0",
         )
         return self
 
-
-    def threshold(self, above=None, below=None, replace=None, replace_value=None) -> Self:
+    def threshold(
+        self, above=None, below=None, replace=None, replace_value=None
+    ) -> Self:
         """
         Binary or continuous volume thresholding.
         Find the voxels that contain a value above/below the input values
@@ -742,7 +776,16 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         self.pipeline = utils.OperationNode("threshold", parents=[self], c="#4cc9f0")
         return self
 
-    def crop(self, left=None, right=None, back=None, front=None, bottom=None, top=None, VOI=()) -> Self:
+    def crop(
+        self,
+        left=None,
+        right=None,
+        back=None,
+        front=None,
+        bottom=None,
+        top=None,
+        VOI=(),
+    ) -> Self:
         """
         Crop a `Volume` object.
 
@@ -772,19 +815,28 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
             extractVOI.SetVOI(VOI)
         else:
             d = self.dataset.GetDimensions()
-            bx0, bx1, by0, by1, bz0, bz1 = 0, d[0]-1, 0, d[1]-1, 0, d[2]-1
-            if left is not None:   bx0 = int((d[0]-1)*left)
-            if right is not None:  bx1 = int((d[0]-1)*(1-right))
-            if back is not None:   by0 = int((d[1]-1)*back)
-            if front is not None:  by1 = int((d[1]-1)*(1-front))
-            if bottom is not None: bz0 = int((d[2]-1)*bottom)
-            if top is not None:    bz1 = int((d[2]-1)*(1-top))
+            bx0, bx1, by0, by1, bz0, bz1 = 0, d[0] - 1, 0, d[1] - 1, 0, d[2] - 1
+            if left is not None:
+                bx0 = int((d[0] - 1) * left)
+            if right is not None:
+                bx1 = int((d[0] - 1) * (1 - right))
+            if back is not None:
+                by0 = int((d[1] - 1) * back)
+            if front is not None:
+                by1 = int((d[1] - 1) * (1 - front))
+            if bottom is not None:
+                bz0 = int((d[2] - 1) * bottom)
+            if top is not None:
+                bz1 = int((d[2] - 1) * (1 - top))
             extractVOI.SetVOI(bx0, bx1, by0, by1, bz0, bz1)
         extractVOI.Update()
         self._update(extractVOI.GetOutput())
 
         self.pipeline = utils.OperationNode(
-            "crop", parents=[self], c="#4cc9f0", comment=f"dims={tuple(self.dimensions())}"
+            "crop",
+            parents=[self],
+            c="#4cc9f0",
+            comment=f"dims={tuple(self.dimensions())}",
         )
         return self
 
@@ -869,15 +921,21 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         pf.SetConstant(value)
         if utils.is_sequence(voxels):
             pf.SetOutputWholeExtent(
-                x0 - voxels[0], x1 + voxels[1],
-                y0 - voxels[2], y1 + voxels[3],
-                z0 - voxels[4], z1 + voxels[5],
+                x0 - voxels[0],
+                x1 + voxels[1],
+                y0 - voxels[2],
+                y1 + voxels[3],
+                z0 - voxels[4],
+                z1 + voxels[5],
             )
         else:
             pf.SetOutputWholeExtent(
-                x0 - voxels, x1 + voxels,
-                y0 - voxels, y1 + voxels,
-                z0 - voxels, z1 + voxels,
+                x0 - voxels,
+                x1 + voxels,
+                y0 - voxels,
+                y1 + voxels,
+                z0 - voxels,
+                z1 + voxels,
             )
         pf.Update()
         self._update(pf.GetOutput())
@@ -886,7 +944,7 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         )
         return self
 
-    def resize(self, newdims: list[int]=(), newspacing: list[float]=()) -> Self:
+    def resize(self, newdims: list[int] = (), newspacing: list[float] = ()) -> Self:
         """
         Increase or reduce the number of voxels of a Volume with interpolation.
         User must specify either the new desired dimensions or the new spacing in x, y and z.
@@ -896,7 +954,7 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         if len(newdims):
             rsz.SetResizeMethodToOutputDimensions()
             rsz.SetOutputDimensions(newdims)
-        elif len(newspacing) and len(newdims)==0:
+        elif len(newspacing) and len(newdims) == 0:
             rsz.SetResizeMethodToOutputSpacing()
             rsz.SetOutputSpacing(newspacing)
         else:
@@ -905,7 +963,10 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         self.dataset = rsz.GetOutput()
         self._update(self.dataset)
         self.pipeline = utils.OperationNode(
-            "resize", parents=[self], c="#4cc9f0", comment=f"dims={tuple(self.dimensions())}"
+            "resize",
+            parents=[self],
+            c="#4cc9f0",
+            comment=f"dims={tuple(self.dimensions())}",
         )
         return self
 
@@ -937,7 +998,9 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
             raise RuntimeError()
         ff.Update()
         self._update(ff.GetOutput())
-        self.pipeline = utils.OperationNode(f"mirror {axis}", parents=[self], c="#4cc9f0")
+        self.pipeline = utils.OperationNode(
+            f"mirror {axis}", parents=[self], c="#4cc9f0"
+        )
         return self
 
     def operation(self, operation: str, volume2=None) -> Volume:
@@ -978,7 +1041,6 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         image1 = self.dataset
 
         if op in ["and", "or", "xor", "nand", "nor"]:
-
             if not np.allclose(image1.GetBounds(), volume2.dataset.GetBounds()):
                 # create a larger image to contain both
                 b1 = image1.GetBounds()
@@ -993,7 +1055,11 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
                 ]
                 dims1 = image1.GetDimensions()
                 dims2 = volume2.dataset.GetDimensions()
-                dims = [max(dims1[0], dims2[0]), max(dims1[1], dims2[1]), max(dims1[2], dims2[2])]
+                dims = [
+                    max(dims1[0], dims2[0]),
+                    max(dims1[1], dims2[1]),
+                    max(dims1[2], dims2[2]),
+                ]
 
                 image = vtki.vtkImageData()
                 image.SetDimensions(dims)
@@ -1037,7 +1103,11 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
 
             out_vol = Volume(img_logic.GetOutput())
             out_vol.pipeline = utils.OperationNode(
-                "operation", comment=f"{op}", parents=[self, volume2], c="#4cc9f0", shape="cylinder"
+                "operation",
+                comment=f"{op}",
+                parents=[self, volume2],
+                c="#4cc9f0",
+                shape="cylinder",
             )
             return out_vol  ######################################################
 
@@ -1084,7 +1154,11 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
             mf.Update()
             vol = Volume(mf.GetOutput())
             vol.pipeline = utils.OperationNode(
-                "operation", comment=f"{op}", parents=[self], c="#4cc9f0", shape="cylinder"
+                "operation",
+                comment=f"{op}",
+                parents=[self],
+                c="#4cc9f0",
+                shape="cylinder",
             )
             return vol  ######################################################
 
@@ -1160,7 +1234,11 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         self._update(mat.GetOutput())
 
         self.pipeline = utils.OperationNode(
-            "operation", comment=f"{op}", parents=[self, volume2], shape="cylinder", c="#4cc9f0"
+            "operation",
+            comment=f"{op}",
+            parents=[self, volume2],
+            shape="cylinder",
+            c="#4cc9f0",
         )
         return self
 
@@ -1214,7 +1292,9 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         ecomp.SetComponents(0)
         ecomp.Update()
         self._update(ecomp.GetOutput())
-        self.pipeline = utils.OperationNode("frequency_pass_filter", parents=[self], c="#4cc9f0")
+        self.pipeline = utils.OperationNode(
+            "frequency_pass_filter", parents=[self], c="#4cc9f0"
+        )
         return self
 
     @property
@@ -1244,7 +1324,10 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         ecomp.Update()
         v = Volume(ecomp.GetOutput())
         self.pipeline = utils.OperationNode(
-            "extract_components", parents=[self], c="#4cc9f0", comment=f"components={components}"
+            "extract_components",
+            parents=[self],
+            c="#4cc9f0",
+            comment=f"components={components}",
         )
         return v
 
@@ -1274,7 +1357,9 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
                 gsf.SetRadiusFactor(radius)
         gsf.Update()
         self._update(gsf.GetOutput())
-        self.pipeline = utils.OperationNode("smooth_gaussian", parents=[self], c="#4cc9f0")
+        self.pipeline = utils.OperationNode(
+            "smooth_gaussian", parents=[self], c="#4cc9f0"
+        )
         return self
 
     def smooth_median(self, neighbours=(2, 2, 2)) -> Self:
@@ -1290,7 +1375,9 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
             imgm.SetKernelSize(neighbours, neighbours, neighbours)
         imgm.Update()
         self._update(imgm.GetOutput())
-        self.pipeline = utils.OperationNode("smooth_median", parents=[self], c="#4cc9f0")
+        self.pipeline = utils.OperationNode(
+            "smooth_median", parents=[self], c="#4cc9f0"
+        )
         return self
 
     def erode(self, neighbours=(2, 2, 2)) -> Self:
@@ -1351,7 +1438,9 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         v2p.SetInputData(self.dataset)
         v2p.Update()
         mpts = vedo.Points(v2p.GetOutput())
-        mpts.pipeline = utils.OperationNode("topoints", parents=[self], c="#4cc9f0:#e9c46a")
+        mpts.pipeline = utils.OperationNode(
+            "topoints", parents=[self], c="#4cc9f0:#e9c46a"
+        )
         return mpts
 
     def euclidean_distance(self, anisotropy=False, max_distance=None) -> Volume:
@@ -1382,7 +1471,9 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         euv.SetAlgorithmToSaito()
         euv.Update()
         vol = Volume(euv.GetOutput())
-        vol.pipeline = utils.OperationNode("euclidean_distance", parents=[self], c="#4cc9f0")
+        vol.pipeline = utils.OperationNode(
+            "euclidean_distance", parents=[self], c="#4cc9f0"
+        )
         return vol
 
     def correlation_with(self, vol2: Volume, dim=2) -> Volume:
@@ -1401,7 +1492,9 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         imc.Update()
         vol = Volume(imc.GetOutput())
 
-        vol.pipeline = utils.OperationNode("correlation_with", parents=[self, vol2], c="#4cc9f0")
+        vol.pipeline = utils.OperationNode(
+            "correlation_with", parents=[self, vol2], c="#4cc9f0"
+        )
         return vol
 
     def scale_voxels(self, scale=1) -> Self:

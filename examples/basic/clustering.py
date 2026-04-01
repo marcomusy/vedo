@@ -1,4 +1,5 @@
 """Example usage of remove_outliers() and compute_clustering()"""
+
 # Import the vedo library and numpy
 from vedo import np, Points, show
 
@@ -20,4 +21,4 @@ clpts = pts.compute_clustering(radius=0.1).print()
 # Set the color of the points based on their cluster ID using the 'jet' colormap
 clpts.cmap("jet", "ClusterId")
 
-show(clpts, __doc__, axes=1, viewup='z', bg='blackboard').close()
+show(clpts, __doc__, axes=1, viewup="z", bg="blackboard").close()

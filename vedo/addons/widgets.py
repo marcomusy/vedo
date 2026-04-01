@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Interactive widget classes extracted from vedo.addons."""
 
 import vedo
@@ -37,7 +38,9 @@ class ButtonWidget:
         self.size = size
 
         assert len(states) == len(c), "states and colors must have the same length"
-        assert len(states) == len(bc), "states and background colors must have the same length"
+        assert len(states) == len(bc), (
+            "states and background colors must have the same length"
+        )
 
         self.interactor = None
         if plotter is not None:
@@ -52,7 +55,6 @@ class ButtonWidget:
         self.representation = vtki.new("TexturedButtonRepresentation2D")
         self.representation.SetNumberOfStates(len(states))
         for i, state in enumerate(states):
-
             if isinstance(state, vedo.Image):
                 state = state.dataset
 
@@ -103,7 +105,9 @@ class ButtonWidget:
         """Set the position of the button widget."""
         assert len(pos) == 2, "pos must be a 2D position"
         if not self.plotter:
-            vedo.logger.warning("ButtonWidget: pos() can only be used if a Plotter is provided")
+            vedo.logger.warning(
+                "ButtonWidget: pos() can only be used if a Plotter is provided"
+            )
             return self
         coords = vtki.vtkCoordinate()
         coords.SetCoordinateSystemToNormalizedDisplay()

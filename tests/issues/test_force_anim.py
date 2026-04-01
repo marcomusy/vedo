@@ -1,13 +1,13 @@
- # @ Author: Giovanni Dalmasso
- # @ Create Time: 09-02-2024 17:02:07
- # @ Modified by: M. Musy
+# @ Author: Giovanni Dalmasso
+# @ Create Time: 09-02-2024 17:02:07
+# @ Modified by: M. Musy
 import numpy as np
 from vedo import Arrow2D, Latex, Line, Mesh, Plotter, Text3D, dataurl
 
 
 # Define the forces and initial angle
-FB = 800    # Newton
-FA = 750    # Newton
+FB = 800  # Newton
+FA = 750  # Newton
 theta = 48  # Initial angle in degrees
 
 # Calculate the initial components of FA and Fx

@@ -1,9 +1,11 @@
 """Interactively slice a Volume along a plane.
 Middle button + drag to slide the plane along the arrow"""
+
 from vedo import *
 
 normal = [0, 0, 1]
 cmap = "gist_stern_r"
+
 
 def func(w, _):
     # Re-slice at current cutter origin/normal.
@@ -30,7 +32,7 @@ pcutter.add_observer("interaction", func)
 plt.at(0).add(vol, __doc__)
 plt.at(1).add(pcutter, vol.box())
 
-pcutter.on() # enable the cutter after adding it to the plotter
+pcutter.on()  # enable the cutter after adding it to the plotter
 
 plt.show(zoom=1.2)
 plt.interactive()

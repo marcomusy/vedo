@@ -1,10 +1,11 @@
 """Map an array which is defined on
 the vertices of a mesh to its cells"""
+
 from vedo import *
 
 doc = Text2D(__doc__, pos="top-center")
 
-mesh1 = Mesh(dataurl+'icosahedron.vtk').linewidth(0.1).flat()
+mesh1 = Mesh(dataurl + "icosahedron.vtk").linewidth(0.1).flat()
 
 # let the scalar be the z coordinate of the mesh vertices
 msg1 = Text2D("Scalars originally defined on points..", pos="bottom-center")

@@ -1,4 +1,5 @@
 """A flag-post style marker"""
+
 from vedo import ParametricShape, precision, color_map, show
 
 # Configure inputs and run the visualization workflow.

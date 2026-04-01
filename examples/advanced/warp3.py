@@ -1,6 +1,7 @@
 """Take 2 clouds of points, source and target, and morph
 the plane using thin plate splines as a model.
 The fitting minimizes the distance to a subset of the target cloud"""
+
 from vedo import printc, Points, Grid, Arrows, Lines, Plotter
 import scipy.optimize as opt
 import numpy as np
@@ -76,20 +77,19 @@ class Morpher(Plotter):
             self.morphed_source,
             self.target,
             mlines,
-            f"morphed source (green) vs target (red)\nNDF = {2*self.npts}",
+            f"morphed source (green) vs target (red)\nNDF = {2 * self.npts}",
         )
 
 
 #################################
 if __name__ == "__main__":
-
     # make up a source random cloud
     pts_s = np.random.randn(25, 2)
     pts_t = pts_s + np.sin(2 * pts_s) / 5  # and distort it
 
     mr = Morpher(N=2)
-    mr.source = Points(pts_s).color("g",0.5).ps(20)
-    mr.target = Points(pts_t).color("r",1.0).ps(10)
+    mr.source = Points(pts_s).color("g", 0.5).ps(20)
+    mr.target = Points(pts_t).color("r", 1.0).ps(10)
 
     mr.bound = 2  # limits the x and y shift
     # allow move only a subset of points (implicitly sets the NDF of the fit)

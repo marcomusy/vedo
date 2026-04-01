@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Chart classes for pyplot."""
 
 from typing_extensions import Self
@@ -22,6 +23,7 @@ from vedo.assembly import Assembly
 from .figure import LabelData, Figure
 
 __all__ = ["Histogram1D", "Histogram2D", "PlotBars", "PlotXY"]
+
 
 class Histogram1D(Figure):
     "1D histogramming."
@@ -167,7 +169,7 @@ class Histogram1D(Figure):
             scaled_errors = unscaled_errors / (ntot * binsize)
             fs = fs / (ntot * binsize)
             if ytitle == " ":
-                ytitle = f"counts / ({ntot} x {utils.precision(binsize,3)})"
+                ytitle = f"counts / ({ntot} x {utils.precision(binsize, 3)})"
                 fig_kwargs["ytitle"] = ytitle
         elif logscale:
             se_up = np.log10(fs + unscaled_errors / 2 + 1)
@@ -298,7 +300,9 @@ class Histogram1D(Figure):
                     p1_yscaled = [p1[0], p1[1] * self.yscale, 0]
                     r = shapes.Rectangle(p0, p1_yscaled, radius=rds * binsize, res=6)
                     r.scale([1, 1 / self.yscale, 1])
-                    r.radius = None  # so it doesnt get recreated and rescaled by insert()
+                    r.radius = (
+                        None  # so it doesnt get recreated and rescaled by insert()
+                    )
                 else:
                     r = shapes.Rectangle(p0, p1)
 
@@ -309,7 +313,9 @@ class Histogram1D(Figure):
                 r.actor.PickableOff()
                 maxheigth = max(maxheigth, p1[1])
                 if c in colors.cmaps_names:
-                    col = colors.color_map((p0[0] + p1[0]) / 2, c, myedges[0], myedges[-1])
+                    col = colors.color_map(
+                        (p0[0] + p1[0]) / 2, c, myedges[0], myedges[-1]
+                    )
                 else:
                     col = c
                 r.color(col).alpha(alpha).lighting("off")
@@ -335,16 +341,21 @@ class Histogram1D(Figure):
                     continue
                 err = _errors[i]
                 if utils.is_sequence(err):
-                    el = shapes.Line([x, err[0], 0], [x, err[1], 0], c=lc, alpha=alpha, lw=lw)
+                    el = shapes.Line(
+                        [x, err[0], 0], [x, err[1], 0], c=lc, alpha=alpha, lw=lw
+                    )
                 else:
                     el = shapes.Line(
-                        [x, f - err / 2, 0], [x, f + err / 2, 0], c=lc, alpha=alpha, lw=lw
+                        [x, f - err / 2, 0],
+                        [x, f + err / 2, 0],
+                        c=lc,
+                        alpha=alpha,
+                        lw=lw,
                     )
                 el.z(self.ztolerance * 3)
                 rs.append(el)
 
         if marker:  #####################
-
             # remove empty bins (we dont want a marker there)
             bin_centers = np.array(bin_centers)
             bin_centers = bin_centers[bin_centers[:, 1] > 0]
@@ -355,10 +366,13 @@ class Histogram1D(Figure):
                 msv = np.zeros_like(bin_centers)
                 msv[:, 0] = ms
                 marked = shapes.Glyph(
-                    bin_centers, mk, c=mc, orientation_array=msv, scale_by_vector_size=True
+                    bin_centers,
+                    mk,
+                    c=mc,
+                    orientation_array=msv,
+                    scale_by_vector_size=True,
                 )
             else:  ### fixed point size
-
                 if ms is None:
                     ms = (xlim[1] - xlim[0]) / 100.0
                 else:
@@ -370,7 +384,11 @@ class Histogram1D(Figure):
                     msv = np.zeros_like(bin_centers)
                     msv[:, 0] = 1
                     marked = shapes.Glyph(
-                        bin_centers, mk, c=mc, orientation_array=msv, scale_by_vector_size=True
+                        bin_centers,
+                        mk,
+                        c=mc,
+                        orientation_array=msv,
+                        scale_by_vector_size=True,
                     )
                 else:
                     mk = shapes.Marker(marker, s=ms)
@@ -571,7 +589,9 @@ class Histogram2D(Figure):
             ##################### the grid
             acts = []
             g = shapes.Grid(
-                pos=[(xlim[0] + xlim[1]) / 2, (ylim[0] + ylim[1]) / 2, 0], s=(dx, dy), res=bins[:2]
+                pos=[(xlim[0] + xlim[1]) / 2, (ylim[0] + ylim[1]) / 2, 0],
+                s=(dx, dy),
+                res=bins[:2],
             )
             g.alpha(alpha).lw(0).wireframe(False).flat().lighting("off")
             g.cmap(cmap, np.ravel(H.T), on="cells", vmin=zlim[0], vmax=zlim[1])
@@ -589,7 +609,7 @@ class Histogram2D(Figure):
 
                 sc.actor.SetOrigin(sc.actor.GetBounds()[0], 0, 0)
                 sc.scale([self.yscale, 1, 1])  ## prescale trick
-                sc.shift(-delta + 0.25*sc_size*self.yscale)
+                sc.shift(-delta + 0.25 * sc_size * self.yscale)
 
                 acts.append(sc)
             acts.append(g)
@@ -776,7 +796,9 @@ class PlotBars(Figure):
                     p1_yscaled = [p1[0], p1[1] * self.yscale, 0]
                     r = shapes.Rectangle(p0, p1_yscaled, radius=rds * binsize, res=6)
                     r.scale([1, 1 / self.yscale, 1])
-                    r.radius = None  # so it doesnt get recreated and rescaled by insert()
+                    r.radius = (
+                        None  # so it doesnt get recreated and rescaled by insert()
+                    )
                 else:
                     r = shapes.Rectangle(p0, p1)
 
@@ -809,7 +831,9 @@ class PlotBars(Figure):
         if errors:  #####################
             for x, f in centers:
                 err = np.sqrt(f)
-                el = shapes.Line([x, f - err / 2, 0], [x, f + err / 2, 0], c=lc, alpha=alpha, lw=lw)
+                el = shapes.Line(
+                    [x, f - err / 2, 0], [x, f + err / 2, 0], c=lc, alpha=alpha, lw=lw
+                )
                 el.z(self.ztolerance * 2)
                 rs.append(el)
 
@@ -1000,7 +1024,7 @@ class PlotXY(Figure):
         self.std = data.std()
 
         self.ztolerance = 0
-        
+
         ######### the PlotXY marker
         # fall back solutions logic for colors
         if "c" in fig_kwargs:
@@ -1052,7 +1076,6 @@ class PlotXY(Figure):
             acts.append(l)
 
         if marker:
-
             pts = np.c_[data, np.zeros(len(data))]
 
             if utils.is_sequence(ms):
@@ -1114,7 +1137,6 @@ class PlotXY(Figure):
             acts.append(band)
 
         else:
-
             ## xerrors
             if xerrors is not None:
                 if len(xerrors) == len(data):
@@ -1122,13 +1144,17 @@ class PlotXY(Figure):
                     for i, val in enumerate(data):
                         xval, yval = val
                         xerr = xerrors[i] / 2
-                        el = shapes.Line((xval - xerr, yval, ztol), (xval + xerr, yval, ztol))
+                        el = shapes.Line(
+                            (xval - xerr, yval, ztol), (xval + xerr, yval, ztol)
+                        )
                         el.lw(elw)
                         errs.append(el)
                     mxerrs = merge(errs).c(ec).lw(lw).alpha(ma).z(2 * ztol)
                     acts.append(mxerrs)
                 else:
-                    vedo.logger.error("in PlotXY(xerrors=...): mismatch in array length")
+                    vedo.logger.error(
+                        "in PlotXY(xerrors=...): mismatch in array length"
+                    )
 
             ## yerrors
             if yerrors is not None:
@@ -1137,13 +1163,17 @@ class PlotXY(Figure):
                     for i, val in enumerate(data):
                         xval, yval = val
                         yerr = yerrors[i]
-                        el = shapes.Line((xval, yval - yerr, ztol), (xval, yval + yerr, ztol))
+                        el = shapes.Line(
+                            (xval, yval - yerr, ztol), (xval, yval + yerr, ztol)
+                        )
                         el.lw(elw)
                         errs.append(el)
                     myerrs = merge(errs).c(ec).lw(lw).alpha(ma).z(2 * ztol)
                     acts.append(myerrs)
                 else:
-                    vedo.logger.error("in PlotXY(yerrors=...): mismatch in array length")
+                    vedo.logger.error(
+                        "in PlotXY(yerrors=...): mismatch in array length"
+                    )
 
         self.insert(*acts, as3d=False)
         self.name = "PlotXY"

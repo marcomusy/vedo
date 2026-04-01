@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
+
 """Minimal non-rendering smoke checks for import graph regressions."""
 
 import numpy as np

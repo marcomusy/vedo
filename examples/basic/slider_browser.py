@@ -1,4 +1,5 @@
 """Mouse hind limb growth from day 10 9h to day 15 21h"""
+
 from vedo import settings, dataurl, Assembly
 from vedo import Text2D, Plotter, Image, Axes, Line
 
@@ -6,13 +7,13 @@ from vedo import Text2D, Plotter, Image, Axes, Line
 def sliderfunc(widget, event):
     i = int(widget.value)
     days = int((i * 2 + 249) / 24)
-    widget.title = f"{days}d {i*2+249-days*24}h"
+    widget.title = f"{days}d {i * 2 + 249 - days * 24}h"
     # remove the old and add the new shape
     # (no need to render as the slider makes a call to rendering)
     plt.pop().add(objs[i])
 
 
-objs = Assembly(dataurl+"timecourse1d.npy")  # load a list of shapes
+objs = Assembly(dataurl + "timecourse1d.npy")  # load a list of shapes
 
 settings.default_font = "Glasgo"
 

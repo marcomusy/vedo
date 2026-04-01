@@ -9,6 +9,7 @@ def scroll_left(obj, ename):
     plt.reset_camera()
     index = i
 
+
 def scroll_right(obj, ename):
     global index
     i = (index + 1) % len(meshes)
@@ -16,6 +17,7 @@ def scroll_right(obj, ename):
     plt.remove(meshes[index]).add(meshes[i])
     plt.reset_camera()
     index = i
+
 
 def flag(obj, ename):
     global index
@@ -39,18 +41,18 @@ plt = Plotter()
 bu = plt.add_button(
     scroll_right,
     pos=(0.8, 0.06),  # x,y fraction from bottom left corner
-    states=[">"],     # text for each state
-    c=["w"],          # font color for each state
-    bc=["k5"],        # background color for each state
-    size=40,          # font size
+    states=[">"],  # text for each state
+    c=["w"],  # font color for each state
+    bc=["k5"],  # background color for each state
+    size=40,  # font size
 )
 bu = plt.add_button(
     scroll_left,
     pos=(0.2, 0.06),  # x,y fraction from bottom left corner
-    states=["<"],     # text for each state
-    c=["w"],          # font color for each state
-    bc=["k5"],        # background color for each state
-    size=40,          # font size
+    states=["<"],  # text for each state
+    c=["w"],  # font color for each state
+    bc=["k5"],  # background color for each state
+    size=40,  # font size
 )
 bu = plt.add_button(
     flag,

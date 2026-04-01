@@ -1,4 +1,5 @@
 """wxPython integration example."""
+
 import wx
 from vtk.wx.wxVTKRenderWindowInteractor import wxVTKRenderWindowInteractor
 import vedo
@@ -8,7 +9,7 @@ import vedo
 app = wx.App(False)
 
 # create the top-level frame, sizer and wxVTKRWI
-frame = wx.Frame(None, -1, "vedo with wxpython", size=(600,600))
+frame = wx.Frame(None, -1, "vedo with wxpython", size=(600, 600))
 widget = wxVTKRenderWindowInteractor(frame, -1)
 sizer = wx.BoxSizer(wx.VERTICAL)
 sizer.Add(widget, 1, wx.EXPAND)
@@ -22,19 +23,21 @@ frame.Layout()
 # causes flashing on some platforms and downright breaks things on
 # other platforms.  Instead, we call widget.Enable().
 widget.Enable(1)
-widget.AddObserver("ExitEvent", lambda o,e,f=frame: f.Close())
+widget.AddObserver("ExitEvent", lambda o, e, f=frame: f.Close())
+
 
 ##################################################### vedo example
 def func(evt):
     print("Event dump:\n", evt)
-    plt.azimuth(10) # rotate by one degree the camera
+    plt.azimuth(10)  # rotate by one degree the camera
 
-cone = vedo.shapes.Cone(c='green8')
-axes = vedo.Axes(cone, c='white')
+
+cone = vedo.shapes.Cone(c="green8")
+axes = vedo.Axes(cone, c="white")
 cube = vedo.shapes.Cube()
 
 # Create 2 subwindows with a cone and a cube
-plt = vedo.Plotter(N=2, bg='blue2', bg2='blue8', wx_widget=widget)
+plt = vedo.Plotter(N=2, bg="blue2", bg2="blue8", wx_widget=widget)
 plt.add_callback("right mouse click", func)
 plt.at(0).add([cone, axes, "right-click anywhere"]).reset_camera()
 plt.at(1).add(cube).reset_camera()

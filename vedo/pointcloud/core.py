@@ -32,14 +32,19 @@ Submodule to work with point clouds.
 __all__ = ["Point", "Points"]
 
 
-
 def Point(pos=(0, 0, 0), r=12, c="red", alpha=1.0) -> Self:
     """Build a point at position of radius size `r`, color `c` and transparency `alpha`."""
-    return Points([[0,0,0]], r=r, c=c, alpha=alpha).pos(pos)
+    return Points([[0, 0, 0]], r=r, c=c, alpha=alpha).pos(pos)
 
 
-class Points(PointsVisual, PointAlgorithms, PointTransformMixin,
-             PointAnalyzeMixin, PointReconstructMixin, PointCutMixin):
+class Points(
+    PointsVisual,
+    PointAlgorithms,
+    PointTransformMixin,
+    PointAnalyzeMixin,
+    PointReconstructMixin,
+    PointCutMixin,
+):
     """Work with point clouds."""
 
     def __init__(self, inputobj=None, r=4, c=(0.2, 0.2, 0.2), alpha=1):
@@ -143,6 +148,7 @@ class Points(PointsVisual, PointAlgorithms, PointTransformMixin,
 
         elif "meshlib" in str(type(inputobj)):
             from meshlib import mrmeshnumpy as mn
+
             self.dataset = utils.buildPolyData(mn.toNumpyArray(inputobj.points))
 
         else:
@@ -150,7 +156,9 @@ class Points(PointsVisual, PointAlgorithms, PointTransformMixin,
             try:
                 self.dataset = input_utils.points_polydata_from_dataset(inputobj)
             except Exception as e:
-                vedo.logger.error(f"cannot build Points from type {type(inputobj)}: {e}")
+                vedo.logger.error(
+                    f"cannot build Points from type {type(inputobj)}: {e}"
+                )
                 raise RuntimeError() from e
 
         self.actor.SetMapper(self.mapper)
@@ -196,11 +204,15 @@ class Points(PointsVisual, PointAlgorithms, PointTransformMixin,
         if not self.mapper.GetScalarVisibility():
             col = utils.precision(self.properties.GetColor(), 3)
             cname = vedo.colors.get_color_name(self.properties.GetColor())
-            rows.append(("color", f"{cname}, rgb={col}, alpha={self.properties.GetOpacity()}"))
+            rows.append(
+                ("color", f"{cname}, rgb={col}, alpha={self.properties.GetOpacity()}")
+            )
             if self.actor.GetBackfaceProperty():
                 bcol = self.actor.GetBackfaceProperty().GetDiffuseColor()
                 cname = vedo.colors.get_color_name(bcol)
-                rows.append(("backface color", f"{cname}, rgb={utils.precision(bcol, 3)}"))
+                rows.append(
+                    ("backface color", f"{cname}, rgb={utils.precision(bcol, 3)}")
+                )
 
         npt = self.dataset.GetNumberOfPoints()
         npo = self.dataset.GetNumberOfPolys()
@@ -256,7 +268,11 @@ class Points(PointsVisual, PointAlgorithms, PointTransformMixin,
                 if "int" in arr.dtype.name:
                     rng = f"{arr.min()}, {arr.max()}"
                 else:
-                    rng = utils.precision(arr.min(), 3) + ", " + utils.precision(arr.max(), 3)
+                    rng = (
+                        utils.precision(arr.min(), 3)
+                        + ", "
+                        + utils.precision(arr.max(), 3)
+                    )
                 value += f", range=({rng})"
             rows.append((mark_active, value))
 
@@ -279,7 +295,11 @@ class Points(PointsVisual, PointAlgorithms, PointTransformMixin,
                 if "int" in arr.dtype.name:
                     rng = f"{arr.min()}, {arr.max()}"
                 else:
-                    rng = utils.precision(arr.min(), 3) + ", " + utils.precision(arr.max(), 3)
+                    rng = (
+                        utils.precision(arr.min(), 3)
+                        + ", "
+                        + utils.precision(arr.max(), 3)
+                    )
                 value += f", range=({rng})"
             rows.append((mark_active, value))
 
@@ -349,7 +369,9 @@ class Points(PointsVisual, PointAlgorithms, PointTransformMixin,
         help_text = ""
         if self.name:
             help_text += f"<b> {self.name}: &nbsp&nbsp</b>"
-        help_text += '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>"
+        help_text += (
+            '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>"
+        )
         if self.filename:
             dots = ""
             if len(self.filename) > 30:
@@ -360,13 +382,17 @@ class Points(PointsVisual, PointAlgorithms, PointTransformMixin,
         if self.dataset.GetPointData().GetScalars():
             if self.dataset.GetPointData().GetScalars().GetName():
                 name = self.dataset.GetPointData().GetScalars().GetName()
-                pdata = "<tr><td><b> point data array </b></td><td>" + name + "</td></tr>"
+                pdata = (
+                    "<tr><td><b> point data array </b></td><td>" + name + "</td></tr>"
+                )
 
         cdata = ""
         if self.dataset.GetCellData().GetScalars():
             if self.dataset.GetCellData().GetScalars().GetName():
                 name = self.dataset.GetCellData().GetScalars().GetName()
-                cdata = "<tr><td><b> cell data array </b></td><td>" + name + "</td></tr>"
+                cdata = (
+                    "<tr><td><b> cell data array </b></td><td>" + name + "</td></tr>"
+                )
 
         allt = [
             "<table>",
@@ -377,7 +403,9 @@ class Points(PointsVisual, PointAlgorithms, PointTransformMixin,
             "<td style='text-align: center; vertical-align: center;'><br/>",
             help_text,
             "<table>",
-            "<tr><td><b> bounds </b> <br/> (x/y/z) </td><td>" + str(bounds) + "</td></tr>",
+            "<tr><td><b> bounds </b> <br/> (x/y/z) </td><td>"
+            + str(bounds)
+            + "</td></tr>",
             "<tr><td><b> center of mass </b></td><td>"
             + utils.precision(self.center_of_mass(), 3)
             + "</td></tr>",
@@ -389,6 +417,7 @@ class Points(PointsVisual, PointAlgorithms, PointTransformMixin,
             "</table>",
         ]
         return "\n".join(allt)
+
     def __add__(self, meshs):
         """
         Add two meshes or a list of meshes together to form an `Assembly` object.
@@ -414,7 +443,8 @@ class Points(PointsVisual, PointAlgorithms, PointTransformMixin,
         """
         colors.printc(
             "WARNING: call to .polydata() is obsolete, use property .dataset instead.",
-            c="y")
+            c="y",
+        )
         return self.dataset
 
     def __copy__(self):
@@ -442,7 +472,9 @@ class Points(PointsVisual, PointAlgorithms, PointTransformMixin,
                ![](https://vedo.embl.es/images/basic/mirror.png)
         """
         poly = vtki.vtkPolyData()
-        if deep or isinstance(deep, dict): # if a memo object is passed this checks as True
+        if deep or isinstance(
+            deep, dict
+        ):  # if a memo object is passed this checks as True
             poly.DeepCopy(self.dataset)
         else:
             poly.ShallowCopy(self.dataset)
@@ -459,7 +491,9 @@ class Points(PointsVisual, PointAlgorithms, PointTransformMixin,
         cloned.name = str(self.name)
         cloned.filename = str(self.filename)
         cloned.info = dict(self.info)
-        cloned.pipeline = utils.OperationNode("clone", parents=[self], shape="diamond", c="#edede9")
+        cloned.pipeline = utils.OperationNode(
+            "clone", parents=[self], shape="diamond", c="#edede9"
+        )
 
         if isinstance(deep, dict):
             deep[id(self)] = cloned

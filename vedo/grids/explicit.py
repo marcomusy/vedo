@@ -7,7 +7,9 @@ from weakref import ref as weak_ref_to
 from typing import Any
 from typing_extensions import Self
 import numpy as np
-from vtkmodules.vtkCommonDataModel import vtkExplicitStructuredGrid as vtkExplicitStructuredGrid_
+from vtkmodules.vtkCommonDataModel import (
+    vtkExplicitStructuredGrid as vtkExplicitStructuredGrid_,
+)
 
 import vedo.vtkclasses as vtki  # a wrapper for lazy imports
 
@@ -26,6 +28,7 @@ from vedo.file_io import download
 from vedo.visual import MeshVisual
 from vedo.core.transformations import LinearTransform
 from .unstructured import UnstructuredGrid
+
 
 class ExplicitStructuredGrid:
     """
@@ -55,7 +58,7 @@ class ExplicitStructuredGrid:
         Arguments:
             inputobj : (vtkExplicitStructuredGrid, list, str)
                 list of points and indices, or filename"
-                """
+        """
         self.dataset = None
         self.mapper = vtki.new("PolyDataMapper")
         self._actor = vtki.vtkActor()
@@ -72,7 +75,7 @@ class ExplicitStructuredGrid:
         self.filename = ""
 
         self.info = {}
-        self.time =  time.time()
+        self.time = time.time()
 
         ###############################
         if inputobj is None:
@@ -99,10 +102,8 @@ class ExplicitStructuredGrid:
         elif utils.is_sequence(inputobj):
             self.dataset = vtkExplicitStructuredGrid_()
             x, y, z = inputobj
-            xyz = np.vstack((
-                x.flatten(order="F"),
-                y.flatten(order="F"),
-                z.flatten(order="F"))
+            xyz = np.vstack(
+                (x.flatten(order="F"), y.flatten(order="F"), z.flatten(order="F"))
             ).T
             dims = x.shape
             self.dataset.SetDimensions(dims)
@@ -111,10 +112,11 @@ class ExplicitStructuredGrid:
             vpoints.SetData(utils.numpy2vtk(xyz))
             self.dataset.SetPoints(vpoints)
 
-
         ###############################
         if not self.dataset:
-            vedo.logger.error(f"ExplicitStructuredGrid: cannot understand input type {type(inputobj)}")
+            vedo.logger.error(
+                f"ExplicitStructuredGrid: cannot understand input type {type(inputobj)}"
+            )
             return
 
         self.properties.SetColor(0.352, 0.612, 0.996)  # blue7
@@ -131,7 +133,7 @@ class ExplicitStructuredGrid:
         self.mapper.SetInputData(gf.GetOutput())
         self.mapper.Modified()
         return self._actor
-    
+
     @actor.setter
     def actor(self, _):
         pass
@@ -165,8 +167,15 @@ class ExplicitStructuredGrid:
         rows.append(("cell dimensions", str(self.cell_dimensions())))
         rows.append(("data dimension", str(self.data_dimension())))
         rows.append(("center", utils.precision(self.dataset.GetCenter(), 6)))
-        rows.append(("bounds", format_bounds(self.dataset.GetBounds(), utils.precision)))
-        rows.append(("memory size", utils.precision(self.dataset.GetActualMemorySize() / 1024, 2) + " MB"))
+        rows.append(
+            ("bounds", format_bounds(self.dataset.GetBounds(), utils.precision))
+        )
+        rows.append(
+            (
+                "memory size",
+                utils.precision(self.dataset.GetActualMemorySize() / 1024, 2) + " MB",
+            )
+        )
         rows.append(("blank points", str(self.has_blank_points())))
         rows.append(("blank cells", str(self.has_blank_cells())))
         rows.append(("ghost points", str(self.has_ghost_points())))
@@ -182,7 +191,13 @@ class ExplicitStructuredGrid:
                 continue
             narr = utils.vtk2numpy(arr)
             label = active_array_label(self.dataset, "point", key, "pointdata")
-            rows.append((label, f'"{key}" ' + summarize_array(narr, utils.precision, dim_label="ndim")))
+            rows.append(
+                (
+                    label,
+                    f'"{key}" '
+                    + summarize_array(narr, utils.precision, dim_label="ndim"),
+                )
+            )
 
         cell_data = self.dataset.GetCellData()
         for i in range(cell_data.GetNumberOfArrays()):
@@ -194,16 +209,24 @@ class ExplicitStructuredGrid:
                 continue
             narr = utils.vtk2numpy(arr)
             label = active_array_label(self.dataset, "cell", key, "celldata")
-            rows.append((label, f'"{key}" ' + summarize_array(narr, utils.precision, dim_label="ndim")))
+            rows.append(
+                (
+                    label,
+                    f'"{key}" '
+                    + summarize_array(narr, utils.precision, dim_label="ndim"),
+                )
+            )
 
         field_data = self.dataset.GetFieldData()
         for i in range(field_data.GetNumberOfArrays()):
             arr = field_data.GetAbstractArray(i)
             if arr is None or not arr.GetName():
                 continue
-            rows.append(("metadata", f'"{arr.GetName()}" ({arr.GetNumberOfTuples()} values)'))
+            rows.append(
+                ("metadata", f'"{arr.GetName()}" ({arr.GetNumberOfTuples()} values)')
+            )
         return rows
-    
+
     def dimensions(self) -> np.ndarray:
         """Return the number of points in the x, y and z directions."""
         try:
@@ -256,13 +279,17 @@ class ExplicitStructuredGrid:
         """Return the point ids that define cell `cell_id`."""
         pt_ids = vtki.vtkIdList()
         self.dataset.GetCellPoints(cell_id, pt_ids)
-        return np.array([pt_ids.GetId(i) for i in range(pt_ids.GetNumberOfIds())], dtype=int)
+        return np.array(
+            [pt_ids.GetId(i) for i in range(pt_ids.GetNumberOfIds())], dtype=int
+        )
 
     def point_cells(self, point_id: int) -> np.ndarray:
         """Return the cell ids that use point `point_id`."""
         cell_ids = vtki.vtkIdList()
         self.dataset.GetPointCells(point_id, cell_ids)
-        return np.array([cell_ids.GetId(i) for i in range(cell_ids.GetNumberOfIds())], dtype=int)
+        return np.array(
+            [cell_ids.GetId(i) for i in range(cell_ids.GetNumberOfIds())], dtype=int
+        )
 
     def cell_neighbors(
         self,
@@ -289,7 +316,9 @@ class ExplicitStructuredGrid:
             ids.InsertNextId(int(pid))
         neighbors = vtki.vtkIdList()
         self.dataset.GetCellNeighbors(cell_id, ids, neighbors)
-        return np.array([neighbors.GetId(i) for i in range(neighbors.GetNumberOfIds())], dtype=int)
+        return np.array(
+            [neighbors.GetId(i) for i in range(neighbors.GetNumberOfIds())], dtype=int
+        )
 
     def compute_cell_structured_coords(
         self,
@@ -306,8 +335,12 @@ class ExplicitStructuredGrid:
     def compute_cellid(self, ijk, adjust_for_extent=True) -> int:
         """Return the cell id for the structured coordinates `(i, j, k)`."""
         if utils.is_sequence(ijk):
-            return self.dataset.ComputeCellId(int(ijk[0]), int(ijk[1]), int(ijk[2]), adjust_for_extent)
-        raise TypeError("compute_cellid() expects a sequence of 3 structured coordinates")
+            return self.dataset.ComputeCellId(
+                int(ijk[0]), int(ijk[1]), int(ijk[2]), adjust_for_extent
+            )
+        raise TypeError(
+            "compute_cellid() expects a sequence of 3 structured coordinates"
+        )
 
     def compute_faces_connectivity_flags_array(self) -> Self:
         """Compute the faces connectivity flags array."""
@@ -386,7 +419,7 @@ class ExplicitStructuredGrid:
     def find_point(self, x: list) -> int:
         """Given a position `x`, return the id of the closest point."""
         return self.dataset.FindPoint(x)
-    
+
     def clone(self, deep=True) -> ExplicitStructuredGrid:
         """Return a clone copy of the StructuredGrid. Alias of `copy()`."""
         if deep:
@@ -401,9 +434,11 @@ class ExplicitStructuredGrid:
         prop.DeepCopy(self.properties)
         newvol.actor.SetProperty(prop)
         newvol.properties = prop
-        newvol.pipeline = utils.OperationNode("clone", parents=[self], c="#bbd0ff", shape="diamond")
+        newvol.pipeline = utils.OperationNode(
+            "clone", parents=[self], c="#bbd0ff", shape="diamond"
+        )
         return newvol
-    
+
     def cut_with_plane(self, origin=(0, 0, 0), normal="x") -> vedo.UnstructuredGrid:
         """
         Cut the object with the plane defined by a point and a normal.
@@ -417,12 +452,18 @@ class ExplicitStructuredGrid:
         Returns an `UnstructuredGrid` object.
         """
         strn = str(normal)
-        if strn   ==  "x": normal = (1, 0, 0)
-        elif strn ==  "y": normal = (0, 1, 0)
-        elif strn ==  "z": normal = (0, 0, 1)
-        elif strn == "-x": normal = (-1, 0, 0)
-        elif strn == "-y": normal = (0, -1, 0)
-        elif strn == "-z": normal = (0, 0, -1)
+        if strn == "x":
+            normal = (1, 0, 0)
+        elif strn == "y":
+            normal = (0, 1, 0)
+        elif strn == "z":
+            normal = (0, 0, 1)
+        elif strn == "-x":
+            normal = (-1, 0, 0)
+        elif strn == "-y":
+            normal = (0, -1, 0)
+        elif strn == "-z":
+            normal = (0, 0, -1)
         plane = vtki.new("Plane")
         plane.SetOrigin(origin)
         plane.SetNormal(normal)
@@ -437,7 +478,9 @@ class ExplicitStructuredGrid:
         ug = vedo.UnstructuredGrid(cout)
         if isinstance(self, vedo.UnstructuredGrid):
             self._update(cout)
-            self.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
+            self.pipeline = utils.OperationNode(
+                "cut_with_plane", parents=[self], c="#9e2a2b"
+            )
             return self
         ug.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
         return ug

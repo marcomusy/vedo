@@ -2,7 +2,9 @@
 Example usage of cmap() to assign a color to each mesh vertex
 by looking it up in matplotlib database of colormaps
 """
+
 from vedo import Plotter, Mesh, dataurl
+
 print(__doc__)
 
 # these are the some matplotlib color maps
@@ -21,7 +23,7 @@ maps = [
     "winter",
 ]
 
-mug = Mesh(dataurl+"mug.ply")
+mug = Mesh(dataurl + "mug.ply")
 scalars = mug.coordinates[:, 1]  # let y-coord be the scalar
 
 plt = Plotter(N=len(maps))

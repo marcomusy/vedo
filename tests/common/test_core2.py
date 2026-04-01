@@ -95,7 +95,9 @@ def test_copy_data_from():
 def test_find_cells_along_line():
     print("\n--- test_find_cells_along_line ---")
     vol, tm, rg = _make_datasets()
-    assert isinstance(vol.find_cells_along_line([0, 0, 0], [1000, 1000, 1000]), np.ndarray)
+    assert isinstance(
+        vol.find_cells_along_line([0, 0, 0], [1000, 1000, 1000]), np.ndarray
+    )
     assert isinstance(tm.find_cells_along_line([0, 0, 0], [100, 1, 1]), np.ndarray)
     assert isinstance(rg.find_cells_along_line([0, 0, 0], [10, 1, 1]), np.ndarray)
 

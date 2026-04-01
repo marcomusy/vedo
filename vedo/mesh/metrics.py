@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Quality/analysis mixin for Mesh."""
 
 from typing_extensions import Self
@@ -17,7 +18,7 @@ class MeshMetricsMixin:
     @property
     def vertex_normals(self) -> np.ndarray:
         """
-        Retrieve vertex normals as a numpy array. 
+        Retrieve vertex normals as a numpy array.
         If needed, normals are automatically computed via `compute_normals()`.
         Check out also `compute_normals_with_pca()`.
         """
@@ -26,7 +27,6 @@ class MeshMetricsMixin:
             self.compute_normals()
             vtknormals = self.dataset.GetPointData().GetNormals()
         return vtk2numpy(vtknormals)
-
 
     @property
     def cell_normals(self) -> np.ndarray:
@@ -41,8 +41,9 @@ class MeshMetricsMixin:
             vtknormals = self.dataset.GetCellData().GetNormals()
         return vtk2numpy(vtknormals)
 
-
-    def compute_normals(self, points=True, cells=True, feature_angle=None, consistency=True) -> Self:
+    def compute_normals(
+        self, points=True, cells=True, feature_angle=None, consistency=True
+    ) -> Self:
         """
         Compute cell and vertex normals for the mesh.
 
@@ -82,7 +83,6 @@ class MeshMetricsMixin:
         self._update(out, reset_locators=False)
         return self
 
-
     def volume(self) -> float:
         """
         Compute the volume occupied by mesh.
@@ -96,7 +96,6 @@ class MeshMetricsMixin:
         mass.SetGlobalWarningDisplay(1)
         return mass.GetVolume()
 
-
     def area(self) -> float:
         """
         Compute the surface area of the mesh.
@@ -109,7 +108,6 @@ class MeshMetricsMixin:
         mass.Update()
         mass.SetGlobalWarningDisplay(1)
         return mass.GetSurfaceArea()
-
 
     def is_closed(self) -> bool:
         """
@@ -126,7 +124,6 @@ class MeshMetricsMixin:
         ne = fe.GetOutput().GetNumberOfCells()
         return not bool(ne)
 
-
     def is_manifold(self) -> bool:
         """Return `True` if the mesh is manifold."""
         fe = vtki.new("FeatureEdges")
@@ -137,7 +134,6 @@ class MeshMetricsMixin:
         fe.Update()
         ne = fe.GetOutput().GetNumberOfCells()
         return not bool(ne)
-
 
     def non_manifold_faces(self, remove=True, tol="auto") -> Self:
         """
@@ -156,7 +152,7 @@ class MeshMetricsMixin:
             cell_edge=True,
             return_cell_ids=True,
         )
-        if len(toremove) == 0: # type: ignore
+        if len(toremove) == 0:  # type: ignore
             return self
 
         points = self.coordinates
@@ -204,11 +200,11 @@ class MeshMetricsMixin:
             vedo.logger.info(
                 f"\n --------- Non manifold faces ---------"
                 f"\n Average tol.   : {mean_delta: .4f} +- {err_delta: .4f}{txt}"
-                f"\n Removed faces  : {len(toremove)}" # type: ignore
+                f"\n Removed faces  : {len(toremove)}"  # type: ignore
                 f"\n Recovered faces: {len(recover)}"
             )
 
-        toremove = list(set(toremove) - set(recover)) # type: ignore
+        toremove = list(set(toremove) - set(recover))  # type: ignore
 
         if not remove:
             mark = np.zeros(self.ncells, dtype=np.uint8)
@@ -216,7 +212,7 @@ class MeshMetricsMixin:
             mark[toremove] = 2
             self.celldata["NonManifoldCell"] = mark
         else:
-            self.delete_cells(toremove) # type: ignore
+            self.delete_cells(toremove)  # type: ignore
 
         self.pipeline = OperationNode(
             "non_manifold_faces",
@@ -225,7 +221,6 @@ class MeshMetricsMixin:
         )
         return self
 
-
     def euler_characteristic(self) -> int:
         """
         Compute the Euler characteristic of the mesh.
@@ -233,15 +228,13 @@ class MeshMetricsMixin:
         """
         return self.npoints - len(self.edges) + self.ncells
 
-
     def genus(self) -> int:
         """
         Compute the genus of the mesh.
         The genus is a topological invariant for surfaces.
         """
         nb = len(self.boundaries().split()) - 1
-        return (2 - self.euler_characteristic() - nb ) / 2
-
+        return (2 - self.euler_characteristic() - nb) / 2
 
     def compute_cell_vertex_count(self) -> Self:
         """
@@ -259,7 +252,6 @@ class MeshMetricsMixin:
             csf.GetOutput().GetCellData().GetArray("VertexCount")
         )
         return self
-
 
     def compute_quality(self, metric=6) -> Self:
         """
@@ -317,7 +309,6 @@ class MeshMetricsMixin:
         self.pipeline = OperationNode("compute_quality", parents=[self])
         return self
 
-
     def count_vertices(self) -> np.ndarray:
         """Count the number of vertices each cell has and return it as a numpy array"""
         vc = vtki.new("CountVertices")
@@ -326,7 +317,6 @@ class MeshMetricsMixin:
         vc.Update()
         varr = vc.GetOutput().GetCellData().GetArray("VertexCount")
         return vtk2numpy(varr)
-
 
     def check_validity(self, tol=0) -> np.ndarray:
         """
@@ -352,7 +342,6 @@ class MeshMetricsMixin:
         varr = vald.GetOutput().GetCellData().GetArray("ValidityState")
         return vtk2numpy(varr)
 
-
     def compute_curvature(self, method=0) -> Self:
         """
         Add scalars to `Mesh` that contains the curvature calculated in three different ways.
@@ -377,7 +366,6 @@ class MeshMetricsMixin:
         self._update(curve.GetOutput(), reset_locators=False)
         self.mapper.ScalarVisibilityOn()
         return self
-
 
     def compute_elevation(self, low=(0, 0, 0), high=(0, 0, 1), vrange=(0, 1)) -> Self:
         """

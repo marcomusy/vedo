@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """Point transform helpers and alignment utilities."""
 
 from typing_extensions import Self
@@ -67,7 +68,9 @@ def procrustes_alignment(sources: list["vedo.Mesh"], rigid=False):
 
 
 class PointTransformMixin:
-    def align_to(self, target, iters=100, rigid=False, invert=False, use_centroids=False) -> Self:
+    def align_to(
+        self, target, iters=100, rigid=False, invert=False, use_centroids=False
+    ) -> Self:
         """
         Aligned to target mesh through the `Iterative Closest Point` algorithm.
 
@@ -204,7 +207,9 @@ class PointTransformMixin:
         if ss.GetNumberOfPoints() != st.GetNumberOfPoints():
             n1 = ss.GetNumberOfPoints()
             n2 = st.GetNumberOfPoints()
-            vedo.logger.error(f"source and target have different nr of points {n1} vs {n2}")
+            vedo.logger.error(
+                f"source and target have different nr of points {n1} vs {n2}"
+            )
             raise RuntimeError()
 
         if int(rigid) + int(affine) + int(least_squares) > 1:
@@ -229,7 +234,9 @@ class PointTransformMixin:
         elif least_squares:
             cms = source_landmarks.mean(axis=0)
             cmt = target_landmarks.mean(axis=0)
-            m = np.linalg.lstsq(source_landmarks - cms, target_landmarks - cmt, rcond=None)[0]
+            m = np.linalg.lstsq(
+                source_landmarks - cms, target_landmarks - cmt, rcond=None
+            )[0]
             M = vtki.vtkMatrix4x4()
             for i in range(3):
                 for j in range(3):
@@ -276,14 +283,18 @@ class PointTransformMixin:
                 ![](https://vedo.embl.es/images/basic/mirror.png)
         """
         sx, sy, sz = 1, 1, 1
-        if "x" in axis.lower(): sx = -1
-        if "y" in axis.lower(): sy = -1
-        if "z" in axis.lower(): sz = -1
+        if "x" in axis.lower():
+            sx = -1
+        if "y" in axis.lower():
+            sy = -1
+        if "z" in axis.lower():
+            sz = -1
 
         self.scale([sx, sy, sz], origin=origin)
 
         self.pipeline = utils.OperationNode(
-            "mirror", comment=f"axis = {axis}", parents=[self])
+            "mirror", comment=f"axis = {axis}", parents=[self]
+        )
 
         if sx * sy * sz < 0:
             if hasattr(self, "reverse"):
@@ -402,7 +413,9 @@ class PointTransformMixin:
                 # proj_mat = pt.T @ pl * np.eye(4) - pt @ pl.T
                 proj_mat = np.matmul(pt.T, pl) * np.eye(4) - np.matmul(pt, pl.T)
 
-            coords = np.concatenate([coords, np.ones((coords.shape[:-1] + (1,)))], axis=-1)
+            coords = np.concatenate(
+                [coords, np.ones((coords.shape[:-1] + (1,)))], axis=-1
+            )
             # coords = coords @ proj_mat.T
             coords = np.matmul(coords, proj_mat.T)
             coords = coords[:, :3] / coords[:, 3:]

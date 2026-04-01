@@ -32,7 +32,9 @@ class MousePan(vtki.vtkInteractorStyleUser):
             Speed factor of the interaction, e.i. how fast the scene must move.
     """
 
-    def __init__(self, enable_pan=True, enable_zoom=True, enable_rotate=True, speed=1.0):
+    def __init__(
+        self, enable_pan=True, enable_zoom=True, enable_rotate=True, speed=1.0
+    ):
 
         super().__init__()
 
@@ -79,7 +81,9 @@ class MousePan(vtki.vtkInteractorStyleUser):
         self.camera = self.renderer.GetActiveCamera()
         self.fpW = self.camera.GetFocalPoint()
         self.posW = self.camera.GetPosition()
-        self.ComputeWorldToDisplay(self.renderer, self.fpW[0], self.fpW[1], self.fpW[2], self.fpD)
+        self.ComputeWorldToDisplay(
+            self.renderer, self.fpW[0], self.fpW[1], self.fpW[2], self.fpD
+        )
         focaldepth = self.fpD[2]
         self.ComputeDisplayToWorld(
             self.renderer, self.oldpickD[0], self.oldpickD[1], focaldepth, self.oldpickW
@@ -100,7 +104,7 @@ class MousePan(vtki.vtkInteractorStyleUser):
         if abs(self.motionD[0]) > abs(self.motionD[1]):
             self.camera.Azimuth(-2 * self.speed * self.motionD[0])
         else:
-            self.camera.Elevation(-self.speed *self.motionD[1])
+            self.camera.Elevation(-self.speed * self.motionD[1])
         self.interactor.Render()
 
     def _mouse_right_move(self):
@@ -317,7 +321,9 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
         elif k in ["Up", "w"]:
             # print("Up pressed, move forward")
             self.bounds = self.renderer.ComputeVisiblePropBounds()
-            diagonal = np.linalg.norm(np.array(self.bounds[1::2]) - np.array(self.bounds[::2]))
+            diagonal = np.linalg.norm(
+                np.array(self.bounds[1::2]) - np.array(self.bounds[::2])
+            )
             dx = self.move_step * diagonal
             p = np.array(self.camera.GetPosition())
             v = np.array(self.camera.GetDirectionOfProjection())
@@ -327,7 +333,9 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
         elif k in ["Down", "s"]:
             # print("Down pressed, move backward")
             self.bounds = self.renderer.ComputeVisiblePropBounds()
-            diagonal = np.linalg.norm(np.array(self.bounds[1::2]) - np.array(self.bounds[::2]))
+            diagonal = np.linalg.norm(
+                np.array(self.bounds[1::2]) - np.array(self.bounds[::2])
+            )
             dx = self.move_step * diagonal
             p = np.array(self.camera.GetPosition())
             v = np.array(self.camera.GetDirectionOfProjection())
@@ -338,25 +346,35 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
         elif k in ["Left", "a"]:
             # print("Left pressed, rotate to the left")
             self.bounds = self.renderer.ComputeVisiblePropBounds()
-            diagonal = np.linalg.norm(np.array(self.bounds[1::2]) - np.array(self.bounds[::2]))
+            diagonal = np.linalg.norm(
+                np.array(self.bounds[1::2]) - np.array(self.bounds[::2])
+            )
             w = np.array(self.camera.GetDirectionOfProjection())
             p = np.array(self.camera.GetPosition())
             w2 = np.array(self.tleft.TransformFloatPoint(w))
-            self.focal_point = self.focal_point + np.linalg.norm(p-self.focal_point) * w2
+            self.focal_point = (
+                self.focal_point + np.linalg.norm(p - self.focal_point) * w2
+            )
 
         elif k in ["Right", "d"]:
             # print("Right pressed, rotate to the right")
             self.bounds = self.renderer.ComputeVisiblePropBounds()
-            diagonal = np.linalg.norm(np.array(self.bounds[1::2]) - np.array(self.bounds[::2]))
+            diagonal = np.linalg.norm(
+                np.array(self.bounds[1::2]) - np.array(self.bounds[::2])
+            )
             w = np.array(self.camera.GetDirectionOfProjection())
             p = np.array(self.camera.GetPosition())
             w2 = np.array(self.tright.TransformFloatPoint(w))
-            self.focal_point = self.focal_point + np.linalg.norm(p-self.focal_point) * w2
+            self.focal_point = (
+                self.focal_point + np.linalg.norm(p - self.focal_point) * w2
+            )
 
         elif k in ["t", "Prior"]:
             # print("t pressed, move z up")
             self.bounds = self.renderer.ComputeVisiblePropBounds()
-            diagonal = np.linalg.norm(np.array(self.bounds[1::2]) - np.array(self.bounds[::2]))
+            diagonal = np.linalg.norm(
+                np.array(self.bounds[1::2]) - np.array(self.bounds[::2])
+            )
             dx = self.move_step * diagonal
             p = self.position
             self.position = [p[0], p[1], p[2] + dx / 4]
@@ -364,7 +382,9 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
         elif k in ["g", "Next"]:
             # print("g pressed, move z down")
             self.bounds = self.renderer.ComputeVisiblePropBounds()
-            diagonal = np.linalg.norm(np.array(self.bounds[1::2]) - np.array(self.bounds[::2]))
+            diagonal = np.linalg.norm(
+                np.array(self.bounds[1::2]) - np.array(self.bounds[::2])
+            )
             dx = self.move_step * diagonal
             p = self.position
             self.position = [p[0], p[1], p[2] - dx / 4]
@@ -417,7 +437,9 @@ class _BlenderStyleDragInfo:
 
     # VTK related
     actors_dragging: list = field(default_factory=list)
-    dragged_actors_original_positions: list = field(default_factory=list)  # original VTK positions
+    dragged_actors_original_positions: list = field(
+        default_factory=list
+    )  # original VTK positions
     start_position_3d: np.ndarray = field(
         default_factory=lambda: np.array((0, 0, 0), dtype=float)
     )  # start position of the cursor
@@ -669,7 +691,9 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
             move_factor * (oldPickPoint[2] - newPickPoint[2]),
         )
 
-        viewFocus = camera.GetFocalPoint()  # do we need to do this again? Already did this
+        viewFocus = (
+            camera.GetFocalPoint()
+        )  # do we need to do this again? Already did this
         viewPoint = camera.GetPosition()
 
         camera.SetFocalPoint(
@@ -862,7 +886,6 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
             self.set_camera_direction(direction)
 
         else:  # Top or bottom like view - rotate camera "up" direction
-
             up = np.array(camera.GetViewUp())
             angle = np.arctan2(up[1], up[0])
 
@@ -986,7 +1009,10 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
 
             # all props
             collection = renderer.GetPickResultProps()
-            props = [collection.GetItemAsObject(i) for i in range(collection.GetNumberOfItems())]
+            props = [
+                collection.GetItemAsObject(i)
+                for i in range(collection.GetNumberOfItems())
+            ]
 
             if nearest_prop in props:
                 props.remove(nearest_prop)
@@ -1162,7 +1188,9 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
                 oldPickPoint[2] - newPickPoint[2],
             )
 
-            viewFocus = camera.GetFocalPoint()  # do we need to do this again? Already did this
+            viewFocus = (
+                camera.GetFocalPoint()
+            )  # do we need to do this again? Already did this
             viewPoint = camera.GetPosition()
 
             camera.SetFocalPoint(
@@ -1186,7 +1214,6 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
         ren = self.GetCurrentRenderer()
 
         if ren:
-
             rwi = self.GetInteractor()
             dx = rwi.GetEventPosition()[0] - rwi.GetLastEventPosition()[0]
             dy = rwi.GetEventPosition()[1] - rwi.GetLastEventPosition()[1]
@@ -1229,7 +1256,9 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
             if sin_elev < -0.8:
                 azi = np.arctan2(upside_down_factor * up[1], upside_down_factor * up[0])
             else:
-                azi = np.arctan2(-upside_down_factor * up[1], -upside_down_factor * up[0])
+                azi = np.arctan2(
+                    -upside_down_factor * up[1], -upside_down_factor * up[0]
+                )
 
         D = np.linalg.norm(P)  # distance from focal point to camera
 
@@ -1241,10 +1270,14 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
         Hnew = D * np.cos(elev_new)
 
         # calculate new camera position relative to focal point
-        Pnew = np.array((Hnew * np.cos(azi_new), Hnew * np.sin(azi_new), D * np.sin(elev_new)))
+        Pnew = np.array(
+            (Hnew * np.cos(azi_new), Hnew * np.sin(azi_new), D * np.sin(elev_new))
+        )
 
         # calculate the up-direction of the camera
-        up_z = upside_down_factor * np.cos(elev_new)  # z follows directly from elevation
+        up_z = upside_down_factor * np.cos(
+            elev_new
+        )  # z follows directly from elevation
         up_h = upside_down_factor * np.sin(elev_new)  # horizontal component
         #
         # if upside_down:
@@ -1272,7 +1305,7 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
     def zoom_box(self, x1, y1, x2, y2):
         """Zooms to a box"""
         if x1 > x2:
-            #swap x1 and x2
+            # swap x1 and x2
             x1, x2 = x2, x1
         if y1 > y2:
             y1, y2 = y2, y1
@@ -1404,7 +1437,9 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
         self._pixel_array.SetNumberOfTuples(size[0] * size[1])
 
         front = 1  # what does this do?
-        rwin.GetRGBACharPixelData(0, 0, size[0] - 1, size[1] - 1, front, self._pixel_array)
+        rwin.GetRGBACharPixelData(
+            0, 0, size[0] - 1, size[1] - 1, front, self._pixel_array
+        )
 
     def draw_rubber_band(self, x1, x2, y1, y2):
         """Draws a rubber band"""
@@ -1439,7 +1474,6 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
 
         # draw top and bottom
         for i in range(width):
-
             # c = round((10*i % 254)/254) * 254  # find some alternating color
             c = 0
 
@@ -1529,7 +1563,9 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
         if camera.GetParallelProjection():
             print(f"Line length = {length} px = {meters} m")
         else:
-            print("Need to be in non-perspective mode to measure. Press 2 or 3 to get there")
+            print(
+                "Need to be in non-perspective mode to measure. Press 2 or 3 to get there"
+            )
 
         if self.callback_measure:
             self.callback_measure(meters)

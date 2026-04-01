@@ -1,13 +1,14 @@
 """Generate a Volume with the signed distance from a Mesh,
 then generate the isosurface at distance -0.5"""
+
 from vedo import *
 
 # Build the volumetric processing pipeline and render results.
-mesh = Mesh(dataurl+"beethoven.ply").subdivide()
-mesh.color('k').point_size(3) # render mesh as points
+mesh = Mesh(dataurl + "beethoven.ply").subdivide()
+mesh.color("k").point_size(3)  # render mesh as points
 
 # Generate signed distance volume
-vol = mesh.signed_distance(dims=(40,40,40))
+vol = mesh.signed_distance(dims=(40, 40, 40))
 
 # Generate an isosurface at distance -0.5
 iso = vol.isosurface(-0.5)

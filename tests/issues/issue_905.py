@@ -5,7 +5,6 @@ from vedo import Plotter, Cone, printc, settings
 
 
 class MainWindow(Qt.QMainWindow):
- 
     def __init__(self, parent=None):
 
         Qt.QMainWindow.__init__(self, parent)
@@ -44,7 +43,7 @@ class MainWindow(Qt.QMainWindow):
     def buttonfunc(self, obj, ename):
         print("btn is clicked...")
         self.plt.objects[0].color("green5").rotate_z(40)
-        
+
     @Qt.pyqtSlot()
     def onClick(self):
         printc("..calling onClick")

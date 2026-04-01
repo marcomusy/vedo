@@ -1,4 +1,5 @@
 """Manually build a mesh from points and faces"""
+
 from vedo import Mesh, show
 
 # Vertices and triangular faces (indices into verts).

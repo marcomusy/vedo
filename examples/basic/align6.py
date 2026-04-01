@@ -1,4 +1,5 @@
 """Align to bounding boxes. Force the Mesh into the empty box."""
+
 from vedo import Mesh, dataurl, Axes, Cube, Plotter
 
 # Reference mesh.

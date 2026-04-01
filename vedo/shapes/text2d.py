@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 """2D text overlay class."""
 
 import os
@@ -14,10 +15,12 @@ from vedo import settings, utils
 from vedo.colors import get_color
 from vedo.shapes.text_utils import _reps
 
+
 class Text2D:
     """
     Create a 2D text object.
     """
+
     def __init__(
         self,
         txt="",
@@ -104,14 +107,14 @@ class Text2D:
             self.fontname = lfonts[font]
         else:
             self.fontname = settings.default_font
-        
+
         self.mapper = vtki.new("TextMapper")
 
         self.properties = self.mapper.GetTextProperty()
 
-        self.actor = vedo.visual.Actor2D() # vtki.vtkActor2D()
+        self.actor = vedo.visual.Actor2D()  # vtki.vtkActor2D()
         self.actor.SetMapper(self.mapper)
-        
+
         self.actor.retrieve_object = weak_ref_to(self)
 
         self.actor.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
@@ -302,9 +305,12 @@ class Text2D:
         else:  # user passing name of preset font
             fpath = os.path.join(vedo.fonts_path, font + ".ttf")
 
-        if   font == "Courier": self.properties.SetFontFamilyToCourier()
-        elif font == "Times":   self.properties.SetFontFamilyToTimes()
-        elif font == "Arial":   self.properties.SetFontFamilyToArial()
+        if font == "Courier":
+            self.properties.SetFontFamilyToCourier()
+        elif font == "Times":
+            self.properties.SetFontFamilyToTimes()
+        elif font == "Arial":
+            self.properties.SetFontFamilyToArial()
         else:
             fpath = utils.get_font_path(font)
             self.properties.SetFontFamily(vtki.VTK_FONT_FILE)

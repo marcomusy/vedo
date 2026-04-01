@@ -1,11 +1,12 @@
 """Using 1D Moving Least Squares to skeletonize a surface"""
+
 from vedo import dataurl, Points, Plotter
 
-N = 9    # nr of iterations
+N = 9  # nr of iterations
 f = 0.2  # fraction of neighbours
 
 # Initial sparse cloud from a surface.
-pcl = Points(dataurl+"man.vtk").subsample(0.02)
+pcl = Points(dataurl + "man.vtk").subsample(0.02)
 
 plt = Plotter(N=N, axes=1)
 for i in range(N):

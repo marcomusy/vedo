@@ -1,11 +1,12 @@
 """Qt integration example."""
+
 import sys
 from PyQt5 import Qt
 from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 from vedo import Plotter, Mesh, BoxCutter, dataurl
 
-class MainWindow(Qt.QMainWindow):
 
+class MainWindow(Qt.QMainWindow):
     def __init__(self, parent=None):
 
         Qt.QMainWindow.__init__(self, parent)
@@ -15,7 +16,7 @@ class MainWindow(Qt.QMainWindow):
 
         # Create renderer and add the vedo objects and callbacks
         self.plt = Plotter(qt_widget=self.vtkWidget)
-        mesh = Mesh(dataurl+'cow.vtk')
+        mesh = Mesh(dataurl + "cow.vtk")
         self.cutter = BoxCutter(mesh)
         self.plt += [mesh, self.cutter]
         self.plt.show()
@@ -41,12 +42,13 @@ class MainWindow(Qt.QMainWindow):
         self.cutter.off()
 
     def on_close(self):
-        #Disable the interactor before closing to prevent it
-        #from trying to act on already deleted items
+        # Disable the interactor before closing to prevent it
+        # from trying to act on already deleted items
         self.vtkWidget.close()
+
 
 if __name__ == "__main__":
     app = Qt.QApplication(sys.argv)
     window = MainWindow()
-    app.aboutToQuit.connect(window.on_close) # <-- connect the onClose event
+    app.aboutToQuit.connect(window.on_close)  # <-- connect the onClose event
     app.exec_()

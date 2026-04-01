@@ -1,5 +1,6 @@
 from vedo import UnstructuredGrid, Points, show, settings, utils
 
+
 #####################################
 def makeTetrahedron():
     """A tetrahedron"""
@@ -12,7 +13,7 @@ def makeTetrahedron():
     cells = [[0, 1, 2, 3]]
     cellstypes = [10]
     ug = UnstructuredGrid([pts, cells, cellstypes])
-    ug.c('w', 0.25).lw(2).lighting("off")
+    ug.c("w", 0.25).lw(2).lighting("off")
     return ug
 
 
@@ -36,7 +37,7 @@ def makeHexahedron():
     cells = [[0, 1, 2, 3, 4, 5, 6, 7]]
     cellstypes = [12]
     ug = UnstructuredGrid([pts, cells, cellstypes])
-    ug.c('w', 0.25).lw(2).lighting("off")
+    ug.c("w", 0.25).lw(2).lighting("off")
     return ug
 
 
@@ -53,7 +54,7 @@ def makePyramid():
     cells = [[0, 1, 2, 3, 4]]
     cellstypes = [14]
     ug = UnstructuredGrid([pts, cells, cellstypes])
-    ug.c('w', 0.25).lw(2).lighting("off")
+    ug.c("w", 0.25).lw(2).lighting("off")
     return ug
 
 
@@ -71,7 +72,7 @@ def makeWedge():
     cells = [[0, 1, 2, 3, 4, 5]]
     cellstypes = [13]
     ug = UnstructuredGrid([pts, cells, cellstypes])
-    ug.c('w', 0.25).lw(2).lighting("off")
+    ug.c("w", 0.25).lw(2).lighting("off")
     return ug
 
 
@@ -98,7 +99,7 @@ def makeHexagonalPrism():
     cells = [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]]
     cellstypes = [16]
     ug = UnstructuredGrid([pts, cells, cellstypes])
-    ug.c('w', 0.25).lw(2).lighting("off")
+    ug.c("w", 0.25).lw(2).lighting("off")
     return ug
 
 
@@ -120,7 +121,7 @@ def makePentagonalPrism():
     cells = [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]]
     cellstypes = [15]
     ug = UnstructuredGrid([pts, cells, cellstypes])
-    ug.c('w', 0.25).lw(2).lighting("off")
+    ug.c("w", 0.25).lw(2).lighting("off")
     return ug
 
 

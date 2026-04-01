@@ -1,17 +1,27 @@
 import numpy as np
-from vedo import settings, Plotter, Arrow, screenshot, \
-    ScalarBar3D, Axes, mag, color_map, Assembly, Line
+from vedo import (
+    settings,
+    Plotter,
+    Arrow,
+    screenshot,
+    ScalarBar3D,
+    Axes,
+    mag,
+    color_map,
+    Assembly,
+    Line,
+)
 
-settings.default_font = 'Theemim'
-settings.multi_samples=8
+settings.default_font = "Theemim"
+settings.multi_samples = 8
 
-filename = 'data/obs_xyz.dat'
+filename = "data/obs_xyz.dat"
 xyz = np.loadtxt(filename, dtype=np.float64)
 xyz = xyz[1:, :] - np.array([0, 20, 0])
 n_obs, n_col = xyz.shape
 
 # Read in the data
-num_field = np.loadtxt('data/tmp_field.txt', dtype=np.float64)
+num_field = np.loadtxt("data/tmp_field.txt", dtype=np.float64)
 amp = mag(num_field)
 
 # We need to create a few slices from the original arrays
@@ -29,7 +39,7 @@ for x_m in x_mark:
 # Create an Arrows object for all the receivers where mask is True
 start = xyz[mask, :]
 orientation = num_field[mask, :]
-orientation = orientation / mag(orientation)[:, None] # normalize
+orientation = orientation / mag(orientation)[:, None]  # normalize
 amp_mask = amp[mask]
 vrange = np.array([amp_mask.min(), amp_mask.max()])
 
@@ -37,19 +47,21 @@ arrs = []
 for i in range(start.shape[0]):
     arr = Arrow(start[i], start[i] + orientation[i] * 4)
     color = color_map(
-        amp_mask[i], "jet", 
-        vmin=vrange[0], vmax=vrange[1],
+        amp_mask[i],
+        "jet",
+        vmin=vrange[0],
+        vmax=vrange[1],
     )
-    arr.color(color).lighting('off')
+    arr.color(color).lighting("off")
     arrs.append(arr)
 arrows = Assembly(arrs)
 
-# create a 2D scalarbar
+# create a 2D scalarbar
 # scalarbar = ScalarBar(
 #     vrange,
 #     title='E (V/m)',
 #     c="jet",
-#     font_size=22, 
+#     font_size=22,
 #     pos=(0.7, 0.25),
 #     size=(60,600),
 # )
@@ -63,7 +75,7 @@ scalarbar = ScalarBar3D(
     title="E (:muV/m)",
     title_size=3,
     label_rotation=90,
-    label_offset=.5,
+    label_offset=0.5,
     label_size=2,
     pos=pos,
     size=(1, 20),
@@ -75,10 +87,10 @@ size = (3920, 2160)
 plt = Plotter()
 
 axes = Axes(
-    arrows, 
-    xtitle='Easting (m)',
-    ytitle='Northing (m)',
-    ztitle='Elevation (m)',
+    arrows,
+    xtitle="Easting (m)",
+    ytitle="Northing (m)",
+    ztitle="Elevation (m)",
     xtitle_position=0.60,
     xlabel_size=0.018,
     xtitle_offset=0.15,
@@ -105,7 +117,7 @@ cam = dict(
     distance=83.0844,
     clipping_range=(34.8493, 143.093),
 )
-fig_name = 'data/electric_field.png'
+fig_name = "data/electric_field.png"
 plt.show(arrows, axes, scalarbar, interactive=0, camera=cam)
 # screenshot(fig_name)
 plt.interactive().close()

@@ -1,5 +1,6 @@
 """Boolean operations between
 two overlapping meshes."""
+
 from vedo import settings, Sphere, Plotter
 
 # Better handling of semi-transparent surfaces.

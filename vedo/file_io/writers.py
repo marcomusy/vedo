@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Object writing helpers."""
 
 import os
@@ -17,6 +18,7 @@ from .scene import to_numpy
 
 __docformat__ = "google"
 __all__ = ["write", "save", "read"]
+
 
 def write(objct: Any, fileoutput: str | os.PathLike, binary=True) -> Any:
     """
@@ -47,8 +49,7 @@ def write(objct: Any, fileoutput: str | os.PathLike, binary=True) -> Any:
         objct.apply_transform_from_actor()
         obj = objct.dataset
         vedo.logger.info(
-            f"object '{objct.name}' "
-            "was manually moved. Writing uses current position."
+            f"object '{objct.name}' was manually moved. Writing uses current position."
         )
 
     fr = fileoutput.lower()
@@ -125,9 +126,9 @@ def write(objct: Any, fileoutput: str | os.PathLike, binary=True) -> Any:
                     fs = ""
                     for fi in f:
                         if ptxt:
-                            fs += f" {fi+1}/{fi+1}"
+                            fs += f" {fi + 1}/{fi + 1}"
                         else:
-                            fs += f" {fi+1}"
+                            fs += f" {fi + 1}"
                     outF.write(f"f{fs}\n")
 
                 for l in objct.lines:
@@ -167,9 +168,11 @@ def write(objct: Any, fileoutput: str | os.PathLike, binary=True) -> Any:
         vedo.logger.error(f"could not save {fileoutput}: {e}")
     return objct
 
+
 def save(obj: Any, fileoutput="out.png", binary=True) -> Any:
     """Save an object to file. Same as `write()`."""
     return write(obj, fileoutput, binary)
+
 
 def read(obj: Any, unpack=True, force=False) -> Any:
     """Read an object from file. Same as `load()`."""

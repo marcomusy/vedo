@@ -1,28 +1,34 @@
 """Multiple plotter sync-ed windows"""
+
 from vedo import Ellipsoid, Cone, Cylinder, show
 
 # One actor per window; cameras are shared.
-acts = [Ellipsoid().color('Bisque'),
-        Cone().color('RosyBrown'),
-        Cylinder().color('Chocolate'),
+acts = [
+    Ellipsoid().color("Bisque"),
+    Cone().color("RosyBrown"),
+    Cylinder().color("Chocolate"),
 ]
 
-opts = dict(axes=1, interactive=False, new=True, size=(390,390))
+opts = dict(axes=1, interactive=False, new=True, size=(390, 390))
 ts = [f"Window nr.{i}" for i in range(4)]
 
-plt0 = show(acts[0], **opts, pos=( 200,0), title=ts[0], viewup='z')
-plt1 = show(acts[1], **opts, pos=( 600,0), title=ts[1], camera=plt0.camera)
-plt2 = show(acts[2], __doc__, **opts, pos=(1000,0), title=ts[2], camera=plt0.camera)
+plt0 = show(acts[0], **opts, pos=(200, 0), title=ts[0], viewup="z")
+plt1 = show(acts[1], **opts, pos=(600, 0), title=ts[1], camera=plt0.camera)
+plt2 = show(acts[2], __doc__, **opts, pos=(1000, 0), title=ts[2], camera=plt0.camera)
 plts = [plt0, plt1, plt2]
+
 
 def func(evt):
     """Render sibling windows when one camera changes."""
     for i in range(3):
-        if ts[i] != evt.title: # only update the other windows
+        if ts[i] != evt.title:  # only update the other windows
             plts[i].render()
 
+
 for plt in plts:
-    plt.add_callback('Interaction', func)
-    plt.add_callback('EndInteraction', func) # because zooming is not an "Interaction" event
+    plt.add_callback("Interaction", func)
+    plt.add_callback(
+        "EndInteraction", func
+    )  # because zooming is not an "Interaction" event
 
 plt.interactive()

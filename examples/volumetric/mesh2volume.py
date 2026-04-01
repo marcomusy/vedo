@@ -1,12 +1,13 @@
 """Build a volume from a mesh where the
 foreground voxels are set to 255 and the background voxels are 0"""
+
 from vedo import Mesh, dataurl, Plotter
 
-surf = Mesh(dataurl+"bunny.obj").normalize().wireframe()
+surf = Mesh(dataurl + "bunny.obj").normalize().wireframe()
 
 # Rasterize surface occupancy into a binary volume.
 vol = surf.binarize()
-vol.alpha([0,0.75]).cmap('blue5')
+vol.alpha([0, 0.75]).cmap("blue5")
 
 iso = vol.isosurface().color("blue5")
 

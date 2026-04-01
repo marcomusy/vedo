@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Mixins that split visual responsibilities out of core visual classes."""
 
 import os
@@ -53,7 +54,7 @@ class PointsVisualEffectsMixin:
 
             tline = vedo.shapes.Line(pos, pos, res=n, c=col, alpha=alpha, lw=lw)
             self.trail = tline  # holds the Line
-            self.trail.initilized = False # so the first update will be a reset
+            self.trail.initilized = False  # so the first update will be a reset
         return self
 
     def update_trail(self) -> Self:
@@ -108,7 +109,9 @@ class PointsVisualEffectsMixin:
             shad = shad.project_on_plane(plane, point, direction)
         return shad
 
-    def add_shadow(self, plane, point, direction=None, c=(0.6, 0.6, 0.6), alpha=1, culling=0) -> Self:
+    def add_shadow(
+        self, plane, point, direction=None, c=(0.6, 0.6, 0.6), alpha=1, culling=0
+    ) -> Self:
         """
         Generate a shadow out of an `Mesh` on one of the three Cartesian planes.
         The output is a new `Mesh` representing the shadow.
@@ -309,7 +312,7 @@ class PointsVisualAnnotationsMixin:
             vedo.logger.error("in labels(), array not found in point or cell data")
             return None
 
-        ratio = int(ratio+0.5)
+        ratio = int(ratio + 0.5)
         tapp = vtki.new("AppendPolyData")
         has_inputs = False
 
@@ -334,7 +337,9 @@ class PointsVisualAnnotationsMixin:
                 tx.Update()
                 tx_poly = tx.GetOutput()
             else:
-                tx_poly = vedo.shapes.Text3D(txt_lab, font=font, justify=justify).dataset
+                tx_poly = vedo.shapes.Text3D(
+                    txt_lab, font=font, justify=justify
+                ).dataset
 
             if tx_poly.GetNumberOfPoints() == 0:
                 continue  ######################
@@ -342,27 +347,30 @@ class PointsVisualAnnotationsMixin:
             T = vtki.vtkTransform()
             T.PostMultiply()
             if italic:
-                T.Concatenate([1, 0.2, 0, 0,
-                               0, 1  , 0, 0,
-                               0, 0  , 1, 0,
-                               0, 0  , 0, 1])
+                T.Concatenate([1, 0.2, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1])
             if hasnorms:
                 ni = norms[i]
-                if cells and font=="VTK":  # center-justify
+                if cells and font == "VTK":  # center-justify
                     bb = tx_poly.GetBounds()
                     dx, dy = (bb[1] - bb[0]) / 2, (bb[3] - bb[2]) / 2
                     T.Translate(-dx, -dy, 0)
-                if xrot: T.RotateX(xrot)
-                if yrot: T.RotateY(yrot)
-                if zrot: T.RotateZ(zrot)
+                if xrot:
+                    T.RotateX(xrot)
+                if yrot:
+                    T.RotateY(yrot)
+                if zrot:
+                    T.RotateZ(zrot)
                 crossvec = np.cross([0, 0, 1], ni)
                 angle = np.arccos(np.dot([0, 0, 1], ni)) * 57.3
                 T.RotateWXYZ(float(angle), crossvec.tolist())
                 T.Translate(ni / 100)
             else:
-                if xrot: T.RotateX(xrot)
-                if yrot: T.RotateY(yrot)
-                if zrot: T.RotateZ(zrot)
+                if xrot:
+                    T.RotateX(xrot)
+                if yrot:
+                    T.RotateY(yrot)
+                if zrot:
+                    T.RotateZ(zrot)
             T.Scale(scale, scale, scale)
             T.Translate(e)
             tf = vtki.new("TransformPolyDataFilter")
@@ -611,7 +619,7 @@ class PointsVisualAnnotationsMixin:
         objs.append(sph)
 
         x0, x1, y0, y1, z0, z1 = lab.bounds()
-        aline = [(x0,y0,z0), (x1,y0,z0), (x1,y1,z0), (x0,y1,z0)]
+        aline = [(x0, y0, z0), (x1, y0, z0), (x1, y1, z0), (x0, y1, z0)]
         if rounded:
             box = vedo.shapes.KSpline(aline, closed=True)
         else:
@@ -643,7 +651,7 @@ class PointsVisualAnnotationsMixin:
         mobjs.properties.LightingOff()
         mobjs.properties.SetLineWidth(lw)
         mobjs.actor.UseBoundsOff()
-        mobjs.actor.SetPosition([0,0,0])
+        mobjs.actor.SetPosition([0, 0, 0])
         mobjs.actor.SetOrigin(pt)
         return mobjs
 
@@ -944,7 +952,9 @@ class MeshVisualTextureMixin:
             elif ".bmp" in fnl:
                 reader = vtki.new("BMPReader")
             else:
-                vedo.logger.error("in texture() supported files are only PNG, BMP or JPG")
+                vedo.logger.error(
+                    "in texture() supported files are only PNG, BMP or JPG"
+                )
                 return self
             reader.SetFileName(fn)
             reader.Update()
@@ -955,7 +965,6 @@ class MeshVisualTextureMixin:
             return self
 
         if tcoords is not None:
-
             if isinstance(tcoords, str):
                 vtarr = pd.GetPointData().GetArray(tcoords)
 
@@ -976,7 +985,6 @@ class MeshVisualTextureMixin:
             pd.GetPointData().Modified()
 
         elif not pd.GetPointData().GetTCoords():
-
             # TCoords still void..
             # check that there are no texture-like arrays:
             names = self.pointdata.keys()
@@ -990,7 +998,6 @@ class MeshVisualTextureMixin:
                     candidate_arr = name
 
             if candidate_arr:
-
                 vtarr = pd.GetPointData().GetArray(candidate_arr)
                 pd.GetPointData().SetTCoords(vtarr)
                 pd.GetPointData().Modified()

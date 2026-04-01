@@ -1,4 +1,5 @@
 """Generate a polygonal Mesh from a contour line"""
+
 from vedo import dataurl, Assembly, Line, show
 from vedo.pyplot import histogram
 
@@ -8,7 +9,7 @@ cmap = "RdYlBu"
 
 # Generate a triangulated mesh from the contour.
 msh = shape.generate_mesh(invert=True)
-msh.smooth()           # make the triangles more uniform
+msh.smooth()  # make the triangles more uniform
 msh.compute_quality()  # add a measure of triangle quality
 msh.cmap(cmap)
 
@@ -18,7 +19,7 @@ labels = contour.labels("id")
 histo = histogram(
     msh.celldata["Quality"],
     xtitle="triangle mesh quality",
-    aspect=25/9,
+    aspect=25 / 9,
     c=cmap,
 ).clone2d("bottom-right")
 

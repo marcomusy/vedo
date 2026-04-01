@@ -1,5 +1,6 @@
 """Find the vertices that are connected
 to a specific vertex in a mesh"""
+
 from vedo import Sphere, Point, Points, show
 
 # create a wireframe sphere and color it yellow
@@ -16,9 +17,9 @@ vtxs = s.vertices[ids]
 # create a red point at the selected point's location
 apt = Point(pt).c("red5").ps(15)
 
-# create blue points at the locations of the vertices 
+# create blue points at the locations of the vertices
 # connected to the selected point
 cpts = Points(vtxs).c("blue5").ps(20)
 
 # show the sphere, the selected point, and the connected vertices
-show(s, apt, cpts, __doc__, bg='bb').close()
+show(s, apt, cpts, __doc__, bg="bb").close()
