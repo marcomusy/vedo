@@ -2534,23 +2534,18 @@ def camera_from_quaternion(pos, quaternion, distance=10000, ngl_correct=True) ->
         `vtki.vtkCamera`, a vtk camera setup according to these rules.
     """
     camera = vtki.vtkCamera()
-    # define the quaternion in vtk, note the swapped order
-    # w,x,y,z instead of x,y,z,w
-    quat_vtk = vtki.get_class("Quaternion")(
-        quaternion[3], quaternion[0], quaternion[1], quaternion[2])
-    # use this to define a rotation matrix in x,y,z
-    # right handed units
-    M = np.zeros((3, 3), dtype=np.float32)
-    quat_vtk.ToMatrix3x3(M)
+    quat = vedo.Quaternion.from_xyzw(quaternion)
+    M = quat.matrix3x3.astype(np.float32)
+    focus = np.asarray(pos, dtype=float)
     # the default camera orientation is y up
     up = [0, 1, 0]
     # calculate default camera position is backed off in positive z
-    pos = [0, 0, distance]
+    backoff = [0, 0, distance]
 
     # set the camera rototation by applying the rotation matrix
     camera.SetViewUp(*np.dot(M, up))
     # set the camera position by applying the rotation matrix
-    camera.SetPosition(*np.dot(M, pos))
+    camera.SetPosition(*np.dot(M, backoff))
     if ngl_correct:
         # neuroglancer has positive y going down
         # so apply these azimuth and roll corrections
@@ -2561,9 +2556,9 @@ def camera_from_quaternion(pos, quaternion, distance=10000, ngl_correct=True) ->
     # shift the camera posiiton and focal position
     # to be centered on the desired location
     p = camera.GetPosition()
-    p_new = np.array(p) + pos
+    p_new = np.array(p) + focus
     camera.SetPosition(*p_new)
-    camera.SetFocalPoint(*pos)
+    camera.SetFocalPoint(*focus)
     return camera
 
 

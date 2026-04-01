@@ -16,6 +16,7 @@ Submodule to work with linear and non-linear transformations<br>
 """
 
 __all__ = [
+    "Quaternion",
     "LinearTransform",
     "NonLinearTransform",
     "TransformInterpolator",
@@ -38,6 +39,11 @@ def _is_sequence(arg):
     if hasattr(arg, "__iter__"):
         return True
     return False
+
+
+def _is_vtk_quaternion(arg) -> bool:
+    """Return ``True`` for VTK quaternion specializations."""
+    return all(hasattr(arg, name) for name in ("GetW", "GetX", "GetY", "GetZ", "ToMatrix3x3"))
 
 
 ###################################################
@@ -619,6 +625,306 @@ class LinearTransform:
 
         self.T.Translate(p)
         return self
+
+
+###################################################
+class Quaternion:
+    """Work with quaternion rotations."""
+
+    def __init__(self, q=None, *, axis=None, angle=0.0, rad=False, xyzw=False) -> None:
+        """
+        Define a quaternion rotation.
+
+        Arguments:
+            q : (Quaternion, vtkQuaternion, vtkLinearTransform, vtkMatrix4x4, sequence)
+                input quaternion in ``(w, x, y, z)`` order by default, or a 3x3 rotation matrix.
+            axis : (list)
+                optional rotation axis to build the quaternion from axis-angle form.
+            angle : (float)
+                rotation angle associated to ``axis``.
+            rad : (bool)
+                set to ``True`` if ``angle`` is expressed in radians.
+            xyzw : (bool)
+                interpret a 4-sequence input as ``(x, y, z, w)``.
+        """
+        self.name = "Quaternion"
+        self.T = vtki.vtkQuaterniond()
+        self.T.ToIdentity()
+
+        if axis is not None:
+            if q is not None:
+                raise ValueError("Quaternion() accepts either q=... or axis/angle, not both")
+            self.set_axis_angle(angle, axis, rad=rad)
+            return
+
+        if q is None:
+            return
+
+        if isinstance(q, Quaternion):
+            self.T = vtki.vtkQuaterniond(q.T)
+            return
+
+        if _is_vtk_quaternion(q):
+            self.T = vtki.vtkQuaterniond(q.GetW(), q.GetX(), q.GetY(), q.GetZ())
+            return
+
+        if isinstance(q, LinearTransform):
+            self.matrix3x3 = q.matrix3x3
+            return
+
+        if isinstance(q, vtki.vtkMatrix4x4):
+            self.matrix3x3 = np.array(
+                [[q.GetElement(i, j) for j in range(3)] for i in range(3)],
+                dtype=float,
+            )
+            return
+
+        if isinstance(q, vtki.vtkLinearTransform):
+            self.matrix3x3 = np.array(
+                [[q.GetMatrix().GetElement(i, j) for j in range(3)] for i in range(3)],
+                dtype=float,
+            )
+            return
+
+        if _is_sequence(q):
+            arr = np.asarray(q, dtype=float)
+            if arr.shape == (4,):
+                self.set(arr, xyzw=xyzw)
+                return
+            if arr.shape == (3, 3):
+                self.matrix3x3 = arr
+                return
+            raise ValueError("Quaternion() expects a 4-sequence or a 3x3 matrix")
+
+        raise TypeError(f"Cannot build Quaternion from {type(q).__name__}")
+
+    def __str__(self):
+        module = self.__class__.__module__
+        name = self.__class__.__name__
+        angle, axis = self.angle_axis()
+        s = f"\x1b[7m\x1b[1m{module}.{name} at ({hex(id(self))})".ljust(75) + "\x1b[0m"
+        s += "\nq (wxyz)".ljust(15) + ": " + np.array2string(self.wxyz, precision=6, separator=", ")
+        s += "\nq (xyzw)".ljust(15) + ": " + np.array2string(self.xyzw, precision=6, separator=", ")
+        s += "\nangle".ljust(15) + f": {angle}"
+        s += "\naxis".ljust(15) + ": " + np.array2string(axis, precision=6, separator=", ")
+        return s
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __call__(self, p) -> np.ndarray:
+        """Rotate a single 2D or 3D vector."""
+        return self.rotate(p)
+
+    @classmethod
+    def from_xyzw(cls, q) -> Quaternion:
+        """Build a quaternion from ``(x, y, z, w)`` components."""
+        return cls(q, xyzw=True)
+
+    @classmethod
+    def from_axis_angle(cls, angle, axis=(1, 0, 0), rad=False) -> Quaternion:
+        """Build a quaternion from axis-angle form."""
+        return cls(axis=axis, angle=angle, rad=rad)
+
+    def print(self) -> Quaternion:
+        """Print quaternion details."""
+        print(self.__str__())
+        return self
+
+    def copy(self) -> Quaternion:
+        """Return a copy of the quaternion. Alias of ``clone()``."""
+        return self.clone()
+
+    def clone(self) -> Quaternion:
+        """Clone the quaternion to make an exact copy."""
+        return Quaternion(self.T)
+
+    def reset(self) -> Self:
+        """Reset quaternion to identity."""
+        self.T.ToIdentity()
+        return self
+
+    def set(self, q, xyzw=False) -> Self:
+        """Set quaternion components."""
+        arr = np.asarray(q, dtype=float).ravel()
+        if arr.shape != (4,):
+            raise ValueError("Quaternion.set() expects a 4-sequence")
+        if xyzw:
+            self.T.Set(arr[3], arr[0], arr[1], arr[2])
+        else:
+            self.T.Set(arr)
+        return self
+
+    def set_axis_angle(self, angle, axis=(1, 0, 0), rad=False) -> Self:
+        """Set quaternion from axis-angle form."""
+        axis = np.asarray(axis, dtype=float)
+        axis_norm = np.linalg.norm(axis)
+        if axis_norm == 0:
+            raise ValueError("Quaternion axis cannot have zero length")
+        axis = axis / axis_norm
+        if not rad:
+            angle = np.deg2rad(angle)
+        self.T.SetRotationAngleAndAxis(angle, axis)
+        return self
+
+    def angle_axis(self, rad=False) -> tuple[float, np.ndarray]:
+        """Return the quaternion as ``(angle, axis)``."""
+        axis = np.zeros(3, dtype=float)
+        angle = float(self.T.GetRotationAngleAndAxis(axis))
+        if not rad:
+            angle = np.rad2deg(angle)
+        return angle, axis
+
+    def normalize(self) -> Self:
+        """Normalize the quaternion in place."""
+        self.T.Normalize()
+        return self
+
+    def normalized(self) -> Quaternion:
+        """Return a normalized copy of the quaternion."""
+        return Quaternion(self.T.Normalized())
+
+    def conjugate(self) -> Self:
+        """Conjugate the quaternion in place."""
+        self.T.Conjugate()
+        return self
+
+    def conjugated(self) -> Quaternion:
+        """Return the conjugated quaternion."""
+        return Quaternion(self.T.Conjugated())
+
+    def invert(self) -> Self:
+        """Invert the quaternion in place."""
+        self.T.Invert()
+        return self
+
+    def inverse(self) -> Quaternion:
+        """Return the inverse quaternion."""
+        return Quaternion(self.T.Inverse())
+
+    def slerp(self, t: float, q) -> Quaternion:
+        """Spherically interpolate towards quaternion ``q``."""
+        q0 = self.normalized().wxyz
+        q1 = Quaternion(q).normalized().wxyz
+        dot = float(np.clip(np.dot(q0, q1), -1.0, 1.0))
+
+        # Flip the second quaternion so we stay on the shortest arc.
+        if dot < 0.0:
+            q1 = -q1
+            dot = -dot
+
+        if dot > 0.9995:
+            out = q0 + t * (q1 - q0)
+            out /= np.linalg.norm(out)
+            return Quaternion(out)
+
+        theta0 = np.arccos(dot)
+        theta = theta0 * t
+        sin_theta0 = np.sin(theta0)
+        out = (
+            np.sin(theta0 - theta) / sin_theta0 * q0
+            + np.sin(theta) / sin_theta0 * q1
+        )
+        return Quaternion(out)
+
+    def rotate(self, p) -> np.ndarray:
+        """Rotate a single 2D or 3D vector."""
+        p = np.asarray(p, dtype=float)
+        if p.shape == (2,):
+            p = np.array([p[0], p[1], 0.0], dtype=float)
+        if p.shape != (3,):
+            raise ValueError("Quaternion.rotate() expects a 2D or 3D vector")
+        return self.matrix3x3 @ p
+
+    transform_point = rotate
+
+    def to_transform(self) -> LinearTransform:
+        """Convert the quaternion to a ``LinearTransform``."""
+        return LinearTransform(self.matrix3x3)
+
+    @property
+    def w(self) -> float:
+        return float(self.T.GetW())
+
+    @w.setter
+    def w(self, value) -> None:
+        self.T.SetW(float(value))
+
+    @property
+    def x(self) -> float:
+        return float(self.T.GetX())
+
+    @x.setter
+    def x(self, value) -> None:
+        self.T.SetX(float(value))
+
+    @property
+    def y(self) -> float:
+        return float(self.T.GetY())
+
+    @y.setter
+    def y(self, value) -> None:
+        self.T.SetY(float(value))
+
+    @property
+    def z(self) -> float:
+        return float(self.T.GetZ())
+
+    @z.setter
+    def z(self, value) -> None:
+        self.T.SetZ(float(value))
+
+    @property
+    def wxyz(self) -> np.ndarray:
+        """Get the quaternion as ``(w, x, y, z)``."""
+        return np.array([self.w, self.x, self.y, self.z], dtype=float)
+
+    @wxyz.setter
+    def wxyz(self, q) -> None:
+        self.set(q)
+
+    @property
+    def xyzw(self) -> np.ndarray:
+        """Get the quaternion as ``(x, y, z, w)``."""
+        return np.array([self.x, self.y, self.z, self.w], dtype=float)
+
+    @xyzw.setter
+    def xyzw(self, q) -> None:
+        self.set(q, xyzw=True)
+
+    @property
+    def norm(self) -> float:
+        """Get the quaternion norm."""
+        return float(self.T.Norm())
+
+    @property
+    def squared_norm(self) -> float:
+        """Get the squared quaternion norm."""
+        return float(self.T.SquaredNorm())
+
+    @property
+    def matrix3x3(self) -> np.ndarray:
+        """Get the 3x3 rotation matrix."""
+        M = np.zeros((3, 3), dtype=float)
+        self.T.ToMatrix3x3(M)
+        return M
+
+    @matrix3x3.setter
+    def matrix3x3(self, M) -> None:
+        """Set quaternion from a 3x3 rotation matrix."""
+        arr = np.asarray(M, dtype=float)
+        if arr.shape != (3, 3):
+            raise ValueError("Quaternion.matrix3x3 expects a 3x3 matrix")
+        self.T.FromMatrix3x3(arr)
+
+    @property
+    def matrix(self) -> np.ndarray:
+        """Alias of ``matrix3x3``."""
+        return self.matrix3x3
+
+    @matrix.setter
+    def matrix(self, M) -> None:
+        self.matrix3x3 = M
 
 
 ###################################################

@@ -234,6 +234,8 @@ for name in [
 location["vtkAmoebaMinimizer"] = "vtkCommonMath"
 location["vtkMatrix4x4"] = "vtkCommonMath"
 location["vtkQuaternion"] = "vtkCommonMath"
+location["vtkQuaterniond"] = "vtkCommonMath"
+location["vtkQuaternionf"] = "vtkCommonMath"
 
 for name in [
     "vtkHomogeneousTransform",

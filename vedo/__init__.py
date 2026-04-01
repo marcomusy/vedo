@@ -98,6 +98,7 @@ _LAZY_EXPORT_MAP, _LAZY_EXPORTS = build_attr_map(
     (
         "vedo.core.transformations",
         [
+            "Quaternion",
             "LinearTransform",
             "NonLinearTransform",
             "TransformInterpolator",
