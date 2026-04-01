@@ -13,6 +13,7 @@ from vtkmodules.util.numpy_support import numpy_to_vtkIdTypeArray
 import vedo.vtkclasses as vtki
 
 import vedo
+from vedo.core.summary import summary_panel, summary_string
 
 
 __docformat__ = "google"
@@ -936,37 +937,44 @@ class Minimizer:
         return hessian
 
     def __str__(self) -> str:
-        out = vedo.printc(
-            f"vedo.utils.Minimizer at ({hex(id(self))})".ljust(75),
-            bold=True, invert=True, return_string=True,
-        )
-        out += "Function name".ljust(20) + self.function.__name__ + "()\n"
-        out += "-------- parameters initial value -----------\n"
-        out += "Name".ljust(20) + "Value".ljust(20) + "Scale\n"
+        return summary_string(self, self._summary_rows())
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    def __rich__(self):
+        return summary_panel(self, self._summary_rows())
+
+    def _summary_rows(self) -> list[tuple[str, str]]:
+        rows = [("Function name", self.function.__name__ + "()")]
+        init_lines = ["Name".ljust(20) + "Value".ljust(20) + "Scale"]
         for name, value in self.results["init_parameters"].items():
-            out += name.ljust(20) + str(value[0]).ljust(20) + str(value[1]) + "\n"
-        out += "-------- parameters final value --------------\n"
+            init_lines.append(name.ljust(20) + str(value[0]).ljust(20) + str(value[1]))
+        rows.append(("initial params", "\n".join(init_lines)))
+
+        final_lines = []
         for name, value in self.results["parameters"].items():
-            out += name.ljust(20) + f"{value:.6f}"
+            line = name.ljust(20) + f"{value:.6f}"
             ierr = list(self.results["parameters"]).index(name)
             err = self.results["parameter_errors"][ierr]
             if err:
-                out += f" ± {err:.4f}"
-            out += "\n"
-        out += "Value at minimum".ljust(20)+ f'{self.results["min_value"]}\n'
-        out += "Iterations".ljust(20)      + f'{self.results["iterations"]}\n'
-        out += "Max iterations".ljust(20)  + f'{self.results["max_iterations"]}\n'
-        out += "Convergence flag".ljust(20)+ f'{self.results["convergence_flag"]}\n'
-        out += "Tolerance".ljust(20)       + f'{self.results["tolerance"]}\n'
+                line += f" ± {err:.4f}"
+            final_lines.append(line)
+        rows.append(("final params", "\n".join(final_lines)))
+        rows.append(("Value at minimum", f'{self.results["min_value"]}'))
+        rows.append(("Iterations", f'{self.results["iterations"]}'))
+        rows.append(("Max iterations", f'{self.results["max_iterations"]}'))
+        rows.append(("Convergence flag", f'{self.results["convergence_flag"]}'))
+        rows.append(("Tolerance", f'{self.results["tolerance"]}'))
         try:
             arr = np.array2string(
                 self.compute_hessian(),
                 separator=', ', precision=6, suppress_small=True,
             )
-            out += "Hessian Matrix:\n" + arr
+            rows.append(("Hessian Matrix", arr))
         except Exception:
-            out += "Hessian Matrix: (not available)"
-        return out
+            rows.append(("Hessian Matrix", "(not available)"))
+        return rows
 
 
 def compute_hessian(func, params, bounds=None, epsilon=1e-5, verbose=True) -> np.ndarray:

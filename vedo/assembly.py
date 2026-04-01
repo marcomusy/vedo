@@ -10,6 +10,7 @@ import vedo.file_io
 import vedo.vtkclasses as vtki  # a wrapper for lazy imports
 
 import vedo
+from vedo.core.summary import format_bounds, summary_panel, summary_string
 from vedo.core.transformations import LinearTransform
 from vedo.visual import CommonVisual, Actor3DHelper
 
@@ -63,27 +64,29 @@ class Group:
 
 
     def __str__(self):
-        """Print info about Group object."""
-        module = self.__class__.__module__
-        name = self.__class__.__name__
-        out = vedo.printc(
-            f"{module}.{name} at ({hex(id(self))})".ljust(75),
-            bold=True, invert=True, return_string=True,
-        )
-        out += "\x1b[0m"
+        return summary_string(self, self._summary_rows())
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __rich__(self):
+        return summary_panel(self, self._summary_rows())
+
+    def _summary_rows(self):
+        rows = []
         if self.name:
-            out += "name".ljust(14) + ": " + self.name
+            rows.append(("name", self.name))
             if "legend" in self.info.keys() and self.info["legend"]:
-                out+= f", legend='{self.info['legend']}'"
-            out += "\n"
+                rows.append(("legend", self.info["legend"]))
 
         parts = self.unpack()
         n = len(parts)
-        out += "n. of objects".ljust(14) + ": " + str(n) + " "
         names = [a.name for a in parts if hasattr(a, "name") and a.name]
+        value = str(n)
         if names:
-            out += str(names).replace("'","")[:56]
-        return out.rstrip() + "\x1b[0m"
+            value += " " + str(names).replace("'", "")[:56]
+        rows.append(("n. of objects", value))
+        return rows
 
     def __iadd__(self, obj):
         """Add an object to the group."""
@@ -273,57 +276,54 @@ class Assembly(CommonVisual, Actor3DHelper):
         ##########################################
 
     def __str__(self):
-        """Print info about Assembly object."""
-        module = self.__class__.__module__
+        return summary_string(self, self._summary_rows())
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __rich__(self):
+        return summary_panel(self, self._summary_rows())
+
+    def _summary_rows(self):
+        rows = []
         cname = self.__class__.__name__
-        out = vedo.printc(
-            f"{module}.{cname} at ({hex(id(self))})".ljust(75),
-            bold=True, invert=True, return_string=True,
-        )
-        out += "\x1b[0m"
 
         if self.name:
-            out += "name".ljust(14) + ": " + self.name
+            rows.append(("name", self.name))
             if "legend" in self.info.keys() and self.info["legend"]:
-                out+= f", legend='{self.info['legend']}'"
-            out += "\n"
+                rows.append(("legend", self.info["legend"]))
 
         n = len(self.unpack())
-        out += "n. of objects".ljust(14) + ": " + str(n) + " "
         names = np.unique([a.name for a in self.unpack() if a.name])
-        if len(names)>0:
-            out += str(names).replace("'","")[:56]
-        out += "\n"
-
-        pos = self.actor.GetPosition()
-        out += "position".ljust(14) + ": " + str(pos) + "\n"
-
-        bnds = self.actor.GetBounds()
-        bx1, bx2 = vedo.utils.precision(bnds[0], 3), vedo.utils.precision(bnds[1], 3)
-        by1, by2 = vedo.utils.precision(bnds[2], 3), vedo.utils.precision(bnds[3], 3)
-        bz1, bz2 = vedo.utils.precision(bnds[4], 3), vedo.utils.precision(bnds[5], 3)
-        out += "bounds".ljust(14) + ":"
-        out += " x=(" + bx1 + ", " + bx2 + "),"
-        out += " y=(" + by1 + ", " + by2 + "),"
-        out += " z=(" + bz1 + ", " + bz2 + ")\n"
+        value = str(n)
+        if len(names) > 0:
+            value += " " + str(names).replace("'", "")[:56]
+        rows.append(("n. of objects", value))
+        rows.append(("position", str(self.actor.GetPosition())))
+        rows.append(("bounds", format_bounds(self.actor.GetBounds(), vedo.utils.precision)))
 
         if "Histogram1D" in cname:
-            if self.title  != '': out += f"title".ljust(14) + ": " + f'{self.title}\n'
-            if self.xtitle and self.xtitle != ' ': out += f"xtitle".ljust(14) + ": " + f'{self.xtitle}\n'
-            if self.ytitle and self.ytitle != ' ': out += f"ytitle".ljust(14) + ": " + f'{self.ytitle}\n'
-            out += f"entries".ljust(14) + ": " + f"{self.entries}\n"
-            out += f"mean, mode".ljust(14) + ": " + f"{self.mean:.6f}, {self.mode:.6f}\n"
-            out += f"std".ljust(14) + ": " + f"{self.std:.6f}"
+            if self.title != '':
+                rows.append(("title", f"{self.title}"))
+            if self.xtitle and self.xtitle != ' ':
+                rows.append(("xtitle", f"{self.xtitle}"))
+            if self.ytitle and self.ytitle != ' ':
+                rows.append(("ytitle", f"{self.ytitle}"))
+            rows.append(("entries", f"{self.entries}"))
+            rows.append(("mean, mode", f"{self.mean:.6f}, {self.mode:.6f}"))
+            rows.append(("std", f"{self.std:.6f}"))
         elif "Histogram2D" in cname:
-            if self.title  != '': out += f"title".ljust(14) + ": " + f'{self.title}\n'
-            if self.xtitle and self.xtitle != ' ': out += f"xtitle".ljust(14) + ": " + f'{self.xtitle}\n'
-            if self.ytitle and self.ytitle != ' ': out += f"ytitle".ljust(14) + ": " + f'{self.ytitle}\n'
-            out += f"entries".ljust(14) + ": " + f"{self.entries}\n"
-            out += f"mean".ljust(14) + ": " + f"{vedo.utils.precision(self.mean, 6)}\n"
-            out += f"std".ljust(14) + ": " + f"{vedo.utils.precision(self.std, 6)}"
+            if self.title != '':
+                rows.append(("title", f"{self.title}"))
+            if self.xtitle and self.xtitle != ' ':
+                rows.append(("xtitle", f"{self.xtitle}"))
+            if self.ytitle and self.ytitle != ' ':
+                rows.append(("ytitle", f"{self.ytitle}"))
+            rows.append(("entries", f"{self.entries}"))
+            rows.append(("mean", f"{vedo.utils.precision(self.mean, 6)}"))
+            rows.append(("std", f"{vedo.utils.precision(self.std, 6)}"))
 
-
-        return out.rstrip() + "\x1b[0m"
+        return rows
 
     def _repr_html_(self):
         """

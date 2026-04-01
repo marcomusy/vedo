@@ -15,6 +15,7 @@ import vedo.vtkclasses as vtki
 import vedo
 import vedo.core.transformations as transformations
 from vedo import utils
+from vedo.core.summary import format_bounds, summary_panel, summary_string
 from vedo.mesh import Mesh
 from vedo.core import VolumeAlgorithms
 from vedo.visual import VolumeVisual
@@ -258,50 +259,28 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         return self
 
     def __str__(self):
-        """Print a summary for the `Volume` object."""
-        module = self.__class__.__module__
-        name = self.__class__.__name__
-        out = vedo.printc(
-            f"{module}.{name} at ({hex(self.memory_address())})".ljust(75),
-            c="c", bold=True, invert=True, return_string=True,
-        )
-        out += "\x1b[0m\x1b[36;1m"
+        return summary_string(self, self._summary_rows(), color="cyan")
 
-        out+= "name".ljust(14) + ": " + str(self.name) + "\n"
+    def __repr__(self):
+        return self.__str__()
+
+    def __rich__(self):
+        return summary_panel(self, self._summary_rows(), color="cyan")
+
+    def _summary_rows(self):
+        rows = [("name", str(self.name))]
         if self.filename:
-            out+= "filename".ljust(14) + ": " + str(self.filename) + "\n"
-
-        out+= "dimensions".ljust(14) + ": " + str(self.shape) + "\n"
-
-        out+= "origin".ljust(14) + ": "
-        out+= utils.precision(self.origin(), 6) + "\n"
-
-        out+= "center".ljust(14) + ": "
-        out+= utils.precision(self.center(), 6) + "\n"
-
-        out+= "spacing".ljust(14)    + ": "
-        out+= utils.precision(self.spacing(), 6) + "\n"
-
-        bnds = self.bounds()
-        bx1, bx2 = utils.precision(bnds[0], 3), utils.precision(bnds[1], 3)
-        by1, by2 = utils.precision(bnds[2], 3), utils.precision(bnds[3], 3)
-        bz1, bz2 = utils.precision(bnds[4], 3), utils.precision(bnds[5], 3)
-        out+= "bounds".ljust(14) + ":"
-        out+= " x=(" + bx1 + ", " + bx2 + "),"
-        out+= " y=(" + by1 + ", " + by2 + "),"
-        out+= " z=(" + bz1 + ", " + bz2 + ")\n"
-
-        out+= "memory size".ljust(14) + ": "
-        out+= str(int(self.dataset.GetActualMemorySize()/1024+0.5))+" MB\n"
-
+            rows.append(("filename", str(self.filename)))
+        rows.append(("dimensions", str(self.shape)))
+        rows.append(("origin", utils.precision(self.origin(), 6)))
+        rows.append(("center", utils.precision(self.center(), 6)))
+        rows.append(("spacing", utils.precision(self.spacing(), 6)))
+        rows.append(("bounds", format_bounds(self.bounds(), utils.precision)))
+        rows.append(("memory size", f"{int(self.dataset.GetActualMemorySize() / 1024 + 0.5)} MB"))
         st = self.dataset.GetScalarTypeAsString()
-        out+= "scalar size".ljust(14) + ": "
-        out+= str(self.dataset.GetScalarSize()) + f" bytes ({st})\n"
-        out+= "scalar range".ljust(14) + ": "
-        out+= str(self.dataset.GetScalarRange()) + "\n"
-
-        #utils.print_histogram(self, logscale=True, bins=8, height=15, c="b", bold=True)
-        return out.rstrip() + "\x1b[0m"
+        rows.append(("scalar size", f"{self.dataset.GetScalarSize()} bytes ({st})"))
+        rows.append(("scalar range", str(self.dataset.GetScalarRange())))
+        return rows
 
     def _repr_html_(self):
         """

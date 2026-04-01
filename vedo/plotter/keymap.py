@@ -15,6 +15,66 @@ from vedo import addons, utils
 __docformat__ = "google"
 
 
+def _print_keymap_notice(title: str, rows: list[tuple[str, str]] | None = None, message: str = "", color: str = "cyan") -> None:
+    try:
+        from rich.console import Console
+        from rich.panel import Panel
+        from rich.table import Table
+
+        if rows:
+            table = Table(show_header=False, box=None, pad_edge=False, expand=False)
+            table.add_column("Field", style=f"bold {color}", no_wrap=True)
+            table.add_column("Value", style="white")
+            for field, value in rows:
+                table.add_row(str(field), str(value))
+            body = table
+        else:
+            body = message
+
+        Console().print(
+            Panel(
+                body,
+                title=title,
+                title_align="left",
+                border_style=f"bold {color}",
+                expand=False,
+            )
+        )
+    except Exception:
+        vedo.printc((" " + title + " ").ljust(75), invert=True, c=color)
+        if rows:
+            for field, value in rows:
+                vedo.printc(f"{field:<14}: {value}", c=color)
+        elif message:
+            vedo.printc(message, c=color)
+
+
+def _print_keymap_info(title: str, obj) -> None:
+    vedo.printc((" " + title + " ").ljust(75), invert=True, c="g")
+    printer = getattr(obj, "print", None)
+    if callable(printer):
+        printer()
+    else:
+        print(obj)
+
+
+def _normalize_key(iren) -> str:
+    key = iren.GetKeySym()
+    if iren.GetShiftKey():
+        key = key.upper()
+    if iren.GetControlKey():
+        key = "Ctrl+" + key
+    if iren.GetAltKey():
+        key = "Alt+" + key
+    return key
+
+
+def _selected_meshes(plotter):
+    if plotter.clicked_object and plotter.clicked_object in plotter.get_meshes():
+        return [plotter.clicked_object]
+    return plotter.get_meshes()
+
+
 def _key_quit(plotter, _iren, _renderer) -> bool:
     plotter.break_interaction()
     return True
@@ -32,67 +92,105 @@ def _key_abort(plotter, _iren, _renderer) -> bool:
 
 
 def _key_help(_plotter, _iren, _renderer) -> bool:
-    msg = f" vedo {vedo.__version__}"
-    msg += f" | vtk {vtki.vtkVersion().GetVTKVersion()}"
-    msg += f" | numpy {np.__version__}"
-    msg += f" | python {sys.version_info[0]}.{sys.version_info[1]}, press: "
-    vedo.printc(msg.ljust(75), invert=True)
-    msg = (
-        "    i     print info about the last clicked object     \n"
-        "    I     print color of the pixel under the mouse     \n"
-        "    Y     show the pipeline for this object as a graph \n"
-        "    <- -> use arrows to reduce/increase opacity        \n"
-        "    x     toggle mesh visibility                       \n"
-        "    w     toggle wireframe/surface style               \n"
-        "    l     toggle surface edges visibility              \n"
-        "    p/P   hide surface faces and show only points      \n"
-        "    1-3   cycle surface color (2=light, 3=dark)        \n"
-        "    4     cycle color map (press shift-4 to go back)   \n"
-        "    5-6   cycle point-cell arrays (shift to go back)   \n"
-        "    7-8   cycle background and gradient color          \n"
-        "    09+-  cycle axes styles (on keypad, or press +/-)  \n"
-        "    k     cycle available lighting styles              \n"
-        "    K     toggle shading as flat or phong              \n"
-        "    A     toggle anti-aliasing                         \n"
-        "    D     toggle depth-peeling (for transparencies)    \n"
-        "    U     toggle perspective/parallel projection       \n"
-        "    o/O   toggle extra light to scene and rotate it    \n"
-        "    a     toggle interaction to Actor Mode             \n"
-        "    n     toggle surface normals                       \n"
-        "    r     reset camera position                        \n"
-        "    R     reset camera to the closest orthogonal view  \n"
-        "    .     fly camera to the last clicked point         \n"
-        "    C     print the current camera parameters state    \n"
-        "    X     invoke a cutter widget tool                  \n"
-        "    S     save a screenshot of the current scene       \n"
-        "    E/F   export 3D scene to numpy file or X3D         \n"
-        "    q     return control to python script              \n"
-        "    Esc   abort execution and exit python kernel       "
+    help_rows = [
+        ("i", "print info about the last clicked object"),
+        ("I", "print color of the pixel under the mouse"),
+        ("Y", "show the pipeline for this object as a graph"),
+        ("<- ->", "use arrows to reduce/increase opacity"),
+        ("x", "toggle mesh visibility"),
+        ("w", "toggle wireframe/surface style"),
+        ("l", "toggle surface edges visibility"),
+        ("p/P", "hide surface faces and show only points"),
+        ("1-3", "cycle surface color (2=light, 3=dark)"),
+        ("4", "cycle color map (press shift-4 to go back)"),
+        ("5-6", "cycle point-cell arrays (shift to go back)"),
+        ("7-8", "cycle background and gradient color"),
+        ("09+-", "cycle axes styles (on keypad, or press +/-)"),
+        ("k", "cycle available lighting styles"),
+        ("K", "toggle shading as flat or phong"),
+        ("A", "toggle anti-aliasing"),
+        ("D", "toggle depth-peeling (for transparencies)"),
+        ("U", "toggle perspective/parallel projection"),
+        ("o/O", "toggle extra light to scene and rotate it"),
+        ("a", "toggle interaction to Actor Mode"),
+        ("n", "toggle surface normals"),
+        ("r", "reset camera position"),
+        ("R", "reset camera to the closest orthogonal view"),
+        (".", "fly camera to the last clicked point"),
+        ("C", "print the current camera parameters state"),
+        ("X", "invoke a cutter widget tool"),
+        ("S", "save a screenshot of the current scene"),
+        ("E/F", "export 3D scene to numpy file or X3D"),
+        ("q", "return control to python script"),
+        ("Esc", "abort execution and exit python kernel"),
+    ]
+    title = (
+        f"vedo {vedo.__version__} | vtk {vtki.vtkVersion().GetVTKVersion()}"
+        f" | numpy {np.__version__} | python {sys.version_info[0]}.{sys.version_info[1]}"
     )
-    vedo.printc(msg, dim=True, italic=True, bold=True)
-    vedo.printc(
-        " Check out the documentation at:  https://vedo.embl.es ".ljust(75),
-        invert=True,
-        bold=True,
-    )
+    try:
+        from rich import box
+        from rich.console import Console
+        from rich.panel import Panel
+        from rich.table import Table
+
+        table = Table(box=box.SIMPLE_HEAVY, expand=False, pad_edge=False)
+        table.add_column("Key", style="bold cyan", no_wrap=True)
+        table.add_column("Action", style="white")
+        for key, action in help_rows:
+            table.add_row(key, action)
+
+        Console().print(
+            Panel(
+                table,
+                title=title,
+                title_align="left",
+                subtitle="https://vedo.embl.es",
+                subtitle_align="right",
+                border_style="bold white",
+                expand=False,
+            )
+        )
+    except Exception:
+        msg = f" {title}, press: "
+        vedo.printc(msg.ljust(75), invert=True)
+        msg = "\n".join(f"    {key:<5} {action}" for key, action in help_rows)
+        vedo.printc(msg, dim=True, italic=True, bold=True)
+        vedo.printc(
+            " Check out the documentation at:  https://vedo.embl.es ".ljust(75),
+            invert=True,
+            bold=True,
+        )
     return True
 
 
 def _key_toggle_actor_mode(_plotter, iren, _renderer) -> bool:
     cur = iren.GetInteractorStyle()
     if isinstance(cur, vtki.get_class("InteractorStyleTrackballCamera")):
-        msg = "Interactor style changed to TrackballActor\n"
-        msg += "  you can now move and rotate individual meshes:\n"
-        msg += "  press X twice to save the repositioned mesh\n"
-        msg += "  press 'a' to go back to normal style"
-        vedo.printc(msg)
         iren.SetInteractorStyle(vtki.new("InteractorStyleTrackballActor"))
+        _print_keymap_notice(
+            "Interactor Style",
+            rows=[
+                ("mode", "TrackballActor"),
+                ("usage", "move and rotate individual meshes"),
+                ("tip", "press X twice to save the repositioned mesh"),
+                ("back", "press 'a' to go back to normal style"),
+            ],
+            color="yellow",
+        )
     else:
         iren.SetInteractorStyle(vtki.new("InteractorStyleTrackballCamera"))
+        _print_keymap_notice(
+            "Interactor Style",
+            rows=[("mode", "TrackballCamera"), ("status", "normal camera interaction restored")],
+            color="yellow",
+        )
     return True
 
 
 def _key_toggle_depth_peeling(plotter, _iren, renderer) -> bool:
+    if renderer is None:
+        return True
     udp = not renderer.GetUseDepthPeeling()
     renderer.SetUseDepthPeeling(udp)
     if udp:
@@ -102,9 +200,14 @@ def _key_toggle_depth_peeling(plotter, _iren, renderer) -> bool:
     plotter.interactor.Render()
     wasUsed = renderer.GetLastRenderingUsedDepthPeeling()
     rnr = plotter.renderers.index(renderer)
-    vedo.printc(f"Depth peeling set to {udp} for renderer nr.{rnr}", c=udp)
-    if not wasUsed and udp:
-        vedo.printc("\t...but last rendering did not actually used it!", c=udp, invert=True)
+    rows = [
+        ("renderer", f"nr.{rnr}"),
+        ("enabled", str(bool(udp))),
+        ("used last render", str(bool(wasUsed))),
+    ]
+    if udp and not wasUsed:
+        rows.append(("note", "enabled, but last rendering did not actually use it"))
+    _print_keymap_notice("Depth Peeling", rows=rows, color="cyan" if udp else "white")
     return True
 
 
@@ -125,12 +228,16 @@ def _key_screenshot(plotter, _iren, _renderer) -> bool:
     for bb in plotter.buttons:
         bb.off()
     vedo.file_io.screenshot(fname)
-    vedo.printc(rf":camera: Saved rendering window to {fname}", c="b")
     for ss in plotter.sliders:
         ss[0].on()
         ss[0].Render()
     for bb in plotter.buttons:
         bb.on()
+    _print_keymap_notice(
+        "Screenshot Saved",
+        rows=[("file", fname)],
+        color="blue",
+    )
     return True
 
 
@@ -155,25 +262,40 @@ def _key_print_camera(_plotter, _iren, renderer) -> bool:
 
 
 def _key_export_npz(_plotter, _iren, _renderer) -> bool:
-    vedo.printc(r":camera: Exporting 3D window to file scene.npz", c="b", end="")
     vedo.file_io.export_window("scene.npz")
-    vedo.printc(", try:\n> vedo scene.npz  # (this is experimental!)", c="b")
+    _print_keymap_notice(
+        "Scene Exported",
+        rows=[
+            ("file", "scene.npz"),
+            ("hint", "try: vedo scene.npz  (this is experimental!)"),
+        ],
+        color="blue",
+    )
     return True
 
 
 def _key_export_x3d(_plotter, _iren, _renderer) -> bool:
     vedo.file_io.export_window("scene.x3d")
-    vedo.printc(r":camera: Exporting 3D window to file", c="b", end="")
-    vedo.file_io.export_window("scene.npz")
-    vedo.printc(". Try:\n> firefox scene.html", c="b")
-    return False
+    _print_keymap_notice(
+        "Scene Exported",
+        rows=[
+            ("x3d", "scene.x3d"),
+            ("html", "scene.html"),
+            ("hint", "try: firefox scene.html"),
+        ],
+        color="blue",
+    )
+    return True
 
 
 def _key_print_info(plotter, _iren, _renderer) -> bool:
     if plotter.clicked_object:
-        print(plotter.clicked_object)
+        obj = plotter.clicked_object
+        label = getattr(obj, "name", "") or obj.__class__.__name__
+        # _print_keymap_info(f"Clicked Object: {label}", obj)
+        print(obj)
     else:
-        print(plotter)
+        _print_keymap_info("Plotter Info", plotter)
     return False
 
 
@@ -213,19 +335,13 @@ _KEY_DISPATCH = {
 def handle_default_keypress(plotter, iren, event) -> None:
     # NB: qt creates and passes a vtkGenericRenderWindowInteractor
 
-    key = iren.GetKeySym()
+    del event
 
+    key = iren.GetKeySym()
     if "_L" in key or "_R" in key:
         return
 
-    if iren.GetShiftKey():
-        key = key.upper()
-
-    if iren.GetControlKey():
-        key = "Ctrl+" + key
-
-    if iren.GetAltKey():
-        key = "Alt+" + key
+    key = _normalize_key(iren)
 
     #######################################################
     # utils.vedo.printc('Pressed key:', key, c='y', box='-')
@@ -235,6 +351,8 @@ def handle_default_keypress(plotter, iren, event) -> None:
 
     x, y = iren.GetEventPosition()
     renderer = iren.FindPokedRenderer(x, y)
+    if renderer is None:
+        return
 
     dispatch = _KEY_DISPATCH.get(key)
     if dispatch:
@@ -321,11 +439,7 @@ def handle_default_keypress(plotter, iren, event) -> None:
                         a.actor.SetBackfaceProperty(a.properties_backface)
 
     elif key == "P":
-        if plotter.clicked_object and plotter.clicked_object in plotter.get_meshes():
-            objs = [plotter.clicked_object]
-        else:
-            objs = plotter.get_meshes()
-        for ia in objs:
+        for ia in _selected_meshes(plotter):
             try:
                 ps = ia.properties.GetPointSize()
                 if ps > 1:
@@ -335,11 +449,7 @@ def handle_default_keypress(plotter, iren, event) -> None:
                 pass
 
     elif key == "p":
-        if plotter.clicked_object and plotter.clicked_object in plotter.get_meshes():
-            objs = [plotter.clicked_object]
-        else:
-            objs = plotter.get_meshes()
-        for ia in objs:
+        for ia in _selected_meshes(plotter):
             try:
                 ps = ia.properties.GetPointSize()
                 ia.properties.SetPointSize(ps + 2)
@@ -636,8 +746,8 @@ def handle_default_keypress(plotter, iren, event) -> None:
             # print("Cannot remove widget", [plotter.axes_instances[i]])
             try:
                 plotter.remove(plotter.axes_instances[i])
-            except:
-                print("Cannot remove axes", [plotter.axes_instances[i]])
+            except Exception:
+                vedo.logger.warning(f"Cannot remove axes {plotter.axes_instances[i]}")
                 return
         plotter.axes_instances[i] = None
 
@@ -713,11 +823,7 @@ def handle_default_keypress(plotter, iren, event) -> None:
             plotter._extralight.SetPosition(cpos)
 
     elif key == "l":
-        if plotter.clicked_object in plotter.get_meshes():
-            objs = [plotter.clicked_object]
-        else:
-            objs = plotter.get_meshes()
-        for ia in objs:
+        for ia in _selected_meshes(plotter):
             try:
                 ev = ia.properties.GetEdgeVisibility()
                 ia.properties.SetEdgeVisibility(not ev)
@@ -727,12 +833,8 @@ def handle_default_keypress(plotter, iren, event) -> None:
                 pass
 
     elif key == "k":  # lightings
-        if plotter.clicked_object in plotter.get_meshes():
-            objs = [plotter.clicked_object]
-        else:
-            objs = plotter.get_meshes()
         shds = ("default", "metallic", "plastic", "shiny", "glossy", "off")
-        for ia in objs:
+        for ia in _selected_meshes(plotter):
             try:
                 lnr = (ia._ligthingnr + 1) % 6
                 ia.lighting(shds[lnr])
@@ -741,11 +843,7 @@ def handle_default_keypress(plotter, iren, event) -> None:
                 pass
 
     elif key == "K":  # shading
-        if plotter.clicked_object in plotter.get_meshes():
-            objs = [plotter.clicked_object]
-        else:
-            objs = plotter.get_meshes()
-        for ia in objs:
+        for ia in _selected_meshes(plotter):
             if isinstance(ia, vedo.Mesh):
                 ia.compute_normals(cells=False)
                 intrp = ia.properties.GetInterpolation()

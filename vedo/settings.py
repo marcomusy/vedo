@@ -715,6 +715,22 @@ class Settings:
         s = f"\x1b[1m\x1b[7m{header}\x1b[0m\n" + s
         return s.strip()
 
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    def __rich__(self):
+        from rich.panel import Panel
+        from rich.text import Text
+
+        rendered = self.__str__()
+        body = rendered.split("\n", 1)[1] if "\n" in rendered else ""
+        return Panel(
+            Text.from_ansi(body),
+            title=f"{self.__class__.__module__}.{self.__class__.__name__} at ({hex(id(self))})",
+            title_align="left",
+            border_style="bold white",
+        )
+
     ############################################################
     def keys(self) -> list:
         """Return all keys"""

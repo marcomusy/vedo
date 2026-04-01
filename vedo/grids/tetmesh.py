@@ -12,6 +12,13 @@ import vedo.vtkclasses as vtki  # a wrapper for lazy imports
 
 import vedo
 from vedo import utils
+from vedo.core.summary import (
+    active_array_label,
+    format_bounds,
+    summarize_array,
+    summary_panel,
+    summary_string,
+)
 from vedo.core import PointAlgorithms
 from vedo.mesh import Mesh
 from vedo.file_io import download
@@ -147,69 +154,49 @@ class TetMesh(UnstructuredGrid):
 
     ##################################################################
     def __str__(self):
-        """Print a string summary of the `TetMesh` object."""
-        module = self.__class__.__module__
-        name = self.__class__.__name__
-        out = vedo.printc(
-            f"{module}.{name} at ({hex(self.memory_address())})".ljust(75),
-            c="c", bold=True, invert=True, return_string=True,
-        )
-        out += "\x1b[0m\u001b[36m"
+        return summary_string(self, self._summary_rows(), color="cyan")
 
-        out += "nr. of verts".ljust(14) + ": " + str(self.npoints) + "\n"
-        out += "nr. of tetras".ljust(14) + ": " + str(self.ncells) + "\n"
+    def __repr__(self):
+        return self.__str__()
+
+    def __rich__(self):
+        return summary_panel(self, self._summary_rows(), color="cyan")
+
+    def _summary_rows(self):
+        rows = [
+            ("nr. of verts", str(self.npoints)),
+            ("nr. of tetras", str(self.ncells)),
+        ]
 
         if self.npoints:
-            out+="size".ljust(14)+ ": average=" + utils.precision(self.average_size(),6)
-            out+=", diagonal="+ utils.precision(self.diagonal_size(), 6)+ "\n"
-            out+="center of mass".ljust(14) + ": " + utils.precision(self.center_of_mass(),6)+"\n"
+            rows.append(
+                (
+                    "size",
+                    "average="
+                    + utils.precision(self.average_size(), 6)
+                    + ", diagonal="
+                    + utils.precision(self.diagonal_size(), 6),
+                )
+            )
+            rows.append(("center of mass", utils.precision(self.center_of_mass(), 6)))
 
-        bnds = self.bounds()
-        bx1, bx2 = utils.precision(bnds[0], 3), utils.precision(bnds[1], 3)
-        by1, by2 = utils.precision(bnds[2], 3), utils.precision(bnds[3], 3)
-        bz1, bz2 = utils.precision(bnds[4], 3), utils.precision(bnds[5], 3)
-        out += "bounds".ljust(14) + ":"
-        out += " x=(" + bx1 + ", " + bx2 + "),"
-        out += " y=(" + by1 + ", " + by2 + "),"
-        out += " z=(" + bz1 + ", " + bz2 + ")\n"
+        rows.append(("bounds", format_bounds(self.bounds(), utils.precision)))
 
         for key in self.pointdata.keys():
             arr = self.pointdata[key]
-            rng = utils.precision(arr.min(), 3) + ", " + utils.precision(arr.max(), 3)
-            mark_active = "pointdata"
-            a_scalars = self.dataset.GetPointData().GetScalars()
-            a_vectors = self.dataset.GetPointData().GetVectors()
-            a_tensors = self.dataset.GetPointData().GetTensors()
-            if a_scalars and a_scalars.GetName() == key:
-                mark_active += " *"
-            elif a_vectors and a_vectors.GetName() == key:
-                mark_active += " **"
-            elif a_tensors and a_tensors.GetName() == key:
-                mark_active += " ***"
-            out += mark_active.ljust(14) + f': "{key}" ({arr.dtype}), ndim={arr.ndim}'
-            out += f", range=({rng})\n"
+            label = active_array_label(self.dataset, "point", key, "pointdata")
+            rows.append((label, f'"{key}" ' + summarize_array(arr, utils.precision, dim_label="ndim")))
 
         for key in self.celldata.keys():
             arr = self.celldata[key]
-            rng = utils.precision(arr.min(), 3) + ", " + utils.precision(arr.max(), 3)
-            mark_active = "celldata"
-            a_scalars = self.dataset.GetCellData().GetScalars()
-            a_vectors = self.dataset.GetCellData().GetVectors()
-            a_tensors = self.dataset.GetCellData().GetTensors()
-            if a_scalars and a_scalars.GetName() == key:
-                mark_active += " *"
-            elif a_vectors and a_vectors.GetName() == key:
-                mark_active += " **"
-            elif a_tensors and a_tensors.GetName() == key:
-                mark_active += " ***"
-            out += mark_active.ljust(14) + f': "{key}" ({arr.dtype}), ndim={arr.ndim}'
-            out += f", range=({rng})\n"
+            label = active_array_label(self.dataset, "cell", key, "celldata")
+            rows.append((label, f'"{key}" ' + summarize_array(arr, utils.precision, dim_label="ndim")))
 
         for key in self.metadata.keys():
             arr = self.metadata[key]
-            out += "metadata".ljust(14) + ": " + f'"{key}" ({len(arr)} values)\n'
+            rows.append(("metadata", f'"{key}" ({len(arr)} values)'))
 
-        return out.rstrip() + "\x1b[0m"
+        return rows
 
     def _repr_html_(self):
         """
@@ -503,4 +490,3 @@ class TetMesh(UnstructuredGrid):
         msh.copy_properties_from(self)
         msh.pipeline = utils.OperationNode("slice", c="#edabab", parents=[self])
         return msh
-

@@ -11,6 +11,7 @@ import vedo.vtkclasses as vtki  # a wrapper for lazy imports
 import vedo
 from vedo import utils
 from vedo import addons
+from vedo.core.summary import format_bounds, summary_panel, summary_string
 from .bootstrap import apply_gradient_mode, configure_renderer_common
 from .camera import (
     azimuth,
@@ -728,7 +729,15 @@ class Plotter:
     ##################################################################### ..init ends here.
 
     def __str__(self):
-        """Return Plotter info."""
+        return summary_string(self, self._summary_rows())
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __rich__(self):
+        return summary_panel(self, self._summary_rows())
+
+    def _summary_rows(self):
         axtype = {
             0: "(no axes)",
             1: "(default customizable grid walls)",
@@ -746,20 +755,11 @@ class Plotter:
             13: "(simple ruler at the bottom of the window)",
             14: "(the vtkCameraOrientationWidget object)",
         }
-
-        module = self.__class__.__module__
-        name = self.__class__.__name__
-        out = vedo.printc(
-            f"{module}.{name} at ({hex(id(self))})".ljust(75),
-            bold=True, invert=True, return_string=True,
-        )
-        out += "\x1b[0m"
+        rows = []
         if self.interactor:
-            out += "window title".ljust(14) + ": " + self.title + "\n"
-            out += "window size".ljust(14) + f": {self.window.GetSize()}"
-            out += f", full_screen={self.window.GetScreenSize()}\n"
-            out += "activ renderer".ljust(14) + ": nr." + str(self.renderers.index(self.renderer))
-            out += f" (out of {len(self.renderers)} renderers)\n"
+            rows.append(("window title", self.title))
+            rows.append(("window size", f"{self.window.GetSize()}, full_screen={self.window.GetScreenSize()}"))
+            rows.append(("activ renderer", f"nr.{self.renderers.index(self.renderer)} (out of {len(self.renderers)} renderers)"))
 
         bns, totpt = [], 0
         for a in self.objects:
@@ -772,31 +772,33 @@ class Plotter:
                 totpt += a.npoints
             except AttributeError:
                 pass
-        out += "n. of objects".ljust(14) + f": {len(self.objects)}"
-        out += f" ({totpt} vertices)\n" if totpt else "\n"
+        nobj = f"{len(self.objects)}"
+        if totpt:
+            nobj += f" ({totpt} vertices)"
+        rows.append(("n. of objects", nobj))
 
         if len(bns) > 0:
             min_bns = np.min(bns, axis=0)
             max_bns = np.max(bns, axis=0)
-            bx1, bx2 = utils.precision(min_bns[0], 3), utils.precision(max_bns[1], 3)
-            by1, by2 = utils.precision(min_bns[2], 3), utils.precision(max_bns[3], 3)
-            bz1, bz2 = utils.precision(min_bns[4], 3), utils.precision(max_bns[5], 3)
-            out += "bounds".ljust(14) + ":"
-            out += " x=(" + bx1 + ", " + bx2 + "),"
-            out += " y=(" + by1 + ", " + by2 + "),"
-            out += " z=(" + bz1 + ", " + bz2 + ")\n"
+            rows.append((
+                "bounds",
+                format_bounds(
+                    [min_bns[0], max_bns[1], min_bns[2], max_bns[3], min_bns[4], max_bns[5]],
+                    utils.precision,
+                ),
+            ))
 
         if utils.is_integer(self.axes):
-            out += "axes style".ljust(14) + f": {self.axes} {axtype[self.axes]}\n"
+            rows.append(("axes style", f"{self.axes} {axtype[self.axes]}"))
         elif isinstance(self.axes, dict):
-            out += "axes style".ljust(14) + f": 1 {axtype[1]}\n"
+            rows.append(("axes style", f"1 {axtype[1]}"))
         else:
-            out += "axes style".ljust(14) + f": {[self.axes]}\n"
-        return out.rstrip() + "\x1b[0m"
+            rows.append(("axes style", f"{[self.axes]}"))
+        return rows
 
     def print(self):
         """Print information about the current instance."""
-        print(self.__str__())
+        print(self)
         return self
 
     def __iadd__(self, objects):

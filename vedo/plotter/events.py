@@ -3,6 +3,8 @@
 from __future__ import annotations
 """Event data object used by the Plotter callback system."""
 
+from vedo.core.summary import summary_panel, summary_string
+
 
 class Event:
     """
@@ -67,26 +69,21 @@ class Event:
         setattr(self, key, value)
 
     def __str__(self):
-        import vedo
+        return summary_string(self, self._summary_rows())
 
-        module = self.__class__.__module__
-        name = self.__class__.__name__
-        out = vedo.printc(
-            f"{module}.{name} at ({hex(id(self))})".ljust(75),
-            bold=True, invert=True, return_string=True,
-        )
-        out += "\x1b[0m"
+    def __repr__(self):
+        return self.__str__()
+
+    def __rich__(self):
+        return summary_panel(self, self._summary_rows())
+
+    def _summary_rows(self):
+        rows = []
         for n in self.__slots__:
             if n == "actor":
                 continue
-            out += f"{n}".ljust(11) + ": "
-            val = str(self[n]).replace("\n", "")[:65].rstrip()
-            if val == "True":
-                out += "\x1b[32;1m"
-            elif val == "False":
-                out += "\x1b[31;1m"
-            out += val + "\x1b[0m\n"
-        return out.rstrip()
+            rows.append((n, str(self[n]).replace("\n", "")[:65].rstrip()))
+        return rows
 
     def keys(self):
         """Return the list of keys."""

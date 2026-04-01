@@ -11,6 +11,7 @@ import vedo.vtkclasses as vtki
 import vedo
 from vedo import colors
 from vedo import utils
+from vedo.core.summary import summary_panel, summary_string
 from vedo.core.transformations import LinearTransform
 from vedo.core import PointAlgorithms
 from vedo.core import input as input_utils
@@ -37,7 +38,7 @@ def Point(pos=(0, 0, 0), r=12, c="red", alpha=1.0) -> Self:
     return Points([[0,0,0]], r=r, c=c, alpha=alpha).pos(pos)
 
 
-class Points(PointsVisual, PointAlgorithms, PointTransformMixin, 
+class Points(PointsVisual, PointAlgorithms, PointTransformMixin,
              PointAnalyzeMixin, PointReconstructMixin, PointCutMixin):
     """Work with point clouds."""
 
@@ -175,127 +176,145 @@ class Points(PointsVisual, PointAlgorithms, PointTransformMixin,
             self.line_locator = None
             self.cell_locator = None
         return self
-    def __str__(self):
-        """Print a description of the Points/Mesh."""
-        module = self.__class__.__module__
-        name = self.__class__.__name__
-        out = vedo.printc(
-            f"{module}.{name} at ({hex(self.memory_address())})".ljust(75),
-            c="g", bold=True, invert=True, return_string=True,
-        )
-        out += "\x1b[0m\x1b[32;1m"
+
+    _summary_color = "green"
+
+    def _summary_address(self) -> str:
+        return hex(self.memory_address())
+
+    def _summary_rows(self):
+        rows = []
 
         if self.name:
-            out += "name".ljust(14) + ": " + self.name
-            if "legend" in self.info.keys() and self.info["legend"]:
-                out+= f", legend='{self.info['legend']}'"
-            out += "\n"
+            rows.append(("name", self.name))
+            if self.info.get("legend"):
+                rows.append(("legend", self.info["legend"]))
 
         if self.filename:
-            out+= "file name".ljust(14) + ": " + self.filename + "\n"
+            rows.append(("file name", self.filename))
 
         if not self.mapper.GetScalarVisibility():
             col = utils.precision(self.properties.GetColor(), 3)
             cname = vedo.colors.get_color_name(self.properties.GetColor())
-            out+= "color".ljust(14) + ": " + cname
-            out+= f", rgb={col}, alpha={self.properties.GetOpacity()}\n"
+            rows.append(("color", f"{cname}, rgb={col}, alpha={self.properties.GetOpacity()}"))
             if self.actor.GetBackfaceProperty():
                 bcol = self.actor.GetBackfaceProperty().GetDiffuseColor()
                 cname = vedo.colors.get_color_name(bcol)
-                out+= "backface color".ljust(14) + ": "
-                out+= f"{cname}, rgb={utils.precision(bcol,3)}\n"
+                rows.append(("backface color", f"{cname}, rgb={utils.precision(bcol, 3)}"))
 
         npt = self.dataset.GetNumberOfPoints()
-        npo, nln = self.dataset.GetNumberOfPolys(), self.dataset.GetNumberOfLines()
-        out+= "elements".ljust(14) + f": vertices={npt:,} polygons={npo:,} lines={nln:,}"
+        npo = self.dataset.GetNumberOfPolys()
+        nln = self.dataset.GetNumberOfLines()
+        elements = f"vertices={npt:,} polygons={npo:,} lines={nln:,}"
         if self.dataset.GetNumberOfStrips():
-            out+= f", strips={self.dataset.GetNumberOfStrips():,}"
-        out+= "\n"
-        if self.dataset.GetNumberOfPieces() > 1:
-            out+= "pieces".ljust(14) + ": " + str(self.dataset.GetNumberOfPieces()) + "\n"
+            elements += f", strips={self.dataset.GetNumberOfStrips():,}"
+        rows.append(("elements", elements))
 
-        out+= "position".ljust(14) + ": " + f"{utils.precision(self.pos(), 6)}\n"
+        if self.dataset.GetNumberOfPieces() > 1:
+            rows.append(("pieces", str(self.dataset.GetNumberOfPieces())))
+
+        rows.append(("position", utils.precision(self.pos(), 6)))
         try:
-            sc = self.transform.get_scale()
-            out+= "scaling".ljust(14)  + ": "
-            out+= utils.precision(sc, 6) + "\n"
+            rows.append(("scaling", utils.precision(self.transform.get_scale(), 6)))
         except AttributeError:
             pass
 
         if self.npoints:
-            out+="size".ljust(14)+ ": average=" + utils.precision(self.average_size(),6)
-            out+=", diagonal="+ utils.precision(self.diagonal_size(), 6)+ "\n"
-            out+="center of mass".ljust(14) + ": " + utils.precision(self.center_of_mass(),6)+"\n"
+            rows.append(
+                (
+                    "size",
+                    "average="
+                    + utils.precision(self.average_size(), 6)
+                    + ", diagonal="
+                    + utils.precision(self.diagonal_size(), 6),
+                )
+            )
+            rows.append(("center of mass", utils.precision(self.center_of_mass(), 6)))
 
         bnds = self.bounds()
         bx1, bx2 = utils.precision(bnds[0], 3), utils.precision(bnds[1], 3)
         by1, by2 = utils.precision(bnds[2], 3), utils.precision(bnds[3], 3)
         bz1, bz2 = utils.precision(bnds[4], 3), utils.precision(bnds[5], 3)
-        out+= "bounds".ljust(14) + ":"
-        out+= " x=(" + bx1 + ", " + bx2 + "),"
-        out+= " y=(" + by1 + ", " + by2 + "),"
-        out+= " z=(" + bz1 + ", " + bz2 + ")\n"
+        rows.append(("bounds", f"x=({bx1}, {bx2}), y=({by1}, {by2}), z=({bz1}, {bz2})"))
 
+        point_data = self.dataset.GetPointData()
+        point_scalars = point_data.GetScalars()
+        point_vectors = point_data.GetVectors()
+        point_tensors = point_data.GetTensors()
         for key in self.pointdata.keys():
             arr = self.pointdata[key]
             dim = arr.shape[1] if arr.ndim > 1 else 1
             mark_active = "pointdata"
-            a_scalars = self.dataset.GetPointData().GetScalars()
-            a_vectors = self.dataset.GetPointData().GetVectors()
-            a_tensors = self.dataset.GetPointData().GetTensors()
-            if   a_scalars and a_scalars.GetName() == key:
+            if point_scalars and point_scalars.GetName() == key:
                 mark_active += " *"
-            elif a_vectors and a_vectors.GetName() == key:
+            elif point_vectors and point_vectors.GetName() == key:
                 mark_active += " **"
-            elif a_tensors and a_tensors.GetName() == key:
+            elif point_tensors and point_tensors.GetName() == key:
                 mark_active += " ***"
-            out += mark_active.ljust(14) + f': "{key}" ({arr.dtype}), dim={dim}'
-            if dim == 1 and len(arr)>0:
+            value = f'"{key}" ({arr.dtype}), dim={dim}'
+            if dim == 1 and len(arr) > 0:
                 if "int" in arr.dtype.name:
                     rng = f"{arr.min()}, {arr.max()}"
                 else:
                     rng = utils.precision(arr.min(), 3) + ", " + utils.precision(arr.max(), 3)
-                out += f", range=({rng})\n"
-            else:
-                out += "\n"
+                value += f", range=({rng})"
+            rows.append((mark_active, value))
 
+        cell_data = self.dataset.GetCellData()
+        cell_scalars = cell_data.GetScalars()
+        cell_vectors = cell_data.GetVectors()
+        cell_tensors = cell_data.GetTensors()
         for key in self.celldata.keys():
             arr = self.celldata[key]
             dim = arr.shape[1] if arr.ndim > 1 else 1
             mark_active = "celldata"
-            a_scalars = self.dataset.GetCellData().GetScalars()
-            a_vectors = self.dataset.GetCellData().GetVectors()
-            a_tensors = self.dataset.GetCellData().GetTensors()
-            if   a_scalars and a_scalars.GetName() == key:
+            if cell_scalars and cell_scalars.GetName() == key:
                 mark_active += " *"
-            elif a_vectors and a_vectors.GetName() == key:
+            elif cell_vectors and cell_vectors.GetName() == key:
                 mark_active += " **"
-            elif a_tensors and a_tensors.GetName() == key:
+            elif cell_tensors and cell_tensors.GetName() == key:
                 mark_active += " ***"
-            out += mark_active.ljust(14) + f': "{key}" ({arr.dtype}), dim={dim}'
-            if dim == 1 and len(arr)>0:
+            value = f'"{key}" ({arr.dtype}), dim={dim}'
+            if dim == 1 and len(arr) > 0:
                 if "int" in arr.dtype.name:
                     rng = f"{arr.min()}, {arr.max()}"
                 else:
                     rng = utils.precision(arr.min(), 3) + ", " + utils.precision(arr.max(), 3)
-                out += f", range=({rng})\n"
-            else:
-                out += "\n"
+                value += f", range=({rng})"
+            rows.append((mark_active, value))
 
         for key in self.metadata.keys():
             arr = self.metadata[key]
             if len(arr) > 3:
-                out+= "metadata".ljust(14) + ": " + f'"{key}" ({len(arr)} values)\n'
+                rows.append(("metadata", f'"{key}" ({len(arr)} values)'))
             else:
-                out+= "metadata".ljust(14) + ": " + f'"{key}" = {arr}\n'
+                rows.append(("metadata", f'"{key}" = {arr}'))
 
         if self.picked3d is not None:
             idp = self.closest_point(self.picked3d, return_point_id=True)
             idc = self.closest_point(self.picked3d, return_cell_id=True)
-            out+= "clicked point".ljust(14) + ": " + utils.precision(self.picked3d, 6)
-            out+= f", pointID={idp}, cellID={idc}\n"
+            rows.append(
+                (
+                    "clicked point",
+                    f"{utils.precision(self.picked3d, 6)}, pointID={idp}, cellID={idc}",
+                )
+            )
 
-        return out.rstrip() + "\x1b[0m"
+        return rows
+
+    def __str__(self):
+        return summary_string(self, self._summary_rows(), color=self._summary_color)
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __rich__(self):
+        return summary_panel(self, self._summary_rows(), color=self._summary_color)
+
+    def print(self):
+        """Print object info."""
+        print(self)
+        return self
 
     def _repr_html_(self):
         """
@@ -432,8 +451,6 @@ class Points(PointsVisual, PointAlgorithms, PointTransformMixin,
             cloned = vedo.Mesh(poly)
         else:
             cloned = Points(poly)
-        # print([self], self.__class__)
-        # cloned = self.__class__(poly)
 
         cloned.transform = self.transform.clone()
 

@@ -14,6 +14,13 @@ import vedo.vtkclasses as vtki  # a wrapper for lazy imports
 import vedo
 from vedo import utils
 from vedo.core import PointAlgorithms
+from vedo.core.summary import (
+    active_array_label,
+    format_bounds,
+    summarize_array,
+    summary_panel,
+    summary_string,
+)
 from vedo.mesh import Mesh
 from vedo.file_io import download
 from vedo.visual import MeshVisual
@@ -135,6 +142,67 @@ class ExplicitStructuredGrid:
             self.cell_locator = None
             self.point_locator = None
         return self
+
+    def __str__(self):
+        return summary_string(self, self._summary_rows(), color="cyan")
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __rich__(self):
+        return summary_panel(self, self._summary_rows(), color="cyan")
+
+    def print(self):
+        """Print object info."""
+        print(self)
+        return self
+
+    def _summary_rows(self):
+        rows = [("name", str(self.name))]
+        if self.filename:
+            rows.append(("filename", str(self.filename)))
+        rows.append(("dimensions", str(self.dimensions())))
+        rows.append(("cell dimensions", str(self.cell_dimensions())))
+        rows.append(("data dimension", str(self.data_dimension())))
+        rows.append(("center", utils.precision(self.dataset.GetCenter(), 6)))
+        rows.append(("bounds", format_bounds(self.dataset.GetBounds(), utils.precision)))
+        rows.append(("memory size", utils.precision(self.dataset.GetActualMemorySize() / 1024, 2) + " MB"))
+        rows.append(("blank points", str(self.has_blank_points())))
+        rows.append(("blank cells", str(self.has_blank_cells())))
+        rows.append(("ghost points", str(self.has_ghost_points())))
+        rows.append(("ghost cells", str(self.has_ghost_cells())))
+
+        point_data = self.dataset.GetPointData()
+        for i in range(point_data.GetNumberOfArrays()):
+            key = point_data.GetArrayName(i)
+            if not key:
+                continue
+            arr = point_data.GetArray(key)
+            if arr is None:
+                continue
+            narr = utils.vtk2numpy(arr)
+            label = active_array_label(self.dataset, "point", key, "pointdata")
+            rows.append((label, f'"{key}" ' + summarize_array(narr, utils.precision, dim_label="ndim")))
+
+        cell_data = self.dataset.GetCellData()
+        for i in range(cell_data.GetNumberOfArrays()):
+            key = cell_data.GetArrayName(i)
+            if not key:
+                continue
+            arr = cell_data.GetArray(key)
+            if arr is None:
+                continue
+            narr = utils.vtk2numpy(arr)
+            label = active_array_label(self.dataset, "cell", key, "celldata")
+            rows.append((label, f'"{key}" ' + summarize_array(narr, utils.precision, dim_label="ndim")))
+
+        field_data = self.dataset.GetFieldData()
+        for i in range(field_data.GetNumberOfArrays()):
+            arr = field_data.GetAbstractArray(i)
+            if arr is None or not arr.GetName():
+                continue
+            rows.append(("metadata", f'"{arr.GetName()}" ({arr.GetNumberOfTuples()} values)'))
+        return rows
     
     def dimensions(self) -> np.ndarray:
         """Return the number of points in the x, y and z directions."""

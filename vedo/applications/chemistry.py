@@ -9,6 +9,7 @@ from vtkmodules.vtkDomainsChemistry import vtkPeriodicTable, vtkMoleculeMapper
 from vtkmodules.vtkDomainsChemistry import vtkProteinRibbonFilter
 from vtkmodules.vtkCommonCore import vtkIdList
 from vtkmodules.vtkCommonDataModel import vtkPolyData
+from vedo.core.summary import summary_panel, summary_string
 
 __doc__ = """
 This module provides a Vedo-compatible interface to the periodic table of elements,
@@ -174,25 +175,25 @@ class PeriodicTable:
         return 1 <= atomic_number <= self.get_number_of_elements()
 
     def __str__(self):
-        """Print info about the periodic table."""
-        from vedo.colors import printc
-        module = self.__class__.__module__
-        name = self.__class__.__name__
-        out = printc(
-            f"{module}.{name} at ({hex(id(self))})".ljust(75),
-            bold=True, invert=True, return_string=True,
-        )
-        out += "\x1b[0m"
+        return summary_string(self, self._summary_rows())
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __rich__(self):
+        return summary_panel(self, self._summary_rows())
+
+    def _summary_rows(self):
         n = self.get_number_of_elements()
-        out += f"Number of elements  : {n}\n"
+        rows = [("Number of elements", str(n))]
         # Example usage of the periodic table
         atomic_number = 12
-        out += f"Atomic number       : {atomic_number} (example entry)\n"
-        out += f"Element name        : {self.get_element_name(atomic_number)}\n"
-        out += f"Element symbol      : {self.get_element_symbol(atomic_number)}\n"
-        out += f"Covalent radius     : {self.get_covalent_radius(atomic_number)}\n"
-        out += f"Van der Waals radius: {self.get_vdw_radius(atomic_number)}\n"
-        return out.rstrip() + "\x1b[0m"
+        rows.append(("Atomic number", f"{atomic_number} (example entry)"))
+        rows.append(("Element name", f"{self.get_element_name(atomic_number)}"))
+        rows.append(("Element symbol", f"{self.get_element_symbol(atomic_number)}"))
+        rows.append(("Covalent radius", f"{self.get_covalent_radius(atomic_number)}"))
+        rows.append(("Van der Waals radius", f"{self.get_vdw_radius(atomic_number)}"))
+        return rows
 
 
 
