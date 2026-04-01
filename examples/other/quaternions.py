@@ -39,13 +39,13 @@ axis /= np.linalg.norm(axis)
 angle = 120
 q = Quaternion.from_axis_angle(angle, axis)
 
-print("\nQuaternions")
-print("axis =", np.array2string(axis, precision=3, suppress_small=True))
-print("angle =", angle, "deg")
-print("wxyz =", np.array2string(q.wxyz, precision=4, suppress_small=True))
-print("matrix3x3 =")
-print(np.array2string(q.matrix3x3, precision=3, suppress_small=True))
-print("Rotate [1, 0, 0] ->", np.array2string(q.rotate([1, 0, 0]), precision=3, suppress_small=True))
+# print("\nQuaternions")
+# print("axis =", np.array2string(axis, precision=3, suppress_small=True))
+# print("angle =", angle, "deg")
+# print("wxyz =", np.array2string(q.wxyz, precision=4, suppress_small=True))
+# print("matrix3x3 =")
+# print(np.array2string(q.matrix3x3, precision=3, suppress_small=True))
+# print("Rotate [1, 0, 0] ->", np.array2string(q.rotate([1, 0, 0]), precision=3, suppress_small=True))
 print(q)
 
 # An asymmetric little object makes rotations easier to see.

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import numpy as np
+from rich.console import Console
 
 import vedo
 import vedo.vtkclasses as vtki
@@ -34,7 +35,33 @@ def main() -> None:
     print("camera", vedo.camera_from_quaternion([1, 2, 3], [0, 0, 0, 1]).GetFocalPoint())
     assert np.allclose(vedo.camera_from_quaternion([1, 2, 3], [0, 0, 0, 1]).GetFocalPoint(), [1, 2, 3])
 
-    print("quaternion wrapper ok\n",q_from_matrix)
+    console = Console(record=True, force_terminal=False, width=100)
+    console.print(q_from_matrix)
+    rich_text = console.export_text()
+    print(rich_text.strip())
+    assert "q (wxyz)" in rich_text
+    assert "angle" in rich_text
+
+    lt_console = Console(record=True, force_terminal=False, width=100)
+    lt_console.print(vedo.LinearTransform().translate([1, 2, 3]))
+    lt_rich_text = lt_console.export_text()
+    print(lt_rich_text.strip())
+    assert "matrix 4x4" in lt_rich_text
+    assert "concatenations" in lt_rich_text
+
+    nlt_console = Console(record=True, force_terminal=False, width=100)
+    nlt_console.print(vedo.NonLinearTransform())
+    nlt_rich_text = nlt_console.export_text()
+    print(nlt_rich_text.strip())
+    assert "sources" in nlt_rich_text
+    assert "targets" in nlt_rich_text
+
+    tri_console = Console(record=True, force_terminal=False, width=100)
+    tri_console.print(vedo.TransformInterpolator("linear"))
+    tri_rich_text = tri_console.export_text()
+    print(tri_rich_text.strip())
+    assert "ntransforms" in tri_rich_text
+    assert "trange" in tri_rich_text
 
 
 if __name__ == "__main__":

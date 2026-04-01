@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing_extensions import Self
 from warnings import warn
 import numpy as np
-
+import sys
 import vedo.vtkclasses as vtki # a wrapper for lazy imports
 
 __docformat__ = "google"
@@ -44,6 +44,43 @@ def _is_sequence(arg):
 def _is_vtk_quaternion(arg) -> bool:
     """Return ``True`` for VTK quaternion specializations."""
     return all(hasattr(arg, name) for name in ("GetW", "GetX", "GetY", "GetZ", "ToMatrix3x3"))
+
+
+def _summary_title(obj) -> str:
+    return f"{obj.__class__.__module__}.{obj.__class__.__name__} at ({hex(id(obj))})"
+
+
+def _summary_panel(obj, rows, color="white", expand=False):
+    from rich.panel import Panel
+    from rich.table import Table
+
+    table = Table(show_header=False, box=None, pad_edge=False, expand=False)
+    table.add_column("Field", style=f"bold {color}", no_wrap=True)
+    table.add_column("Value", style=color)
+    for field, value in rows:
+        table.add_row(field, value)
+    return Panel(
+        table,
+        title=_summary_title(obj),
+        title_align="left",
+        expand=expand,
+        border_style=f"bold {color}",
+    )
+
+
+def _summary_string(obj, fallback: str) -> str:
+    """Use rich formatting in an interactive terminal, else return plain text."""
+    if sys.stdout is None or not hasattr(sys.stdout, "isatty") or not sys.stdout.isatty():
+        return fallback
+    try:
+        from io import StringIO
+        from rich.console import Console
+
+        buffer = StringIO()
+        Console(file=buffer, force_terminal=True).print(obj)
+        return buffer.getvalue().rstrip()
+    except Exception:
+        return fallback
 
 
 ###################################################
@@ -168,14 +205,30 @@ class LinearTransform:
         arr = np.array2string(self.matrix,
             separator=', ', precision=6, suppress_small=True)
         s += "\nmatrix 4x4".ljust(15) + f":\n{arr}"
-        return s
+        return _summary_string(self, s)
 
     def __repr__(self):
         return self.__str__()
 
+    def __rich__(self):
+        rows = [("name", self.name)]
+        if self.filename:
+            rows.append(("filename", self.filename))
+        if self.comment:
+            rows.append(("comment", self.comment))
+        rows.append(("concatenations", str(self.ntransforms)))
+        rows.append(("inverse flag", str(bool(self.inverse_flag))))
+        rows.append(
+            (
+                "matrix 4x4",
+                np.array2string(self.matrix, separator=", ", precision=6, suppress_small=True),
+            )
+        )
+        return _summary_panel(self, rows)
+
     def print(self) -> LinearTransform:
         """Print transformation."""
-        print(self.__str__())
+        print(self)
         return self
 
     def __call__(self, obj):
@@ -707,10 +760,26 @@ class Quaternion:
         s += "\nq (xyzw)".ljust(15) + ": " + np.array2string(self.xyzw, precision=6, separator=", ")
         s += "\nangle".ljust(15) + f": {angle}"
         s += "\naxis".ljust(15) + ": " + np.array2string(axis, precision=6, separator=", ")
-        return s
+        return _summary_string(self, s)
 
     def __repr__(self):
         return self.__str__()
+
+    def __rich__(self):
+        """Return a richer summary in terminals that support ``rich``."""
+        angle, axis = self.angle_axis()
+        rows = [
+            ("q (wxyz)", np.array2string(self.wxyz, precision=6, separator=", ")),
+            ("q (xyzw)", np.array2string(self.xyzw, precision=6, separator=", ")),
+            ("angle", f"{angle:.6f} deg"),
+            ("axis", np.array2string(axis, precision=6, separator=", ")),
+        ]
+        return _summary_panel(self, rows)
+
+    def print(self) -> Quaternion:
+        """Print quaternion details."""
+        print(self)
+        return self
 
     def __call__(self, p) -> np.ndarray:
         """Rotate a single 2D or 3D vector."""
@@ -725,11 +794,6 @@ class Quaternion:
     def from_axis_angle(cls, angle, axis=(1, 0, 0), rad=False) -> Quaternion:
         """Build a quaternion from axis-angle form."""
         return cls(axis=axis, angle=angle, rad=rad)
-
-    def print(self) -> Quaternion:
-        """Print quaternion details."""
-        print(self.__str__())
-        return self
 
     def copy(self) -> Quaternion:
         """Return a copy of the quaternion. Alias of ``clone()``."""
@@ -1083,14 +1147,34 @@ class NonLinearTransform:
             s += f"targets".ljust(9) + f": {len(q)}, bounds {np.min(q, axis=0)}, {np.max(q, axis=0)}"
         else:
             s += f"targets".ljust(9) + ": 0"
-        return s
+        return _summary_string(self, s)
 
     def __repr__(self):
         return self.__str__()
 
+    def __rich__(self):
+        p = self.source_points
+        q = self.target_points
+        rows = [("name", self.name)]
+        if self.filename:
+            rows.append(("filename", self.filename))
+        if self.comment:
+            rows.append(("comment", self.comment))
+        rows.append(("mode", self.mode))
+        rows.append(("sigma", str(self.sigma)))
+        if len(p):
+            rows.append(("sources", f"{len(p)}, bounds {np.min(p, axis=0)}, {np.max(p, axis=0)}"))
+        else:
+            rows.append(("sources", "0"))
+        if len(q):
+            rows.append(("targets", f"{len(q)}, bounds {np.min(q, axis=0)}, {np.max(q, axis=0)}"))
+        else:
+            rows.append(("targets", "0"))
+        return _summary_panel(self, rows)
+
     def print(self) -> Self:
         """Print transformation."""
-        print(self.__str__())
+        print(self)
         return self
 
     def update(self) -> Self:
@@ -1355,6 +1439,47 @@ class TransformInterpolator:
         self.vtk_interpolator = vtki.new("TransformInterpolator")
         self.mode(mode)
         self.TS: list[LinearTransform] = []
+
+    def _mode_name(self) -> str:
+        mapping = {
+            0: "linear",
+            1: "spline",
+            2: "manual",
+        }
+        return mapping.get(self.vtk_interpolator.GetInterpolationType(), "unknown")
+
+    def __str__(self):
+        module = self.__class__.__module__
+        name = self.__class__.__name__
+        s = f"\x1b[7m\x1b[1m{module}.{name} at ({hex(id(self))})".ljust(75) + "\x1b[0m"
+        s += "\nmode".ljust(15) + ": " + self._mode_name()
+        s += "\nntransforms".ljust(15) + f": {self.ntransforms}"
+        if self.ntransforms:
+            tmin, tmax = self.trange()
+            s += "\ntrange".ljust(15) + f": [{tmin}, {tmax}]"
+        else:
+            s += "\ntrange".ljust(15) + ": []"
+        return _summary_string(self, s)
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __rich__(self):
+        rows = [
+            ("mode", self._mode_name()),
+            ("ntransforms", str(self.ntransforms)),
+        ]
+        if self.ntransforms:
+            tmin, tmax = self.trange()
+            rows.append(("trange", f"[{tmin}, {tmax}]"))
+        else:
+            rows.append(("trange", "[]"))
+        return _summary_panel(self, rows)
+
+    def print(self) -> TransformInterpolator:
+        """Print interpolator details."""
+        print(self)
+        return self
 
     def __call__(self, t):
         """
