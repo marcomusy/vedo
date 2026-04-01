@@ -1,8 +1,9 @@
 from vedo import *
+import numpy as np
 
 msh = Polygon(nsides=5)
 
-pts = utils.pack_spheres(msh, radius=0.1)
+pts = pack_spheres(msh, radius=0.1)
 
 # optionally add some noise:
 jitter = np.random.randn(len(pts), 3) / 1000

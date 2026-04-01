@@ -1,7 +1,7 @@
 """Chemistry rendering and interaction example."""
 
 from vedo import show, download
-from vedo.chemistry import Molecule, PeriodicTable, Protein
+from vedo.applications.chemistry import Molecule, PeriodicTable, Protein
 
 ###################################################################
 # Create an instance of PeriodicTable

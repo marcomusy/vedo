@@ -56,12 +56,8 @@ grep -aA 3 "invalid" $VEDOLOGFILE
 code $VEDOLOGFILE  #### inspect logfile
 # (Try normal run too with visualization to make sure all is ok)
 
-
 # TUTORIALS ##################################################################
 cd ~/Projects/vedo-epug-tutorial/scripts && ./run_all.sh 
-
-# TRIMESH #####################################################################
-cd $VEDODIR/examples/other/trimesh && ./run_all.sh
 
 # OTHERS #####################################################################
 cd $VEDODIR
@@ -115,7 +111,7 @@ cd ~/Projects/napari-vedo-bridge
 ################
 cd ~/Projects/clonal_analysis
     python -m analysis_plots2d
-    python main3d_v4.py
+    python main3d_v5.py
 ################
 cd ~/Projects/clonal_analysis/clone_viewer
     ./clone_viewer3d_v2.py

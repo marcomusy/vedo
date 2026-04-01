@@ -1,6 +1,6 @@
 """Display available colormaps as horizontal color strips."""
-
-from vedo import *
+from vedo import Grid, Text3D, Plotter, printc
+from vedo.colors import cmaps_names, color_map
 
 # Set the number of colors to generate
 n = 256
@@ -9,7 +9,7 @@ n = 256
 i, grids, vnames1, vnames2 = 0, [], [], []
 
 # Loop over all available colormap names
-for name in colors.cmaps_names:
+for name in cmaps_names:
     # Skip reversed maps
     if "_r" in name:
         continue

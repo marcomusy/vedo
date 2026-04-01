@@ -61,7 +61,7 @@ Changelog = "https://github.com/marcomusy/vedo/blob/master/docs/changes.md"
 
 
 [tool.setuptools]
-py-modules = ["vedo_cli"]
+py-modules = ["cli_entry"]
 
 packages = [
     "vedo",
@@ -107,7 +107,7 @@ vedo = "vedo"
 "vedo.examples.other" = "examples/other"
 
 [project.scripts]
-vedo = "vedo_cli:main"
+vedo = "cli_entry:main"
 
 [tool.ruff.lint]
 ignore = ["F401", "E402", "E501", "E701"]
