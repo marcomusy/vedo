@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vedo"
-version = "2026.6.2.dev01"
+version = "2026.6.2.dev02"
 
 description = "A python module for scientific visualization, analysis of 3D objects and point clouds."
 
@@ -109,5 +109,5 @@ vedo = "vedo"
 vedo = "vedo.cli:main"
 
 [tool.ruff.lint]
-select = ["E", "F"]
-ignore = ["F401", "E402", "E501"]
+ignore = ["F401", "E402", "E501", "E701"]
+
