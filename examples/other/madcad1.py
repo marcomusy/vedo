@@ -2,17 +2,17 @@
 
 # Example of usage of the madcad library
 # See https://pymadcad.readthedocs.io/en/latest/index.html
-from pathlib import Path
 import sys
 
 import vedo
 from vedo.external import madcad2vedo
 
-sys.path.append(str(Path(__file__).resolve().parents[1]))
-from _optional import require_module
-
-require_module("madcad", "pymadcad")
-from madcad import *
+try:
+    from madcad import *
+except ModuleNotFoundError:
+    print("Skipping example: optional dependency 'madcad' is not installed.")
+    print("Install with: pip install pymadcad")
+    sys.exit(0)
 
 ##########################################################################
 points = [O, X, X + Z, 2 * X + Z, 2 * (X + Z), X + 2 * Z, X + 5 * Z, 5 * Z]

@@ -8,17 +8,17 @@ The script then shows the true function and learned function on a 2D grid."""
 # install with:
 #   pip install pysr
 #
-from pathlib import Path
 import sys
 
 import numpy as np
 import vedo
 
-sys.path.append(str(Path(__file__).resolve().parents[1]))
-from _optional import require_module
-
-require_module("pysr")
-from pysr import PySRRegressor
+try:
+    from pysr import PySRRegressor
+except ModuleNotFoundError:
+    print("Skipping example: optional dependency 'pysr' is not installed.")
+    print("Install with: pip install pysr")
+    sys.exit(0)
 
 # Configure inputs and run the visualization workflow.
 

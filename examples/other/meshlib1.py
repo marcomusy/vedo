@@ -1,17 +1,17 @@
 """MeshLib processing example."""
 
-from pathlib import Path
 import sys
 
 import numpy as np
 import vedo
 
-sys.path.append(str(Path(__file__).resolve().parents[1]))
-from _optional import require_module
-
-require_module("meshlib")
-from meshlib import mrmeshpy as mm
-from meshlib import mrmeshnumpy as mn
+try:
+    from meshlib import mrmeshpy as mm
+    from meshlib import mrmeshnumpy as mn
+except ModuleNotFoundError:
+    print("Skipping example: optional dependency 'meshlib' is not installed.")
+    print("Install with: pip install meshlib")
+    sys.exit(0)
 
 ################################################################################
 # Example of mesh relaxation

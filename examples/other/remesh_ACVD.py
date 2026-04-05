@@ -2,19 +2,17 @@
 
 # Needs PyACVD: pip install pyacvd
 # See: https://github.com/akaszynski/pyacvd
-from pathlib import Path
 import sys
-
 from vedo import Sphere, Mesh, show
 from vedo.pyplot import histogram
 
-sys.path.append(str(Path(__file__).resolve().parents[1]))
-from _optional import require_module
 
-pyvista = require_module("pyvista")
-require_module("pyacvd")
-from pyvista import wrap
-from pyacvd import Clustering
+try:
+    from pyacvd import Clustering
+except ModuleNotFoundError:
+    print("Skipping example: optional dependency 'pyacvd' is not installed.")
+    print("Install with: pip install pyacvd")
+    sys.exit(0)
 
 # Configure inputs and run the visualization workflow.
 msh1 = Sphere(res=50).cut_with_plane()

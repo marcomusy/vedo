@@ -1,15 +1,16 @@
 """PyMeshLab processing example."""
 
-from pathlib import Path
 import sys
 
 import vedo
 from vedo.external import vedo2meshlab
 
-sys.path.append(str(Path(__file__).resolve().parents[1]))
-from _optional import require_module
-
-pymeshlab = require_module("pymeshlab")  # tested on pymeshlab-2022.2.post2
+try:
+    import pymeshlab  # tested on pymeshlab-2022.2.post2
+except ModuleNotFoundError:
+    print("Skipping example: optional dependency 'pymeshlab' is not installed.")
+    print("Install with: pip install pymeshlab")
+    sys.exit(0)
 
 filepath = vedo.download(vedo.dataurl + "bunny.obj")
 

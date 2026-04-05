@@ -1,5 +1,4 @@
 """External-tools interoperability example."""
-
 # Credits:
 # M. Attene. A lightweight approach to repairing digitized polygon meshes.
 # The Visual Computer, 2010. (c) Springer. DOI: 10.1007/s00371-010-0416-3
@@ -10,18 +9,21 @@
 # pip install pymeshfix
 # pip install tetgen
 #
-from pathlib import Path
 import sys
-
 import vedo
 
-sys.path.append(str(Path(__file__).resolve().parents[1]))
-from _optional import require_module
-
-require_module("pymeshfix")
-require_module("tetgen")
-import pymeshfix
-import tetgen
+try:
+    import pymeshfix
+except ModuleNotFoundError:
+    print("Skipping example: optional dependency 'pymeshfix' is not installed.")
+    print("Install with: pip install pymeshfix")
+    sys.exit(0)
+try:
+    import tetgen
+except ModuleNotFoundError:
+    print("Skipping example: optional dependency 'tetgen' is not installed.")
+    print("Install with: pip install tetgen")
+    sys.exit(0)
 
 amesh = vedo.Mesh(vedo.dataurl + "290.vtk")
 
