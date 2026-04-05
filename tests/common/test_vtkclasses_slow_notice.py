@@ -20,7 +20,7 @@ def _reset_notice_state() -> None:
     vtki._slow_load_depth = 0
 
 
-def main() -> None:
+def test_vtkclasses_slow_notice() -> None:
     original_delay = vtki._SLOW_LOAD_NOTICE_DELAY
     original_import_module = vtki.import_module
     slow_module_name = "vtkmodules.vtkSlowNoticeModule"
@@ -62,8 +62,6 @@ def main() -> None:
         with contextlib.redirect_stderr(io.StringIO()) as stderr:
             assert vtki.get_class(slow_symbol) is slow_module.vtkSlowNoticeThing
         assert "please wait" not in stderr.getvalue().lower()
-
-        print("slow vtk import notice ok")
     finally:
         _reset_notice_state()
         vtki._SLOW_LOAD_NOTICE_DELAY = original_delay
@@ -72,7 +70,3 @@ def main() -> None:
         vtki.location.pop(fast_symbol, None)
         vtki.module_cache.pop(slow_module_name, None)
         vtki.module_cache.pop(fast_module_name, None)
-
-
-if __name__ == "__main__":
-    main()

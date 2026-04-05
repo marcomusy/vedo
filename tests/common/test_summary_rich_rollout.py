@@ -13,11 +13,10 @@ def capture_text(obj) -> str:
     console = Console(record=True, force_terminal=False, width=100)
     console.print(obj)
     txt = console.export_text()
-    # print(txt.strip())
     return txt
 
 
-def main() -> None:
+def test_summary_rich_rollout() -> None:
     vol = vedo.Volume(np.zeros((2, 2, 2), dtype=np.float32))
     assert "dimensions" in capture_text(vol)
     assert "scalar range" in capture_text(vol)
@@ -76,7 +75,3 @@ def main() -> None:
 
     settings_txt = capture_text(vedo.settings)
     assert "default_font" in settings_txt
-
-
-if __name__ == "__main__":
-    main()

@@ -6,10 +6,18 @@ from __future__ import annotations
 import contextlib
 import io
 
+import pytest
+
 import vedo
 
 
-def main() -> None:
+@pytest.mark.optional_dependency
+@pytest.mark.rendering
+def test_trame_backend_wiring() -> None:
+    pytest.importorskip("trame")
+    pytest.importorskip("trame_vtk")
+    pytest.importorskip("trame_vuetify")
+
     previous_backend = vedo.settings.default_backend
     vedo.settings.default_backend = "trame"
 
@@ -30,8 +38,3 @@ def main() -> None:
     assert state_ok
     assert "trame-vtk" not in message
     assert "trame-vuetify" not in message
-    print("trame smoke ok")
-
-
-if __name__ == "__main__":
-    main()

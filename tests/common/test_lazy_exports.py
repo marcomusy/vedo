@@ -52,20 +52,12 @@ def _assert_names_resolve(module_name: str, names: list[str] | tuple[str, ...]) 
         getattr(module, name)
 
 
-def main() -> None:
+def test_lazy_exports_resolve() -> None:
     for module_name in MODULES:
         module = importlib.import_module(module_name)
         exports = list(getattr(module, "__all__", ()))
         assert exports, f"{module_name} has no __all__ exports"
         _assert_names_resolve(module_name, exports)
-        print(f"{module_name}: resolved {len(exports)} __all__ exports")
 
     for module_name, names in COMPAT_NAMES.items():
         _assert_names_resolve(module_name, names)
-        print(f"{module_name}: resolved {len(names)} compatibility exports")
-
-    print("lazy export guardrails ok")
-
-
-if __name__ == "__main__":
-    main()

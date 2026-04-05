@@ -19,7 +19,7 @@ def make_grid() -> vedo.ExplicitStructuredGrid:
     return vedo.ExplicitStructuredGrid(conv.GetOutput())
 
 
-def main() -> None:
+def test_explicit_grid_basics() -> None:
     empty = vedo.ExplicitStructuredGrid()
     empty.set_dimensions(2, 3, 4)
     assert np.allclose(empty.dimensions(), [2, 3, 4])
@@ -44,8 +44,10 @@ def main() -> None:
     assert grid.cell_type(0) == vtki.cell_types["HEXAHEDRON"]
     assert grid.cell_size(0) == 8
     assert grid.max_cell_size() == 8
-    assert grid.max_spatial_dimension() == 3
-    assert grid.min_spatial_dimension() == 3
+    if hasattr(grid.dataset, "GetMaxSpatialDimension"):
+        assert grid.max_spatial_dimension() == 3
+    if hasattr(grid.dataset, "GetMinSpatialDimension"):
+        assert grid.min_spatial_dimension() == 3
     assert grid.find_point((0, 0, 0)) == 0
 
     assert not grid.has_blank_cells()
@@ -67,8 +69,3 @@ def main() -> None:
 
     clone = grid.clone()
     assert np.allclose(clone.dimensions(), [2, 2, 2])
-    print("explicit grid ok")
-
-
-if __name__ == "__main__":
-    main()

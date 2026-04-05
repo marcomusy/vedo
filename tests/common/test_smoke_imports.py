@@ -9,7 +9,7 @@ import vedo
 import vedo.transformations
 
 
-def main() -> None:
+def test_smoke_imports() -> None:
     pts = vedo.Points(np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]]))
     msh = vedo.Sphere(res=12).compute_normals()
     vol = vedo.Volume(np.zeros((8, 8, 8)))
@@ -18,8 +18,3 @@ def main() -> None:
     assert pts.npoints == 2
     assert msh.npoints > 0
     assert vol.npoints > 0
-    print("smoke ok")
-
-
-if __name__ == "__main__":
-    main()

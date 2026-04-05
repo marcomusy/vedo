@@ -1,12 +1,10 @@
-print("IMPORTING vtkclasses")
-try:
-    import vedo.vtkclasses
-except:
-    assert False
-    exit(1)
-
-print("importing vtkclasses success")
+from __future__ import annotations
 
 import numpy as np
 
-print("NUMPY Version:", np.__version__)
+import vedo.vtkclasses
+
+
+def test_vtkclasses_imports() -> None:
+    assert vedo.vtkclasses is not None
+    assert np.__version__

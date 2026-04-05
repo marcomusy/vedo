@@ -8,7 +8,7 @@ import numpy as np
 from vedo import Arrows, Plotter, Sphere
 
 
-def main() -> None:
+def test_plotter_scene_object_lookup() -> None:
     plt = Plotter(offscreen=True)
 
     pts = np.column_stack(
@@ -20,7 +20,6 @@ def main() -> None:
     del sphere.actor.retrieve_object
 
     plt.add(sphere, arrows)
-    plt.show(interactive=False)
 
     pickable_meshes = plt.get_meshes()
     all_meshes = plt.get_meshes(include_non_pickables=True)
@@ -30,8 +29,3 @@ def main() -> None:
     assert arrows not in pickable_meshes
     assert sphere in all_meshes
     assert arrows in all_meshes
-    print("plotter scene ok")
-
-
-if __name__ == "__main__":
-    main()

@@ -111,3 +111,16 @@ vedo = "cli_entry:main"
 
 [tool.ruff.lint]
 ignore = ["F401", "E402", "E501", "E701"]
+
+[tool.pytest.ini_options]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--ignore=tests/issues",
+    "--ignore=tests/snippets",
+]
+testpaths = ["tests/common"]
+markers = [
+    "optional_dependency: requires an optional runtime dependency",
+    "rendering: exercises rendering or Plotter plumbing",
+]
