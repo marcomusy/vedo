@@ -13,6 +13,22 @@ from vedo.plotter.events import Event
 __docformat__ = "google"
 
 
+def _scene_object_from_prop(plotter, prop):
+    """Resolve a renderer prop back to its vedo wrapper when possible."""
+    try:
+        obj = prop.retrieve_object()
+    except AttributeError:
+        obj = None
+
+    if obj is not None:
+        return obj
+
+    for ob in plotter.objects:
+        if getattr(ob, "actor", None) is prop:
+            return ob
+    return None
+
+
 def add(plotter, *objs, at=None) -> Any:
     """
     Append the input objects to the internal list of objects to be shown.
@@ -91,13 +107,10 @@ def remove(plotter, *objs, at=None) -> Any:
             name = ob
             for a in on_scene_actors:
                 # print("->> checking", [a])
-                try:
-                    vobj = a.retrieve_object()
+                vobj = _scene_object_from_prop(plotter, a)
+                if vobj and utils.string_match(name, vobj.name):
                     # print(" ->> found", [vobj], vobj.name)
-                    if utils.string_match(name, vobj.name):
-                        objs_to_remove.append(a)
-                except AttributeError:
-                    pass
+                    objs_to_remove.append(vobj)
 
         elif isinstance(ob, vedo.addons.BaseCutter):
             ob.remove_from(plotter)  # from cutters
@@ -213,10 +226,9 @@ def get_meshes(
                 continue
             if has_global_axes and a in plotter.axes_instances[at].actors:
                 continue
-            try:
-                objs.append(a.retrieve_object())
-            except AttributeError:
-                pass
+            obj = _scene_object_from_prop(plotter, a)
+            if obj is not None:
+                objs.append(obj)
     return objs
 
 
@@ -238,10 +250,9 @@ def get_volumes(plotter, at=None, include_non_pickables=False) -> list:
     for _ in range(acs.GetNumberOfItems()):
         a = acs.GetNextItem()
         if include_non_pickables or a.GetPickable():
-            try:
-                vols.append(a.retrieve_object())
-            except AttributeError:
-                pass
+            obj = _scene_object_from_prop(plotter, a)
+            if obj is not None:
+                vols.append(obj)
     return vols
 
 
