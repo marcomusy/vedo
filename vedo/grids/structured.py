@@ -310,11 +310,10 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
     def dimensions(self) -> np.ndarray:
         """Return the number of points in the x, y and z directions."""
         try:
-            dims = self.dataset.GetDimensions()
-        except Exception:
             dims = [0, 0, 0]
             self.dataset.GetDimensions(dims)
-            return np.array(dims)
+        except Exception:
+            dims = self.dataset.GetDimensions()
         return np.array(dims)
 
     def clone(self, deep=True) -> StructuredGrid:
