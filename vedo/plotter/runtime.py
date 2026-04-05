@@ -319,15 +319,7 @@ def show(
                 and not offscreen
                 and (interactive is None or interactive)
             ):
-                plt.interactor.Start()
-                if plt._must_close_now:
-                    plt.interactor.GetRenderWindow().Finalize()
-                    plt.interactor.TerminateApp()
-                    plt.interactor = None
-                    plt.window = None
-                    plt.renderer = None
-                    plt.renderers = []
-                    plt.camera = None
+                plt.interactive()
 
     else:
         _plt_to_return = plt.show(
@@ -2358,15 +2350,7 @@ class Plotter:
                 self.screenshot(screenshot)
 
             if self._interactive and self.interactor:
-                self.interactor.Start()
-                if self._must_close_now and self.interactor:
-                    self.interactor.GetRenderWindow().Finalize()
-                    self.interactor.TerminateApp()
-                    self.camera = None
-                    self.renderer = None
-                    self.renderers = []
-                    self.window = None
-                    self.interactor = None
+                self.interactive()
                 return self
 
             if rate:

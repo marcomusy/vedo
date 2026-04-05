@@ -5,7 +5,6 @@ system and displays them as a live 3D point cloud. Particle colors
 are derived from instantaneous speed, making the slower recirculating regions
 and faster streaming regions of the flow easier to read visually.
 """
-
 import numpy as np
 from vedo import Axes, Plotter, Points, color_map
 
@@ -50,6 +49,7 @@ states = seed_center + np.random.normal(0, 0.05, (particle_count, 3))
 render_positions = states * render_scale
 swarm_points = Points(render_positions, r=3)
 swarm_points.pointcolors = cloud_colors(states, "managua")
+axes = Axes(xrange=[-5, 5], yrange=[-5, 5], c="white").shift([0, 0, -2])
 
 
 def loop_func(_event):
@@ -61,10 +61,13 @@ def loop_func(_event):
     # swarm_points.pointcolors = cloud_colors(states, "managua")
     plotter.render()
 
+# plotter = Plotter(bg="#151325", bg2="#252335", size=(1200, 1200))
+# plotter.show(swarm_points, axes, viewup="z", interactive=False)
+# plotter.add_callback("timer", loop_func, enable_picking=False)
+# plotter.timer_callback("start", dt=10)
+# plotter.interactive().close()
 
 plotter = Plotter(bg="#151325", bg2="#252335", size=(1200, 1200))
-axes = Axes(xrange=[-5, 5], yrange=[-5, 5]).shift([0, 0, -2])
-plotter.show(swarm_points, axes, viewup="z", interactive=False)
 plotter.add_callback("timer", loop_func, enable_picking=False)
 plotter.timer_callback("start", dt=10)
-plotter.interactive().close()
+plotter.show(swarm_points, axes, viewup="z").close()

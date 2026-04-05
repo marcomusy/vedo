@@ -39,3 +39,4 @@ output_vedo_test.txt
 test.v*
 store/
 vedo/.codex
+.codex

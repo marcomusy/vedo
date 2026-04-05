@@ -128,7 +128,6 @@ def _print_keymap_notice(
 
 
 def _print_keymap_info(title: str, obj) -> None:
-    vedo.printc((" " + title + " ").ljust(75), invert=True, c="g")
     printer = getattr(obj, "print", None)
     if callable(printer):
         printer()

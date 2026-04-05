@@ -96,7 +96,7 @@ def use_depth_peeling(plotter, at=None, value=True) -> Any:
 
 
 def clear(plotter, at=None, deep=False) -> Any:
-    """Clear the scene from all meshes and volumes."""
+    """Clear the scene from all visible objects."""
     renderer = plotter.renderer if at is None else plotter.renderers[at]
     if not renderer:
         return plotter
@@ -111,6 +111,8 @@ def clear(plotter, at=None, deep=False) -> Any:
             + plotter.axes_instances
         ):
             if isinstance(ob, vedo.shapes.Text2D):
+                # the object is not removed but the text is cleared
+                ob.mapper.SetInput("")
                 continue
             plotter.remove(ob)
             try:
