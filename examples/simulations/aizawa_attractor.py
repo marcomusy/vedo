@@ -61,12 +61,6 @@ def loop_func(_event):
     # swarm_points.pointcolors = cloud_colors(states, "managua")
     plotter.render()
 
-# plotter = Plotter(bg="#151325", bg2="#252335", size=(1200, 1200))
-# plotter.show(swarm_points, axes, viewup="z", interactive=False)
-# plotter.add_callback("timer", loop_func, enable_picking=False)
-# plotter.timer_callback("start", dt=10)
-# plotter.interactive().close()
-
 plotter = Plotter(bg="#151325", bg2="#252335", size=(1200, 1200))
 plotter.add_callback("timer", loop_func, enable_picking=False)
 plotter.timer_callback("start", dt=10)
