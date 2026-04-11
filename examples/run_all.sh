@@ -1,6 +1,8 @@
 #!/bin/bash
 #
 
+echo "Running all examples in the 'examples' folder. This may take a while..."
+
 cd basic;       ./run_all.sh; cd ..
 
 cd advanced;    ./run_all.sh; cd ..
@@ -13,39 +15,4 @@ cd pyplot;      ./run_all.sh; cd ..
 
 cd other;       ./run_all.sh; cd ..
 
-#################################  command line tests
-echo '---------------------------- command line tests'
-echo vedo
-vedo
-
-echo '----------------------------'
-echo vedo  ../data/2*.vtk
-vedo       ../data/2*.vtk
-
-echo '----------------------------'
-echo vedo  ../data/2*.vtk
-vedo  -ni -k glossy ../data/2*.vtk
-
-echo '----------------------------'
-echo vedo -s  "../data/2??.vtk"
-vedo      -s   ../data/2??.vtk
-
-echo '----------------------------'
-echo vedo  ../data/embryo.tif
-vedo       ../data/embryo.tif
-
-echo '----------------------------'
-echo vedo -g ../data/embryo.slc
-vedo      -g ../data/embryo.slc
-
-echo '----------------------------'
-echo vedo --slicer2d ../data/embryo.tif
-vedo      --slicer2d ../data/embryo.tif
-
-echo '----------------------------'
-echo vedo --slicer3d ../data/embryo.tif
-vedo      --slicer3d ../data/embryo.tif
-
-echo '----------------------------'
-echo vedo --eog ../data/uv_grid.jpg
-vedo      --eog ../data/uv_grid.jpg
+echo "All examples have been processed."
