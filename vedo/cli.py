@@ -55,6 +55,56 @@ def _get_install_dir():
     return package_dir
 
 
+def _get_gpu_info_rows():
+    try:
+        from vtkmodules.vtkCommonCore import vtkObject
+        from vtkmodules.vtkRenderingOpenGL2 import vtkOpenGLRenderWindow
+
+        previous_warning_state = vtkObject.GetGlobalWarningDisplay()
+        vtkObject.GlobalWarningDisplayOff()
+        render_window = None
+        try:
+            render_window = vtkOpenGLRenderWindow()
+            render_window.SetOffScreenRendering(1)
+            render_window.Initialize()
+            capabilities = render_window.ReportCapabilities() or ""
+        finally:
+            if render_window is not None:
+                render_window.Finalize()
+            if previous_warning_state:
+                vtkObject.GlobalWarningDisplayOn()
+            else:
+                vtkObject.GlobalWarningDisplayOff()
+    except Exception:
+        return []
+
+    values = {}
+    for key, prefix in (
+        ("vendor", "OpenGL vendor string"),
+        ("renderer", "OpenGL renderer string"),
+        ("version", "OpenGL version string"),
+    ):
+        for line in capabilities.splitlines():
+            if line.startswith(prefix):
+                values[key] = line.split(":", 1)[1].strip()
+                break
+
+    rows = []
+    renderer = values.get("renderer")
+    vendor = values.get("vendor")
+    if renderer and vendor:
+        rows.append(("GPU Renderer", f"{vendor} {renderer}"))
+    elif renderer:
+        rows.append(("GPU Renderer", renderer))
+    elif vendor:
+        rows.append(("GPU Vendor", vendor))
+
+    version = values.get("version")
+    if version:
+        rows.append(("GPU Version", version))
+    return rows
+
+
 def _ensure_cli_runtime():
     global vedo, np, humansort, get_color, printc
     if vedo is not None:
@@ -76,12 +126,6 @@ def _ensure_cli_runtime():
 
 ##############################################################################################
 def main():
-    """Execute the command line interface and return the result."""
-    return execute_cli()
-
-
-##############################################################################################
-def execute_cli():
     """Execute the command line interface and return the result."""
     parser = get_parser()
     args = parser.parse_args()
@@ -126,7 +170,36 @@ def execute_cli():
 
     elif len(args.files) == 0:
         system_info()
-        print_no_input_hint()
+        message = "No input files provided. Try one of these:"
+        example = (
+            "vedo https://vedo.embl.es/examples/data/panther.stl\n"
+            "or explore a built-in example with:\n"
+            "vedo -r warp1"
+        )
+        try:
+            from rich import box
+            from rich.console import Console
+            from rich.panel import Panel
+            from rich.text import Text
+
+            body = Text()
+            body.append(f"{message}\n", style="bold yellow")
+            body.append("vedo https://vedo.embl.es/examples/data/panther.stl\n", style="bold white")
+            body.append("or explore a built-in example with:\n", style="bold yellow")
+            body.append("vedo -r warp1", style="bold white")
+            Console().print(
+                Panel(
+                    body,
+                    box=box.ROUNDED,
+                    title_align="left",
+                    border_style="yellow",
+                    padding=(0, 1),
+                    expand=False,
+                )
+            )
+        except ModuleNotFoundError:
+            print(f":idea: {message}")
+            print(f" {example}")
         return 0
 
     else:
@@ -333,7 +406,8 @@ def system_info():
     vtk_version = _get_pkg_version("vtk", fallback="unknown")
     numpy_version = _get_pkg_version("numpy", fallback="unknown")
     rows = [
-        ("vedo version", f"{vedo_version}  (https://vedo.embl.es)"),
+        ("vedo version", vedo_version),
+        ("homepage", "https://vedo.embl.es"),
         ("vtk version", vtk_version),
         ("numpy version", numpy_version),
         ("python version", sys.version.replace(chr(10), "")),
@@ -360,9 +434,11 @@ def system_info():
     except ModuleNotFoundError:
         pass
 
-    k3d_version = _get_pkg_version("k3d", fallback=None)
-    if k3d_version is not None:
-        rows.append(("k3d version", k3d_version))
+    rows.extend(_get_gpu_info_rows())
+
+    # k3d_version = _get_pkg_version("k3d", fallback=None)
+    # if k3d_version is not None:
+    #     rows.append(("k3d version", k3d_version))
 
     try:
         from rich import box
@@ -386,7 +462,7 @@ def system_info():
             Panel(
                 table,
                 box=box.ROUNDED,
-                title=Text("vedo", style="bold white"),
+                # title=Text("vedo", style="bold white"),
                 subtitle=Text("System Info", style="bold cyan"),
                 title_align="left",
                 subtitle_align="right",
@@ -404,34 +480,6 @@ def system_info():
     #     printc("trame version     :", trame.__version__, bold=0, dim=1)
     # except ModuleNotFoundError:
     #     pass
-
-
-def print_no_input_hint():
-    message = "No input files? Try:"
-    example = "vedo https://vedo.embl.es/examples/data/panther.stl.gz"
-    try:
-        from rich import box
-        from rich.console import Console
-        from rich.panel import Panel
-        from rich.text import Text
-
-        body = Text()
-        body.append(f"{message}\n", style="bold yellow")
-        body.append(example, style="bold white")
-        Console().print(
-            Panel(
-                body,
-                box=box.ROUNDED,
-                title=Text("Tip", style="bold yellow"),
-                title_align="left",
-                border_style="yellow",
-                padding=(0, 1),
-                expand=False,
-            )
-        )
-    except ModuleNotFoundError:
-        print(f":idea: {message}")
-        print(f" {example}")
 
 
 #################################################################################################
