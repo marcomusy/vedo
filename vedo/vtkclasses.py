@@ -109,6 +109,13 @@ for name in [
 location["vtkNamedColors"] = "vtkCommonColor"
 
 location["vtkIntegrateAttributes"] = "vtkFiltersParallel"
+location["vtkGaussianCubeReader"] = "vtkIOChemistry"
+location["vtkPDBReader"] = "vtkIOChemistry"
+location["vtkMoleculeAppend"] = "vtkFiltersCore"
+location["vtkMoleculeMapper"] = "vtkDomainsChemistry"
+location["vtkPeriodicTable"] = "vtkDomainsChemistry"
+location["vtkProteinRibbonFilter"] = "vtkDomainsChemistry"
+location["vtkMolecule"] = "vtkCommonDataModel"
 
 # noinspection PyUnresolvedReferences
 from vtkmodules.vtkCommonCore import (

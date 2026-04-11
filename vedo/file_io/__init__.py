@@ -16,6 +16,7 @@ _LAZY_EXPORT_MAP, __all__ = build_attr_map(
             "from_numpy",
             "load",
             "load3DS",
+            "loadGaussianCube",
             "loadGeoJSON",
             "loadGmesh",
             "loadImageData",

@@ -1,14 +1,8 @@
 from __future__ import annotations
 import numpy as np
-from vtkmodules.util.numpy_support import vtk_to_numpy
-from vtkmodules.vtkCommonDataModel import vtkMolecule
-from vtkmodules.vtkFiltersCore import vtkMoleculeAppend
-from vtkmodules.vtkIOChemistry import vtkPDBReader
-from vtkmodules.vtkRenderingCore import vtkActor, vtkPolyDataMapper
-from vtkmodules.vtkDomainsChemistry import vtkPeriodicTable, vtkMoleculeMapper
-from vtkmodules.vtkDomainsChemistry import vtkProteinRibbonFilter
-from vtkmodules.vtkCommonCore import vtkIdList
-from vtkmodules.vtkCommonDataModel import vtkPolyData
+import vedo
+import vedo.vtkclasses as vtki
+from vedo.colors import get_color
 from vedo.core.summary import summary_panel, summary_string
 
 __doc__ = """
@@ -36,7 +30,7 @@ class PeriodicTable:
         """
         Initialize the PeriodicTable with VTK's built-in periodic table data.
         """
-        self.periodic_table = vtkPeriodicTable()
+        self.periodic_table = vtki.new("PeriodicTable")
 
     def get_element_name(self, atomic_number):
         """
@@ -215,7 +209,7 @@ def append_molecules(molecules):
         raise ValueError("No molecules provided to append.")
 
     # Create an instance of vtkMoleculeAppend
-    append_filter = vtkMoleculeAppend()
+    append_filter = vtki.new("MoleculeAppend")
 
     # Add each molecule's vtkMolecule to the append filter
     for mol in molecules:
@@ -339,66 +333,62 @@ class Atom:
 
 
 class Molecule:
-    def __init__(self, pdb_file=None):
+    def __init__(self, input_data=None):
         # Create an empty molecule
-        self.molecule = vtkMolecule()
+        self.molecule = vtki.new("Molecule")
 
         # Configure the mapper and actor for rendering
-        self.mapper = vtkMoleculeMapper()
-        self.actor = vtkActor()
+        self.mapper = vtki.new("MoleculeMapper")
+        self.actor = vtki.new("Actor")
         self.property = self.actor.GetProperty()
 
-        if pdb_file:
+        if isinstance(input_data, str):
+            if input_data.startswith("https://"):
+                input_data = vedo.file_io.download(input_data, verbose=False)
             # Create and configure the PDB reader
-            reader = vtkPDBReader()
-            reader.SetFileName(pdb_file)
+            reader = vtki.new("PDBReader")
+            reader.SetFileName(input_data)
             reader.Update()
-
-            # Get the PDB data
             pdb_data = reader.GetOutput()
-            # print the point data available
-            # print(pdb_data.GetPointData())
-            # Array 0 name = atom_type
-            # Array 1 name = atom_types
-            # Array 2 name = residue
-            # Array 3 name = chain
-            # Array 4 name = secondary_structures
-            # Array 5 name = secondary_structures_begin
-            # Array 6 name = secondary_structures_end
-            # Array 7 name = ishetatm
-            # Array 8 name = model
-            # Array 9 name = rgb_colors
-            # Array 10 name = radius
-            # for i in range(pdb_data.GetPointData().GetNumberOfArrays()):
-            #     print(pdb_data.GetPointData().GetArray(i))
+        elif isinstance(input_data, vtki.vtkMolecule):
+            self.molecule = input_data
+            pdb_data = None
+        elif isinstance(input_data, vtki.vtkPolyData):
+            pdb_data = input_data
+        elif hasattr(input_data, "dataset") and isinstance(input_data.dataset, vtki.vtkPolyData):
+            pdb_data = input_data.dataset
+        else:
+            pdb_data = None
+
+        if pdb_data is not None:
             points = pdb_data.GetPoints()
-            point_data = pdb_data.GetPointData()
+            if points is None:
+                vedo.logger.error(f"Could not read molecule input {input_data}")
+            else:
+                point_data = pdb_data.GetPointData()
 
-            # Extract atom information and add to molecule
-            for i in range(points.GetNumberOfPoints()):
-                position = points.GetPoint(i)
-                # Default to Carbon if atomic number is not available
-                atomic_number = 6
-                if point_data.GetScalars("atom_type"):
-                    atomic_number = int(point_data.GetScalars("atom_type").GetValue(i))
-                # Add atom to molecule
-                # if point_data.GetScalars("rgb_colors"):
-                #     color = point_data.GetScalars("rgb_colors").GetTuple3(i)
-                #     self.actor.GetProperty().SetColor(color)
-                self.molecule.AppendAtom(atomic_number, position)
+                # Extract atom information and add to molecule
+                for i in range(points.GetNumberOfPoints()):
+                    position = points.GetPoint(i)
+                    # Default to Carbon if atomic number is not available
+                    atomic_number = 6
+                    if point_data.GetScalars("atom_type"):
+                        atomic_number = int(point_data.GetScalars("atom_type").GetValue(i))
+                    # Add atom to molecule
+                    self.molecule.AppendAtom(atomic_number, position)
 
-            # Add bonds if available
-            if pdb_data.GetLines():
-                lines = pdb_data.GetLines()
-                lines.InitTraversal()
-                id_list = vtkIdList()
-                while lines.GetNextCell(id_list):
-                    if id_list.GetNumberOfIds() == 2:
-                        self.molecule.AppendBond(
-                            id_list.GetId(0),
-                            id_list.GetId(1),
-                            1,  # Default to single bond
-                        )
+                # Add bonds if available
+                if pdb_data.GetLines():
+                    lines = pdb_data.GetLines()
+                    lines.InitTraversal()
+                    id_list = vtki.new("IdList")
+                    while lines.GetNextCell(id_list):
+                        if id_list.GetNumberOfIds() == 2:
+                            self.molecule.AppendBond(
+                                id_list.GetId(0),
+                                id_list.GetId(1),
+                                1,  # Default to single bond
+                            )
 
         # Set the molecule as input to the mapper
         self.mapper.SetInputData(self.molecule)
@@ -485,7 +475,7 @@ class Molecule:
         """
         if not self.molecule.GetPointData().HasArray(name):
             raise ValueError(f"Array '{name}' not found in molecule.")
-        return vtk_to_numpy(self.molecule.GetPointData().GetArray(name))
+        return vedo.utils.vtk2numpy(self.molecule.GetPointData().GetArray(name))
 
     def append_bond(self, atom1, atom2, order=1):
         """Add a bond between two atoms.
@@ -629,6 +619,25 @@ class Molecule:
         self.mapper.SetBondRadius(radius)
         return self
 
+    def use_multi_cylinders_for_bonds(self, value=True):
+        """Render each bond as one cylinder or as multi-colored half-cylinders."""
+        self.mapper.SetUseMultiCylindersForBonds(value)
+        return self
+
+    def set_bond_color_mode(self, mode="discrete"):
+        """Set bond coloring mode to either 'discrete' or 'single'."""
+        if str(mode).lower().startswith("single"):
+            self.mapper.SetBondColorModeToSingleColor()
+        else:
+            self.mapper.SetBondColorModeToDiscreteByAtom()
+        return self
+
+    def set_bond_color(self, color):
+        """Set a single bond color."""
+        rgb = (np.array(get_color(color)) * 255).astype(np.uint8)
+        self.mapper.SetBondColor(int(rgb[0]), int(rgb[1]), int(rgb[2]))
+        return self
+
 
 class Protein:
     """
@@ -659,35 +668,55 @@ class Protein:
 
         # Handle different input types
         if isinstance(input_data, str):
+            if input_data.startswith("https://"):
+                input_data = vedo.file_io.download(input_data, verbose=False)
             # Read PDB file using vtkPDBReader
-            reader = vtkPDBReader()
+            reader = vtki.new("PDBReader")
             reader.SetFileName(input_data)
             reader.Update()
             self.input_data = reader.GetOutput()
-        elif isinstance(input_data, vtkMolecule):
+        elif isinstance(input_data, vtki.vtkMolecule):
             self.input_data = input_data
-        elif isinstance(input_data, vtkPolyData):
+        elif isinstance(input_data, vtki.vtkPolyData):
             self.input_data = input_data
         else:
             raise ValueError(
                 "Input must be a PDB file path, vtkMolecule, or vtkPolyData."
             )
 
+        if (
+            self.input_data is None
+            or not self.input_data.GetPoints()
+            or self.input_data.GetNumberOfPoints() == 0
+        ):
+            vedo.logger.error(f"Could not read protein input {input_data}")
+
         # Create and configure the ribbon filter
-        self.filter = vtkProteinRibbonFilter()
+        self.filter = vtki.new("ProteinRibbonFilter")
         self.filter.SetInputData(self.input_data)
-        self.filter.Update()
 
         # Set up the mapper and actor for rendering
-        self.mapper = vtkPolyDataMapper()
+        self.mapper = vtki.new("PolyDataMapper")
         self.mapper.SetInputConnection(self.filter.GetOutputPort())
-        self.actor = vtkActor()
+        self.actor = vtki.new("Actor")
         self.actor.SetMapper(self.mapper)
         self.property = self.actor.GetProperty()
+        self._refresh_mapper_input()
 
-        # Set default visual properties
-        self.property.SetColor(1.0, 0.8, 0.6)  # Soft peach color
+        # Keep the ribbon coloring from vtkProteinRibbonFilter, but use a darker palette
+        # so proteins remain visible on vedo's white background.
+        self.property.SetColor(1.0, 1.0, 1.0)
         self.property.SetOpacity(1.0)
+
+    def _refresh_mapper_input(self):
+        self.filter.Update()
+        rgb_array = self.filter.GetOutput().GetPointData().GetArray("RGB")
+        if rgb_array:
+            rgb = vedo.utils.vtk2numpy(rgb_array)
+            rgb[:] = np.clip(rgb.astype(np.float32) * 0.3, 0, 255).astype(np.uint8)
+            rgb_array.Modified()
+        self.mapper.Update()
+        return self
 
     def set_coil_width(self, width):
         """
@@ -698,8 +727,7 @@ class Protein:
                 The width of the coil regions.
         """
         self.filter.SetCoilWidth(width)
-        self.filter.Update()
-        return self
+        return self._refresh_mapper_input()
 
     def set_helix_width(self, width):
         """
@@ -710,8 +738,7 @@ class Protein:
                 The width of the helix regions.
         """
         self.filter.SetHelixWidth(width)
-        self.filter.Update()
-        return self
+        return self._refresh_mapper_input()
 
     def set_sphere_resolution(self, resolution):
         """
@@ -722,5 +749,4 @@ class Protein:
                 The resolution of the spheres.
         """
         self.filter.SetSphereResolution(resolution)
-        self.filter.Update()
-        return self
+        return self._refresh_mapper_input()

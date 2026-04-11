@@ -244,6 +244,7 @@ _LAZY_EXPORT_MAP, _LAZY_EXPORTS = build_attr_map(
             "read",
             "download",
             "gunzip",
+            "loadGaussianCube",
             "loadStructuredPoints",
             "loadStructuredGrid",
             "write",

@@ -24,6 +24,7 @@ __docformat__ = "google"
 __all__ = [
     "load",
     "_load_file",
+    "loadGaussianCube",
     "loadStructuredPoints",
     "loadStructuredGrid",
     "load3DS",
@@ -200,10 +201,13 @@ def _load_file(filename, unpack):
 
     ######################################################## volumetric:
     elif fl.endswith(
-        (".tif", ".tiff", ".slc", ".vti", ".mhd", ".nrrd", ".nii", ".dem")
+        (".tif", ".tiff", ".slc", ".vti", ".mhd", ".nrrd", ".nii", ".dem", ".cube")
     ):
-        img = loadImageData(filename)
-        objt = Volume(img)
+        if fl.endswith(".cube"):
+            _, objt = loadGaussianCube(filename)
+        else:
+            img = loadImageData(filename)
+            objt = Volume(img)
 
     ######################################################### 2D images:
     elif fl.endswith((".jpg", ".jpeg", ".png", ".bmp", ".gif")):
@@ -927,9 +931,38 @@ def _import_npy(fileinput: str | os.PathLike) -> vedo.Plotter:
 
 
 ###########################################################
+def loadGaussianCube(
+    filename: str | os.PathLike,
+    b_scale: float = 1.0,
+    hb_scale: float = 1.0,
+    ) -> tuple[Mesh, Volume]:
+    """
+    Read a Gaussian cube file.
+
+    Arguments:
+        b_scale : (float)
+            Bond scaling factor used by `vtkGaussianCubeReader`.
+        hb_scale : (float)
+            Hydrogen bond scaling factor used by `vtkGaussianCubeReader`.
+    """
+    reader = vtki.new("GaussianCubeReader")
+    reader.SetFileName(str(filename))
+    reader.SetBScale(b_scale)
+    reader.SetHBScale(hb_scale)
+    reader.Update()
+    poly = Mesh(reader.GetOutput())
+    volume = Volume(reader.GetGridOutput())
+    return poly, volume
+
+
+###########################################################
 def loadImageData(filename: str | os.PathLike) -> vtki.vtkImageData | None:
     """Read and return a `vtkImageData` object from file."""
     filename = str(filename)
+    if ".cube" in filename.lower():
+        _, volume = loadGaussianCube(filename)
+        return volume.dataset
+
     if ".ome.tif" in filename.lower():
         reader = vtki.new("OMETIFFReader")
         # print("GetOrientationType ", reader.GetOrientationType())
