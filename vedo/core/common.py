@@ -11,7 +11,6 @@ import numpy as np
 import vedo.vtkclasses as vtki
 
 import vedo
-from vedo import colors
 from vedo import utils
 from vedo.core.transformations import LinearTransform
 from vedo.core.data import DataArrayHelper, _get_data_legacy_format
@@ -288,8 +287,8 @@ class CommonAlgorithms:
 
     def inputdata(cls):
         """Obsolete, use `.dataset` instead."""
-        colors.printc(
-            "WARNING: 'inputdata()' is obsolete, use '.dataset' instead.", c="y"
+        vedo.logger.warning(
+            "'inputdata()' is obsolete, use '.dataset' instead."
         )
         return cls.dataset
 

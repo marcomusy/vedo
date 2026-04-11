@@ -481,7 +481,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
             elif isinstance(o, vtki.vtkUnstructuredGrid):
                 apf.AddInputData(o)
             else:
-                vedo.printc("Error: cannot merge type", type(o), c="r")
+                vedo.logger.error(f"Error: cannot merge type {type(o)}")
         apf.Update()
         self._update(apf.GetOutput())
         self.pipeline = utils.OperationNode(

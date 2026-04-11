@@ -451,7 +451,7 @@ def exe_run(args):
     matching = list(sorted(matching))
     nmat = len(matching)
     if nmat == 0:
-        printc(f":sad: No matching example with name: {args.run}", c="y")
+        vedo.logger.warning(f"No matching example with name: {args.run}")
         # Nothing found, try to search for a script content:
         args.search = args.run
         args.run = ""
@@ -545,8 +545,8 @@ def exe_convert(args):
     target_ext = args.to.lower()
 
     if target_ext not in allowed_exts:
-        printc(
-            f":sad: Sorry target cannot be {target_ext}\nMust be {allowed_exts}", c="r"
+        vedo.logger.error(
+            f"Sorry target cannot be {target_ext}. Must be {allowed_exts}"
         )
         sys.exit()
 
@@ -605,7 +605,7 @@ def exe_search(args):
                         print(f"\u001b[33m{i}\t{line}\x1b[0m", end="")
                         # printc(i, line, c='y', bold=False, end='')
     else:
-        printc("Please use at least 4 letters in keyword search!", c="r")
+        vedo.logger.warning("Please use at least 4 letters in keyword search!")
 
 
 ##############################################################################################
@@ -624,7 +624,7 @@ def exe_search_code(args):
         iopt = True
 
     if len(key) < 4:
-        printc("Please use at least 4 letters in keyword search!", c="r")
+        vedo.logger.warning("Please use at least 4 letters in keyword search!")
         return
 
     def _dump(mcontent):
@@ -774,8 +774,8 @@ def exe_locate(args):
     """Locate the fully qualified module path for a vedo class name."""
     target = (args.locate or "").strip()
     if not target:
-        printc(
-            ":sad: Please provide a class name, e.g. `vedo --locate Paraboloid`", c="y"
+        vedo.logger.warning(
+            "Please provide a class name, e.g. `vedo --locate Paraboloid`"
         )
         return
 
@@ -836,7 +836,7 @@ def exe_locate(args):
                     print(f"{module_name}.{cname}")
         return
 
-    printc(f":sad: No vedo class found with name '{target}'.", c="y")
+    vedo.logger.warning(f"No vedo class found with name '{target}'.")
     if fuzzy:
         printc(":idea: Similar class names:", c="c")
         for name in fuzzy:
@@ -896,7 +896,7 @@ def exe_eog(args):
                 ahl = plt.hover_legends[-1]
                 plt.remove(ahl)
                 plt.screenshot()  # writer
-                printc(":camera: Image saved as screenshot.png")
+                vedo.logger.info("Image saved as screenshot.png")
                 plt.add(ahl)
                 return
             elif event.keypress == "h":
@@ -986,7 +986,7 @@ def draw_scene(args):
 
     nfiles = len(args.files)
     if nfiles == 0:
-        printc("No input files.", c="r")
+        vedo.logger.error("No input files.")
         return
     humansort(args.files)
 
@@ -1022,10 +1022,8 @@ def draw_scene(args):
         if nfiles < 201:
             N = nfiles
         if nfiles > 200:
-            printc(
-                ":lightning: Warning: option '-n' allows a maximum of 200 files", c="y"
-            )
-            printc("         you are trying to load ", nfiles, " files.\n", c="y")
+            vedo.logger.warning("Option '-n' allows a maximum of 200 files.")
+            vedo.logger.warning(f"You are trying to load {nfiles} files.")
             N = 200
         if N > 4:
             settings.use_depth_peeling = False

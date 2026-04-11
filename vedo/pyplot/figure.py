@@ -289,59 +289,35 @@ class Figure(Assembly):
             self.labels.append(fig.label)
 
         if abs(self.yscale - fig.yscale) > 0.0001:
-            colors.printc(
-                ":bomb:ERROR: adding incompatible Figure. Y-scales are different:",
-                c="r",
-                invert=True,
+            vedo.logger.error(
+                "Adding incompatible Figure: Y-scales are different."
             )
-            colors.printc("  first  figure:", self.yscale, c="r")
-            colors.printc("  second figure:", fig.yscale, c="r")
+            vedo.logger.error(f"First figure yscale: {self.yscale}")
+            vedo.logger.error(f"Second figure yscale: {fig.yscale}")
 
-            colors.printc("One or more of these parameters can be the cause:", c="r")
+            vedo.logger.error("One or more of these parameters can be the cause:")
             if list(self.xlim) != list(fig.xlim):
-                colors.printc(
-                    "xlim --------------------------------------------\n",
-                    " first  figure:",
-                    self.xlim,
-                    "\n",
-                    " second figure:",
-                    fig.xlim,
-                    c="r",
+                vedo.logger.error(
+                    f"xlim mismatch: first figure {self.xlim}, second figure {fig.xlim}"
                 )
             if list(self.ylim) != list(fig.ylim):
-                colors.printc(
-                    "ylim --------------------------------------------\n",
-                    " first  figure:",
-                    self.ylim,
-                    "\n",
-                    " second figure:",
-                    fig.ylim,
-                    c="r",
+                vedo.logger.error(
+                    f"ylim mismatch: first figure {self.ylim}, second figure {fig.ylim}"
                 )
             if list(self.padding) != list(fig.padding):
-                colors.printc(
-                    "padding -----------------------------------------\n",
-                    " first  figure:",
-                    self.padding,
-                    " second figure:",
-                    fig.padding,
-                    c="r",
+                vedo.logger.error(
+                    "padding mismatch: "
+                    f"first figure {self.padding}, second figure {fig.padding}"
                 )
             if self.aspect != fig.aspect:
-                colors.printc(
-                    "aspect ------------------------------------------\n",
-                    " first  figure:",
-                    self.aspect,
-                    "\n",
-                    " second figure:",
-                    fig.aspect,
-                    c="r",
+                vedo.logger.error(
+                    f"aspect mismatch: first figure {self.aspect}, second figure {fig.aspect}"
                 )
 
-            colors.printc(
-                "\n:idea: Consider using fig2 = histogram(..., like=fig1)", c="r"
+            vedo.logger.info(
+                "Consider using fig2 = histogram(..., like=fig1)"
             )
-            colors.printc(" Or fig += histogram(..., like=fig)\n", c="r")
+            vedo.logger.info("Or fig += histogram(..., like=fig)")
             return self
 
         offset = self.zbounds()[1] + self.ztolerance

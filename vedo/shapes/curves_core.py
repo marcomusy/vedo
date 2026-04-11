@@ -12,7 +12,7 @@ import vedo.vtkclasses as vtki
 
 from vedo import utils
 from vedo.core.transformations import LinearTransform, pol2cart, cart2spher, spher2cart
-from vedo.colors import get_color, printc
+from vedo.colors import get_color
 from vedo.pointcloud import Points, merge
 from vedo.mesh import Mesh
 
@@ -74,7 +74,7 @@ class Line(Mesh):
             top = p0[-1]
             base = p0[0]
             if res != 2:
-                printc(f"Warning: calling Line(res={res}), try remove []?", c="y")
+                vedo.logger.warning(f"Calling Line(res={res}), try remove []?")
                 res = 2
 
         else:  # or just 2 points to link

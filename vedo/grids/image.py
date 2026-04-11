@@ -693,7 +693,7 @@ class Image(vedo.visual.ImageVisual):
         elif axis.lower() == "y":
             ff.SetFilteredAxis(1)
         else:
-            colors.printc("Error in mirror(): mirror must be set to x or y.", c="r")
+            vedo.logger.error("Error in mirror(): mirror must be set to x or y.")
             raise RuntimeError()
         ff.Update()
         self._update(ff.GetOutput())
@@ -889,7 +889,7 @@ class Image(vedo.visual.ImageVisual):
         elif "complex" in mode:
             out = ffti.GetOutput()
         else:
-            colors.printc("Error in fft(): unknown mode", mode)
+            vedo.logger.error(f"Error in fft(): unknown mode {mode}")
             raise RuntimeError()
 
         if center:
@@ -937,7 +937,7 @@ class Image(vedo.visual.ImageVisual):
         elif "complex" in mode:
             out = ffti.GetOutput()
         else:
-            colors.printc("Error in rfft(): unknown mode", mode)
+            vedo.logger.error(f"Error in rfft(): unknown mode {mode}")
             raise RuntimeError()
 
         pic = Image(out)
@@ -1063,8 +1063,8 @@ class Image(vedo.visual.ImageVisual):
             ns = len(source_pts)
             nt = len(target_pts)
             if ns != nt:
-                colors.printc(
-                    "Error in image.warp(): #source != #target points", ns, nt, c="r"
+                vedo.logger.error(
+                    f"Error in image.warp(): #source != #target points {ns} != {nt}"
                 )
                 raise RuntimeError()
 

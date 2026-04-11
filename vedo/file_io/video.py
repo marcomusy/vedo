@@ -7,7 +7,7 @@ import shutil
 from tempfile import TemporaryDirectory
 
 import vedo
-from vedo import colors, utils
+from vedo import utils
 
 from .scene import screenshot
 from .terminal import ask
@@ -56,7 +56,7 @@ class Video:
         self.frames = []
         self.tmp_dir = TemporaryDirectory()
         self.get_filename = lambda x: os.path.join(self.tmp_dir.name, x)
-        colors.printc(":video:  Video file", self.name, "is open... ", c="m", end="")
+        vedo.logger.info(f"Video file {self.name} is open.")
 
     def add_frame(self) -> Video:
         """Add frame to current video."""
@@ -126,7 +126,7 @@ class Video:
         """
         if self.duration:
             self.fps = int(len(self.frames) / float(self.duration) + 0.5)
-            colors.printc("recalculated fps:", self.fps, c="m", end="")
+            vedo.logger.info(f"Recalculated fps: {self.fps}")
         else:
             self.fps = int(self.fps)
 
@@ -149,7 +149,7 @@ class Video:
                     f":noentry: backend {self.backend} returning error: {out}"
                 )
             else:
-                colors.printc(f":save: saved to {self.name}", c="m")
+                vedo.logger.info(f"Saved to {self.name}")
 
         ########################################
         elif "cv" in self.backend:
@@ -210,9 +210,9 @@ class Video:
                     break
             try:
                 writer.close()
-                colors.printc(f"... saved as {self.name}", c="m")
-            except:
-                colors.printc(f":noentry: Could not save video {self.name}", c="r")
+                vedo.logger.info(f"Saved as {self.name}")
+            except Exception:
+                vedo.logger.error(f"Could not save video {self.name}")
 
         # finalize cleanup
         self.tmp_dir.cleanup()

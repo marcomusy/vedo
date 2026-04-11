@@ -40,7 +40,8 @@ dependencies = [
     "numpy",
     "typing-extensions",
     "Pygments",
-    "matplotlib"
+    "matplotlib",
+    "rich",
 ]
 
 [project.optional-dependencies]

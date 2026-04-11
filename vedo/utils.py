@@ -3113,9 +3113,9 @@ def get_vtk_name_event(name: str) -> str:
         event_name += "Event"
 
     if vtki.vtkCommand.GetEventIdFromString(event_name) == 0:
-        vedo.printc(f"Error: '{name}' is not a valid event name.", c="r")
-        vedo.printc("Check the list of events here:", c="r")
-        vedo.printc("\thttps://vtk.org/doc/nightly/html/classvtkCommand.html", c="r")
+        vedo.logger.error(f"'{name}' is not a valid event name.")
+        vedo.logger.error("Check the list of events here:")
+        vedo.logger.error("https://vtk.org/doc/nightly/html/classvtkCommand.html")
         raise ValueError(f"Invalid VTK event name: {name!r}")
 
     return event_name

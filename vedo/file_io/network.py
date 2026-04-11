@@ -6,7 +6,8 @@ import os
 import time
 from tempfile import NamedTemporaryFile
 
-from vedo import colors, settings
+import vedo
+from vedo import settings
 
 __docformat__ = "google"
 __all__ = ["download", "gunzip", "file_info"]
@@ -39,7 +40,7 @@ def download(url: str, force=False, verbose=True) -> str:
 
     if not force and os.path.exists(fname):
         if verbose:
-            colors.printc("reusing cached file:", fname)
+            vedo.logger.info(f"Reusing cached file: {fname}")
         return fname
 
     try:
@@ -47,8 +48,8 @@ def download(url: str, force=False, verbose=True) -> str:
 
         req = Request(url, headers={"User-Agent": "Mozilla/5.0"})
         if verbose:
-            colors.printc(
-                "reading", basename, "from", url.split("/")[2][:40], "...", end=""
+            vedo.logger.info(
+                f"Reading {basename} from {url.split('/')[2][:40]}..."
             )
 
     except ImportError:
@@ -60,15 +61,13 @@ def download(url: str, force=False, verbose=True) -> str:
 
         req = url
         if verbose:
-            colors.printc(
-                "reading", basename, "from", url.split("/")[2][:40], "...", end=""
+            vedo.logger.info(
+                f"Reading {basename} from {url.split('/')[2][:40]}..."
             )
 
     with urlopen(req) as response, open(fname, "wb") as output:
         output.write(response.read())
 
-    if verbose:
-        colors.printc(" done.")
     return fname
 
 

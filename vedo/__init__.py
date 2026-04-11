@@ -19,6 +19,13 @@ from importlib.metadata import PackageNotFoundError, version as pkg_version
 import numpy as np
 from numpy import sin, cos, sqrt, exp, log, dot, cross  # just because handy
 
+try:
+    from rich.console import Console
+    from rich.logging import RichHandler
+except ModuleNotFoundError:
+    Console = None
+    RichHandler = None
+
 from vedo.lazy_imports import build_attr_map, dir_lazy, getattr_lazy
 
 try:
@@ -390,45 +397,47 @@ __all__ = [
 
 
 ######################################################################### LOGGING
-class _LoggingCustomFormatter(logging.Formatter):
-    logformat = "[vedo.%(filename)s:%(lineno)d] %(levelname)s: %(message)s"
+_VEDO_LOG_FORMAT = "[vedo.%(module)s:%(lineno)d] %(message)s"
 
-    white = "\x1b[1m"
-    grey = "\x1b[2m\x1b[1m\x1b[38;20m"
-    yellow = "\x1b[1m\x1b[33;20m"
-    red = "\x1b[1m\x1b[31;20m"
-    inv_red = "\x1b[7m\x1b[1m\x1b[31;1m"
-    reset = "\x1b[0m"
 
-    FORMATS = {
-        logging.DEBUG: grey + logformat + reset,
-        logging.INFO: white + logformat + reset,
-        logging.WARNING: yellow + logformat + reset,
-        logging.ERROR: red + logformat + reset,
-        logging.CRITICAL: inv_red + logformat + reset,
-    }
+def _build_default_log_handler(stream=None):
+    """Create the default vedo log handler."""
+    log_stream = (
+        stream
+        if stream is not None
+        else sys.stdout
+        if sys.stdout is not None
+        else sys.__stdout__
+    )
+    if log_stream is None:
+        log_stream = open(os.devnull, "w")
 
-    def format(self, record):
-        log_fmt = self.FORMATS.get(record.levelno)
-        formatter = logging.Formatter(log_fmt)
-        return formatter.format(record).replace(".py", "")
+    if RichHandler is None or Console is None:
+        handler = logging.StreamHandler(log_stream)
+    else:
+        handler = RichHandler(
+            console=Console(file=log_stream),
+            show_time=False,
+            show_path=False,
+            markup=False,
+            rich_tracebacks=True,
+            highlighter=None,
+            keywords=[],
+        )
+
+    handler.setLevel(logging.DEBUG)
+    handler.setFormatter(logging.Formatter(_VEDO_LOG_FORMAT))
+    return handler
 
 
 logger = logging.getLogger("vedo")
+for _handler in list(logger.handlers):
+    if getattr(_handler, "_vedo_default_handler", False):
+        logger.removeHandler(_handler)
 
-_log_stream = sys.stdout if sys.stdout is not None else sys.__stdout__
-if _log_stream is None:
-    _log_stream = open(os.devnull, "w")
-_chsh = logging.StreamHandler(_log_stream)
-_chsh.setLevel(logging.DEBUG)
-_chsh.setFormatter(_LoggingCustomFormatter())
-# Avoid duplicate handlers when vedo is re-imported/reloaded.
-if not any(
-    isinstance(h, logging.StreamHandler) and getattr(h, "_vedo_default_handler", False)
-    for h in logger.handlers
-):
-    _chsh._vedo_default_handler = True  # type: ignore[attr-defined]
-    logger.addHandler(_chsh)
+_default_log_handler = _build_default_log_handler()
+_default_log_handler._vedo_default_handler = True  # type: ignore[attr-defined]
+logger.addHandler(_default_log_handler)
 logger.setLevel(logging.INFO)
 logger.propagate = False
 

@@ -195,10 +195,10 @@ class MorphPlotter(Plotter):
 
         if evt.keypress == "g":  ##------- generate intermediate shapes
             if not self.warped:
-                vedo.printc("Morph the source mesh first.", c="r")
+                vedo.logger.warning("Morph the source mesh first.")
                 return
             if len(self.sources) != len(self.targets) or len(self.sources) < 4:
-                vedo.printc("Pick at least 4 pairs of points.", c="r")
+                vedo.logger.warning("Pick at least 4 pairs of points.")
                 return
             self.output_text.text("Generating intermediate shapes...")
             self.output_text.c("white").background("red4")
@@ -228,7 +228,7 @@ class MorphPlotter(Plotter):
         if evt.keypress == "a":
             # auto-pick points on the target surface
             if not self.warped:
-                vedo.printc("At least 4 points are needed.", c="r")
+                vedo.logger.warning("At least 4 points are needed.")
                 return
             if len(self.sources) > len(self.targets):
                 self.sources.pop()

@@ -380,14 +380,14 @@ class SplinePlotter(Plotter):
         self.cpoints.append(p)
         self.update()
         if self.verbose:
-            vedo.colors.printc("Added point:", precision(p, 4), c="g")
+            vedo.logger.info(f"Added point: {precision(p, 4)}")
 
     def _on_right_click(self, evt):
         if evt.actor and len(self.cpoints) > 0:
             self.cpoints.pop()  # pop removes from the list the last pt
             self.update()
             if self.verbose:
-                vedo.colors.printc("Deleted last point", c="r")
+                vedo.logger.info("Deleted last point")
 
     def update(self):
         """Update the plot with the new points"""
@@ -420,7 +420,7 @@ class SplinePlotter(Plotter):
             self.cpoints = []
             self.remove(self.line, self.vpoints).render()
             if self.verbose:
-                vedo.colors.printc("==== Cleared all points ====", c="r", invert=True)
+                vedo.logger.info("Cleared all points")
 
     def start(self) -> SplinePlotter:
         """Start the interaction"""
@@ -605,4 +605,3 @@ class ImageEditor(Plotter):
         """Start the interactive image editor."""
         self.at(1).reset_camera(0.01).interactive()
         return self
-

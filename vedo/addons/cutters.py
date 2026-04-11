@@ -612,8 +612,8 @@ class RendererFrame(Actor2D):
         elif "l" in pattern:
             psqr = [p0, p3]
         else:
-            vedo.printc(
-                "Error in RendererFrame: pattern not recognized", pattern, c="r"
+            vedo.logger.error(
+                f"Error in RendererFrame: pattern not recognized {pattern}"
             )
 
         ppoints = vtki.vtkPoints()  # Generate the polyline
@@ -706,8 +706,8 @@ class ProgressBarWidget(Actor2D):
         """Update progress bar to fraction of the window width."""
         if fraction is None:
             if self.iterations is None:
-                vedo.printc(
-                    "Error in ProgressBarWindow: must specify iterations", c="r"
+                vedo.logger.error(
+                    "Error in ProgressBarWindow: must specify iterations"
                 )
                 return self
             self.n += 1

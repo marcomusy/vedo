@@ -11,7 +11,6 @@ import numpy as np
 import vedo.vtkclasses as vtki
 
 import vedo
-from vedo import colors
 from vedo import utils
 from vedo.core.transformations import LinearTransform, NonLinearTransform
 
@@ -411,15 +410,13 @@ class PointAnalyzeMixin:
                 self.cell_locator.BuildLocator()
 
             if radius is not None:
-                vedo.printc(
-                    "Warning: closest_point() with radius is not implemented for cells.",
-                    c="r",
+                vedo.logger.warning(
+                    "closest_point() with radius is not implemented for cells."
                 )
 
             if n != 1:
-                vedo.printc(
-                    "Warning: closest_point() with n>1 is not implemented for cells.",
-                    c="r",
+                vedo.logger.warning(
+                    "closest_point() with n>1 is not implemented for cells."
                 )
 
             trgp = [0, 0, 0]

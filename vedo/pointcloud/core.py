@@ -441,9 +441,8 @@ class Points(
         Obsolete. Use property `.dataset` instead.
         Returns the underlying `vtkPolyData` object.
         """
-        colors.printc(
-            "WARNING: call to .polydata() is obsolete, use property .dataset instead.",
-            c="y",
+        vedo.logger.warning(
+            "Call to .polydata() is obsolete, use property .dataset instead."
         )
         return self.dataset
 
