@@ -1,0 +1,35 @@
+site_name: vedo
+site_description: Documentation for vedo
+
+exclude_docs: |
+  logos/*.py
+  pdoc/**
+
+theme:
+  name: material
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [.]
+
+nav:
+  - Home: index.md
+  - Documentation: documentation.md
+  - Tutorials: tutorials.md
+  - API:
+      - Overview: api/index.md
+      - addons: api/addons.md
+      - applications: api/applications.md
+      - core: api/core.md
+      - file_io: api/file_io.md
+      - grids: api/grids.md
+      - mesh: api/mesh.md
+      - plotter: api/plotter.md
+      - pointcloud: api/pointcloud.md
+      - pyplot: api/pyplot.md
+      - shapes: api/shapes.md
+      - visual: api/visual.md
+      - volume: api/volume.md
