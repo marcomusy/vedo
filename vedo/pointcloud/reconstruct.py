@@ -27,14 +27,14 @@ class PointReconstructMixin:
         """
         Generate the surface halo which sits at the specified distance from the input one.
 
-        Arguments:
-            distance : (float)
+        Args:
+            distance (float):
                 distance from the input surface
-            res : (int)
+            res (int):
                 resolution of the surface
-            bounds : (list)
+            bounds (list):
                 bounding box of the surface
-            maxdist : (float)
+            maxdist (float):
                 maximum distance to generate the surface
         """
         if not bounds:
@@ -75,21 +75,21 @@ class PointReconstructMixin:
 
         Check also `generate_delaunay2d()`.
 
-        Arguments:
-            line_resolution : (int)
+        Args:
+            line_resolution (int):
                 resolution of the contour line. The default is None, in this case
                 the contour is not resampled.
-            mesh_resolution : (int)
+            mesh_resolution (int):
                 resolution of the internal triangles not touching the boundary.
-            smooth : (float)
+            smooth (float):
                 smoothing of the contour before meshing.
-            jitter : (float)
+            jitter (float):
                 add a small noise to the internal points.
-            grid : (Grid)
+            grid (Grid):
                 manually pass a Grid object. The default is True.
-            quads : (bool)
+            quads (bool):
                 generate a mesh of quads instead of triangles.
-            invert : (bool)
+            invert (bool):
                 flip the line orientation. The default is False.
 
         Examples:
@@ -205,25 +205,25 @@ class PointReconstructMixin:
         """
         Surface reconstruction from a scattered cloud of points.
 
-        Arguments:
-            dims : (int)
+        Args:
+            dims (int):
                 number of voxels in x, y and z to control precision.
-            radius : (float)
+            radius (float):
                 radius of influence of each point.
                 Smaller values generally improve performance markedly.
                 Note that after the signed distance function is computed,
                 any voxel taking on the value >= radius
                 is presumed to be "unseen" or uninitialized.
-            sample_size : (int)
+            sample_size (int):
                 if normals are not present
                 they will be calculated using this sample size per point.
-            hole_filling : (bool)
+            hole_filling (bool):
                 enables hole filling, this generates
                 separating surfaces between the empty and unseen portions of the volume.
-            bounds : (list)
+            bounds (list):
                 region in space in which to perform the sampling
                 in format (xmin,xmax, ymin,ymax, zim, zmax)
-            padding : (float)
+            padding (float):
                 increase by this fraction the bounding box
 
         Examples:
@@ -309,18 +309,18 @@ class PointReconstructMixin:
         or vector field which is only known on a scattered set of points or mesh.
         Available interpolation kernels are: shepard, gaussian, or linear.
 
-        Arguments:
-            kernel : (str)
+        Args:
+            kernel (str):
                 interpolation kernel type [shepard]
-            radius : (float)
+            radius (float):
                 radius of the local search
-            n : (int)
+            n (int):
                 number of point to use for interpolation
-            bounds : (list)
+            bounds (list):
                 bounding box of the output Volume object
-            dims : (list)
+            dims (list):
                 dimensions of the output Volume object
-            null_value : (float)
+            null_value (float):
                 value to be assigned to invalid points
 
         Examples:
@@ -403,12 +403,12 @@ class PointReconstructMixin:
         This object contains the a metadata array of used vertex counts in "UsedVertexCount"
         and the sum of the length of the segments in "SegmentsLengthSum".
 
-        Arguments:
-            istart : (int)
+        Args:
+            istart (int):
                 index of the starting point
-            rmax : (float)
+            rmax (float):
                 maximum length of a segment
-            niter : (int)
+            niter (int):
                 number of iterations or passes through the points
 
         Examples:
@@ -465,17 +465,17 @@ class PointReconstructMixin:
 
         Check also `generate_mesh()`.
 
-        Arguments:
-            tol : (float)
+        Args:
+            tol (float):
                 specify a tolerance to control discarding of closely spaced points.
                 This tolerance is specified as a fraction of the diagonal length of the bounding box of the points.
-            alpha : (float)
+            alpha (float):
                 for a non-zero alpha value, only edges or triangles contained
                 within a sphere centered at mesh vertices will be output.
                 Otherwise, only triangles will be output.
-            offset : (float)
+            offset (float):
                 multiplier to control the size of the initial, bounding Delaunay triangulation.
-            transform: (LinearTransform, NonLinearTransform)
+            transform (LinearTransform, NonLinearTransform):
                 a transformation which is applied to points to generate a 2D problem.
                 This maps a 3D dataset into a 2D dataset where triangulation can be done on the XY plane.
                 The points are transformed and triangulated.
@@ -567,12 +567,12 @@ class PointReconstructMixin:
         tessellation. Note that topological and geometric information is used to generate a valid triangulation
         (e.g., merging points and validating topology).
 
-        Arguments:
-            pts : (list)
+        Args:
+            pts (list):
                 list of input points.
-            padding : (float)
+            padding (float):
                 padding distance. The default is 0.
-            fit : (bool)
+            fit (bool):
                 detect automatically the best fitting plane. The default is False.
 
         Examples:
@@ -642,12 +642,12 @@ class PointReconstructMixin:
         """
         Create 3D Delaunay triangulation of input points.
 
-        Arguments:
-            radius : (float)
+        Args:
+            radius (float):
                 specify distance (or "alpha") value to control output.
                 For a non-zero values, only tetra contained within the circumsphere
                 will be output.
-            tol : (float)
+            tol (float):
                 Specify a tolerance to control discarding of closely spaced points.
                 This tolerance is specified as a fraction of the diagonal length of
                 the bounding box of the points.

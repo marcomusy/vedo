@@ -43,29 +43,29 @@ def pie_chart(
     """
     Donut plot or pie chart.
 
-    Arguments:
-        title : (str)
+    Args:
+        title (str):
             plot title
-        tsize : (float)
+        tsize (float):
             title size
         r1 : (float) inner radius
-        r2 : (float)
+        r2 (float):
             outer radius, starting from r1
-        phigap : (float)
+        phigap (float):
             gap angle btw 2 radial bars, in degrees
-        lpos : (float)
+        lpos (float):
             label gap factor along radius
-        lsize : (float)
+        lsize (float):
             label size
-        c : (color)
+        c (color):
             color of the plot slices
-        bc : (color)
+        bc (color):
             color of the disc frame
-        alpha : (float)
+        alpha (float):
             opacity of the disc frame
-        labels : (list)
+        labels (list):
             list of labels
-        show_disc : (bool)
+        show_disc (bool):
             show the outer ring axis
 
     Examples:
@@ -139,24 +139,24 @@ def violin(
     """
     Violin style histogram.
 
-    Arguments:
-        bins : (int)
+    Args:
+        bins (int):
             number of bins
-        vlim : (list)
+        vlim (list):
             input value limits. Crop values outside range
-        x : (float)
+        x (float):
             x-position of the violin axis
-        width : (float)
+        width (float):
             width factor of the normalized distribution
-        splined : (bool)
+        splined (bool):
             spline the outline
-        fill : (bool)
+        fill (bool):
             fill violin with solid color
-        outline : (bool)
+        outline (bool):
             add the distribution outline
-        centerline : (bool)
+        centerline (bool):
             add the vertical centerline at x
-        lc : (color)
+        lc (color):
             line color
 
     Examples:
@@ -230,22 +230,22 @@ def whisker(
     """
     Generate a "whisker" bar from a 1-dimensional dataset.
 
-    Arguments:
-        s : (float)
+    Args:
+        s (float):
             size of the box
-        c : (color)
+        c (color):
             color of the lines
-        lw : (float)
+        lw (float):
             line width
-        bc : (color)
+        bc (color):
             color of the box
-        alpha : (float)
+        alpha (float):
             transparency of the box
-        r : (float)
+        r (float):
             point radius in pixels (use value 0 to disable)
-        jitter : (bool)
+        jitter (bool):
             add some randomness to points to avoid overlap
-        horizontal : (bool)
+        horizontal (bool):
             set horizontal layout
 
     Examples:
@@ -315,43 +315,43 @@ def matrix(
 
     Returns an `Assembly` object.
 
-    Arguments:
-        M : (list, numpy array)
+    Args:
+        M (list, numpy array):
             the input array to visualize
-        title : (str)
+        title (str):
             title of the plot
-        xtitle : (str)
+        xtitle (str):
             title of the horizontal colmuns
-        ytitle : (str)
+        ytitle (str):
             title of the vertical rows
-        xlabels : (list)
+        xlabels (list):
             individual string labels for each column. Must be of length m
-        ylabels : (list)
+        ylabels (list):
             individual string labels for each row. Must be of length n
-        xrotation : (float)
+        xrotation (float):
             rotation of the horizontal labels
-        cmap : (str)
+        cmap (str):
             color map name
-        vmin : (float)
+        vmin (float):
             minimum value of the colormap range
-        vmax : (float)
+        vmax (float):
             maximum value of the colormap range
-        precision : (int)
+        precision (int):
             number of digits for the matrix entries or bins
-        font : (str)
+        font (str):
             font name. Check [available fonts here](https://vedo.embl.es/fonts).
 
-        scale : (float)
+        scale (float):
             size of the numeric entries or bin values
-        scalarbar : (bool)
+        scalarbar (bool):
             add a scalar bar to the right of the plot
-        lc : (str)
+        lc (str):
             color of the line separating the bins
-        lw : (float)
+        lw (float):
             Width of the line separating the bins
-        c : (str)
+        c (str):
             text color
-        alpha : (float)
+        alpha (float):
             plot transparency
 
     Examples:

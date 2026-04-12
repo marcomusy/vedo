@@ -40,8 +40,8 @@ class Text2D:
         All properties of the text, and the text itself, can be changed after creation
         (which is especially useful in loops).
 
-        Arguments:
-            pos : (str)
+        Args:
+            pos (str):
                 text is placed in one of the 8 positions:
                 - bottom-left
                 - bottom-right
@@ -56,16 +56,16 @@ class Text2D:
                 position in the coordinate system of the 2D screen (with the
                 origin sitting at the bottom left).
 
-            s : (float)
+            s (float):
                 size of text
-            bg : (color)
+            bg (color):
                 background color
-            alpha : (float)
+            alpha (float):
                 background opacity
-            justify : (str)
+            justify (str):
                 text justification
 
-            font : (str)
+            font (str):
                 built-in available fonts are:
                 - Antares
                 - Arial

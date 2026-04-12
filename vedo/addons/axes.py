@@ -165,7 +165,7 @@ def Axes(
     - `x_inverted`,           [False], invert labels order and direction (only visually!)
     - `use_global`,           [False], try to compute the global bounding box of visible actors
 
-    Example:
+    Examples:
         ```python
         from vedo import Axes, Box, show
         box = Box(pos=(1,2,3), size=(8,9,7)).alpha(0.1)
@@ -1362,7 +1362,7 @@ def add_global_axes(axtype=None, c=None, bounds=()) -> None:
 
     Parameters
     ----------
-    axtype : (int)
+    axtype (int):
         - 0,  no axes,
         - 1,  draw three gray grid walls
         - 2,  show cartesian axes from (0,0,0)
@@ -1382,20 +1382,20 @@ def add_global_axes(axtype=None, c=None, bounds=()) -> None:
     Axis type-1 can be fully customized by passing a dictionary `axes=dict()`,
     see `vedo.Axes` for the complete list of options.
 
-    Example
-    -------
-        .. code-block:: python
+    Examples:
+        ```python
+        from vedo import Box, show
 
-            from vedo import Box, show
-            b = Box(pos=(0, 0, 0), size=(80, 90, 70).alpha(0.1)
-            show(
-                b,
-                axes={
-                    "xtitle": "Some long variable [a.u.]",
-                    "number_of_divisions": 4,
-                    # ...
-                },
-            )
+        b = Box(pos=(0, 0, 0), size=(80, 90, 70)).alpha(0.1)
+        show(
+            b,
+            axes={
+                "xtitle": "Some long variable [a.u.]",
+                "number_of_divisions": 4,
+                # ...
+            },
+        )
+        ```
     """
     plt = vedo.current_plotter()
     if plt is None:

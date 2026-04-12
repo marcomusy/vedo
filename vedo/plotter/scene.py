@@ -33,8 +33,8 @@ def add(plotter, *objs, at=None) -> Any:
     """
     Append the input objects to the internal list of objects to be shown.
 
-    Arguments:
-        at : (int)
+    Args:
+        at (int):
             add the object at the specified renderer
     """
     ren = plotter.renderer if at is None else plotter.renderers[at]
@@ -85,8 +85,8 @@ def remove(plotter, *objs, at=None) -> Any:
     Wildcards are supported in the names.
     E.g. `Eleph*nt` or `Eleph?nt` or `Eleph[aio]nt` will match `Elephant`.
 
-    Arguments:
-        at : (int)
+    Args:
+        at (int):
             remove the object at the specified renderer
     """
     ren = plotter.renderer if at is None else plotter.renderers[at]
@@ -187,12 +187,12 @@ def get_meshes(
     """
     Return a list of Meshes from the specified renderer.
 
-    Arguments:
-        at : (int)
+    Args:
+        at (int):
             specify which renderer to look at.
-        include_non_pickables : (bool)
+        include_non_pickables (bool):
             include non-pickable objects
-        unpack_assemblies : (bool)
+        unpack_assemblies (bool):
             unpack assemblies into their components
     """
     if at is None:
@@ -236,10 +236,10 @@ def get_volumes(plotter, at=None, include_non_pickables=False) -> list:
     """
     Return a list of Volumes from the specified renderer.
 
-    Arguments:
-        at : (int)
+    Args:
+        at (int):
             specify which renderer to look at
-        include_non_pickables : (bool)
+        include_non_pickables (bool):
             include non-pickable objects
     """
     renderer = plotter.renderer if at is None else plotter.renderers[at]
@@ -260,10 +260,10 @@ def get_actors(plotter, at=None, include_non_pickables=False) -> list:
     """
     Return a list of Volumes from the specified renderer.
 
-    Arguments:
-        at : (int)
+    Args:
+        at (int):
             specify which renderer to look at
-        include_non_pickables : (bool)
+        include_non_pickables (bool):
             include non-pickable objects
     """
     renderer = plotter.renderer if at is None else plotter.renderers[at]

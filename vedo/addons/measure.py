@@ -52,27 +52,27 @@ class Ruler2D(vtki.vtkAxisActor2D):
         The way the labels and title line up with the axis and tick marks
         depends on whether the line is considered horizontal or vertical.
 
-        Arguments:
-            lw : (int)
+        Args:
+            lw (int):
                 width of the line in pixel units
-            ticks : (bool)
+            ticks (bool):
                 control if drawing the tick marks
-            labels : (bool)
+            labels (bool):
                 control if drawing the numeric labels
-            c : (color)
+            c (color):
                 color of the object
-            alpha : (float)
+            alpha (float):
                 opacity of the object
-            title : (str)
+            title (str):
                 title of the ruler
-            font : (str)
+            font (str):
                 font face name. Check [available fonts here](https://vedo.embl.es/fonts).
-            font_size : (int)
+            font_size (int):
                 font size
-            bc : (color)
+            bc (color):
                 background color of the title
 
-        Example:
+        Examples:
             ```python
             from vedo  import *
             plt = Plotter(axes=1, interactive=False)
@@ -190,7 +190,7 @@ class DistanceTool(Group):
         """
         Create a tool to measure the distance between two clicked points.
 
-        Example:
+        Examples:
             ```python
             from vedo import *
             mesh = ParametricShape("RandomHills").c("red5")
@@ -335,28 +335,28 @@ def Ruler3D(
     """
     Build a 3D ruler to indicate the distance of two points p1 and p2.
 
-    Arguments:
-        label : (str)
+    Args:
+        label (str):
             alternative fixed label to be shown
-        units_scale : (float)
+        units_scale (float):
             factor to scale units (e.g. μm to mm)
-        s : (float)
+        s (float):
             size of the label
-        font : (str)
+        font (str):
             font face.  Check [available fonts here](https://vedo.embl.es/fonts).
-        italic : (float)
+        italic (float):
             italicness of the font in the range [0,1]
-        units : (str)
+        units (str):
             string to be appended to the numeric value
-        lw : (int)
+        lw (int):
             line width in pixel units
-        precision : (int)
+        precision (int):
             nr of significant digits to be shown
-        label_rotation : (float)
+        label_rotation (float):
             initial rotation of the label around the z-axis
-        axis_rotation : (float)
+        axis_rotation (float):
             initial rotation of the line around the main axis
-        tick_angle : (float)
+        tick_angle (float):
             initial rotation of the line around the main axis
 
     Examples:
@@ -470,28 +470,28 @@ def RulerAxes(
     """
     A 3D ruler axes to indicate the sizes of the input scene or object.
 
-    Arguments:
-        xtitle : (str)
+    Args:
+        xtitle (str):
             name of the axis or title
-        xlabel : (str)
+        xlabel (str):
             alternative fixed label to be shown instead of the distance
-        s : (float)
+        s (float):
             size of the label
-        font : (str)
+        font (str):
             font face. Check [available fonts here](https://vedo.embl.es/fonts).
-        italic : (float)
+        italic (float):
             italicness of the font in the range [0,1]
-        units : (str)
+        units (str):
             string to be appended to the numeric value
-        lw : (int)
+        lw (int):
             line width in pixel units
-        precision : (int)
+        precision (int):
             nr of significant digits to be shown
-        label_rotation : (float)
+        label_rotation (float):
             initial rotation of the label around the z-axis
         [x,y,z]axis_rotation : (float)
             initial rotation of the line around the main axis in degrees
-        xycross : (bool)
+        xycross (bool):
             show two back crossing lines in the xy plane
 
     Examples:

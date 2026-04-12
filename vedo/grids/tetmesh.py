@@ -32,8 +32,8 @@ class TetMesh(UnstructuredGrid):
 
     def __init__(self, inputobj=None):
         """
-        Arguments:
-            inputobj : (vtkUnstructuredGrid, list, str, tetgenpy.TetgenIO)
+        Args:
+            inputobj (vtkUnstructuredGrid, list, str, tetgenpy.TetgenIO):
                 list of points and tet indices, or filename
         """
         super().__init__()
@@ -303,8 +303,8 @@ class TetMesh(UnstructuredGrid):
         Calculate functions of quality for the elements of a tetrahedral mesh.
         This method adds to the mesh a cell array named "Quality".
 
-        Arguments:
-            metric : (int)
+        Args:
+            metric (int):
                 type of estimators:
                 - EDGE RATIO, 0
                 - ASPECT RATIO, 1
@@ -339,8 +339,8 @@ class TetMesh(UnstructuredGrid):
         OrientedIncorrectly = 20
         ```
 
-        Arguments:
-            tol : (float)
+        Args:
+            tol (float):
                 This value is used as an epsilon for floating point
                 equality checks throughout the cell checking process.
         """
@@ -357,10 +357,10 @@ class TetMesh(UnstructuredGrid):
         Downsample the number of tets in a TetMesh to a specified fraction.
         Either `fraction` or `n` must be set.
 
-        Arguments:
-            fraction : (float)
+        Args:
+            fraction (float):
                 the desired final fraction of the total.
-            n : (int)
+            n (int):
                 the desired number of final tets
 
         .. note:: setting `fraction=0.1` leaves 10% of the original nr of tets.
@@ -401,10 +401,10 @@ class TetMesh(UnstructuredGrid):
         called "OriginalCellID" which contains the index of
         the cell ID in which the point was generated.
 
-        Arguments:
-            n : (int)
+        Args:
+            n (int):
                 number of points to generate.
-            min_radius: (float)
+            min_radius (float):
                 impose a minimum distance between points.
                 If `min_radius` is set to 0, the points are
                 generated uniformly at random inside the mesh.
@@ -419,7 +419,7 @@ class TetMesh(UnstructuredGrid):
             Consider using `points.probe(msh)` to interpolate
             any existing mesh data onto the points.
 
-        Example:
+        Examples:
         ```python
         from vedo import *
         tmesh = TetMesh(dataurl + "limb.vtu").alpha(0.2)

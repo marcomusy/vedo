@@ -44,24 +44,24 @@ class Figure(Assembly):
         """
         Create an empty formatted figure for plotting.
 
-        Arguments:
-            xlim : (list)
+        Args:
+            xlim (list):
                 range of the x-axis as [x0, x1]
-            ylim : (list)
+            ylim (list):
                 range of the y-axis as [y0, y1]
-            aspect : (float, str)
+            aspect (float, str):
                 the desired aspect ratio of the histogram. Default is 4/3.
                 Use `aspect="equal"` to force the same units in x and y.
-            padding : (float, list)
+            padding (float, list):
                 keep a padding space from the axes (as a fraction of the axis size).
                 This can be a list of four numbers.
-            xtitle : (str)
+            xtitle (str):
                 title for the x-axis, can also be set using `axes=dict(xtitle="my x axis")`
-            ytitle : (str)
+            ytitle (str):
                 title for the y-axis, can also be set using `axes=dict(ytitle="my y axis")`
-            grid : (bool)
+            grid (bool):
                 show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
-            axes : (dict)
+            axes (dict):
                 an extra dictionary of options for the `vedo.addons.Axes` object
         """
 
@@ -338,14 +338,14 @@ class Figure(Assembly):
         If a whole Figure is added with "+=", it is unpacked and its objects are added
         one by one.
 
-        Arguments:
-            rescale : (bool)
+        Args:
+            rescale (bool):
                 rescale the y axis position while inserting the object.
-            as3d : (bool)
+            as3d (bool):
                 if True keep the aspect ratio of the 3d object, otherwise stretch it in y.
-            adjusted : (bool)
+            adjusted (bool):
                 adjust the scaling according to the shortest axis
-            cut : (bool)
+            cut (bool):
                 cut off the parts of the object which go beyond the axes frame.
         """
         for a in objs:
@@ -428,14 +428,14 @@ class Figure(Assembly):
         """
         Manually add en entry label to the legend.
 
-        Arguments:
-            text : (str)
+        Args:
+            text (str):
                 text string for the label.
-            c : (str)
+            c (str):
                 color of the text
             marker : (str), Mesh
                 a marker char or a Mesh object to be used as marker
-            mc : (str)
+            mc (str):
                 color for the marker
         """
         newlabel = LabelData()
@@ -466,39 +466,39 @@ class Figure(Assembly):
         Add existing labels to form a legend box.
         Labels have been previously filled with eg: `plot(..., label="text")`
 
-        Arguments:
-            pos : (str, list)
+        Args:
+            pos (str, list):
                 A string or 2D coordinates. The default is "top-right".
-            relative : (bool)
+            relative (bool):
                 control whether `pos` is absolute or relative, e.i. normalized
                 to the x and y ranges so that x and y in `pos=[x,y]` should be
                 both in the range [0,1].
                 This flag is ignored if a string despcriptor is passed.
                 Default is True.
-            font : (str, int)
+            font (str, int):
                 font name or number.
                 Check [available fonts here](https://vedo.embl.es/fonts).
-            s : (float)
+            s (float):
                 global size of the legend
-            c : (str)
+            c (str):
                 color of the text
-            vspace : (float)
+            vspace (float):
                 vertical spacing of lines
-            padding : (float)
+            padding (float):
                 padding of the box as a fraction of the text size
-            radius : (float)
+            radius (float):
                 border radius of the box
-            alpha : (float)
+            alpha (float):
                 opacity of the box. Values below 1 may cause poor rendering
                 because of antialiasing.
                 Use alpha = 0 to remove the box.
-            bc : (str)
+            bc (str):
                 box color
-            lw : (int)
+            lw (int):
                 border line width of the box in pixel units
-            lc : (int)
+            lc (int):
                 border line color of the box
-            z : (float)
+            z (float):
                 set the zorder as z position (useful to avoid overlap)
         """
         sx = self.x1lim - self.x0lim

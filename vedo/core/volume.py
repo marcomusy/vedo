@@ -101,18 +101,18 @@ class VolumeAlgorithms(CommonAlgorithms):
 
         The values can be accessed with `mesh.metadata["isovalue"]`.
 
-        Arguments:
-            value : (float, list)
+        Args:
+            value (float, list):
                 single value or list of values to draw the isosurface(s).
-            background_label : (float)
+            background_label (float):
                 this value specifies the label value to use when referencing the background
                 region outside of any of the specified regions.
-            boundaries : (bool, list)
+            boundaries (bool, list):
                 if True, the output will only contain the boundary surface. Internal surfaces will be removed.
                 If a list of integers is provided, only the boundaries between the specified labels will be extracted.
-            use_quads : (bool)
+            use_quads (bool):
                 if True, the output polygons will be quads. If False, the output polygons will be triangles.
-            nsmooth : (int)
+            nsmooth (int):
                 number of iterations of smoothing (0 means no smoothing).
 
         Examples:
@@ -186,14 +186,14 @@ class VolumeAlgorithms(CommonAlgorithms):
         By default colors correspond to the volume's scalar.
         Returns an `Mesh` object.
 
-        Arguments:
-            vmin : (float)
+        Args:
+            vmin (float):
                 the lower threshold, voxels below this value are not shown.
-            vmax : (float)
+            vmax (float):
                 the upper threshold, voxels above this value are not shown.
-            boundary : (bool)
+            boundary (bool):
                 controls whether to include cells that are partially inside
-            array_name : (int, str)
+            array_name (int, str):
                 name or index of the scalar array to be considered
 
         Examples:

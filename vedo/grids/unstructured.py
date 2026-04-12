@@ -33,8 +33,8 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         """
         Support for UnstructuredGrid objects.
 
-        Arguments:
-            inputobj : (list, vtkUnstructuredGrid, str)
+        Args:
+            inputobj (list, vtkUnstructuredGrid, str):
                 A list in the form `[points, cells, celltypes]`,
                 or a vtkUnstructuredGrid object, or a filename
 
@@ -835,10 +835,10 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         """
         Cut the object with the plane defined by a point and a normal.
 
-        Arguments:
-            origin : (list)
+        Args:
+            origin (list):
                 the cutting plane goes through this point
-            normal : (list, str)
+            normal (list, str):
                 normal vector to the cutting plane
         """
         # if isinstance(self, vedo.Volume):
@@ -898,7 +898,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
 
         This method always returns a TetMesh object.
 
-        Example:
+        Examples:
         ```python
         from vedo import *
         tmesh = TetMesh(dataurl+'limb_ugrid.vtk')

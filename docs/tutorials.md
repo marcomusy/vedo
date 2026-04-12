@@ -1,5 +1,7 @@
 ## Tutorials
 
+<img src="https://user-images.githubusercontent.com/32848391/50738805-5816ad00-11d8-11e9-8567-98424bdff231.gif" alt="Tutorials" class="api-overview-hero">
+
 This page collects learning resources and practical entry points for vedo.
 
 ## Start Here
@@ -13,7 +15,7 @@ This page collects learning resources and practical entry points for vedo.
 - `examples/basic/`: small focused scripts for first-time users.
 - `examples/advanced/`: larger workflows and composite scenes.
 - `examples/pyplot/`: plotting utilities and chart-like visualizations.
-- `examples/simulations/`: simulation-oriented demos.
+- `examples/simulations/`: animation and interactivity demos.
 - `examples/volumetric/`: image/volume workflows.
 - `examples/other/`: integrations and miscellaneous utilities.
 

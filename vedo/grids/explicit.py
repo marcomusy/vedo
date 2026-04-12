@@ -41,8 +41,8 @@ class ExplicitStructuredGrid:
     except that the cells are not necessarily cubes, they can have different
     orientations but are connected in the same way as a `RectilinearGrid`.
 
-    Arguments:
-        inputobj : (vtkExplicitStructuredGrid, list, str)
+    Args:
+        inputobj (vtkExplicitStructuredGrid, list, str):
             list of points and indices, or filename
     """
 
@@ -55,8 +55,8 @@ class ExplicitStructuredGrid:
         except that the cells are not necessarily cubes, they can have different
         orientations but are connected in the same way as a `RectilinearGrid`.
 
-        Arguments:
-            inputobj : (vtkExplicitStructuredGrid, list, str)
+        Args:
+            inputobj (vtkExplicitStructuredGrid, list, str):
                 list of points and indices, or filename"
         """
         self.dataset = None
@@ -443,10 +443,10 @@ class ExplicitStructuredGrid:
         """
         Cut the object with the plane defined by a point and a normal.
 
-        Arguments:
-            origin : (list)
+        Args:
+            origin (list):
                 the cutting plane goes through this point
-            normal : (list, str)
+            normal (list, str):
                 normal vector to the cutting plane
 
         Returns an `UnstructuredGrid` object.

@@ -786,7 +786,7 @@ def get_color(rgb=None, hsv=None):
 
     Set `hsv` to input as (hue, saturation, value).
 
-    Example:
+    Examples:
          - `RGB    = (255, 255, 255)` corresponds to white
          - `rgb    = (1,1,1)` is again white
          - `hex    = #FFFF00` is yellow
@@ -899,10 +899,10 @@ def color_map(value, name="jet", vmin=None, vmax=None):
 
     Return the (r,g,b) color, or a list of (r,g,b) colors.
 
-    Arguments:
-        value : (float, list)
+    Args:
+        value (float, list):
             scalar value to transform into a color
-        name : (str, matplotlib.colors.LinearSegmentedColormap)
+        name (str, matplotlib.colors.LinearSegmentedColormap):
             color map name
 
     Very frequently used color maps are:
@@ -915,7 +915,7 @@ def color_map(value, name="jet", vmin=None, vmax=None):
 
     .. note:: Can also directly use and customize a matplotlib color map
 
-    Example:
+    Examples:
         ```python
         import matplotlib
         from vedo import color_map
@@ -982,14 +982,14 @@ def build_palette(color1, color2, n, hsv=True) -> np.ndarray:
     Generate N colors starting from `color1` to `color2`
     by linear interpolation in HSV or RGB spaces.
 
-    Arguments:
-        N : (int)
+    Args:
+        N (int):
             number of output colors.
-        color1 : (color)
+        color1 (color):
             first color.
-        color2 : (color)
+        color2 (color):
             second color.
-        hsv : (bool)
+        hsv (bool):
             if `False`, interpolation is calculated in RGB space.
 
     Examples:
@@ -1028,26 +1028,26 @@ def build_lut(
 
     Return the `vtkLookupTable` object. This can be fed into `cmap()` method.
 
-    Arguments:
-        colorlist : (list)
+    Args:
+        colorlist (list):
             a list in the form `[(scalar1, [r,g,b]), (scalar2, 'blue'), ...]`.
-        vmin : (float)
+        vmin (float):
             specify minimum value of scalar range
-        vmax : (float)
+        vmax (float):
             specify maximum value of scalar range
-        below_color : (color)
+        below_color (color):
             color for scalars below the minimum in range
-        below_alpha : (float)
+        below_alpha (float):
             opacity for scalars below the minimum in range
-        above_color : (color)
+        above_color (color):
             color for scalars above the maximum in range
-        above_alpha : (float)
+        above_alpha (float):
             alpha for scalars above the maximum in range
-        nan_color : (color)
+        nan_color (color):
             color for invalid (nan) scalars
-        nan_alpha : (float)
+        nan_alpha (float):
             alpha for invalid (nan) scalars
-        interpolate : (bool)
+        interpolate (bool):
             interpolate or not intermediate scalars
 
     Examples:
@@ -1138,40 +1138,40 @@ def printc(
     """
     Print to terminal in color (any color!).
 
-    Arguments:
-        c : (color)
+    Args:
+        c (color):
             foreground color name or (r,g,b)
-        bc : (color)
+        bc (color):
             background color name or (r,g,b)
-        bold : (bool)
+        bold (bool):
             boldface [True]
-        italic : (bool)
+        italic (bool):
             italic [False]
-        blink : (bool)
+        blink (bool):
             blinking text [False]
-        underline : (bool)
+        underline (bool):
             underline text [False]
-        strike : (bool)
+        strike (bool):
             strike through text [False]
-        dim : (bool)
+        dim (bool):
             make text look dimmer [False]
-        invert : (bool)
+        invert (bool):
             invert background and forward colors [False]
-        box : (bool)
+        box (bool):
             print a box with specified text character ['']
-        link : (str)
+        link (str):
             print a clickable url link (works on Linux)
             (must press Ctrl+click to open the link)
-        flush : (bool)
+        flush (bool):
             flush buffer after printing [True]
-        delay : (float)
+        delay (float):
             print only every `delay` seconds
-        return_string : (bool)
+        return_string (bool):
             return the string without printing it [False]
-        end : (str)
+        end (str):
             the end character to be printed [newline]
 
-    Example:
+    Examples:
         ```python
         from vedo.colors import printc
         printc('anything', c='tomato', bold=False, end=' ')

@@ -44,32 +44,32 @@ class IsosurfaceBrowser(Plotter):
         """
         Generate a `vedo.Plotter` for Volume isosurfacing using a slider.
 
-        Arguments:
-            volume : (Volume)
+        Args:
+            volume (Volume):
                 the Volume object to be isosurfaced.
-            isovalues : (float, list)
+            isovalues (float, list):
                 isosurface value(s) to be displayed.
-            scalar_range : (list)
+            scalar_range (list):
                 scalar range to be used.
             c : str, (list)
                 color(s) of the isosurface(s).
-            alpha : (float, list)
+            alpha (float, list):
                 opacity of the isosurface(s).
-            lego : (bool)
+            lego (bool):
                 if True generate a lego plot instead of a surface.
-            res : (int)
+            res (int):
                 resolution of the isosurface.
-            use_gpu : (bool)
+            use_gpu (bool):
                 use GPU acceleration.
-            precompute : (bool)
+            precompute (bool):
                 precompute the isosurfaces (so slider browsing will be smoother).
-            cmap : (str)
+            cmap (str):
                 color map name to be used.
-            delayed : (bool)
+            delayed (bool):
                 delay the slider update on mouse release.
-            sliderpos : (int)
+            sliderpos (int):
                 position of the slider.
-            **kwargs : (dict)
+            **kwargs (dict):
                 keyword arguments to pass to a `vedo.plotter.Plotter` instance.
 
         Examples:
@@ -226,20 +226,20 @@ class Browser(Plotter):
 
         The input object can be a list of objects or a list of lists of objects.
 
-        Arguments:
-            objects : (list)
+        Args:
+            objects (list):
                 list of objects to be browsed.
-            sliderpos : (list)
+            sliderpos (list):
                 position of the slider.
-            c : (str)
+            c (str):
                 color of the slider.
-            slider_title : (str)
+            slider_title (str):
                 title of the slider.
-            font : (str)
+            font (str):
                 font of the slider.
-            resetcam : (bool)
+            resetcam (bool):
                 resetcam while using the slider.
-            **kwargs : (dict)
+            **kwargs (dict):
                 keyword arguments to pass to a `vedo.plotter.Plotter` instance.
 
         Examples:

@@ -97,12 +97,9 @@ class CommonAlgorithms:
         E.g.:  `myobj.pointdata["arrayname"]`
 
         Usage:
-
-            `myobj.pointdata.keys()` to return the available data array names
-
-            `myobj.pointdata.select(name)` to make this array the active one
-
-            `myobj.pointdata.remove(name)` to remove this array
+            - `myobj.pointdata.keys()` returns the available data array names.
+            - `myobj.pointdata.select(name)` makes this array the active one.
+            - `myobj.pointdata.remove(name)` removes this array.
         """
         return DataArrayHelper(cls, 0)
 
@@ -114,12 +111,9 @@ class CommonAlgorithms:
         E.g.:  `myobj.celldata["arrayname"]`
 
         Usage:
-
-            `myobj.celldata.keys()` to return the available data array names
-
-            `myobj.celldata.select(name)` to make this array the active one
-
-            `myobj.celldata.remove(name)` to remove this array
+            - `myobj.celldata.keys()` returns the available data array names.
+            - `myobj.celldata.select(name)` makes this array the active one.
+            - `myobj.celldata.remove(name)` removes this array.
         """
         return DataArrayHelper(cls, 1)
 
@@ -131,12 +125,9 @@ class CommonAlgorithms:
         E.g.:  `myobj.metadata["arrayname"]`
 
         Usage:
-
-            `myobj.metadata.keys()` to return the available data array names
-
-            `myobj.metadata.select(name)` to make this array the active one
-
-            `myobj.metadata.remove(name)` to remove this array
+            - `myobj.metadata.keys()` returns the available data array names.
+            - `myobj.metadata.select(name)` makes this array the active one.
+            - `myobj.metadata.remove(name)` removes this array.
         """
         return DataArrayHelper(cls, 2)
 
@@ -173,10 +164,10 @@ class CommonAlgorithms:
         """
         Return the bounding box as a new `Mesh` object.
 
-        Arguments:
-            scale : (float)
+        Args:
+            scale (float):
                 box size can be scaled by a factor
-            padding : (float, list)
+            padding (float, list):
                 a constant padding can be added (can be a list `[padx,pady,padz]`)
         """
         b = cls.bounds()
@@ -663,7 +654,7 @@ class CommonAlgorithms:
         If the data is categorical, then the resulting data will be determined
         by a nearest neighbor interpolation scheme.
 
-        Example:
+        Examples:
         ```python
         from vedo import *
         m1 = Mesh(dataurl+'bunny.obj')#.add_gaussian_noise(0.1)
@@ -718,10 +709,10 @@ class CommonAlgorithms:
         Check out also:
             `probe()` which in many cases can be faster.
 
-        Arguments:
-            kernel : (str)
+        Args:
+            kernel (str):
                 available kernels are [shepard, gaussian, linear]
-            null_strategy : (int)
+            null_strategy (int):
                 specify a strategy to use when encountering a "null" point
                 during the interpolation process. Null points occur when the local neighborhood
                 (of nearby points to interpolate from) is empty.
@@ -730,7 +721,7 @@ class CommonAlgorithms:
                   as being valid (=1) or null (invalid =0), and the null_value is set as well
                 - Case 1: the output data value(s) are set to the provided null_value
                 - Case 2: simply use the closest point to perform the interpolation.
-            null_value : (float)
+            null_value (float):
                 see above.
 
         Examples:
@@ -865,13 +856,13 @@ class CommonAlgorithms:
         """
         Compute and return the gradiend of the active scalar field as a numpy array.
 
-        Arguments:
-            input_array : (str)
+        Args:
+            input_array (str):
                 array of the scalars to compute the gradient,
                 if None the current active array is selected
-            on : (str)
+            on (str):
                 compute either on 'points' or 'cells' data
-            fast : (bool)
+            fast (bool):
                 if True, will use a less accurate algorithm
                 that performs fewer derivative calculations (and is therefore faster).
 
@@ -892,13 +883,13 @@ class CommonAlgorithms:
         """
         Compute and return the divergence of a vector field as a numpy array.
 
-        Arguments:
-            array_name : (str)
+        Args:
+            array_name (str):
                 name of the array of vectors to compute the divergence,
                 if None the current active array is selected
-            on : (str)
+            on (str):
                 compute either on 'points' or 'cells' data
-            fast : (bool)
+            fast (bool):
                 if True, will use a less accurate algorithm
                 that performs fewer derivative calculations and is therefore faster.
         """
@@ -914,13 +905,13 @@ class CommonAlgorithms:
         """
         Compute and return the vorticity of a vector field as a numpy array.
 
-        Arguments:
-            array_name : (str)
+        Args:
+            array_name (str):
                 name of the array to compute the vorticity,
                 if None the current active array is selected
-            on : (str)
+            on (str):
                 compute either on 'points' or 'cells' data
-            fast : (bool)
+            fast (bool):
                 if True, will use a less accurate algorithm
                 that performs fewer derivative calculations (and is therefore faster).
         """
@@ -945,7 +936,7 @@ class CommonAlgorithms:
         Note that a mask is also output with valid/invalid points which can be accessed
         with `mesh.pointdata['ValidPointMask']`.
 
-        Arguments:
+        Args:
             source : any dataset
                 the data set to probe.
             categorical : bool
@@ -1091,10 +1082,10 @@ class CommonAlgorithms:
         Two new arrays are added to the mesh: `OriginalCellIds` and `OriginalPointIds`
         to keep track of the original mesh elements.
 
-        Arguments:
-            bounds : (list)
+        Args:
+            bounds (list):
                 specify a sub-region to extract
-            shrink : (float)
+            shrink (float):
                 shrink the cells to a fraction of their original size
         """
         geo = vtki.new("GeometryFilter")
@@ -1129,14 +1120,14 @@ class CommonAlgorithms:
         Compute the `Volume` object whose voxels contains the signed distance from
         the object. The calling object must have "Normals" defined.
 
-        Arguments:
-            bounds : (list, actor)
+        Args:
+            bounds (list, actor):
                 bounding box sizes
-            dims : (list)
+            dims (list):
                 dimensions (nr. of voxels) of the output volume.
-            invert : (bool)
+            invert (bool):
                 flip the sign
-            max_radius : (float)
+            max_radius (float):
                 specify how far out to propagate distance calculation
 
         Examples:
@@ -1254,28 +1245,28 @@ class CommonAlgorithms:
             To determine boundary points in polygonal data, edges used by only one cell are considered boundary
             (and hence the associated points defining the edge).
 
-        Arguments:
-            niter : (int)
+        Args:
+            niter (int):
                 number of iterations
-            relaxation_factor : (float)
+            relaxation_factor (float):
                 relaxation factor controlling the amount of Laplacian smoothing applied
-            strategy : (int)
+            strategy (int):
                 strategy to use for Laplacian smoothing
 
                     - 0: use all points, all point data attributes are smoothed
                     - 1: smooth all point attribute data except those on the boundary
                     - 2: only point data connected to a boundary point are smoothed
 
-            mask : (str, np.ndarray)
+            mask (str, np.ndarray):
                 array to be used as a mask (ignore then the strategy keyword)
-            mode : (str)
+            mode (str):
                 smoothing mode, either "distance2", "distance" or "average"
 
                     - distance**2 weighted (i.e., 1/r**2 interpolation weights)
                     - distance weighted (i.e., 1/r) approach;
                     - simple average of all connected points in the stencil
 
-            exclude : (list)
+            exclude (list):
                 list of arrays to be excluded from smoothing
         """
         saf = vtki.new("AttributeSmoothingFilter")
@@ -1334,29 +1325,29 @@ class CommonAlgorithms:
         """
         Integrate a vector field to generate streamlines.
 
-        Arguments:
-            seeds : (Mesh, Points, list)
+        Args:
+            seeds (Mesh, Points, list):
                 starting points of the streamlines
-            integrator : (str)
+            integrator (str):
                 type of integration method to be used:
 
-                    - "rk2" (Runge-Kutta 2)
-                    - "rk4" (Runge-Kutta 4)
-                    - "rk45" (Runge-Kutta 45)
+                    - rk2: Runge-Kutta 2
+                    - rk4: Runge-Kutta 4
+                    - rk45: Runge-Kutta 45
 
-            direction : (str)
+            direction (str):
                 direction of integration, either "forward", "backward" or "both"
-            initial_step_size : (float)
+            initial_step_size (float):
                 initial step size used for line integration
-            max_propagation : (float)
+            max_propagation (float):
                 maximum length of a streamline expressed in absolute units
-            max_steps : (int)
+            max_steps (int):
                 maximum number of steps for a streamline
-            step_length : (float)
+            step_length (float):
                 maximum length of a step expressed in absolute units
-            surface_constrained : (bool)
+            surface_constrained (bool):
                 whether to stop integrating when the streamline leaves the surface
-            compute_vorticity : (bool)
+            compute_vorticity (bool):
                 whether to compute the vorticity at each streamline point
         """
         b = cls.dataset.GetBounds()

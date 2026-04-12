@@ -50,14 +50,14 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         """
         This class can be initialized with a numpy object, a `vtkImageData` or a list of 2D bmp files.
 
-        Arguments:
-            input_obj : (str, vtkImageData, np.ndarray)
+        Args:
+            input_obj (str, vtkImageData, np.ndarray):
                 input data can be a file name, a vtkImageData or a numpy object.
-            origin : (list)
+            origin (list):
                 set volume origin coordinates
-            spacing : (list)
+            spacing (list):
                 voxel dimensions in x, y and z.
-            dims : (list)
+            dims (list):
                 specify the dimensions of the volume.
 
         Note:
@@ -65,7 +65,7 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
             `array = np.transpose(array, axes=[2, 1, 0])`.
             Alternatively you can also use the `Volume(zyx_array).permute_axes(2,1,0)` method.
 
-        Example:
+        Examples:
             ```python
             from vedo import Volume
             vol = Volume("path/to/mydata/rec*.bmp")
@@ -223,8 +223,8 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         """
         Set the underlying `vtkMapper` object.
 
-        Arguments:
-            mapper : (str, vtkMapper)
+        Args:
+            mapper (str, vtkMapper):
                 either 'gpu', 'opengl_gpu', 'fixed' or 'smart'
         """
         if isinstance(
@@ -410,8 +410,8 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         """
         Reset the type of the scalars array.
 
-        Arguments:
-            dtype : (str)
+        Args:
+            dtype (str):
                 the type of the scalars array in
                 `["int8", "uint8", "int16", "uint16", "int32", "uint32", "float32", "float64"]`
         """
@@ -456,12 +456,12 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         Warp volume scalars within a Volume by specifying
         source and target sets of points.
 
-        Arguments:
-            source : (Points, list)
+        Args:
+            source (Points, list):
                 the list of source points
-            target : (Points, list)
+            target (Points, list):
                 the list of target points
-            fit : (bool)
+            fit (bool):
                 fit/adapt the old bounding box to the warped geometry
         """
         if isinstance(source, vedo.Points):
@@ -488,12 +488,12 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         """
         Apply a transform to the scalars in the volume.
 
-        Arguments:
-            T : (LinearTransform, NonLinearTransform)
+        Args:
+            T (LinearTransform, NonLinearTransform):
                 The transformation to be applied
-            fit : (bool)
+            fit (bool):
                 fit/adapt the old bounding box to the modified geometry
-            interpolation : (str)
+            interpolation (str):
                 one of the following: "nearest", "linear", "cubic"
         """
         if utils.is_sequence(T):
@@ -539,7 +539,7 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         """
         Mark the object as modified.
 
-        Example:
+        Examples:
 
         - [numpy2volume0.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/numpy2volume0.py)
         """
@@ -555,7 +555,7 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         When you set values in the output image, you don't want numpy to reallocate the array
         but instead set values in the existing array, so use the [:] operator.
 
-        Example:
+        Examples:
             `arr[:] = arr*2 + 15`
 
         If the array is modified add a call to:
@@ -666,8 +666,8 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         """
         Get the voxel id number at the given ijk coordinates.
 
-        Arguments:
-            ijk : (list)
+        Args:
+            ijk (list):
                 the ijk coordinates of the voxel
         """
         return self.dataset.ComputeCellId(ijk)
@@ -676,8 +676,8 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         """
         Get the point id number at the given ijk coordinates.
 
-        Arguments:
-            ijk : (list)
+        Args:
+            ijk (list):
                 the ijk coordinates of the voxel
         """
         return self.dataset.ComputePointId(ijk)
@@ -704,10 +704,10 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         This method modifies the spacing of the input.
         Linear interpolation is used to resample the data.
 
-        Arguments:
-            new_spacing : (list)
+        Args:
+            new_spacing (list):
                 a list of 3 new spacings for the 3 axes
-            interpolation : (int)
+            interpolation (int):
                 0=nearest_neighbor, 1=linear, 2=cubic
         """
         rsp = vtki.new("ImageResample")
@@ -789,23 +789,23 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         """
         Crop a `Volume` object.
 
-        Arguments:
-            left : (float)
+        Args:
+            left (float):
                 fraction to crop from the left plane (negative x)
-            right : (float)
+            right (float):
                 fraction to crop from the right plane (positive x)
-            back : (float)
+            back (float):
                 fraction to crop from the back plane (negative y)
-            front : (float)
+            front (float):
                 fraction to crop from the front plane (positive y)
-            bottom : (float)
+            bottom (float):
                 fraction to crop from the bottom plane (negative z)
-            top : (float)
+            top (float):
                 fraction to crop from the top plane (positive z)
-            VOI : (list)
+            VOI (list):
                 extract Volume Of Interest expressed in voxel numbers
 
-        Example:
+        Examples:
             `vol.crop(VOI=(xmin, xmax, ymin, ymax, zmin, zmax)) # all integers nrs`
         """
         extractVOI = vtki.new("ExtractVOI")
@@ -849,16 +849,16 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         The origin and spacing of all other inputs are ignored.
         All inputs must have the same scalar type.
 
-        Arguments:
-            axis : (int, str)
+        Args:
+            axis (int, str):
                 axis expanded to hold the multiple images
-            preserve_extents : (bool)
+            preserve_extents (bool):
                 if True, the extent of the inputs is used to place
                 the image in the output. The whole extent of the output is the union of the input
                 whole extents. Any portion of the output not covered by the inputs is set to zero.
                 The origin and spacing is taken from the first input.
 
-        Example:
+        Examples:
             ```python
             from vedo import Volume, dataurl
             vol = Volume(dataurl+'embryo.tif')
@@ -899,13 +899,13 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         Add the specified number of voxels at the `Volume` borders.
         Voxels can be a list formatted as `[nx0, nx1, ny0, ny1, nz0, nz1]`.
 
-        Arguments:
-            voxels : (int, list)
+        Args:
+            voxels (int, list):
                 number of voxels to be added (or a list of length 4)
-            value : (int)
+            value (int):
                 intensity value (gray-scale color) of the padding
 
-        Example:
+        Examples:
             ```python
             from vedo import Volume, dataurl, show
             iso = Volume(dataurl+'embryo.tif').isosurface()
@@ -1016,7 +1016,7 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         mag, dot, gradient, divergence, laplacian.
         ```
 
-        Example:
+        Examples:
         ```py
         from vedo import Box, show
         vol1 = Box(size=(35,10, 5)).binarize()
@@ -1253,12 +1253,12 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         A simple high-pass filter would simply mask a set of pixels in the frequency domain,
         but the abrupt transition would cause a ringing effect in the spatial domain.
 
-        Arguments:
-            low_cutoff : (list)
+        Args:
+            low_cutoff (list):
                 the cutoff frequencies for x, y and z
-            high_cutoff : (list)
+            high_cutoff (list):
                 the cutoff frequencies for x, y and z
-            order : (int)
+            order (int):
                 order determines sharpness of the cutoff curve
         """
         # https://lorensen.github.io/VTKExamples/site/Cxx/ImageProcessing/IdealHighPass
@@ -1312,8 +1312,8 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         """
         Extract one or more components from a multi-component volume.
 
-        Arguments:
-            components : (int, list)
+        Args:
+            components (int, list):
                 the component(s) to extract
         """
         if not utils.is_sequence(components):
@@ -1335,11 +1335,11 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         """
         Performs a convolution of the input Volume with a gaussian.
 
-        Arguments:
-            sigma : (float, list)
+        Args:
+            sigma (float, list):
                 standard deviation(s) in voxel units.
                 A list can be given to smooth in the three direction differently.
-            radius : (float, list)
+            radius (float, list):
                 radius factor(s) determine how far out the gaussian
                 kernel will go before being clamped to zero. A list can be given too.
         """
@@ -1451,7 +1451,7 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
 
         Check out also: https://en.wikipedia.org/wiki/Distance_transform
 
-        Arguments:
+        Args:
             anisotropy : bool
                 used to define whether Spacing should be used in the
                 computation of the distances.

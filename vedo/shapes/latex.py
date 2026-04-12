@@ -31,16 +31,16 @@ class Latex(Image):
         """
         Render Latex text and formulas.
 
-        Arguments:
-            formula : (str)
+        Args:
+            formula (str):
                 latex text string
-            pos : (list)
+            pos (list):
                 position coordinates in space
-            bg : (color)
+            bg (color):
                 background color box
-            res : (int)
+            res (int):
                 dpi resolution
-            usetex : (bool)
+            usetex (bool):
                 use latex compiler of matplotlib if available
 
         You can access the latex formula in `Latex.formula`.

@@ -12,7 +12,7 @@ class Settings:
     """
     General settings to modify the global behavior and style.
 
-    Example:
+    Examples:
         ```python
         from vedo import settings, Cube
         settings.use_parallel_projection = True
@@ -700,7 +700,6 @@ class Settings:
     def __str__(self) -> str:
         """Return a string representation of the object"""
         s = Settings.__doc__.replace("   ", "")
-        s = s.replace(".. code-block:: python\n", "")
         s = s.replace("```python\n", "")
         s = s.replace("```\n", "")
         s = s.replace(

@@ -39,35 +39,21 @@ def Goniometer(
     """
     Build a graphical goniometer to measure the angle formed by 3 points in space.
 
-    Arguments:
-        p1 : (list)
-            first point 3D coordinates.
-        p2 : (list)
-            the vertex point.
-        p3 : (list)
-            the last point defining the angle.
-        font : (str)
-            Font face. Check [available fonts here](https://vedo.embl.es/fonts).
-        arc_size : (float)
-            dimension of the arc wrt the smallest axis.
-        s : (float)
-            size of the text.
-        italic : (float, bool)
-            italic text.
-        rotation : (float)
-            rotation of text in degrees.
-        prefix : (str)
-            append this string to the numeric value of the angle.
-        lc : (list)
-            color of the goniometer lines.
-        c : (str)
-            color of the goniometer angle filling. Set alpha=0 to remove it.
-        alpha : (float)
-            transparency level.
-        lw : (float)
-            line width.
-        precision : (int)
-            number of significant digits.
+    Args:
+        p1 (list): First point 3D coordinates.
+        p2 (list): The vertex point.
+        p3 (list): The last point defining the angle.
+        font (str): Font face. Check [available fonts here](https://vedo.embl.es/fonts).
+        arc_size (float): Dimension of the arc relative to the smallest axis.
+        s (float): Size of the text.
+        italic (float | bool): Whether to render italic text.
+        rotation (float): Rotation of the text in degrees.
+        prefix (str): String appended to the numeric value of the angle.
+        lc (list): Color of the goniometer lines.
+        c (str): Color of the goniometer angle filling. Set `alpha=0` to remove it.
+        alpha (float): Transparency level.
+        lw (float): Line width.
+        precision (int): Number of significant digits.
 
     Examples:
         - [goniometer.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/goniometer.py)
@@ -139,15 +125,13 @@ def Light(pos, focal_point=(0, 0, 0), angle=180, c=None, intensity=1):
     Generate a source of light placed at `pos` and directed to `focal point`.
     Returns a `vtkLight` object.
 
-    Arguments:
-        focal_point : (list)
-            focal point, if a `vedo` object is passed then will grab its position.
-        angle : (float)
-            aperture angle of the light source, in degrees
-        c : (color)
-            set the light color
-        intensity : (float)
-            intensity value between 0 and 1.
+    Args:
+        pos (list | vedo object): Light position, or a `vedo` object whose position
+            will be used.
+        focal_point (list): Focal point. If a `vedo` object is passed its position is used.
+        angle (float): Aperture angle of the light source in degrees.
+        c (color): Light color.
+        intensity (float): Intensity value between 0 and 1.
 
     Check also:
         `plotter.Plotter.remove_lights()`
@@ -200,29 +184,19 @@ def ScalarBar(
     """
     A 2D scalar bar for the specified object.
 
-    Arguments:
-        title : (str)
-            scalar bar title
-        pos : (list)
-            position coordinates of the bottom left corner.
-            Can also be a pair of (x,y) values in the range [0,1]
-            to indicate the position of the bottom-left and top-right corners.
-        size : (float,float)
-            size of the scalarbar in number of pixels (width, height)
-        font_size : (float)
-            size of font for title and numeric labels
-        title_yoffset : (float)
-            vertical space offset between title and color scalarbar
-        nlabels : (int)
-            number of numeric labels
-        c : (list)
-            color of the scalar bar text
-        horizontal : (bool)
-            lay the scalarbar horizontally
-        use_alpha : (bool)
-            render transparency in the color bar itself
-        label_format : (str)
-            c-style format string for numeric labels
+    Args:
+        obj: Input object or scalar range used to derive the lookup table.
+        title (str): Scalar bar title.
+        pos (list): Bottom-left position. It can also be a pair of normalized `(x, y)`
+            values in the range `[0, 1]` to indicate the bar corners.
+        size (tuple[float, float]): Scalar bar size in pixels as `(width, height)`.
+        font_size (float): Font size for title and numeric labels.
+        title_yoffset (float): Vertical space offset between title and color bar.
+        nlabels (int): Number of numeric labels.
+        c (list): Text color.
+        horizontal (bool): Lay the scalar bar out horizontally.
+        use_alpha (bool): Render transparency in the color bar itself.
+        label_format (str): C-style format string for numeric labels.
 
     Examples:
         - [scalarbars.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/scalarbars.py)
@@ -389,32 +363,32 @@ def ScalarBar3D(
         - a Mesh already containing a set of scalars associated to vertices or cells,
         - if None the last object in the list of actors will be used.
 
-    Arguments:
-        size : (list)
+    Args:
+        size (list):
             (thickness, length) of scalarbar
-        title : (str)
+        title (str):
             scalar bar title
-        title_xoffset : (float)
+        title_xoffset (float):
             horizontal space btw title and color scalarbar
-        title_yoffset : (float)
+        title_yoffset (float):
             vertical space offset
-        title_size : (float)
+        title_size (float):
             size of title wrt numeric labels
-        title_rotation : (float)
+        title_rotation (float):
             title rotation in degrees
-        nlabels : (int)
+        nlabels (int):
             number of numeric labels
-        label_font : (str)
+        label_font (str):
             font type for labels
-        label_size : (float)
+        label_size (float):
             label scale factor
-        label_offset : (float)
+        label_offset (float):
             space btw numeric labels and scale
-        label_rotation : (float)
+        label_rotation (float):
             label rotation in degrees
-        draw_box : (bool)
+        draw_box (bool):
             draw a box around the colorbar
-        categories : (list)
+        categories (list):
             make a categorical scalarbar,
             the input list will have the format [value, color, alpha, textlabel]
 

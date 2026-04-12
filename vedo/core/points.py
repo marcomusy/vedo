@@ -25,7 +25,7 @@ class PointAlgorithms(CommonAlgorithms):
         """
         Apply a linear or non-linear transformation to the mesh polygonal data.
 
-        Example:
+        Examples:
         ```python
         from vedo import Cube, show, settings
         settings.use_parallel_projection = True
@@ -191,7 +191,7 @@ class PointAlgorithms(CommonAlgorithms):
         """
         Rotate around an arbitrary `axis` passing through `point`.
 
-        Example:
+        Examples:
         ```python
         from vedo import *
         c1 = Cube()
@@ -259,12 +259,12 @@ class PointAlgorithms(CommonAlgorithms):
         """
         Set/get object's scaling factor.
 
-        Arguments:
-            s : (list, float)
+        Args:
+            s (list, float):
                 scaling factor(s).
-            reset : (bool)
+            reset (bool):
                 if True previous scaling factors are ignored.
-            origin : (bool)
+            origin (bool):
                 if True scaling is applied with respect to object's position,
                 otherwise is applied respect to (0,0,0).
 

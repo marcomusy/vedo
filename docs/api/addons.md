@@ -1,57 +1,52 @@
 # vedo.addons
 
-## core
+<img src="https://vedo.embl.es/images/pyplot/customAxes2.png" alt="addons">
+
 
 ::: vedo.addons.core
     options:
-      show_root_heading: false
+      show_root_heading: true
       show_root_full_path: false
-
-## axes
+      show_root_toc_entry: false
 
 ::: vedo.addons.axes
     options:
-      show_root_heading: false
+      show_root_heading: true
       show_root_full_path: false
-
-## widgets
+      show_root_toc_entry: false
 
 ::: vedo.addons.widgets
     options:
-      show_root_heading: false
+      show_root_heading: true
       show_root_full_path: false
-
-## interaction
+      show_root_toc_entry: false
 
 ::: vedo.addons.interaction
     options:
-      show_root_heading: false
+      show_root_heading: true
       show_root_full_path: false
-
-## ui
+      show_root_toc_entry: false
 
 ::: vedo.addons.ui
     options:
-      show_root_heading: false
+      show_root_heading: true
       show_root_full_path: false
-
-## sliders
+      show_root_toc_entry: false
 
 ::: vedo.addons.sliders
     options:
-      show_root_heading: false
+      show_root_heading: true
       show_root_full_path: false
-
-## cutters
+      show_root_toc_entry: false
 
 ::: vedo.addons.cutters
     options:
-      show_root_heading: false
+      show_root_heading: true
       show_root_full_path: false
-
-## measure
+      show_root_toc_entry: false
 
 ::: vedo.addons.measure
     options:
-      show_root_heading: false
+      show_root_heading: true
       show_root_full_path: false
+      show_root_toc_entry: false

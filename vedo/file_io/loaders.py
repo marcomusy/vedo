@@ -50,13 +50,13 @@ def load(inputobj: list | str | os.PathLike, unpack=True, force=False) -> Any:
     Unzip is made on the fly, if file ends with `.gz`.
     Can load an object directly from a URL address.
 
-    Arguments:
-        unpack : (bool)
+    Args:
+        unpack (bool):
             unpack MultiBlockData into a flat list of objects.
-        force : (bool)
+        force (bool):
             when downloading a file ignore any previous cached downloads and force a new one.
 
-    Example:
+    Examples:
         ```python
         from vedo import dataurl, load, show
         # Return a list of 2 meshes
@@ -939,10 +939,10 @@ def loadGaussianCube(
     """
     Read a Gaussian cube file.
 
-    Arguments:
-        b_scale : (float)
+    Args:
+        b_scale (float):
             Bond scaling factor used by `vtkGaussianCubeReader`.
-        hb_scale : (float)
+        hb_scale (float):
             Hydrogen bond scaling factor used by `vtkGaussianCubeReader`.
     """
     reader = vtki.new("GaussianCubeReader")
@@ -1006,10 +1006,10 @@ def load_obj(
     """
     Import a set of meshes from a OBJ wavefront file.
 
-    Arguments:
-        mtl_file : (str)
+    Args:
+        mtl_file (str):
             MTL file for OBJ wavefront files
-        texture_path : (str)
+        texture_path (str):
             path of the texture files directory
 
     Returns:

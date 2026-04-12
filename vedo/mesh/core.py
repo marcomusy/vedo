@@ -39,8 +39,8 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         """
         Initialize a ``Mesh`` object.
 
-        Arguments:
-            inputobj : (str, vtkPolyData, vtkActor, vedo.Mesh)
+        Args:
+            inputobj (str, vtkPolyData, vtkActor, vedo.Mesh):
                 If inputobj is `None` an empty mesh is created.
                 If inputobj is a `str` then it is interpreted as the name of a file to load as mesh.
                 If inputobj is an `vtkPolyData` or `vtkActor` or `vedo.Mesh`
@@ -324,11 +324,11 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         The Reeb graph is a topological structure that captures the evolution
         of the level sets of a scalar field.
 
-        Arguments:
-            field_id : (int)
+        Args:
+            field_id (int):
                 the id of the scalar field to use.
 
-        Example:
+        Examples:
             ```python
             from vedo import *
             mesh = Mesh("https://discourse.paraview.org/uploads/short-url/qVuZ1fiRjwhE1qYtgGE2HGXybgo.stl")
@@ -447,10 +447,10 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         If you wish to strip these use mesh.triangulate() to fragment the input
         into triangles and lines prior to applying join().
 
-        Arguments:
-            polys : (bool)
+        Args:
+            polys (bool):
                 polygonal segments will be joined if they are contiguous
-            reset : (bool)
+            reset (bool):
                 reset points ordering
 
         Warning:
@@ -459,7 +459,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             This filter will only construct triangle strips if triangle polygons
             are available; and will only construct polylines if lines are available.
 
-        Example:
+        Examples:
             ```python
             from vedo import *
             c1 = Cylinder(pos=(0,0,0), r=2, height=3, axis=(1,.0,0), alpha=.1).triangulate()
@@ -506,7 +506,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         Returns:
             list of `shapes.Lines`
 
-        Example:
+        Examples:
             ```python
             from vedo import *
             msh = Torus().alpha(0.1).wireframe()
@@ -571,7 +571,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         """
         Join booundary lines by creating a triangle strip between them.
 
-        Example:
+        Examples:
         ```python
         from vedo import *
         m1 = Cylinder(cap=False).boundaries()
@@ -652,7 +652,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         """
         Slice a mesh with a plane and fill the contour.
 
-        Example:
+        Examples:
             ```python
             from vedo import *
             msh = Mesh(dataurl+"bunny.obj").alpha(0.1).wireframe()
@@ -683,11 +683,11 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         i.e. a contour may contain an internal contour winding in the opposite
         direction to indicate that it is a hole.
 
-        Arguments:
-            verts : (bool)
+        Args:
+            verts (bool):
                 if True, break input vertex cells into individual vertex cells (one point per cell).
                 If False, the input vertex cells will be ignored.
-            lines : (bool)
+            lines (bool):
                 if True, break input polylines into line segments.
                 If False, input lines will be ignored and the output will have no lines.
         """
@@ -722,12 +722,12 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         """
         Apply a diffusion process to a scalar array defined on the points of a mesh.
 
-        Arguments:
-            array_name : (str)
+        Args:
+            array_name (str):
                 name of the array to diffuse.
-            dt : (float)
+            dt (float):
                 time step.
-            num_steps : (int)
+            num_steps (int):
                 number of iterations.
         """
         try:
@@ -793,12 +793,12 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         """
         Increase the number of vertices of a surface mesh.
 
-        Arguments:
-            n : (int)
+        Args:
+            n (int):
                 number of subdivisions.
-            method : (int)
+            method (int):
                 Loop(0), Linear(1), Adaptive(2), Butterfly(3), Centroid(4)
-            mel : (float)
+            mel (float):
                 Maximum Edge Length (applicable to Adaptive method only).
         """
         triangles = vtki.new("TriangleFilter")
@@ -848,16 +848,16 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         This filter preserves the `pointdata` of the input dataset. In previous versions
         of vedo, this decimation algorithm was referred to as quadric decimation.
 
-        Arguments:
-            fraction : (float)
+        Args:
+            fraction (float):
                 the desired target of reduction.
-            n : (int)
+            n (int):
                 the desired number of final points
                 (`fraction` is recalculated based on it).
-            preserve_volume : (bool)
+            preserve_volume (bool):
                 Decide whether to activate volume preservation which greatly
                 reduces errors in triangle normal direction.
-            regularization : (float)
+            regularization (float):
                 regularize the point finding algorithm so as to have better quality
                 mesh elements at the cost of a slightly lower precision on the
                 geometry potentially (mostly at sharp edges).
@@ -921,37 +921,37 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
 
         This filter preserves the `pointdata` of the input dataset.
 
-        Arguments:
-            fraction : (float)
+        Args:
+            fraction (float):
                 The desired target of reduction.
                 Setting `fraction=0.1` leaves 10% of the original number of vertices.
-            n : (int)
+            n (int):
                 the desired number of final points (`fraction` is recalculated based on it).
-            preserve_topology : (bool)
+            preserve_topology (bool):
                 If on, mesh splitting and hole elimination will not occur.
                 This may limit the maximum reduction that may be achieved.
-            preserve_boundaries : (bool)
+            preserve_boundaries (bool):
                 Turn on/off the deletion of vertices on the boundary of a mesh.
                 Control whether mesh boundaries are preserved during decimation.
-            feature_angle : (float)
+            feature_angle (float):
                 Specify the angle that defines a feature.
                 This angle is used to define what an edge is
                 (i.e., if the surface normal between two adjacent triangles
                 is >= FeatureAngle, an edge exists).
-            splitting : (bool)
+            splitting (bool):
                 Turn on/off the splitting of the mesh at corners,
                 along edges, at non-manifold points, or anywhere else a split is required.
                 Turning splitting off will better preserve the original topology of the mesh,
                 but you may not obtain the requested reduction.
-            splitting_angle : (float)
+            splitting_angle (float):
                 Specify the angle that defines a sharp edge.
                 This angle is used to control the splitting of the mesh.
                 A split line exists when the surface normals between two edge connected triangles
                 are >= `splitting_angle`.
-            inflection_point_ratio : (float)
+            inflection_point_ratio (float):
                 An inflection point occurs when the ratio of reduction error between two iterations
                 is greater than or equal to the `inflection_point_ratio` value.
-            vertex_degree : (int)
+            vertex_degree (int):
                 If the number of triangles connected to a vertex exceeds it then the vertex will be split.
 
         Note:
@@ -997,13 +997,13 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         This filter preserves the `celldata` of the input dataset,
         if `use_clustering=True` also the `pointdata` will be preserved in the result.
 
-        Arguments:
-            divisions : (list)
+        Args:
+            divisions (list):
                 number of divisions along x, y and z axes.
-            auto_adjust : (bool)
+            auto_adjust (bool):
                 if True, the number of divisions is automatically adjusted to
                 create more uniform cells.
-            use_clustering : (bool)
+            use_clustering (bool):
                 use [vtkQuadricClustering](https://vtk.org/doc/nightly/html/classvtkQuadricClustering.html)
                 instead of
                 [vtkBinnedDecimation](https://vtk.org/doc/nightly/html/classvtkBinnedDecimation.html).
@@ -1045,10 +1045,10 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         called "OriginalCellID" which contains the index of
         the cell ID in which the point was generated.
 
-        Arguments:
-            n : (int)
+        Args:
+            n (int):
                 number of points to generate.
-            min_radius: (float)
+            min_radius (float):
                 impose a minimum distance between points.
                 If `min_radius` is set to 0, the points are
                 generated uniformly at random inside the mesh.
@@ -1064,7 +1064,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             `points.interpolate_data_from(msh)`
             to interpolate existing mesh data onto the new points.
 
-        Example:
+        Examples:
         ```python
         from vedo import *
         msh = Mesh(dataurl + "panther.stl").lw(2)
@@ -1159,7 +1159,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         """
         Collapse mesh edges so that are all above `distance`.
 
-        Example:
+        Examples:
             ```python
             from vedo import *
             np.random.seed(2)
@@ -1227,10 +1227,10 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         Computes the ball of radius `n` in the mesh' edge-graph metric
         centered at vertex `index`.
 
-        Arguments:
-            index : (int)
+        Args:
+            index (int):
                 index of the vertex
-            depth : (int)
+            depth (int):
                 depth of the search in the edge-graph metric.
 
         Returns:
@@ -1259,16 +1259,16 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         """
         Adjust mesh point positions using the so-called "Windowed Sinc" method.
 
-        Arguments:
-            niter : (int)
+        Args:
+            niter (int):
                 number of iterations.
-            pass_band : (float)
+            pass_band (float):
                 set the pass_band value for the windowed sinc filter.
-            edge_angle : (float)
+            edge_angle (float):
                 edge angle to control smoothing along edges (either interior or boundary).
-            feature_angle : (float)
+            feature_angle (float):
                 specifies the feature angle for sharp edge identification.
-            boundary : (bool)
+            boundary (bool):
                 specify if boundary should also be smoothed or kept unmodified
 
         Examples:
@@ -1304,8 +1304,8 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         Holes are identified by locating boundary edges, linking them together
         into loops, and then triangulating the resulting loops.
 
-        Arguments:
-            size : (float)
+        Args:
+            size (float):
                 Approximate limit to the size of the hole that can be filled.
 
         Examples:
@@ -1335,7 +1335,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         Note:
             if you have many points to check use `inside_points()` instead.
 
-        Example:
+        Examples:
             ```python
             from vedo import *
             s = Sphere().c('green5').alpha(0.5)
@@ -1365,7 +1365,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         If return_ids is True a list of IDs is returned and in addition input points
         are marked by a pointdata array named "IsInside".
 
-        Example:
+        Examples:
             `print(pts.pointdata["IsInside"])`
 
         Examples:
@@ -1426,20 +1426,20 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         Return the boundary lines of an input mesh.
         Check also `vedo.core.CommonAlgorithms.mark_boundaries()` method.
 
-        Arguments:
-            boundary_edges : (bool)
+        Args:
+            boundary_edges (bool):
                 Turn on/off the extraction of boundary edges.
-            manifold_edges : (bool)
+            manifold_edges (bool):
                 Turn on/off the extraction of manifold edges.
-            non_manifold_edges : (bool)
+            non_manifold_edges (bool):
                 Turn on/off the extraction of non-manifold edges.
-            feature_angle : (bool)
+            feature_angle (bool):
                 Specify the min angle btw 2 faces for extracting edges.
-            return_point_ids : (bool)
+            return_point_ids (bool):
                 return a numpy array of point indices
-            return_cell_ids : (bool)
+            return_cell_ids (bool):
                 return a numpy array of cell indices
-            cell_edge : (bool)
+            cell_edge (bool):
                 set to `True` if a cell need to share an edge with
                 the boundary line, or `False` if a single vertex is enough
 
@@ -1517,14 +1517,14 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         """
         Imprint the contact surface of one object onto another surface.
 
-        Arguments:
-            loopline : (vedo.Line)
+        Args:
+            loopline (vedo.Line):
                 a Line object to be imprinted onto the mesh.
-            tol : (float)
+            tol (float):
                 projection tolerance which controls how close the imprint
                 surface must be to the target.
 
-        Example:
+        Examples:
             ```python
             from vedo import *
             grid = Grid()#.triangulate()
@@ -1657,14 +1657,14 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         of the input as seen along a specified `direction`, this can also be
         a `vtkCamera` object.
 
-        Arguments:
-            direction : (list)
+        Args:
+            direction (list):
                 viewpoint direction vector.
                 If `None` this is guessed by looking at the minimum
                 of the sides of the bounding box.
-            border_edges : (bool)
+            border_edges (bool):
                 enable or disable generation of border edges
-            feature_angle : (float)
+            feature_angle (float):
                 minimal angle for sharp edges detection.
                 If set to `False` the functionality is disabled.
 
@@ -1725,12 +1725,12 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         This is a new mesh where the scalar is now associated to cell faces and
         used to colorize the mesh.
 
-        Arguments:
-            n : (int)
+        Args:
+            n (int):
                 number of isobands in the range
-            vmin : (float)
+            vmin (float):
                 minimum of the range
-            vmax : (float)
+            vmax (float):
                 maximum of the range
 
         Examples:
@@ -1785,12 +1785,12 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         """
         Return a new `Mesh` representing the isolines of the active scalars.
 
-        Arguments:
-            n : (int, list)
+        Args:
+            n (int, list):
                 number of isolines in the range, a list of specific values can also be passed.
-            vmin : (float)
+            vmin (float):
                 minimum of the range
-            vmax : (float)
+            vmax (float):
                 maximum of the range
 
         Examples:
@@ -1851,20 +1851,20 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         This filter can be used to model axisymmetric objects like cylinders, bottles, and wine glasses;
         or translational/rotational symmetric objects like springs or corkscrews.
 
-        Arguments:
-            zshift : (float)
+        Args:
+            zshift (float):
                 shift along z axis.
-            direction : (list)
+            direction (list):
                 extrusion direction in the xy plane.
                 note that zshift is forced to be the 3rd component of direction,
                 which is therefore ignored.
-            rotation : (float)
+            rotation (float):
                 set the angle of rotation.
-            dr : (float)
+            dr (float):
                 set the radius variation in absolute units.
-            cap : (bool)
+            cap (bool):
                 enable or disable capping.
-            res : (int)
+            res (int):
                 set the resolution of the generating geometry.
 
         Warning:
@@ -1918,18 +1918,18 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         """
         Linearly extrude polygonal data using ``vtkLinearExtrusionFilter``.
 
-        Arguments:
-            shift : (float)
+        Args:
+            shift (float):
                 Extrusion scale factor. With vector extrusion, the final displacement is
                 ``shift * direction``.
-            direction : (list)
+            direction (list):
                 Extrusion vector. Ignored when ``use_normal=True``.
-            cap : (bool)
+            cap (bool):
                 Enable or disable capping.
-            use_normal : (bool)
+            use_normal (bool):
                 If ``True``, extrude along point normals instead of a fixed vector.
 
-        Example:
+        Examples:
             - [extrude2.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/extrude2.py)
         """
         lf = vtki.new("LinearExtrusionFilter")
@@ -1971,16 +1971,16 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         """
         Extrude a Mesh and trim it with an input surface mesh.
 
-        Arguments:
-            surface : (Mesh)
+        Args:
+            surface (Mesh):
                 the surface mesh to trim with.
-            direction : (list)
+            direction (list):
                 extrusion direction in the xy plane.
-            strategy : (str)
+            strategy (str):
                 either "boundary_edges" or "all_edges".
-            cap : (bool)
+            cap (bool):
                 enable or disable capping.
-            cap_strategy : (str)
+            cap_strategy (str):
                 either "intersection", "minimum_distance", "maximum_distance", "average_distance".
 
         The input Mesh is swept along a specified direction forming a "skirt"
@@ -2013,7 +2013,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             then no output for that primitive will be generated. In extreme cases, it is possible that no output
             whatsoever will be generated.
 
-        Example:
+        Examples:
             ```python
             from vedo import *
             sphere = Sphere([-1,0,4]).rotate_x(25).wireframe().color('red5')
@@ -2074,15 +2074,15 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         """
         Split a mesh by connectivity and order the pieces by increasing area.
 
-        Arguments:
-            maxdepth : (int)
+        Args:
+            maxdepth (int):
                 only consider this maximum number of mesh parts.
-            flag : (bool)
+            flag (bool):
                 if set to True return the same single object,
                 but add a "RegionId" array to flag the mesh subparts
-            must_share_edge : (bool)
+            must_share_edge (bool):
                 if True, mesh regions that only share single points will be split.
-            sort_by_area : (bool)
+            sort_by_area (bool):
                 if True, sort the mesh parts by decreasing area.
 
         Examples:
@@ -2188,7 +2188,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         Use `tol` to specify the absolute tolerance used to determine
         when the distance between two points is considered to be zero (defaults to 1e-6).
 
-        Example:
+        Examples:
             - [boolean.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/boolean.py)
 
             ![](https://vedo.embl.es/images/basic/boolean.png)
@@ -2261,7 +2261,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
 
         Use `return_ids` to return the cell ids along with point coords
 
-        Example:
+        Examples:
             ```python
             from vedo import *
             s = Spring()
@@ -2306,7 +2306,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         """
         Intersect this Mesh with a plane to return a set of lines.
 
-        Example:
+        Examples:
             ```python
             from vedo import *
             sph = Sphere()
@@ -2356,17 +2356,17 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
 
         Non-manifold surfaces should not be used with this method.
 
-        Arguments:
-            origins : (list)
+        Args:
+            origins (list):
                 list of plane origins
-            normals : (list)
+            normals (list):
                 list of plane normals
-            invert : (bool)
+            invert (bool):
                 invert the clipping.
-            return_assembly : (bool)
+            return_assembly (bool):
                 return the cap and the clipped surfaces as a `vedo.Assembly`.
 
-        Example:
+        Examples:
             ```python
             from vedo import *
             s = Sphere(res=50).linewidth(1)
@@ -2473,10 +2473,10 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         The output mesh contains the array "VertexIDs" that contains the ordered list of vertices
         traversed to get from the start vertex to the end vertex.
 
-        Arguments:
-            start : (int, list)
+        Args:
+            start (int, list):
                 start vertex index or close point `[x,y,z]`
-            end :  (int, list)
+            end (int, list):
                 end vertex index or close point `[x,y,z]`
 
         Examples:
@@ -2544,14 +2544,14 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         the interior voxels value is set to `values[0]` (255 by default), while
         the exterior voxels value is set to `values[1]` (0 by default).
 
-        Arguments:
-            values : (list)
+        Args:
+            values (list):
                 background and foreground values.
-            spacing : (list)
+            spacing (list):
                 voxel spacing in x, y and z.
-            dims : (list)
+            dims (list):
                 dimensions (nr. of voxels) of the output volume.
-            origin : (list)
+            origin (list):
                 position in space of the (0,0,0) voxel.
 
         Examples:
@@ -2633,12 +2633,12 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         Compute the `Volume` object whose voxels contains
         the signed distance from the mesh.
 
-        Arguments:
-            bounds : (list)
+        Args:
+            bounds (list):
                 bounds of the output volume
-            dims : (list)
+            dims (list):
                 dimensions (nr. of voxels) of the output volume
-            invert : (bool)
+            invert (bool):
                 flip the sign
 
         Examples:
@@ -2700,23 +2700,23 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         """
         Tetralize a closed polygonal mesh. Return a `TetMesh`.
 
-        Arguments:
-            side : (float)
+        Args:
+            side (float):
                 desired side of the single tetras as fraction of the bounding box diagonal.
                 Typical values are in the range (0.01 - 0.03)
-            nmax : (int)
+            nmax (int):
                 maximum random numbers to be sampled in the bounding box
-            gap : (float)
+            gap (float):
                 keep this minimum distance from the surface,
                 if None an automatic choice is made.
-            subsample : (bool)
+            subsample (bool):
                 subsample input surface, the geometry might be affected
                 (the number of original faces reduceed), but higher tet quality might be obtained.
-            uniform : (bool)
+            uniform (bool):
                 generate tets more uniformly packed in the interior of the mesh
-            seed : (int)
+            seed (int):
                 random number generator seed
-            debug : (bool)
+            debug (bool):
                 show an intermediate plot with sampled points
 
         Examples:

@@ -145,44 +145,44 @@ class Slider2D(SliderWidget):
 
         Use `play()` to start an animation between the current slider value and the last value.
 
-        Arguments:
-            sliderfunc : (function)
+        Args:
+            sliderfunc (function):
                 external function to be called by the widget
-            xmin : (float)
+            xmin (float):
                 lower value of the slider
-            xmax : (float)
+            xmax (float):
                 upper value
-            value : (float)
+            value (float):
                 current value
-            pos : (list, str)
+            pos (list, str):
                 position corner number: horizontal [1-5] or vertical [11-15]
                 it can also be specified by corners coordinates [(x1,y1), (x2,y2)]
                 and also by a string descriptor (eg. "bottom-left")
-            title : (str)
+            title (str):
                 title text
-            font : (str)
+            font (str):
                 title font face. Check [available fonts here](https://vedo.embl.es/fonts).
-            title_size : (float)
+            title_size (float):
                 title text scale [1.0]
-            show_value : (bool)
+            show_value (bool):
                 if True current value is shown
-            delayed : (bool)
+            delayed (bool):
                 if True the callback is delayed until when the mouse button is released
-            alpha : (float)
+            alpha (float):
                 opacity of the scalar bar texts
-            slider_length : (float)
+            slider_length (float):
                 slider length
-            slider_width : (float)
+            slider_width (float):
                 slider width
-            end_cap_length : (float)
+            end_cap_length (float):
                 length of the end cap
-            end_cap_width : (float)
+            end_cap_width (float):
                 width of the end cap
-            tube_width : (float)
+            tube_width (float):
                 width of the tube
-            title_height : (float)
+            title_height (float):
                 height of the title
-            tformat : (str)
+            tformat (str):
                 format of the title
 
         Examples:
@@ -389,30 +389,30 @@ class Slider3D(SliderWidget):
         """
         Add a 3D slider which can call an external custom function.
 
-        Arguments:
-            sliderfunc : (function)
+        Args:
+            sliderfunc (function):
                 external function to be called by the widget
-            pos1 : (list)
+            pos1 (list):
                 first position 3D coordinates
-            pos2 : (list)
+            pos2 (list):
                 second position 3D coordinates
-            xmin : (float)
+            xmin (float):
                 lower value
-            xmax : (float)
+            xmax (float):
                 upper value
-            value : (float)
+            value (float):
                 initial value
-            s : (float)
+            s (float):
                 label scaling factor
-            t : (float)
+            t (float):
                 tube scaling factor
-            title : (str)
+            title (str):
                 title text
-            c : (color)
+            c (color):
                 slider color
-            rotation : (float)
+            rotation (float):
                 title rotation around slider axis
-            show_value : (bool)
+            show_value (bool):
                 if True current value is shown on top of the slider
 
         Examples:

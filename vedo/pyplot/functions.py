@@ -36,62 +36,62 @@ def plot(*args, **kwargs):
     they are compatible and comparable. If they are not compatible
     you will receive an error message.
 
-    Arguments:
-        xerrors : (bool)
+    Args:
+        xerrors (bool):
             show error bars associated to each point in x
-        yerrors : (bool)
+        yerrors (bool):
             show error bars associated to each point in y
-        lw : (int)
+        lw (int):
             width of the line connecting points in pixel units.
             Set it to 0 to remove the line.
-        lc : (str)
+        lc (str):
             line color
-        la : (float)
+        la (float):
             line "alpha", opacity of the line
-        dashed : (bool)
+        dashed (bool):
             draw a dashed line instead of a continuous line
-        splined : (bool)
+        splined (bool):
             spline the line joining the point as a countinous curve
-        elw : (int)
+        elw (int):
             width of error bar lines in units of pixels
-        ec : (color)
+        ec (color):
             color of error bar, by default the same as marker color
-        error_band : (bool)
+        error_band (bool):
             represent errors on y as a filled error band.
             Use `ec` keyword to modify its color.
-        marker : (str, int)
+        marker (str, int):
             use a marker for the data points
-        ms : (float)
+        ms (float):
             marker size
-        mc : (color)
+        mc (color):
             color of the marker
-        ma : (float)
+        ma (float):
             opacity of the marker
-        xlim : (list)
+        xlim (list):
             set limits to the range for the x variable
-        ylim : (list)
+        ylim (list):
             set limits to the range for the y variable
-        aspect : (float)
+        aspect (float):
             Desired aspect ratio.
             If None, it is automatically calculated to get a reasonable aspect ratio.
             Scaling factor is saved in Figure.yscale
-        padding : (float, list)
+        padding (float, list):
             keep a padding space from the axes (as a fraction of the axis size).
             This can be a list of four numbers.
-        title : (str)
+        title (str):
             title to appear on the top of the frame, like a header.
-        xtitle : (str)
+        xtitle (str):
             title for the x-axis, can also be set using `axes=dict(xtitle="my x axis")`
-        ytitle : (str)
+        ytitle (str):
             title for the y-axis, can also be set using `axes=dict(ytitle="my y axis")`
-        ac : (str)
+        ac (str):
             axes color
-        grid : (bool)
+        grid (bool):
             show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
-        ztolerance : (float)
+        ztolerance (float):
             a tolerance factor to superimpose objects (along the z-axis).
 
-    Example:
+    Examples:
         ```python
         import numpy as np
         from vedo.pyplot import plot
@@ -124,33 +124,33 @@ def plot(*args, **kwargs):
     Input must be in format `[counts, labels, colors, edges]`.
     Either or both `edges` and `colors` are optional and can be omitted.
 
-    Arguments:
-        errors : (bool)
+    Args:
+        errors (bool):
             show error bars
-        logscale : (bool)
+        logscale (bool):
             use logscale on y-axis
-        fill : (bool)
+        fill (bool):
             fill bars with solid color `c`
-        gap : (float)
+        gap (float):
             leave a small space btw bars
-        radius : (float)
+        radius (float):
             border radius of the top of the histogram bar. Default value is 0.1.
-        texture : (str)
+        texture (str):
             url or path to an image to be used as texture for the bin
-        outline : (bool)
+        outline (bool):
             show outline of the bins
-        xtitle : (str)
+        xtitle (str):
             title for the x-axis, can also be set using `axes=dict(xtitle="my x axis")`
-        ytitle : (str)
+        ytitle (str):
             title for the y-axis, can also be set using `axes=dict(ytitle="my y axis")`
-        ac : (str)
+        ac (str):
             axes color
-        padding : (float, list)
+        padding (float, list):
             keep a padding space from the axes (as a fraction of the axis size).
             This can be a list of four numbers.
-        aspect : (float)
+        aspect (float):
             the desired aspect ratio of the figure. Default is 4/3.
-        grid : (bool)
+        grid (bool):
             show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
 
     Examples:
@@ -168,18 +168,18 @@ def plot(*args, **kwargs):
     If input is an external function or a formula, draw the surface
     representing the function `f(x,y)`.
 
-    Arguments:
-        x : (float)
+    Args:
+        x (float):
             x range of values
-        y : (float)
+        y (float):
             y range of values
-        zlimits : (float)
+        zlimits (float):
             limit the z range of the independent variable
-        zlevels : (int)
+        zlevels (int):
             will draw the specified number of z-levels contour lines
-        show_nan : (bool)
+        show_nan (bool):
             show where the function does not exist as red points
-        bins : (list)
+        bins (list):
             number of bins in x and y
 
     Examples:
@@ -195,12 +195,12 @@ def plot(*args, **kwargs):
 
     If `mode='complex'` draw the real value of the function and color map the imaginary part.
 
-    Arguments:
-        cmap : (str)
+    Args:
+        cmap (str):
             diverging color map (white means `imag(z)=0`)
-        lw : (float)
+        lw (float):
             line with of the binning
-        bins : (list)
+        bins (list):
             binning in x and y
 
     Examples:
@@ -215,44 +215,44 @@ def plot(*args, **kwargs):
     If `mode='polar'` input arrays are interpreted as a list of polar angles and radii.
     Build a polar (radar) plot by joining the set of points in polar coordinates.
 
-    Arguments:
-        title : (str)
+    Args:
+        title (str):
             plot title
-        tsize : (float)
+        tsize (float):
             title size
-        bins : (int)
+        bins (int):
             number of bins in phi
-        r1 : (float)
+        r1 (float):
             inner radius
-        r2 : (float)
+        r2 (float):
             outer radius
-        lsize : (float)
+        lsize (float):
             label size
-        c : (color)
+        c (color):
             color of the line
-        ac : (color)
+        ac (color):
             color of the frame and labels
-        alpha : (float)
+        alpha (float):
             opacity of the frame
-        ps : (int)
+        ps (int):
             point size in pixels, if ps=0 no point is drawn
-        lw : (int)
+        lw (int):
             line width in pixels, if lw=0 no line is drawn
-        deg : (bool)
+        deg (bool):
             input array is in degrees
-        vmax : (float)
+        vmax (float):
             normalize radius to this maximum value
-        fill : (bool)
+        fill (bool):
             fill convex area with solid color
-        splined : (bool)
+        splined (bool):
             interpolate the set of input points
-        show_disc : (bool)
+        show_disc (bool):
             draw the outer ring axis
-        nrays : (int)
+        nrays (int):
             draw this number of axis rays (continuous and dashed)
-        show_lines : (bool)
+        show_lines (bool):
             draw lines to the origin
-        show_angles : (bool)
+        show_angles (bool):
             draw angle values
 
     Examples:
@@ -270,20 +270,20 @@ def plot(*args, **kwargs):
     Return an `Figure(Assembly)` of 2 objects: the unit
     sphere (in wireframe representation) and the surface `rho(theta, phi)`.
 
-    Arguments:
+    Args:
         rfunc : function
             handle to a user defined function `rho(theta, phi)`.
-        normalize : (bool)
+        normalize (bool):
             scale surface to fit inside the unit sphere
-        res : (int)
+        res (int):
             grid resolution of the unit sphere
-        scalarbar : (bool)
+        scalarbar (bool):
             add a 3D scalarbar to the plot for radius
-        c : (color)
+        c (color):
             color of the unit sphere
-        alpha : (float)
+        alpha (float):
             opacity of the unit sphere
-        cmap : (str)
+        cmap (str):
             color map for the surface
 
     Examples:
@@ -421,42 +421,42 @@ def histogram(*args, **kwargs):
 
     Creates a `Histogram1D(Figure)` object.
 
-    Arguments:
-        weights : (list)
+    Args:
+        weights (list):
             An array of weights, of the same shape as `data`. Each value in `data`
             only contributes its associated weight towards the bin count (instead of 1).
-        bins : (int)
+        bins (int):
             number of bins
-        vrange : (list)
+        vrange (list):
             restrict the range of the histogram
-        density : (bool)
+        density (bool):
             normalize the area to 1 by dividing by the nr of entries and bin size
-        logscale : (bool)
+        logscale (bool):
             use logscale on y-axis
-        fill : (bool)
+        fill (bool):
             fill bars with solid color `c`
-        gap : (float)
+        gap (float):
             leave a small space btw bars
-        radius : (float)
+        radius (float):
             border radius of the top of the histogram bar. Default value is 0.1.
-        texture : (str)
+        texture (str):
             url or path to an image to be used as texture for the bin
-        outline : (bool)
+        outline (bool):
             show outline of the bins
-        errors : (bool)
+        errors (bool):
             show error bars
-        xtitle : (str)
+        xtitle (str):
             title for the x-axis, can also be set using `axes=dict(xtitle="my x axis")`
-        ytitle : (str)
+        ytitle (str):
             title for the y-axis, can also be set using `axes=dict(ytitle="my y axis")`
-        padding : (float, list)
+        padding (float, list):
             keep a padding space from the axes (as a fraction of the axis size).
             This can be a list of four numbers.
-        aspect : (float)
+        aspect (float):
             the desired aspect ratio of the histogram. Default is 4/3.
-        grid : (bool)
+        grid (bool):
             show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
-        ztolerance : (float)
+        ztolerance (float):
             a tolerance factor to superimpose objects (along the z-axis).
 
     Examples:
@@ -474,42 +474,42 @@ def histogram(*args, **kwargs):
     Input data formats `[(x1,x2,..), (y1,y2,..)] or [(x1,y1), (x2,y2),..]`
     are both valid.
 
-    Arguments:
-        bins : (list)
+    Args:
+        bins (list):
             binning as (nx, ny)
-        weights : (list)
+        weights (list):
             array of weights to assign to each entry
-        cmap : (str, lookuptable)
+        cmap (str, lookuptable):
             color map name or look up table
-        alpha : (float)
+        alpha (float):
             opacity of the histogram
-        gap : (float)
+        gap (float):
             separation between adjacent bins as a fraction for their size.
             Set gap=-1 to generate a quad surface.
-        scalarbar : (bool)
+        scalarbar (bool):
             add a scalarbar to right of the histogram
-        like : (Figure)
+        like (Figure):
             grab and use the same format of the given Figure (for superimposing)
-        xlim : (list)
+        xlim (list):
             [x0, x1] range of interest. If left to None will automatically
             choose the minimum or the maximum of the data range.
             Data outside the range are completely ignored.
-        ylim : (list)
+        ylim (list):
             [y0, y1] range of interest. If left to None will automatically
             choose the minimum or the maximum of the data range.
             Data outside the range are completely ignored.
-        aspect : (float)
+        aspect (float):
             the desired aspect ratio of the figure.
-        title : (str)
+        title (str):
             title of the plot to appear on top.
             If left blank some statistics will be shown.
-        xtitle : (str)
+        xtitle (str):
             x axis title
-        ytitle : (str)
+        ytitle (str):
             y axis title
-        ztitle : (str)
+        ztitle (str):
             title for the scalar bar
-        ac : (str)
+        ac (str):
             axes color, additional keyword for Axes can also be added
             using e.g. `axes=dict(xygrid=True)`
 
@@ -525,22 +525,22 @@ def histogram(*args, **kwargs):
 
     If `mode='3d'`, build a 2D histogram as 3D bars from a list of x and y values.
 
-    Arguments:
-        xtitle : (str)
+    Args:
+        xtitle (str):
             x axis title
-        bins : (int)
+        bins (int):
             nr of bins for the smaller range in x or y
-        vrange : (list)
+        vrange (list):
             range in x and y in format `[(xmin,xmax), (ymin,ymax)]`
-        norm : (float)
+        norm (float):
             sets a scaling factor for the z axis (frequency axis)
-        fill : (bool)
+        fill (bool):
             draw solid hexagons
-        cmap : (str)
+        cmap (str):
             color map name for elevation
-        gap : (float)
+        gap (float):
             keep a internal empty gap between bins [0,1]
-        zscale : (float)
+        zscale (float):
             rescale the (already normalized) zaxis for visual convenience
 
     Examples:
@@ -552,18 +552,18 @@ def histogram(*args, **kwargs):
 
     If `mode='hexbin'`, build a hexagonal histogram from a list of x and y values.
 
-    Arguments:
-        xtitle : (str)
+    Args:
+        xtitle (str):
             x axis title
-        bins : (int)
+        bins (int):
             nr of bins for the smaller range in x or y
-        vrange : (list)
+        vrange (list):
             range in x and y in format `[(xmin,xmax), (ymin,ymax)]`
-        norm : (float)
+        norm (float):
             sets a scaling factor for the z axis (frequency axis)
-        fill : (bool)
+        fill (bool):
             draw solid hexagons
-        cmap : (str)
+        cmap (str):
             color map name for elevation
 
     Examples:
@@ -577,53 +577,53 @@ def histogram(*args, **kwargs):
 
     If `mode='polar'` assume input is polar coordinate system (rho, theta):
 
-    Arguments:
-        weights : (list)
+    Args:
+        weights (list):
             Array of weights, of the same shape as the input.
             Each value only contributes its associated weight towards the bin count (instead of 1).
-        title : (str)
+        title (str):
             histogram title
-        tsize : (float)
+        tsize (float):
             title size
-        bins : (int)
+        bins (int):
             number of bins in phi
-        r1 : (float)
+        r1 (float):
             inner radius
-        r2 : (float)
+        r2 (float):
             outer radius
-        phigap : (float)
+        phigap (float):
             gap angle btw 2 radial bars, in degrees
-        rgap : (float)
+        rgap (float):
             gap factor along radius of numeric angle labels
-        lpos : (float)
+        lpos (float):
             label gap factor along radius
-        lsize : (float)
+        lsize (float):
             label size
-        c : (color)
+        c (color):
             color of the histogram bars, can be a list of length `bins`
-        bc : (color)
+        bc (color):
             color of the frame and labels
-        alpha : (float)
+        alpha (float):
             opacity of the frame
-        cmap : (str)
+        cmap (str):
             color map name
-        deg : (bool)
+        deg (bool):
             input array is in degrees
-        vmin : (float)
+        vmin (float):
             minimum value of the radial axis
-        vmax : (float)
+        vmax (float):
             maximum value of the radial axis
-        labels : (list)
+        labels (list):
             list of labels, must be of length `bins`
-        show_disc : (bool)
+        show_disc (bool):
             show the outer ring axis
-        nrays : (int)
+        nrays (int):
             draw this number of axis rays (continuous and dashed)
-        show_lines : (bool)
+        show_lines (bool):
             show lines to the origin
-        show_angles : (bool)
+        show_angles (bool):
             show angular values
-        show_errors : (bool)
+        show_errors (bool):
             show error bars
 
     Examples:
@@ -637,14 +637,14 @@ def histogram(*args, **kwargs):
 
     If `mode='spheric'`, build a histogram from list of theta and phi values.
 
-    Arguments:
-        rmax : (float)
+    Args:
+        rmax (float):
             maximum radial elevation of bin
-        res : (int)
+        res (int):
             sphere resolution
-        cmap : (str)
+        cmap (str):
             color map name
-        lw : (int)
+        lw (int):
             line width of the bin edges
 
     Examples:
@@ -738,25 +738,25 @@ def fit(
     Errors on x and y can be specified. If left to `None` an estimate is made from
     the statistical spread of the dataset itself. Errors are always assumed gaussian.
 
-    Arguments:
-        deg : (int)
+    Args:
+        deg (int):
             degree of the polynomial to be fitted
-        niter : (int)
+        niter (int):
             number of monte-carlo iterations to compute error bands.
             If set to 0, return the simple least-squares fit with naive error estimation
             on coefficients only. A reasonable non-zero value to set is about 500, in
             this case *error_lines*, *error_band* and the other class attributes are filled
-        nstd : (float)
+        nstd (float):
             nr. of standard deviation to use for error calculation
-        xerrors : (list)
+        xerrors (list):
             array of the same length of points with the errors on x
-        yerrors : (list)
+        yerrors (list):
             array of the same length of points with the errors on y
-        vrange : (list)
+        vrange (list):
             specify the domain range of the fitting line
             (only affects visualization, but can be used to extrapolate the fit
             outside the data range)
-        res : (int)
+        res (int):
             resolution of the output fitted line and error lines
 
     Examples:
@@ -1604,12 +1604,12 @@ def streamplot(
     Generate a streamline plot of a vectorial field (U,V) defined at positions (X,Y).
     Returns a `Mesh` object.
 
-    Arguments:
-        direction : (str)
+    Args:
+        direction (str):
             either "forward", "backward" or "both"
-        max_propagation : (float)
+        max_propagation (float):
             maximum physical length of the streamline
-        lw : (float)
+        lw (float):
             line width in absolute units
 
     Examples:

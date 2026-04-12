@@ -39,18 +39,18 @@ class Glyph(Mesh):
         alpha=1.0,
     ) -> None:
         """
-        Arguments:
-            orientation_array: (list, str, vtkArray)
+        Args:
+            orientation_array (list, str, vtkArray):
                 list of vectors, `vtkArray` or name of an already existing pointdata array
-            scale_by_scalar : (bool)
+            scale_by_scalar (bool):
                 glyph mesh is scaled by the active scalars
-            scale_by_vector_size : (bool)
+            scale_by_vector_size (bool):
                 glyph mesh is scaled by the size of the vectors
-            scale_by_vector_components : (bool)
+            scale_by_vector_components (bool):
                 glyph mesh is scaled by the 3 vectors components
-            color_by_scalar : (bool)
+            color_by_scalar (bool):
                 glyph mesh is colored based on the scalar value
-            color_by_vector_size : (bool)
+            color_by_vector_size (bool):
                 glyph mesh is colored based on the vector size
 
         Examples:
@@ -167,12 +167,12 @@ class Tensors(Mesh):
         alpha=1.0,
     ) -> None:
         """
-        Arguments:
-            source : (str, Mesh)
+        Args:
+            source (str, Mesh):
                 preset types of source shapes is "ellipsoid", "cylinder", "cube" or a `Mesh` object.
-            use_eigenvalues : (bool)
+            use_eigenvalues (bool):
                 color source glyph using the eigenvalues or by scalars
-            three_axes : (bool)
+            three_axes (bool):
                 if `False` scale the source in the x-direction,
                 the medium in the y-direction, and the minor in the z-direction.
                 Then, the source is rotated so that the glyph's local x-axis lies
@@ -181,14 +181,14 @@ class Tensors(Mesh):
 
                 If `True` three sources are produced, each of them oriented along an eigenvector
                 and scaled according to the corresponding eigenvector.
-            is_symmetric : (bool)
+            is_symmetric (bool):
                 If `True` each source glyph is mirrored (2 or 6 glyphs will be produced).
                 The x-axis of the source glyph will correspond to the eigenvector on output.
-            length : (float)
+            length (float):
                 distance from the origin to the tip of the source glyph along the x-axis
-            scale : (float)
+            scale (float):
                 scaling factor of the source glyph.
-            max_scale : (float)
+            max_scale (float):
                 clamp scaling at this factor.
 
         Examples:

@@ -12,13 +12,13 @@ def ask(*question, **kwarg) -> str:
     Ask a question from command line. Return the answer as a string.
     See function `colors.printc()` for the description of the keyword options.
 
-    Arguments:
-        options : (list)
+    Args:
+        options (list):
             a python list of possible answers to choose from.
-        default : (str)
+        default (str):
             the default answer when just hitting return.
 
-    Example:
+    Examples:
     ```python
     import vedo
     res = vedo.ask("Continue?", options=['Y','n'], default='Y', c='g')

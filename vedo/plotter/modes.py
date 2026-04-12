@@ -21,14 +21,14 @@ class MousePan(vtki.vtkInteractorStyleUser):
     - Right mouse button is rotate (left/right movement) and zoom in/out (up/down movement)
     - Mouse scroll wheel is zoom in/out
 
-    Arguments:
-        enable_pan: (bool)
+    Args:
+        enable_pan (bool):
             Enable panning the scene.
-        enable_zoom: (bool)
+        enable_zoom (bool):
             Enable zooming the scene.
-        enable_rotate: (bool)
+        enable_rotate (bool):
             Enable rotating the scene.
-        speed: (float)
+        speed (float):
             Speed factor of the interaction, e.i. how fast the scene must move.
     """
 
@@ -179,13 +179,13 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
         """
         Interaction mode to fly over a surface.
 
-        Arguments:
+        Args:
             move_step: float, optional
                 The step size for moving the camera in the plane of the surface.
             angle_step: float, optional
                 The step size for rotating the camera.
 
-        Example:
+        Examples:
             [interaction_modes3.py](https://github.com/marcomusy/vedo/blob/master/examples/basic/interaction_modes3.py)
         """
 
@@ -512,7 +512,7 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
     --------------------------
     `callback_camera_direction_changed` : executed when camera has rotated but before re-rendering
 
-    Example:
+    Examples:
         [interaction_modes2.py](https://github.com/marcomusy/vedo/blob/master/examples/basic/interaction_modes2.py)
 
     .. note::

@@ -59,28 +59,28 @@ class FreeHandCutPlotter(Plotter):
             -       "u" to undo last action
             -       "h" for help, "i" for info
 
-        Arguments:
-            mesh : (Mesh, Points)
+        Args:
+            mesh (Mesh, Points):
                 The input Mesh or pointcloud.
-            splined : (bool)
+            splined (bool):
                 join points with a spline or a simple line.
-            font : (str)
+            font (str):
                 Font name for the instructions.
-            alpha : (float)
+            alpha (float):
                 transparency of the instruction message panel.
-            lw : (str)
+            lw (str):
                 selection line width.
-            lc : (str)
+            lc (str):
                 selection line color.
-            pc : (str)
+            pc (str):
                 selection points color.
-            c : (str)
+            c (str):
                 background color of instructions.
-            tc : (str)
+            tc (str):
                 text color of instructions.
-            tol : (int)
+            tol (int):
                 tolerance of the point proximity.
-            **kwargs : (dict)
+            **kwargs (dict):
                 keyword arguments to pass to a `vedo.plotter.Plotter` instance.
 
         Examples:
@@ -300,18 +300,18 @@ class SplinePlotter(Plotter):
         (open or closed).
         Input object can be a image file name or a 3D mesh.
 
-        Arguments:
-            obj : (Mesh, str)
+        Args:
+            obj (Mesh, str):
                 The input object can be a image file name or a 3D mesh.
-            init_points : (list)
+            init_points (list):
                 Set an initial number of points to define a region.
-            closed : (bool)
+            closed (bool):
                 Close the spline or line.
-            splined : (bool)
+            splined (bool):
                 Join points with a spline or a simple line.
-            mode : (str)
+            mode (str):
                 Set the mode of interaction.
-            **kwargs : (dict)
+            **kwargs (dict):
                 keyword arguments to pass to a `vedo.plotter.Plotter` instance.
         """
         super().__init__(**kwargs)

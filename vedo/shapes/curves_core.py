@@ -30,13 +30,13 @@ class Line(Mesh):
         self, p0, p1=None, closed=False, res=2, lw=1, c="k1", alpha=1.0
     ) -> None:
         """
-        Arguments:
-            closed : (bool)
+        Args:
+            closed (bool):
                 join last to first point
-            res : (int)
+            res (int):
                 resolution, number of points along the line
                 (only relevant if only 2 points are specified)
-            lw : (int)
+            lw (int):
                 line width in pixel units
         """
 
@@ -119,7 +119,7 @@ class Line(Mesh):
         """
         Return a copy of the ``Line`` object.
 
-        Example:
+        Examples:
             ```python
             from vedo import *
             ln1 = Line([1,1,1], [2,2,2], lw=3).print()
@@ -238,7 +238,7 @@ class Line(Mesh):
 
         The resolution of the line (nr of points) can affect how pattern will show up.
 
-        Example:
+        Examples:
             ```python
             from vedo import Line
             pts = [[1, 0, 0], [5, 2, 0], [3, 3, 1]]
@@ -298,7 +298,7 @@ class Line(Mesh):
         """
         Compute the tangents of a line in space.
 
-        Example:
+        Examples:
             ```python
             from vedo import *
             shape = Assembly(dataurl+"timecourse1d.npy")[58]
@@ -319,7 +319,7 @@ class Line(Mesh):
         Compute the signed curvature of a line in space.
         The signed is computed assuming the line is about coplanar to the xy plane.
 
-        Example:
+        Examples:
             ```python
             from vedo import *
             from vedo.pyplot import plot
@@ -369,17 +369,17 @@ class Line(Mesh):
         """
         Generate a new `Line` which plots the active scalar along the line.
 
-        Arguments:
-            radius : (float)
+        Args:
+            radius (float):
                 distance radius to the line
-            height: (float)
+            height (float):
                 height of the plot
-            normal: (list)
+            normal (list):
                 normal vector to the plane of the plot
-            camera: (vtkCamera)
+            camera (vtkCamera):
                 camera object to use for the plot orientation
 
-        Example:
+        Examples:
             ```python
             from vedo import *
             circle = Circle(res=360).rotate_y(20)
@@ -413,7 +413,7 @@ class Line(Mesh):
         Returns a `Mesh` surface.
         Line position is updated to allow for additional sweepings.
 
-        Example:
+        Examples:
             ```python
             from vedo import Line, show
             aline = Line([(0,0,0),(1,3,0),(2,4,0)])
@@ -487,12 +487,12 @@ class DashedLine(Mesh):
         self, p0, p1=None, spacing=0.1, closed=False, lw=2, c="k5", alpha=1.0
     ) -> None:
         """
-        Arguments:
-            closed : (bool)
+        Args:
+            closed (bool):
                 join last to first point
-            spacing : (float)
+            spacing (float):
                 relative size of the dash
-            lw : (int)
+            lw (int):
                 line width in pixels
         """
         if isinstance(p1, vtki.vtkActor):
@@ -592,15 +592,15 @@ class RoundedLine(Mesh):
 
     def __init__(self, pts, lw, res=10, c="gray4", alpha=1.0) -> None:
         """
-        Arguments:
-            pts : (list)
+        Args:
+            pts (list):
                 a list of points in 2D or 3D (z will be ignored).
-            lw : (float)
+            lw (float):
                 thickness of the line.
-            res : (int)
+            res (int):
                 resolution of the rounded regions
 
-        Example:
+        Examples:
             ```python
             from vedo import *
             pts = [(-4,-3),(1,1),(2,4),(4,1),(3,-1),(2,-5),(9,-3)]
@@ -712,18 +712,18 @@ class Lines(Mesh):
         alpha=1.0,
     ) -> None:
         """
-        Arguments:
-            scale : (float)
+        Args:
+            scale (float):
                 apply a rescaling factor to the lengths.
-            c : (color, int, str, list)
+            c (color, int, str, list):
                 color name, number, or list of [R,G,B] colors
-            alpha : (float)
+            alpha (float):
                 opacity in range [0,1]
-            lw : (int)
+            lw (int):
                 line width in pixel units
-            dotted : (bool)
+            dotted (bool):
                 draw a dotted line
-            res : (int)
+            res (int):
                 resolution, number of points along the line
                 (only relevant if only 2 points are specified)
 
@@ -906,20 +906,20 @@ class Spline(Line):
         self, points, smooth=0.0, degree=2, closed=False, res=None, easing=""
     ) -> None:
         """
-        Arguments:
-            smooth : (float)
+        Args:
+            smooth (float):
                 smoothing factor.
                 - 0 = interpolate points exactly [default].
                 - 1 = average point positions.
-            degree : (int)
+            degree (int):
                 degree of the spline (between 1 and 5).
-            easing : (str)
+            easing (str):
                 control sensity of points along the spline.
                 Available options are
                 `[InSine, OutSine, Sine, InQuad, OutQuad, InCubic, OutCubic, InQuart, OutQuart, InCirc, OutCirc].`
                 Can be used to create animations (move objects at varying speed).
                 See e.g.: https://easings.net
-            res : (int)
+            res (int):
                 number of points on the spline
 
         See also: `CSpline` and `KSpline`.
@@ -997,16 +997,16 @@ class KSpline(Line):
         self, points, continuity=0.0, tension=0.0, bias=0.0, closed=False, res=None
     ) -> None:
         """
-        Arguments:
-            continuity : (float)
+        Args:
+            continuity (float):
                 changes the sharpness in change between tangents
-            tension : (float)
+            tension (float):
                 changes the length of the tangent vector
-            bias : (float)
+            bias (float):
                 changes the direction of the tangent vector
-            closed : (bool)
+            closed (bool):
                 join last to first point to produce a closed curve
-            res : (int)
+            res (int):
                 approximate resolution of the output line.
                 Default is 20 times the number of input points.
 
@@ -1071,10 +1071,10 @@ class CSpline(Line):
 
     def __init__(self, points, closed=False, res=None) -> None:
         """
-        Arguments:
-            closed : (bool)
+        Args:
+            closed (bool):
                 join last to first point to produce a closed curve
-            res : (int)
+            res (int):
                 approximate resolution of the output line.
                 Default is 20 times the number of input points.
 
@@ -1132,7 +1132,7 @@ class Bezier(Line):
 
     def __init__(self, points, res=None) -> None:
         """
-        Example:
+        Examples:
             ```python
             from vedo import *
             import numpy as np
@@ -1175,12 +1175,12 @@ class NormalLines(Mesh):
     """
     Build an `Glyph` to show the normals at cell centers or at mesh vertices.
 
-    Arguments:
-        ratio : (int)
+    Args:
+        ratio (int):
             show 1 normal every `ratio` cells.
-        on : (str)
+        on (str):
             either "cells" or "points".
-        scale : (float)
+        scale (float):
             scale factor to control size.
     """
 
@@ -1234,15 +1234,15 @@ class Tube(Mesh):
 
     def __init__(self, points, r=1.0, cap=True, res=12, c=None, alpha=1.0) -> None:
         """
-        Arguments:
-            r :  (float, list)
+        Args:
+            r (float, list):
                 constant radius or list of radii.
-            res : (int)
+            res (int):
                 resolution, number of the sides of the tube
-            c : (color)
+            c (color):
                 constant color or list of colors for each point.
 
-        Example:
+        Examples:
             Create a tube along a line, with data associated to each point:
 
             ```python
@@ -1332,7 +1332,7 @@ def ThickTube(pts, r1, r2, res=12, c=None, alpha=1.0) -> Mesh | None:
     """
     Create a tube with a thickness along a line of points.
 
-    Example:
+    Examples:
     ```python
     from vedo import *
     pts = [[sin(x), cos(x), x/3] for x in np.arange(0.1, 3, 0.3)]
@@ -1399,26 +1399,26 @@ class Tubes(Mesh):
         """
         Wrap tubes around the input `Lines` object.
 
-        Arguments:
-            lines : (Lines)
+        Args:
+            lines (Lines):
                 input Lines object.
-            r : (float)
+            r (float):
                 constant radius
-            vary_radius_by_scalar : (bool)
+            vary_radius_by_scalar (bool):
                 use scalar array to control radius
-            vary_radius_by_vector : (bool)
+            vary_radius_by_vector (bool):
                 use vector array to control radius
-            vary_radius_by_vector_norm : (bool)
+            vary_radius_by_vector_norm (bool):
                 use vector norm to control radius
-            vary_radius_by_absolute_scalar : (bool)
+            vary_radius_by_absolute_scalar (bool):
                 use absolute scalar value to control radius
-            max_radius_factor : (float)
+            max_radius_factor (float):
                 max tube radius as a multiple of the min radius
-            cap : (bool)
+            cap (bool):
                 capping of the tube
-            res : (int)
+            res (int):
                 resolution, number of the sides of the tube
-            c : (color)
+            c (color):
                 constant color or list of colors for each point.
 
         Examples:

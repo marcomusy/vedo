@@ -36,8 +36,8 @@ class PeriodicTable:
         """
         Get the name of the element with the given atomic number.
 
-        Arguments:
-            atomic_number : (int)
+        Args:
+            atomic_number (int):
                 The atomic number of the element.
 
         Returns:
@@ -49,8 +49,8 @@ class PeriodicTable:
         """
         Get the symbol of the element with the given atomic number.
 
-        Arguments:
-            atomic_number : (int)
+        Args:
+            atomic_number (int):
                 The atomic number of the element.
 
         Returns:
@@ -62,8 +62,8 @@ class PeriodicTable:
         """
         Get the atomic number of the element with the given symbol.
 
-        Arguments:
-            symbol : (str)
+        Args:
+            symbol (str):
                 The symbol of the element.
 
         Returns:
@@ -75,8 +75,8 @@ class PeriodicTable:
         """
         Get the covalent radius of the element with the given atomic number.
 
-        Arguments:
-            atomic_number : (int)
+        Args:
+            atomic_number (int):
                 The atomic number of the element.
 
         Returns:
@@ -88,8 +88,8 @@ class PeriodicTable:
         """
         Get the Van der Waals radius of the element with the given atomic number.
 
-        Arguments:
-            atomic_number: (int)
+        Args:
+            atomic_number (int):
                 The atomic number of the element.
 
         Returns:
@@ -110,8 +110,8 @@ class PeriodicTable:
         """
         Get all data for the element with the given atomic number.
 
-        Arguments:
-            atomic_number : (int)
+        Args:
+            atomic_number (int):
                 The atomic number of the element.
 
         Returns:
@@ -128,8 +128,8 @@ class PeriodicTable:
         """
         Get element data by atomic number.
 
-        Arguments:
-            atomic_number: (int)
+        Args:
+            atomic_number (int):
                 The atomic number of the element.
 
         Returns:
@@ -160,8 +160,8 @@ class PeriodicTable:
         """
         Check if an atomic number is in the periodic table.
 
-        Arguments:
-            atomic_number: (int)
+        Args:
+            atomic_number (int):
                 The atomic number to check.
 
         Returns:
@@ -198,8 +198,8 @@ def append_molecules(molecules):
     This function takes a list of Molecule objects and returns a new Molecule
     object that combines all atoms and bonds from the input molecules.
 
-    Arguments:
-        molecules : (list of Molecule)
+    Args:
+        molecules (list of Molecule):
             The molecules to append.
 
     Returns:
@@ -262,10 +262,10 @@ class Atom:
         """
         Initialize the Atom with a reference to the molecule and its ID.
 
-        Arguments:
-            molecule : (vtkMolecule)
+        Args:
+            molecule (vtkMolecule):
                 The molecule containing this atom.
-            atom_id : (int)
+            atom_id (int):
                 The ID of the atom in the molecule.
         """
         self.molecule = molecule
@@ -283,8 +283,8 @@ class Atom:
     def set_atomic_number(self, atomic_number):
         """Set the atomic number of the atom.
 
-        Arguments:
-            atomic_number : (int)
+        Args:
+            atomic_number (int):
                 The new atomic number.
         """
         self.vtk_atom.SetAtomicNumber(atomic_number)
@@ -301,8 +301,8 @@ class Atom:
     def set_position(self, position):
         """Set the position of the atom.
 
-        Arguments:
-            position : (list or np.ndarray)
+        Args:
+            position (list or np.ndarray):
                 The new [x, y, z] coordinates.
         """
         pos = np.asarray(position, dtype=float)
@@ -400,10 +400,10 @@ class Molecule:
     def append_atom(self, position=None, atomic_number=6):
         """Add an atom to the molecule with optional position and atomic number.
 
-        Arguments:
-            position: (list or np.ndarray)
+        Args:
+            position (list or np.ndarray):
                 [x, y, z] coordinates. Defaults to [0, 0, 0].
-            atomic_number : (int)
+            atomic_number (int):
                 Atomic number (e.g., 6 for Carbon). Defaults to 6.
 
         Returns:
@@ -421,8 +421,8 @@ class Molecule:
     def get_atom(self, atom_id):
         """Retrieve an atom by its ID.
 
-        Arguments:
-            atom_id : (int)
+        Args:
+            atom_id (int):
                 The ID of the atom.
 
         Returns:
@@ -435,7 +435,7 @@ class Molecule:
     def remove_atom(self, atom_id):
         """Remove an atom by its ID.
 
-        Arguments:
+        Args:
             atom_id (int): The ID of the atom to remove.
         """
         if atom_id < 0 or atom_id >= self.get_number_of_atoms():
@@ -466,8 +466,8 @@ class Molecule:
         - rgb_colors: RGB color of the atom.
         - radius: Radius of the atom.
 
-        Arguments:
-            name : (str)
+        Args:
+            name (str):
                 The name of the array.
 
         Returns:
@@ -480,12 +480,12 @@ class Molecule:
     def append_bond(self, atom1, atom2, order=1):
         """Add a bond between two atoms.
 
-        Arguments:
-            atom1 : (Atom or int)
+        Args:
+            atom1 (Atom or int):
                 The first atom or its ID.
-            atom2 : (Atom or int)
+            atom2 (Atom or int):
                 The second atom or its ID.
-            order : (int)
+            order (int):
                 Bond order (1=single, 2=double, 3=triple).
         """
         atom1_id = atom1.atom_id if isinstance(atom1, Atom) else atom1
@@ -518,8 +518,8 @@ class Molecule:
     def get_bond(self, bond_id):
         """Get bond information by ID (simplified as VTK bond access is limited).
 
-        Arguments:
-            bond_id : (int)
+        Args:
+            bond_id (int):
                 The ID of the bond.
 
         Returns:
@@ -547,8 +547,8 @@ class Molecule:
         """
         Set the positions of all atoms.
 
-        Arguments:
-            positions : (np.ndarray)
+        Args:
+            positions (np.ndarray):
                 Array of shape (n_atoms, 3) with [x, y, z] coordinates.
         """
         n_atoms = self.get_number_of_atoms()
@@ -576,8 +576,8 @@ class Molecule:
         """
         Set the atomic numbers of all atoms.
 
-        Arguments:
-            atomic_numbers : (list)
+        Args:
+            atomic_numbers (list):
                 List of atomic numbers.
         """
         n_atoms = self.get_number_of_atoms()
@@ -602,8 +602,8 @@ class Molecule:
     def set_atom_radius_scale(self, scale):
         """Set the scale factor for atom radii.
 
-        Arguments:
-            scale : (float)
+        Args:
+            scale (float):
                 Scaling factor for atom spheres.
         """
         self.mapper.SetAtomicRadiusScaleFactor(scale)
@@ -612,8 +612,8 @@ class Molecule:
     def set_bond_radius(self, radius):
         """Set the radius of bonds.
 
-        Arguments:
-            radius : (float)
+        Args:
+            radius (float):
                 Bond radius in world units.
         """
         self.mapper.SetBondRadius(radius)
@@ -656,14 +656,14 @@ class Protein:
         """
         Initialize the ProteinRibbon with input data.
 
-        Arguments:
-            input_data : (str or vtkMolecule or vtkPolyData)
+        Args:
+            input_data (str or vtkMolecule or vtkPolyData):
                 - Path to a PDB file (str)
                 - A vtkMolecule object
                 - A vtkPolyData object
 
         Raises:
-            `ValueError` If the input_data type is not supported.
+            ValueError: If the input_data type is not supported.
         """
 
         # Handle different input types
@@ -722,8 +722,8 @@ class Protein:
         """
         Set the width of the coil regions in the ribbon.
 
-        Arguments:
-            width : (float)
+        Args:
+            width (float):
                 The width of the coil regions.
         """
         self.filter.SetCoilWidth(width)
@@ -733,8 +733,8 @@ class Protein:
         """
         Set the width of the helix regions in the ribbon.
 
-        Arguments:
-            width : (float)
+        Args:
+            width (float):
                 The width of the helix regions.
         """
         self.filter.SetHelixWidth(width)
@@ -744,8 +744,8 @@ class Protein:
         """
         Set the resolution of spheres used in the ribbon representation.
 
-        Arguments:
-            resolution : (int)
+        Args:
+            resolution (int):
                 The resolution of the spheres.
         """
         self.filter.SetSphereResolution(resolution)

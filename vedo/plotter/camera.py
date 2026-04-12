@@ -181,11 +181,11 @@ def fly_to(plotter, point) -> Any:
     """
     Fly camera to the specified point.
 
-    Arguments:
-        point : (list)
+    Args:
+        point (list):
             point in space to place camera.
 
-    Example:
+    Examples:
         ```python
         from vedo import *
         cone = Cone()

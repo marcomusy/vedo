@@ -41,11 +41,11 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         This can be useful to describe a volume with variable resolution where one needs
         to represent a region with higher detail with respect to another region.
 
-        Arguments:
-            inputobj : (vtkRectilinearGrid, list, str)
+        Args:
+            inputobj (vtkRectilinearGrid, list, str):
                 list of points and indices, or filename
 
-        Example:
+        Examples:
             ```python
             from vedo import RectilinearGrid, show
 
@@ -442,10 +442,10 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         """
         Cut the object with the plane defined by a point and a normal.
 
-        Arguments:
-            origin : (list)
+        Args:
+            origin (list):
                 the cutting plane goes through this point
-            normal : (list, str)
+            normal (list, str):
                 normal vector to the cutting plane
         """
         strn = str(normal)

@@ -59,48 +59,48 @@ class Slicer3DPlotter(Plotter):
         """
         Generate a rendering window with slicing planes for the input Volume.
 
-        Arguments:
-            cmaps : (list)
+        Args:
+            cmaps (list):
                 list of color maps names to cycle when clicking button
-            clamp : (bool)
+            clamp (bool):
                 clamp scalar range to reduce the effect of tails in color mapping
-            use_slider3d : (bool)
+            use_slider3d (bool):
                 show sliders attached along the axes
-            show_histo : (bool)
+            show_histo (bool):
                 show histogram on bottom left
-            show_icon : (bool)
+            show_icon (bool):
                 show a small 3D rendering icon of the volume
-            draggable : (bool)
+            draggable (bool):
                 make the 3D icon draggable
-            slider_positions : (list)
+            slider_positions (list):
                 2D slider endpoint positions for x, y, z sliders
-            slider_title_sizes : (list)
+            slider_title_sizes (list):
                 title sizes for x, y, z sliders
-            slider3d_size : (list)
+            slider3d_size (list):
                 3D slider width, tube width, slider length and axis scale factor
-            histogram_position : (list)
+            histogram_position (list):
                 2D histogram anchor position
-            histogram_size : (float)
+            histogram_size (float):
                 histogram 2D size
-            histogram_bins : (int)
+            histogram_bins (int):
                 histogram number of bins
-            histogram_text_scale : (float)
+            histogram_text_scale (float):
                 histogram axes text scale
-            inset_position : (list)
+            inset_position (list):
                 inset icon position
-            inset_size : (float)
+            inset_size (float):
                 inset icon size
-            inset_axes_params : (dict)
+            inset_axes_params (dict):
                 extra keyword arguments passed to the inset axes actor
-            cmap_button_position : (list)
+            cmap_button_position (list):
                 colormap button position
-            cmap_button_size : (float)
+            cmap_button_size (float):
                 colormap button text size
-            box_alpha : (float)
+            box_alpha (float):
                 opacity of the volume bounding box
-            at : (int)
+            at (int):
                 subwindow number to plot to
-            **kwargs : (dict)
+            **kwargs (dict):
                 keyword arguments to pass to a `vedo.plotter.Plotter` instance.
 
         Examples:
@@ -426,14 +426,14 @@ class Slicer3DPlotter(Plotter):
         """
         Replace the input volume while preserving the existing plotter window.
 
-        Arguments:
-            volume : (Volume)
+        Args:
+            volume (Volume):
                 the new input volume to visualize.
-            reset_slices : (bool)
+            reset_slices (bool):
                 if True reset slices to their default positions, otherwise preserve them when possible.
-            reset_camera : (bool)
+            reset_camera (bool):
                 if True reset the camera after swapping the volume.
-            render : (bool)
+            render (bool):
                 if True render the scene after the update.
         """
         if self._box is not None:
@@ -492,17 +492,17 @@ class Slicer3DTwinPlotter(Plotter):
     """
     Create a window with two side-by-side 3D slicers for two Volumes.
 
-    Arguments:
-        vol1 : (Volume)
+    Args:
+        vol1 (Volume):
             the first Volume object to be isosurfaced.
-        vol2 : (Volume)
+        vol2 (Volume):
             the second Volume object to be isosurfaced.
-        clamp : (bool)
+        clamp (bool):
             clamp scalar range to reduce the effect of tails in color mapping
-        **kwargs : (dict)
+        **kwargs (dict):
             keyword arguments to pass to a `vedo.plotter.Plotter` instance.
 
-    Example:
+    Examples:
         ```python
         from vedo import *
         from vedo.applications import Slicer3DTwinPlotter
@@ -651,14 +651,14 @@ class Slicer2DPlotter(Plotter):
         A single slice of a Volume which always faces the camera,
         but at the same time can be oriented arbitrarily in space.
 
-        Arguments:
-            vol : (Volume)
+        Args:
+            vol (Volume):
                 the Volume object to be isosurfaced.
-            levels : (list)
+            levels (list):
                 window and color levels
-            histo_color : (color)
+            histo_color (color):
                 histogram color, use `None` to disable it
-            **kwargs : (dict)
+            **kwargs (dict):
                 keyword arguments to pass to a `vedo.plotter.Plotter` instance.
 
         <img src="https://vedo.embl.es/images/volumetric/read_volume3.jpg" width="500">
@@ -810,16 +810,16 @@ class Slicer2DPlotter(Plotter):
         """
         Make a thick slice (slab).
 
-        Arguments:
-            thickness : (float)
+        Args:
+            thickness (float):
                 set the slab thickness, for thick slicing
-            mode : (int)
+            mode (int):
                 The slab type:
                     0 = min
                     1 = max
                     2 = mean
                     3 = sum
-            sample_factor : (float)
+            sample_factor (float):
                 Set the number of slab samples to use as a factor of the number of input slices
                 within the slab thickness. The default value is 2, but 1 will increase speed
                 with very little loss of quality.
@@ -873,10 +873,10 @@ class RayCastPlotter(Plotter):
         """
         Generate a window for Volume rendering using ray casting.
 
-        Arguments:
-            volume : (Volume)
+        Args:
+            volume (Volume):
                 the Volume object to be isosurfaced.
-            **kwargs : (dict)
+            **kwargs (dict):
                 keyword arguments to pass to a `vedo.plotter.Plotter` instance.
 
         Returns:

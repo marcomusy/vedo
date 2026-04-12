@@ -58,11 +58,11 @@ class LinearTransform:
         Define a linear transformation.
         Can be saved to file and reloaded.
 
-        Arguments:
-            T : (str, vtkTransform, numpy array)
+        Args:
+            T (str, vtkTransform, numpy array):
                 input transformation. Defaults to unit.
 
-        Example:
+        Examples:
             ```python
             from vedo import *
             settings.use_parallel_projection = True
@@ -213,7 +213,7 @@ class LinearTransform:
             When applying a transformation to a mesh, the mesh is modified in place.
             If you want to keep the original mesh unchanged, use `clone()` method.
 
-        Example:
+        Examples:
             ```python
             from vedo import *
             settings.use_parallel_projection = True
@@ -251,7 +251,7 @@ class LinearTransform:
         These are the axes of the ellipsoid that is the
         image of the unit sphere under the transformation.
 
-        Example:
+        Examples:
         ```python
         from vedo import *
         settings.use_parallel_projection = True
@@ -337,7 +337,7 @@ class LinearTransform:
         Post-multiply (by default) 2 transfomations.
         T can also be a 4x4 matrix or 3x3 matrix.
 
-        Example:
+        Examples:
             ```python
             from vedo import LinearTransform
 
@@ -429,7 +429,7 @@ class LinearTransform:
         """
         Rotate around an arbitrary `axis` passing through `point`.
 
-        Example:
+        Examples:
             ```python
             from vedo import *
             c1 = Cube()
@@ -602,14 +602,14 @@ class LinearTransform:
         """
         Set/Get object orientation.
 
-        Arguments:
-            rotation : (float)
+        Args:
+            rotation (float):
                 rotate object around newaxis.
-            concatenate : (bool)
+            concatenate (bool):
                 concatenate the orientation operation with the previous existing transform (if any)
-            rad : (bool)
+            rad (bool):
                 set to True if angle is expressed in radians.
-            xyplane : (bool)
+            xyplane (bool):
                 make an extra rotation to keep the object aligned to the xy-plane
         """
         newaxis = np.asarray(newaxis) / np.linalg.norm(newaxis)
@@ -650,16 +650,16 @@ class Quaternion:
         """
         Define a quaternion rotation.
 
-        Arguments:
-            q : (Quaternion, vtkQuaternion, vtkLinearTransform, vtkMatrix4x4, sequence)
+        Args:
+            q (Quaternion, vtkQuaternion, vtkLinearTransform, vtkMatrix4x4, sequence):
                 input quaternion in ``(w, x, y, z)`` order by default, or a 3x3 rotation matrix.
-            axis : (list)
+            axis (list):
                 optional rotation axis to build the quaternion from axis-angle form.
-            angle : (float)
+            angle (float):
                 rotation angle associated to ``axis``.
-            rad : (bool)
+            rad (bool):
                 set to ``True`` if ``angle`` is expressed in radians.
-            xyzw : (bool)
+            xyzw (bool):
                 interpret a 4-sequence input as ``(x, y, z, w)``.
         """
         self.name = "Quaternion"
@@ -954,13 +954,13 @@ class NonLinearTransform:
         Define a non-linear transformation.
         Can be saved to file and reloaded.
 
-        Arguments:
-            T : (vtkThinPlateSplineTransform, str, dict)
+        Args:
+            T (vtkThinPlateSplineTransform, str, dict):
                 vtk transformation.
                 If T is a string, it is assumed to be a filename.
                 If T is a dictionary, it is assumed to be a set of keyword arguments.
                 Defaults to None.
-            **kwargs : (dict)
+            **kwargs (dict):
                 keyword arguments to define the transformation.
                 The following keywords are accepted:
                 - name : (str) name of the transformation
@@ -970,7 +970,7 @@ class NonLinearTransform:
                 - mode : (str) either '2d' or '3d'
                 - sigma : (float) sigma parameter
 
-        Example:
+        Examples:
             ```python
             from vedo import *
             settings.use_parallel_projection = True
@@ -1281,10 +1281,10 @@ class NonLinearTransform:
         These are the axes of the ellipsoid that is the
         image of the unit sphere under the transformation.
 
-        Arguments:
-            pt : (list)
+        Args:
+            pt (list):
                 point to compute the axes at.
-            ds : (float)
+            ds (float):
                 step size to compute the axes.
         """
         if len(pt) == 2:
@@ -1323,7 +1323,7 @@ class NonLinearTransform:
             When applying a transformation to a mesh, the mesh is modified in place.
             If you want to keep the original mesh unchanged, use the `clone()` method.
 
-        Example:
+        Examples:
             ```python
             from vedo import *
             np.random.seed(0)
@@ -1364,7 +1364,7 @@ class TransformInterpolator:
     Then interpolate the transforms with the `TransformInterpolator(t)` call method,
     where "t" must be in the range of `(min, max)` times specified by the add() method.
 
-    Example:
+    Examples:
         ```python
         from vedo import *
 

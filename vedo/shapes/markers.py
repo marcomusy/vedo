@@ -130,28 +130,28 @@ class Brace(Mesh):
         """
         Create a brace (bracket) shape which spans from point q1 to point q2.
 
-        Arguments:
-            q1 : (list)
+        Args:
+            q1 (list):
                 point 1.
-            q2 : (list)
+            q2 (list):
                 point 2.
-            style : (str)
+            style (str):
                 style of the bracket, eg. `{}, [], (), <>`.
-            padding1 : (float)
+            padding1 (float):
                 padding space in percent form the input points.
-            font : (str)
+            font (str):
                 font type
-            comment : (str)
+            comment (str):
                 additional text to appear next to the brace symbol.
-            justify : (str)
+            justify (str):
                 specify the anchor point to justify text comment, e.g. "top-left".
             italic : float
                 italicness of the text comment (can be a positive or negative number)
-            angle : (float)
+            angle (float):
                 rotation angle of text. Use `None` to keep it horizontal.
-            padding2 : (float)
+            padding2 (float):
                 padding space in percent form brace to text comment.
-            s : (float)
+            s (float):
                 scale factor for the comment
 
         Examples:
@@ -328,7 +328,7 @@ class ParametricShape(Mesh):
             'SuperEllipsoid', 'BohemianDome', 'Bour', 'CatalanMinimal',
             'Henneberg', 'Kuen', 'PluckerConoid', 'Pseudosphere']`.
 
-        Example:
+        Examples:
             ```python
             from vedo import *
             settings.immediate_rendering = False

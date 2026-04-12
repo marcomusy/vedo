@@ -168,8 +168,8 @@ class Image(vedo.visual.ImageVisual):
 
         Use `Image.shape` to get the number of pixels in x and y.
 
-        Arguments:
-            channels :  (int, list)
+        Args:
+            channels (int, list):
                 only select these specific rgba channels (useful to remove alpha)
         """
         channels_is_int = isinstance(channels, int)
@@ -445,15 +445,15 @@ class Image(vedo.visual.ImageVisual):
 
         Return a 2D (an `Actor2D`) copy of the input Image.
 
-        Arguments:
-            pos : (list, str)
+        Args:
+            pos (list, str):
                 2D (x,y) position in range [0,1],
                 [0,0] being the bottom-left corner
-            size : (float)
+            size (float):
                 apply a scaling factor to the image
-            justify : (str)
+            justify (str):
                 define the anchor point ("top-left", "top-center", ...)
-            ontop : (bool)
+            ontop (bool):
                 if True, the image is rendered on top of the 3D scene
         """
         pic = vedo.visual.Actor2D()
@@ -504,16 +504,16 @@ class Image(vedo.visual.ImageVisual):
         """
         Crop image.
 
-        Arguments:
-            top : (float)
+        Args:
+            top (float):
                 fraction to crop from the top margin
-            bottom : (float)
+            bottom (float):
                 fraction to crop from the bottom margin
-            left : (float)
+            left (float):
                 fraction to crop from the left margin
-            right : (float)
+            right (float):
                 fraction to crop from the right margin
-            pixels : (bool)
+            pixels (bool):
                 units are pixels
         """
         extractVOI = vtki.new("ExtractVOI")
@@ -547,10 +547,10 @@ class Image(vedo.visual.ImageVisual):
         Add the specified number of pixels at the image borders.
         Pixels can be a list formatted as `[left, right, bottom, top]`.
 
-        Arguments:
-            pixels : (int, list)
+        Args:
+            pixels (int, list):
                 number of pixels to be added (or a list of length 4)
-            value : (int)
+            value (int):
                 intensity value (gray-scale color) of the padding
         """
         x0, x1, y0, y1, _z0, _z1 = self.dataset.GetExtent()
@@ -576,12 +576,12 @@ class Image(vedo.visual.ImageVisual):
         """
         Generate a tiling from the current image by mirroring and repeating it.
 
-        Arguments:
-            nx : (float)
+        Args:
+            nx (float):
                 number of repeats along x
-            ny : (float)
+            ny (float):
                 number of repeats along x
-            shift : (list)
+            shift (list):
                 shift in x and y in pixels
         """
         x0, x1, y0, y1, z0, z1 = self.dataset.GetExtent()
@@ -612,16 +612,16 @@ class Image(vedo.visual.ImageVisual):
         The origin and spacing of all other inputs are ignored.
         All inputs must have the same scalar type.
 
-        Arguments:
-            axis : (int, str)
+        Args:
+            axis (int, str):
                 axis expanded to hold the multiple images
-            preserve_extents : (bool)
+            preserve_extents (bool):
                 if True, the extent of the inputs is used to place
                 the image in the output. The whole extent of the output is the union of the input
                 whole extents. Any portion of the output not covered by the inputs is set to zero.
                 The origin and spacing is taken from the first input.
 
-        Example:
+        Examples:
             ```python
             from vedo import Image, dataurl
             pic = Image(dataurl+'dog.jpg').pad()
@@ -741,10 +741,10 @@ class Image(vedo.visual.ImageVisual):
         """
         Smooth a `Image` with Gaussian kernel.
 
-        Arguments:
-            sigma : (int)
+        Args:
+            sigma (int):
                 number of sigmas in pixel units
-            radius : (float)
+            radius (float):
                 how far out the gaussian kernel will go before being clamped to zero
         """
         gsf = vtki.new("ImageGaussianSmooth")
@@ -787,10 +787,10 @@ class Image(vedo.visual.ImageVisual):
         """
         Adjust the brightness and contrast of the image.
 
-        Arguments:
-            window : (float)
+        Args:
+            window (float):
                 the width of the range of values to be mapped to the output range
-            level : (float)
+            level (float):
                 the center of the range of values to be mapped to the output range
         """
         adjust = vtki.new("ImageMapToWindowLevelColors")
@@ -813,7 +813,7 @@ class Image(vedo.visual.ImageVisual):
         """
         Enhance a b&w image using the laplacian, enhancing high-freq edges.
 
-        Example:
+        Examples:
             ```python
             from vedo import *
             pic = Image(dataurl+'images/dog.jpg').bw()
@@ -856,12 +856,12 @@ class Image(vedo.visual.ImageVisual):
         """
         Fast Fourier transform of a image.
 
-        Arguments:
-            logscale : (float)
+        Args:
+            logscale (float):
                 if non-zero, take the logarithm of the intensity and scale it by this factor.
-            mode : (str)
+            mode (str):
                 either [magnitude, real, imaginary, complex], compute the point array data accordingly.
-            center : (bool)
+            center (bool):
                 shift constant zero-frequency to the center of the image for display.
                 (FFT converts spatial images into frequency space, but puts the zero frequency at the origin)
         """
@@ -955,12 +955,12 @@ class Image(vedo.visual.ImageVisual):
         A simple high-pass filter would simply mask a set of pixels in the frequency domain,
         but the abrupt transition would cause a ringing effect in the spatial domain.
 
-        Arguments:
-            lowcutoff : (list)
+        Args:
+            lowcutoff (list):
                 the cutoff frequencies
-            highcutoff : (list)
+            highcutoff (list):
                 the cutoff frequencies
-            order : (int)
+            order (int):
                 order determines sharpness of the cutoff curve
         """
         # https://lorensen.github.io/VTKExamples/site/Cxx/ImageProcessing/IdealHighPass
@@ -1031,20 +1031,20 @@ class Image(vedo.visual.ImageVisual):
         """
         Warp an image using thin-plate splines.
 
-        Arguments:
-            source_pts : (list)
+        Args:
+            source_pts (list):
                 source points
-            target_pts : (list)
+            target_pts (list):
                 target points
-            transform : (vtkTransform)
+            transform (vtkTransform):
                 a vtkTransform object can be supplied
             sigma : (float), optional
                 stiffness of the interpolation
-            mirroring : (bool)
+            mirroring (bool):
                 fill the margins with a reflection of the original image
-            bc : (color)
+            bc (color):
                 fill the margins with a solid color
-            alpha : (float)
+            alpha (float):
                 opacity of the filled margins
         """
         if transform is None:
@@ -1115,13 +1115,13 @@ class Image(vedo.visual.ImageVisual):
         Return a new Image where pixel above threshold are set to 255
         and pixels below are set to 0.
 
-        Arguments:
-            threshold : (float)
+        Args:
+            threshold (float):
                 input threshold value
-            invert : (bool)
+            invert (bool):
                 invert threshold direction
 
-        Example:
+        Examples:
         ```python
         from vedo import Image, show
         pic1 = Image("https://aws.glamour.es/prod/designs/v1/assets/620x459/547577.jpg")
@@ -1161,10 +1161,10 @@ class Image(vedo.visual.ImageVisual):
         Create a polygonal Mesh from a Image by filling regions with pixels
         luminosity above a specified value.
 
-        Arguments:
-            value : (float)
+        Args:
+            value (float):
                 The default is None, e.i. 1/3 of the scalar range.
-            flip: (bool)
+            flip (bool):
                 Flip polygon orientations
 
         Returns:
@@ -1246,10 +1246,10 @@ class Image(vedo.visual.ImageVisual):
         """
         Rotate by the specified angle (anticlockwise).
 
-        Arguments:
-            angle : (float)
+        Args:
+            angle (float):
                 rotation angle in degrees
-            center : (list)
+            center (list):
                 center of rotation (x,y) in pixels
         """
         bounds = self.bounds()
@@ -1318,7 +1318,7 @@ class Image(vedo.visual.ImageVisual):
 
         When you set values in the output image, you don't want numpy to reallocate the array
         but instead set values in the existing array, so use `raw=True` with the [:] operator.
-        Example:
+        Examples:
         ```python
         arr = pic.tonumpy(raw=True)
         # now arr is a numpy array with shape (ny*nx, nchan)
@@ -1349,7 +1349,7 @@ class Image(vedo.visual.ImageVisual):
     ) -> Self:
         """Draw a rectangle box on top of current image. Units are pixels.
 
-        Example:
+        Examples:
             ```python
             import vedo
             pic = vedo.Image(vedo.dataurl+"images/dog.jpg")

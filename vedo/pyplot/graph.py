@@ -37,12 +37,12 @@ class DirectedGraph(Assembly):
         This class is derived from class `Assembly`, and it assembles 4 Mesh objects
         representing the graph, the node labels, edge labels and edge arrows.
 
-        Arguments:
-            c : (color)
+        Args:
+            c (color):
                 Color of the Graph
-            n : (int)
+            n (int):
                 number of the initial set of nodes
-            layout : (int, str)
+            layout (int, str):
                 layout in
                 `['2d', 'fast2d', 'clustering2d', 'circular', 'circular3d', 'cone', 'force', 'tree']`.
                 Each of these layouts has different available options.
@@ -50,53 +50,53 @@ class DirectedGraph(Assembly):
         ---------------------------------------------------------------
         .. note:: Options for layouts '2d', 'fast2d' and 'clustering2d'
 
-        Arguments:
-            seed : (int)
+        Args:
+            seed (int):
                 seed of the random number generator used to jitter point positions
-            rest_distance : (float)
+            rest_distance (float):
                 manually set the resting distance
-            nmax : (int)
+            nmax (int):
                 the maximum number of iterations to be used
-            zrange : (list)
+            zrange (list):
                 expand 2d graph along z axis.
 
         ---------------------------------------------------------------
         .. note:: Options for layouts 'circular', and 'circular3d':
 
-        Arguments:
-            radius : (float)
+        Args:
+            radius (float):
                 set the radius of the circles
-            height : (float)
+            height (float):
                 set the vertical (local z) distance between the circles
-            zrange : (float)
+            zrange (float):
                 expand 2d graph along z axis
 
         ---------------------------------------------------------------
         .. note:: Options for layout 'cone'
 
-        Arguments:
-            compactness : (float)
+        Args:
+            compactness (float):
                 ratio between the average width of a cone in the tree,
                 and the height of the cone.
-            compression : (bool)
+            compression (bool):
                 put children closer together, possibly allowing sub-trees to overlap.
                 This is useful if the tree is actually the spanning tree of a graph.
-            spacing : (float)
+            spacing (float):
                 space between layers of the tree
 
         ---------------------------------------------------------------
         .. note:: Options for layout 'force'
 
-        Arguments:
-            seed : (int)
+        Args:
+            seed (int):
                 seed the random number generator used to jitter point positions
-            bounds : (list)
+            bounds (list):
                 set the region in space in which to place the final graph
-            nmax : (int)
+            nmax (int):
                 the maximum number of iterations to be used
-            three_dimensional : (bool)
+            three_dimensional (bool):
                 allow optimization in the 3rd dimension too
-            random_initial_points : (bool)
+            random_initial_points (bool):
                 use random positions within the graph bounds as initial points
 
         Examples:

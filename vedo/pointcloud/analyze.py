@@ -25,14 +25,14 @@ class PointAnalyzeMixin:
         by considering a small neighborhood of points around p, and fitting a plane
         to the neighborhood (via PCA).
 
-        Arguments:
-            n : (int)
+        Args:
+            n (int):
                 neighborhood size to calculate the normal
-            orientation_point : (list)
+            orientation_point (list):
                 adjust the +/- sign of the normals so that
                 the normals all point towards a specified point. If None, perform a traversal
                 of the point cloud and flip neighboring normals so that they are mutually consistent.
-            invert : (bool)
+            invert (bool):
                 flip all normals
         """
         poly = self.dataset
@@ -66,7 +66,7 @@ class PointAnalyzeMixin:
         Either `n` (number of neighbour points) or `radius` (radius of local search) can be specified.
         If a radius value is given and not enough points fall inside it, then a -1 is stored.
 
-        Example:
+        Examples:
             ```python
             from vedo import *
             msh = ParametricShape('RandomHills')
@@ -243,14 +243,14 @@ class PointAnalyzeMixin:
         """
         Extracts cells where scalar value satisfies threshold criterion.
 
-        Arguments:
-            scalars : (str)
+        Args:
+            scalars (str):
                 name of the scalars array.
-            above : (float)
+            above (float):
                 minimum value of the scalar
-            below : (float)
+            below (float):
                 maximum value of the scalar
-            on : (str)
+            on (str):
                 if 'cells' assume array of scalars refers to cell data.
 
         Examples:
@@ -333,14 +333,14 @@ class PointAnalyzeMixin:
         """
         Find the closest point(s) on a mesh given from the input point `pt`.
 
-        Arguments:
-            n : (int)
+        Args:
+            n (int):
                 if greater than 1, return a list of n ordered closest points
-            radius : (float)
+            radius (float):
                 if given, get all points within that radius. Then n is ignored.
-            return_point_id : (bool)
+            return_point_id (bool):
                 return point ID instead of coordinates
-            return_cell_id : (bool)
+            return_cell_id (bool):
                 return cell ID in which the closest point sits
 
         Examples:
@@ -459,7 +459,7 @@ class PointAnalyzeMixin:
         Compute the Hausdorff distance to the input point set.
         Returns a single `float`.
 
-        Example:
+        Examples:
             ```python
             from vedo import *
             t = np.linspace(0, 2*np.pi, 100)
@@ -489,7 +489,7 @@ class PointAnalyzeMixin:
         """
         Compute the Chamfer distance to the input point set.
 
-        Example:
+        Examples:
             ```python
             from vedo import *
             cloud1 = np.random.randn(1000, 3)
@@ -532,10 +532,10 @@ class PointAnalyzeMixin:
         """
         Remove outliers from a cloud of points within the specified `radius` search.
 
-        Arguments:
-            radius : (float)
+        Args:
+            radius (float):
                 Specify the local search radius.
-            neighbors : (int)
+            neighbors (int):
                 Specify the number of neighbors that a point must have,
                 within the specified radius, for the point to not be considered isolated.
 
@@ -591,23 +591,23 @@ class PointAnalyzeMixin:
         a number of sub-iterations can be specified. If so, then the neighborhood and attribute
         value updates occur only every sub iteration, which can improve performance significantly.
 
-        Arguments:
-            n : (int)
+        Args:
+            n (int):
                 neighborhood size to calculate the Laplacian.
-            iters : (int)
+            iters (int):
                 number of iterations.
-            sub_iters : (int)
+            sub_iters (int):
                 number of sub-iterations, i.e. the number of times the neighborhood and attribute
                 value updates occur during each iteration.
-            packing_factor : (float)
+            packing_factor (float):
                 adjust convergence speed.
-            max_step : (float)
+            max_step (float):
                 Specify the maximum smoothing step size for each smoothing iteration.
                 This limits the the distance over which a point can move in each iteration.
                 As in all iterative methods, the stability of the process is sensitive to this parameter.
                 In general, small step size and large numbers of iterations are more stable than a larger
                 step size and a smaller numbers of iterations.
-            constraints : (dict)
+            constraints (dict):
                 dictionary of constraints.
                 Point constraints are used to prevent points from moving,
                 or to move only on a plane. This can prevent shrinking or growing point clouds.
@@ -620,7 +620,7 @@ class PointAnalyzeMixin:
                 `boundary_angle`, then the point is classified as lying on a plane.
                 Angles are expressed in degrees.
 
-        Example:
+        Examples:
             ```py
             import numpy as np
             from vedo import Points, show
@@ -668,13 +668,13 @@ class PointAnalyzeMixin:
         Smooth mesh or points with a `Moving Least Squares` variant.
         The point data array "Variances" will contain the residue calculated for each point.
 
-        Arguments:
-            f : (float)
+        Args:
+            f (float):
                 smoothing factor - typical range is [0,2].
-            radius : (float)
+            radius (float):
                 radius search in absolute units.
                 If set then `f` is ignored.
-            n : (int)
+            n (int):
                 number of neighbours to be used for the fit.
                 If set then `f` and `radius` are ignored.
 
@@ -723,13 +723,13 @@ class PointAnalyzeMixin:
         When a radius is specified, points that are isolated will not be moved and will get
         a 0 entry in array `mesh.pointdata['MLSValidPoint']`.
 
-        Arguments:
-            f : (float)
+        Args:
+            f (float):
                 smoothing factor - typical range is [0, 2].
-            radius : (float | array)
+            radius (float | array):
                 radius search in absolute units. Can be single value (float) or sequence
                 for adaptive smoothing. If set then `f` is ignored.
-            n : (int)
+            n (int):
                 number of neighbours to be used for the fit.
                 If set then `f` and `radius` are ignored.
 
@@ -798,12 +798,12 @@ class PointAnalyzeMixin:
         """
         Lloyd relaxation of a 2D pointcloud.
 
-        Arguments:
-            iterations : (int)
+        Args:
+            iterations (int):
                 number of iterations.
-            bounds : (list)
+            bounds (list):
                 bounding box of the domain.
-            options : (str)
+            options (str):
                 options for the Qhull algorithm.
         """
         # Credits: https://hatarilabs.com/ih-en/
@@ -924,23 +924,23 @@ class PointAnalyzeMixin:
         However note that the number of input and output points may not be the same:
         if not extracting all regions then the output size may be less than the input size.
 
-        Arguments:
-            radius : (float)
+        Args:
+            radius (float):
                 variable specifying a local sphere used to define local point neighborhood
-            mode : (int)
+            mode (int):
                 - 0,  Extract all regions
                 - 1,  Extract point seeded regions
                 - 2,  Extract largest region
                 - 3,  Test specified regions
                 - 4,  Extract all regions with scalar connectivity
                 - 5,  Extract point seeded regions
-            regions : (list)
+            regions (list):
                 a list of non-negative regions id to extract
-            vrange : (list)
+            vrange (list):
                 scalar range to use to extract points based on scalar connectivity
-            seeds : (list)
+            seeds (list):
                 a list of non-negative point seed ids
-            angle : (list)
+            angle (list):
                 points are connected if the angle between their normals is
                 within this angle threshold (expressed in degrees).
         """
@@ -1097,16 +1097,16 @@ class PointAnalyzeMixin:
         and can be accessed via `vol.metadata["radius"]`.
         The density is expressed as the number of counts in the radius search.
 
-        Arguments:
-            dims : (int, list)
+        Args:
+            dims (int, list):
                 number of voxels in x, y and z of the output Volume.
-            compute_gradient : (bool)
+            compute_gradient (bool):
                 Turn on/off the generation of the gradient vector,
                 gradient magnitude scalar, and function classification scalar.
                 By default this is off. Note that this will increase execution time
                 and the size of the output. (The names of these point data arrays are:
                 "Gradient", "Gradient Magnitude", and "Classification")
-            locator : (vtkPointLocator)
+            locator (vtkPointLocator):
                 can be assigned from a previous call for speed (access it via `object.point_locator`).
 
         Examples:
@@ -1165,15 +1165,15 @@ class PointAnalyzeMixin:
         This filter also allows you to specify a rectangular window in display (pixel)
         coordinates in which the visible points must lie.
 
-        Arguments:
-            area : (list)
+        Args:
+            area (list):
                 specify a rectangular region as (xmin,xmax,ymin,ymax)
-            tol : (float)
+            tol (float):
                 a tolerance in normalized display coordinate system
-            invert : (bool)
+            invert (bool):
                 select invisible points instead.
 
-        Example:
+        Examples:
             ```python
             from vedo import Ellipsoid, show
             s = Ellipsoid().rotate_y(30)

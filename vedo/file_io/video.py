@@ -28,16 +28,16 @@ class Video:
         Class to generate a video from the specified rendering window.
         Program `ffmpeg` is used to create video from each generated frame.
 
-        Arguments:
-            name : (str | os.PathLike)
+        Args:
+            name (str | os.PathLike):
                 name of the output file.
-            duration : (float)
+            duration (float):
                 set the total `duration` of the video and recalculates `fps` accordingly.
-            fps : (int)
+            fps (int):
                 set the number of frames per second.
-            scale : (int)
+            scale (int):
                 set the image magnification as an integer multiplicative factor.
-            backend : (str)
+            backend (str):
                 the backend engine to be used `['imageio', 'ffmpeg', 'cv']`
 
         Examples:
@@ -81,7 +81,7 @@ class Video:
         """
         Automatic shooting of a static scene by specifying rotation and elevation ranges.
 
-        Arguments:
+        Args:
             elevation : list
                 initial and final elevation angles
             azimuth_range : list

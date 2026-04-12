@@ -26,12 +26,12 @@ class PointsVisualEffectsMixin:
         Add a trailing line to mesh.
         This new mesh is accessible through `mesh.trail`.
 
-        Arguments:
-            offset : (float)
+        Args:
+            offset (float):
                 set an offset vector from the object center.
-            n : (int)
+            n (int):
                 number of segments
-            lw : (float)
+            lw (float):
                 line width of the trail
 
         Examples:
@@ -120,17 +120,17 @@ class PointsVisualEffectsMixin:
 
         See also `pointcloud.project_on_plane()`.
 
-        Arguments:
-            plane : (str, Plane)
+        Args:
+            plane (str, Plane):
                 if plane is `str`, plane can be one of `['x', 'y', 'z']`,
                 represents x-plane, y-plane and z-plane, respectively.
                 Otherwise, plane should be an instance of `vedo.shapes.Plane`
-            point : (float, array)
+            point (float, array):
                 if plane is `str`, point should be a float represents the intercept.
                 Otherwise, point is the camera point of perspective projection
-            direction : (list)
+            direction (list):
                 direction of oblique projection
-            culling : (int)
+            culling (int):
                 choose between front [1] or backface [-1] culling or None.
 
         Examples:
@@ -213,19 +213,19 @@ class PointsVisualAnnotationsMixin:
         See also:
             `labels2d()`, `flagpole()`, `caption()` and `legend()`.
 
-        Arguments:
-            content : (list,int,str)
+        Args:
+            content (list,int,str):
                 either 'id', 'cellid', array name or array number.
                 A array can also be passed (must match the nr. of points or cells).
-            on : (str)
+            on (str):
                 generate labels for "cells" instead of "points"
-            scale : (float)
+            scale (float):
                 absolute size of labels, if left as None it is automatic
-            zrot : (float)
+            zrot (float):
                 local rotation angle of label in degrees
-            ratio : (int)
+            ratio (int):
                 skipping ratio, to reduce nr of labels for large meshes
-            precision : (int)
+            precision (int):
                 numeric precision of labels
 
         ```python
@@ -411,20 +411,20 @@ class PointsVisualAnnotationsMixin:
 
         See also: `labels()`, `flagpole()`, `caption()` and `legend()`.
 
-        Arguments:
-            content : (str)
+        Args:
+            content (str):
                 either 'id', 'cellid', or array name
-            on : (str)
+            on (str):
                 generate labels for "cells" instead of "points" (the default)
-            scale : (float)
+            scale (float):
                 size scaling of labels
-            precision : (int)
+            precision (int):
                 precision of numeric labels
-            angle : (float)
+            angle (float):
                 local rotation angle of label in degrees
-            frame : (bool)
+            frame (bool):
                 draw a frame around the label
-            bc : (str)
+            bc (str):
                 background color of the label
 
         ```python
@@ -543,26 +543,26 @@ class PointsVisualAnnotationsMixin:
 
         See also `flagpost()`.
 
-        Arguments:
-            txt : (str)
+        Args:
+            txt (str):
                 Text to display. The default is the filename or the object name.
-            point : (list)
+            point (list):
                 position of the flagpole pointer.
-            offset : (list)
+            offset (list):
                 text offset wrt the application point.
-            s : (float)
+            s (float):
                 size of the flagpole.
-            font : (str)
+            font (str):
                 font face. Check [available fonts here](https://vedo.embl.es/fonts).
-            rounded : (bool)
+            rounded (bool):
                 draw a rounded or squared box around the text.
-            c : (list)
+            c (list):
                 text and box color.
-            alpha : (float)
+            alpha (float):
                 opacity of text and box.
-            lw : (float)
+            lw (float):
                 line with of box frame.
-            italic : (float)
+            italic (float):
                 italicness of text.
 
         Examples:
@@ -683,30 +683,30 @@ class PointsVisualAnnotationsMixin:
         """
         Generate a flag post style element to describe an object.
 
-        Arguments:
-            txt : (str)
+        Args:
+            txt (str):
                 Text to display. The default is the filename or the object name.
-            point : (list)
+            point (list):
                 position of the flag anchor point. The default is None.
-            offset : (list)
+            offset (list):
                 a 3D displacement or offset. The default is None.
-            s : (float)
+            s (float):
                 size of the text to be shown
-            c : (list)
+            c (list):
                 color of text and line
-            bc : (list)
+            bc (list):
                 color of the flag background
-            alpha : (float)
+            alpha (float):
                 opacity of text and box.
-            lw : (int)
+            lw (int):
                 line with of box frame. The default is 0.
-            font : (str)
+            font (str):
                 font name. Use a monospace font for better rendering. The default is "Calco".
                 Type `vedo -r fonts` for a font demo.
                 Check [available fonts here](https://vedo.embl.es/fonts).
-            justify : (str)
+            justify (str):
                 internal text justification. The default is "center-left".
-            vspacing : (float)
+            vspacing (float):
                 vertical spacing between lines.
 
         Examples:
@@ -763,30 +763,30 @@ class PointsVisualAnnotationsMixin:
         See also `flagpole()`, `flagpost()`, `labels()` and `legend()`
         with similar functionality.
 
-        Arguments:
-            txt : (str)
+        Args:
+            txt (str):
                 text to be rendered. The default is the file name.
-            point : (list)
+            point (list):
                 anchoring point. The default is None.
-            size : (list)
+            size (list):
                 (width, height) of the caption box. The default is (0.30, 0.15).
-            padding : (float)
+            padding (float):
                 padding space of the caption box in pixels. The default is 5.
-            font : (str)
+            font (str):
                 font name. Use a monospace font for better rendering. The default is "VictorMono".
                 Type `vedo -r fonts` for a font demo.
                 Check [available fonts here](https://vedo.embl.es/fonts).
-            justify : (str)
+            justify (str):
                 internal text justification. The default is "center-right".
-            vspacing : (float)
+            vspacing (float):
                 vertical spacing between lines. The default is 1.
-            c : (str)
+            c (str):
                 text and box color. The default is 'lb'.
-            alpha : (float)
+            alpha (float):
                 text and box transparency. The default is 1.
-            lw : (int)
+            lw (int):
                 line width in pixels. The default is 1.
-            ontop : (bool)
+            ontop (bool):
                 keep the 2d caption always on top. The default is True.
 
         Examples:
@@ -881,26 +881,26 @@ class MeshVisualTextureMixin:
         If tname is set to `None` texture is disabled.
         Input tname can also be an array or a `vtkTexture`.
 
-        Arguments:
-            tname : (numpy.array, str, Image, vtkTexture, None)
+        Args:
+            tname (numpy.array, str, Image, vtkTexture, None):
                 the input texture to be applied. Can be a numpy array, a path to an image file,
                 a vedo Image. The None value disables texture.
-            tcoords : (numpy.array, str)
+            tcoords (numpy.array, str):
                 this is the (u,v) texture coordinate array. Can also be a string of an existing array
                 in the mesh.
-            interpolate : (bool)
+            interpolate (bool):
                 turn on/off linear interpolation of the texture map when rendering.
-            repeat : (bool)
+            repeat (bool):
                 repeat of the texture when tcoords extend beyond the [0,1] range.
-            edge_clamp : (bool)
+            edge_clamp (bool):
                 turn on/off the clamping of the texture map when
                 the texture coords extend beyond the [0,1] range.
                 Only used when repeat is False, and edge clamping is supported by the graphics card.
-            scale : (bool)
+            scale (bool):
                 scale the texture image by this factor
-            ushift : (bool)
+            ushift (bool):
                 shift u-coordinates of texture by this amount
-            vshift : (bool)
+            vshift (bool):
                 shift v-coordinates of texture by this amount
 
         Examples:

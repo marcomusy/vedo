@@ -68,42 +68,42 @@ class Histogram1D(Figure):
         """
         Creates a `Histogram1D(Figure)` object.
 
-        Arguments:
-            weights : (list)
+        Args:
+            weights (list):
                 An array of weights, of the same shape as `data`. Each value in `data`
                 only contributes its associated weight towards the bin count (instead of 1).
-            bins : (int)
+            bins (int):
                 number of bins
-            density : (bool)
+            density (bool):
                 normalize the area to 1 by dividing by the nr of entries and bin size
-            logscale : (bool)
+            logscale (bool):
                 use logscale on y-axis
-            max_entries : (int)
+            max_entries (int):
                 if `data` is larger than `max_entries`, a random sample of `max_entries` is used
-            fill : (bool)
+            fill (bool):
                 fill bars with solid color `c`
-            gap : (float)
+            gap (float):
                 leave a small space btw bars
-            radius : (float)
+            radius (float):
                 border radius of the top of the histogram bar. Default value is 0.1.
-            texture : (str)
+            texture (str):
                 url or path to an image to be used as texture for the bin
-            outline : (bool)
+            outline (bool):
                 show outline of the bins
-            errors : (bool)
+            errors (bool):
                 show error bars
-            xtitle : (str)
+            xtitle (str):
                 title for the x-axis, can also be set using `axes=dict(xtitle="my x axis")`
-            ytitle : (str)
+            ytitle (str):
                 title for the y-axis, can also be set using `axes=dict(ytitle="my y axis")`
             padding : (float), list
                 keep a padding space from the axes (as a fraction of the axis size).
                 This can be a list of four numbers.
-            aspect : (float)
+            aspect (float):
                 the desired aspect ratio of the histogram. Default is 4/3.
-            grid : (bool)
+            grid (bool):
                 show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
-            ztolerance : (float)
+            ztolerance (float):
                 a tolerance factor to superimpose objects (along the z-axis).
 
         Examples:
@@ -451,41 +451,41 @@ class Histogram2D(Figure):
         they are compatible and comparable. If they are not compatible
         you will receive an error message.
 
-        Arguments:
-            bins : (list)
+        Args:
+            bins (list):
                 binning as (nx, ny)
-            weights : (list)
+            weights (list):
                 array of weights to assign to each entry
-            cmap : (str, lookuptable)
+            cmap (str, lookuptable):
                 color map name or look up table
-            alpha : (float)
+            alpha (float):
                 opacity of the histogram
-            gap : (float)
+            gap (float):
                 separation between adjacent bins as a fraction for their size
-            scalarbar : (bool)
+            scalarbar (bool):
                 add a scalarbar to right of the histogram
-            like : (Figure)
+            like (Figure):
                 grab and use the same format of the given Figure (for superimposing)
-            xlim : (list)
+            xlim (list):
                 [x0, x1] range of interest. If left to None will automatically
                 choose the minimum or the maximum of the data range.
                 Data outside the range are completely ignored.
-            ylim : (list)
+            ylim (list):
                 [y0, y1] range of interest. If left to None will automatically
                 choose the minimum or the maximum of the data range.
                 Data outside the range are completely ignored.
-            aspect : (float)
+            aspect (float):
                 the desired aspect ratio of the figure.
-            title : (str)
+            title (str):
                 title of the plot to appear on top.
                 If left blank some statistics will be shown.
-            xtitle : (str)
+            xtitle (str):
                 x axis title
-            ytitle : (str)
+            ytitle (str):
                 y axis title
-            ztitle : (str)
+            ztitle (str):
                 title for the scalar bar
-            ac : (str)
+            ac (str):
                 axes color, additional keyword for Axes can also be added
                 using e.g. `axes=dict(xygrid=True)`
 
@@ -660,33 +660,33 @@ class PlotBars(Figure):
         they are compatible and comparable. If they are not compatible
         you will receive an error message.
 
-        Arguments:
-            errors : (bool)
+        Args:
+            errors (bool):
                 show error bars
-            logscale : (bool)
+            logscale (bool):
                 use logscale on y-axis
-            fill : (bool)
+            fill (bool):
                 fill bars with solid color `c`
-            gap : (float)
+            gap (float):
                 leave a small space btw bars
-            radius : (float)
+            radius (float):
                 border radius of the top of the histogram bar. Default value is 0.1.
-            texture : (str)
+            texture (str):
                 url or path to an image to be used as texture for the bin
-            outline : (bool)
+            outline (bool):
                 show outline of the bins
-            xtitle : (str)
+            xtitle (str):
                 title for the x-axis, can also be set using `axes=dict(xtitle="my x axis")`
-            ytitle : (str)
+            ytitle (str):
                 title for the y-axis, can also be set using `axes=dict(ytitle="my y axis")`
-            ac : (str)
+            ac (str):
                 axes color
-            padding : (float, list)
+            padding (float, list):
                 keep a padding space from the axes (as a fraction of the axis size).
                 This can be a list of four numbers.
-            aspect : (float)
+            aspect (float):
                 the desired aspect ratio of the figure. Default is 4/3.
-            grid : (bool)
+            grid (bool):
                 show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
 
         Examples:
@@ -883,62 +883,62 @@ class PlotXY(Figure):
         **fig_kwargs,
     ):
         """
-        Arguments:
-            xerrors : (bool)
+        Args:
+            xerrors (bool):
                 show error bars associated to each point in x
-            yerrors : (bool)
+            yerrors (bool):
                 show error bars associated to each point in y
-            lw : (int)
+            lw (int):
                 width of the line connecting points in pixel units.
                 Set it to 0 to remove the line.
-            lc : (str)
+            lc (str):
                 line color
-            la : (float)
+            la (float):
                 line "alpha", opacity of the line
-            dashed : (bool)
+            dashed (bool):
                 draw a dashed line instead of a continuous line
-            splined : (bool)
+            splined (bool):
                 spline the line joining the point as a countinous curve
-            elw : (int)
+            elw (int):
                 width of error bar lines in units of pixels
-            ec : (color)
+            ec (color):
                 color of error bar, by default the same as marker color
-            error_band : (bool)
+            error_band (bool):
                 represent errors on y as a filled error band.
                 Use `ec` keyword to modify its color.
-            marker : (str, int)
+            marker (str, int):
                 use a marker for the data points
-            ms : (float)
+            ms (float):
                 marker size
-            mc : (color)
+            mc (color):
                 color of the marker
-            ma : (float)
+            ma (float):
                 opacity of the marker
-            xlim : (list)
+            xlim (list):
                 set limits to the range for the x variable
-            ylim : (list)
+            ylim (list):
                 set limits to the range for the y variable
-            aspect : (float, str)
+            aspect (float, str):
                 Desired aspect ratio.
                 Use `aspect="equal"` to force the same units in x and y.
                 Scaling factor is saved in Figure.yscale.
-            padding : (float, list)
+            padding (float, list):
                 keep a padding space from the axes (as a fraction of the axis size).
                 This can be a list of four numbers.
-            title : (str)
+            title (str):
                 title to appear on the top of the frame, like a header.
-            xtitle : (str)
+            xtitle (str):
                 title for the x-axis, can also be set using `axes=dict(xtitle="my x axis")`
-            ytitle : (str)
+            ytitle (str):
                 title for the y-axis, can also be set using `axes=dict(ytitle="my y axis")`
-            ac : (str)
+            ac (str):
                 axes color
-            grid : (bool)
+            grid (bool):
                 show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
-            ztolerance : (float)
+            ztolerance (float):
                 a tolerance factor to superimpose objects (along the z-axis).
 
-        Example:
+        Examples:
             ```python
             import numpy as np
             from vedo.pyplot import plot

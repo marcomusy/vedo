@@ -39,30 +39,30 @@ class Flagpost(vtki.vtkFlagpoleLabel):
         """
         Create a flag post style element to describe an object.
 
-        Arguments:
-            txt : (str)
+        Args:
+            txt (str):
                 Text to display. The default is the filename or the object name.
-            base : (list)
+            base (list):
                 position of the flag anchor point.
-            top : (list)
+            top (list):
                 a 3D displacement or offset.
-            s : (float)
+            s (float):
                 size of the text to be shown
-            c : (list)
+            c (list):
                 color of text and line
-            bc : (list)
+            bc (list):
                 color of the flag background
-            alpha : (float)
+            alpha (float):
                 opacity of text and box.
-            lw : (int)
+            lw (int):
                 line with of box frame. The default is 0.
-            font : (str)
+            font (str):
                 font name. Use a monospace font for better rendering. The default is "Calco".
                 Type `vedo -r fonts` for a font demo.
                 Check [available fonts here](https://vedo.embl.es/fonts).
-            justify : (str)
+            justify (str):
                 internal text justification. The default is "center-left".
-            vspacing : (float)
+            vspacing (float):
                 vertical spacing between lines.
 
         Examples:
@@ -196,11 +196,11 @@ class Icon(vtki.vtkOrientationMarkerWidget):
         """
         Add an inset icon mesh into the renderer.
 
-        Arguments:
-            pos : (list, int)
+        Args:
+            pos (list, int):
                 icon position in the range [1-4] indicating one of the 4 corners,
                 or it can be a tuple (x,y) as a fraction of the renderer size.
-            size : (float)
+            size (float):
                 size of the icon space as fraction of the window size.
         """
         super().__init__()
@@ -247,24 +247,24 @@ class LegendBox(vtki.vtkLegendBoxActor):
         """
         Create a 2D legend box for the list of specified objects.
 
-        Arguments:
-            nmax : (int)
+        Args:
+            nmax (int):
                 max number of legend entries
-            c : (color)
+            c (color):
                 text color, leave as None to pick the mesh color automatically
-            font : (str)
+            font (str):
                 Check [available fonts here](https://vedo.embl.es/fonts)
-            width : (float)
+            width (float):
                 width of the box as fraction of the window width
-            height : (float)
+            height (float):
                 height of the box as fraction of the window height
-            padding : (int)
+            padding (int):
                 padding space in units of pixels
-            bg : (color)
+            bg (color):
                 background color of the box
-            alpha: (float)
+            alpha (float):
                 opacity of the box
-            pos : (str, list)
+            pos (str, list):
                 position of the box, can be either a string or a (x,y) screen position in range [0,1]
 
         Examples:

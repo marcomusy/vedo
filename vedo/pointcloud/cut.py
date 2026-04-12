@@ -27,15 +27,15 @@ class PointCutMixin:
         """
         Cut the mesh with the plane defined by a point and a normal.
 
-        Arguments:
-            origin : (array)
+        Args:
+            origin (array):
                 the cutting plane goes through this point
-            normal : (array)
+            normal (array):
                 normal of the cutting plane
-            invert : (bool)
+            invert (bool):
                 select which side of the plane to keep
 
-        Example:
+        Examples:
             ```python
             from vedo import Cube
             cube = Cube().cut_with_plane(normal=(1,1,1))
@@ -102,12 +102,12 @@ class PointCutMixin:
         """
         Cut the mesh with a convex set of planes defined by points and normals.
 
-        Arguments:
-            origins : (array)
+        Args:
+            origins (array):
                 each cutting plane goes through this point
-            normals : (array)
+            normals (array):
                 normal of each of the cutting planes
-            invert : (bool)
+            invert (bool):
                 if True, cut outside instead of inside
 
         Check out also:
@@ -147,7 +147,7 @@ class PointCutMixin:
         - a list of 6 number representing a bounding box `[xmin,xmax, ymin,ymax, zmin,zmax]`
         - a list of bounding boxes like the above: `[[xmin1,...], [xmin2,...], ...]`
 
-        Example:
+        Examples:
             ```python
             from vedo import Sphere, Cube, show
             mesh = Sphere(r=1, res=50)
@@ -237,7 +237,7 @@ class PointCutMixin:
         - a list of 3D points: `[(x1,y1,z1), (x2,y2,z2), ...]`
         - a list of 2D points: `[(x1,y1), (x2,y2), ...]`
 
-        Example:
+        Examples:
             ```python
             from vedo import *
             grid = Mesh(dataurl + "dolfin_fine.vtk")
@@ -311,15 +311,15 @@ class PointCutMixin:
         Cut the current mesh with an infinite cylinder.
         This is much faster than `cut_with_mesh()`.
 
-        Arguments:
-            center : (array)
+        Args:
+            center (array):
                 the center of the cylinder
-            normal : (array)
+            normal (array):
                 direction of the cylinder axis
-            r : (float)
+            r (float):
                 radius of the cylinder
 
-        Example:
+        Examples:
             ```python
             from vedo import Disc, show
             disc = Disc(r1=1, r2=1.2)
@@ -365,13 +365,13 @@ class PointCutMixin:
         Cut the current mesh with an sphere.
         This is much faster than `cut_with_mesh()`.
 
-        Arguments:
-            center : (array)
+        Args:
+            center (array):
                 the center of the sphere
-            r : (float)
+            r (float):
                 radius of the sphere
 
-        Example:
+        Examples:
             ```python
             from vedo import Disc, show
             disc = Disc(r1=1, r2=1.2)
@@ -410,7 +410,7 @@ class PointCutMixin:
          the "cut" object and the "discarded" part of the original object.
          You can access both via `assembly.unpack()` method.
 
-         Example:
+         Examples:
          ```python
          from vedo import *
          arr = np.random.randn(100000, 3)/2
@@ -490,12 +490,12 @@ class PointCutMixin:
         """
         Cut an `Mesh` object with a set of points forming a closed loop.
 
-        Arguments:
-            invert : (bool)
+        Args:
+            invert (bool):
                 invert selection (inside-out)
-            on : (str)
+            on (str):
                 if 'cells' will extract the whole cells lying inside (or outside) the point loop
-            include_boundary : (bool)
+            include_boundary (bool):
                 include cells lying exactly on the boundary line. Only relevant on 'cells' mode
 
         Examples:
@@ -548,15 +548,15 @@ class PointCutMixin:
         """
         Cut a mesh or point cloud with some input scalar point-data.
 
-        Arguments:
-            value : (float)
+        Args:
+            value (float):
                 cutting value
-            name : (str)
+            name (str):
                 array name of the scalars to be used
-            invert : (bool)
+            invert (bool):
                 flip selection
 
-        Example:
+        Examples:
             ```python
             from vedo import *
             s = Sphere().lw(1)
@@ -594,23 +594,23 @@ class PointCutMixin:
         """
         Crop an `Mesh` object.
 
-        Arguments:
-            top : (float)
+        Args:
+            top (float):
                 fraction to crop from the top plane (positive z)
-            bottom : (float)
+            bottom (float):
                 fraction to crop from the bottom plane (negative z)
-            front : (float)
+            front (float):
                 fraction to crop from the front plane (positive y)
-            back : (float)
+            back (float):
                 fraction to crop from the back plane (negative y)
-            right : (float)
+            right (float):
                 fraction to crop from the right plane (positive x)
-            left : (float)
+            left (float):
                 fraction to crop from the left plane (negative x)
-            bounds : (list)
+            bounds (list):
                 bounding box of the crop region as `[x0,x1, y0,y1, z0,z1]`
 
-        Example:
+        Examples:
             ```python
             from vedo import Sphere
             Sphere().crop(right=0.3, left=0.1).show()

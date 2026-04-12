@@ -569,21 +569,21 @@ class Assembly(CommonVisual, Actor3DHelper):
         """
         Convert the `Assembly` into a `Group` of 2D objects.
 
-        Arguments:
-            pos : (list, str)
+        Args:
+            pos (list, str):
                 Position in 2D, as a string or list (x,y).
                 The center of the renderer is [-1,-1] while top-right is [1,1].
                 Any combination of "center", "top", "bottom", "left" and "right" will work.
-            size : (float)
+            size (float):
                 global scaling factor for the 2D object.
                 The scaling is normalized to the x-range of the original object.
-            rotation : (float)
+            rotation (float):
                 rotation angle in degrees.
-            ontop : (bool)
+            ontop (bool):
                 if `True` the now 2D object is rendered on top of the 3D scene.
-            scale : (float)
+            scale (float):
                 deprecated, use `size` instead.
-            justify : (str)
+            justify (str):
                 justification for the 2D object.
 
         Returns:

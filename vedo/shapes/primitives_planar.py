@@ -127,7 +127,7 @@ class Star(Mesh):
 
         If line is True then only build the outer line (no internal surface meshing).
 
-        Example:
+        Examples:
             - [extrude1.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/extrude1.py)
 
                 ![](https://vedo.embl.es/images/basic/extrude.png)
@@ -322,7 +322,7 @@ class Earth(Mesh):
         """
         Build a textured mesh representing the Earth.
 
-        Example:
+        Examples:
             - [geodesic_curve.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/geodesic_curve.py)
 
                 ![](https://vedo.embl.es/images/advanced/geodesic.png)
@@ -357,19 +357,19 @@ class Grid(Mesh):
         Create an even or uneven 2D grid.
         Can also be created from a `np.mgrid` object (see example).
 
-        Arguments:
-            pos : (list, Points, Mesh)
+        Args:
+            pos (list, Points, Mesh):
                 position in space, can also be passed as a bounding box [xmin,xmax, ymin,ymax].
-            s : (float, list)
+            s (float, list):
                 if a float is provided it is interpreted as the total size along x and y,
                 if a list of coords is provided they are interpreted as the vertices of the grid along x and y.
                 In this case keyword `res` is ignored (see example below).
-            res : (list)
+            res (list):
                 resolutions along x and y, e.i. the number of subdivisions
-            lw : (int)
+            lw (int):
                 line width
 
-        Example:
+        Examples:
             ```python
             from vedo import *
             xcoords = np.arange(0, 2, 0.2)
@@ -460,16 +460,16 @@ class Plane(Mesh):
         to vector `normal` so that it passes through point `pos`, optionally
         aligning an edge with `direction`.
 
-        Arguments:
-            pos : (list)
+        Args:
+            pos (list):
                 position of the plane center
-            normal : (list)
+            normal (list):
                 normal vector to the plane
-            s : (list)
+            s (list):
                 size of the plane along x and y
-            res : (list)
+            res (list):
                 resolution of the plane along x and y
-            edge_direction : (list)
+            edge_direction (list):
                 direction vector to align one edge of the plane
         """
         if isinstance(pos, vtki.vtkPolyData):
@@ -593,12 +593,12 @@ class Rectangle(Mesh):
         """
         Build a rectangle in the xy plane identified by any two corner points.
 
-        Arguments:
-            p1 : (list)
+        Args:
+            p1 (list):
                 bottom-left position of the corner
-            p2 : (list)
+            p2 (list):
                 top-right position of the corner
-            radius : (float, list)
+            radius (float, list):
                 smoothing radius of the corner in world units.
                 A list can be passed with 4 individual values.
         """

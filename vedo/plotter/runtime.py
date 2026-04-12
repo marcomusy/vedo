@@ -128,10 +128,10 @@ def show(
     """
     Create on the fly an instance of class Plotter and show the object(s) provided.
 
-    Arguments:
-        at : (int)
+    Args:
+        at (int):
             number of the renderer to plot to, in case of more than one exists
-        shape : (list, str)
+        shape (list, str):
             Number of sub-render windows inside of the main window. E.g.:
             specify two across with shape=(2,1) and a two by two grid
             with shape=(2, 2). By default there is only one renderer.
@@ -140,22 +140,22 @@ def show(
             - shape="3|1" means 3 plots on the left and 1 on the right,
             - shape="4/2" means 4 plots on top of 2 at bottom.
 
-        N : (int)
+        N (int):
             number of desired sub-render windows arranged automatically in a grid
-        pos : (list)
+        pos (list):
             position coordinates of the top-left corner of the rendering window
             on the screen
-        size : (list)
+        size (list):
             size of the rendering window
-        screensize : (list)
+        screensize (list):
             physical size of the monitor screen
-        title : (str)
+        title (str):
             window title
-        bg : (color)
+        bg (color):
             background color or specify jpg image file name with path
-        bg2 : (color)
+        bg2 (color):
             background color of a gradient towards the top
-        axes : (int)
+        axes (int):
             set the type of axes to be shown:
             - 0,  no axes
             - 1,  draw three gray grid walls
@@ -177,11 +177,11 @@ def show(
             Check `vedo.addons.Axes()` for the full list of options.
         azimuth/elevation/roll : (float)
             move camera accordingly the specified value
-        viewup : (str, list)
+        viewup (str, list):
             either `['x', 'y', 'z']` or a vector to set vertical direction
-        resetcam : (bool)
+        resetcam (bool):
             re-adjust camera position to fit objects
-        camera : (dict, vtkCamera)
+        camera (dict, vtkCamera):
             camera parameters can further be specified with a dictionary
             assigned to the `camera` keyword (E.g. `show(camera={'pos':(1,2,3), 'thickness':1000,})`):
             - **pos** (list),  the position of the camera in world coordinates
@@ -205,11 +205,11 @@ def show(
             angle = 2*atan((h/2)/d) where h is the height of the RenderWindow
             (measured by holding a ruler up to your screen) and d is the distance
             from your eyes to the screen.
-        interactive : (bool)
+        interactive (bool):
             pause and interact with window (True) or continue execution (False)
-        rate : (float)
+        rate (float):
             maximum rate of `show()` in Hertz
-        mode : (int, str)
+        mode (int, str):
             set the type of interaction:
             - 0 = TrackballCamera [default]
             - 1 = TrackballActor
@@ -222,7 +222,7 @@ def show(
             - 8 = Terrain
             - 9 = Unicam
             - 10 = Image
-        new : (bool)
+        new (bool):
             if set to `True`, a call to show will instantiate
             a new Plotter object (a new window) instead of reusing the first created.
             If new is `True`, but the existing plotter was instantiated with a different
@@ -375,24 +375,24 @@ class Plotter:
         wx_widget=None,
     ):
         """
-        Arguments:
-            shape : (str, list)
+        Args:
+            shape (str, list):
                 shape of the grid of renderers in format (rows, columns). Ignored if N is specified.
-            N : (int)
+            N (int):
                 number of desired renderers arranged in a grid automatically.
-            pos : (list)
+            pos (list):
                 (x,y) position in pixels of top-left corner of the rendering window on the screen
-            size : (str, list)
+            size (str, list):
                 size of the rendering window. If 'auto', guess it based on screensize.
-            screensize : (list)
+            screensize (list):
                 physical size of the monitor screen in pixels
-            bg : (color, str)
+            bg (color, str):
                 background color or specify jpg image file name with path
-            bg2 : (color)
+            bg2 (color):
                 background color of a gradient towards the top
-            title : (str)
+            title (str):
                 window title
-            axes : (int)
+            axes (int):
                 axis type-1 can be fully customized by passing a dictionary.
                 Check `addons.Axes()` for the full list of options.
                 Set the type of axes to be shown:
@@ -412,13 +412,13 @@ class Plotter:
                 - 13, draw a simple ruler at the bottom of the window
                 - 14: draw a camera orientation widget
 
-            sharecam : (bool)
+            sharecam (bool):
                 if False each renderer will have an independent camera
-            interactive : (bool)
+            interactive (bool):
                 if True will stop after show() to allow interaction with the 3d scene
-            offscreen : (bool)
+            offscreen (bool):
                 if True will not show the rendering window
-            qt_widget : (QVTKRenderWindowInteractor)
+            qt_widget (QVTKRenderWindowInteractor):
                 render in a Qt-Widget using an QVTKRenderWindowInteractor.
                 See examples `qt_windows[1,2,3].py` and `qt_cutter.py`.
         """
@@ -869,14 +869,14 @@ class Plotter:
         """Set the color of the background for the current renderer.
         A different renderer index can be specified by keyword `at`.
 
-        Arguments:
-            c1 : (list)
+        Args:
+            c1 (list):
                 background main color.
-            c2 : (list)
+            c2 (list):
                 background color for the upper part of the window.
-            at : (int)
+            at (int):
                 renderer index.
-            mode : (int)
+            mode (int):
                 background mode (needs vtk version >= 9.3)
                     0 = vertical,
                     1 = horizontal,
@@ -943,8 +943,8 @@ class Plotter:
         Record camera, mouse, keystrokes and all other events.
         Recording can be toggled on/off by pressing key "R".
 
-        Arguments:
-            filename : (str)
+        Args:
+            filename (str):
                 ascii file to store events.
                 The default is `vedo.settings.cache_directory+"vedo/recorded_events.log"`.
 
@@ -985,11 +985,11 @@ class Plotter:
         """
         Play camera, mouse, keystrokes and all other events.
 
-        Arguments:
-            events : (str)
+        Args:
+            events (str):
                 file o string of events.
                 The default is `vedo.settings.cache_directory+"vedo/recorded_events.log"`.
-            repeats : (int)
+            repeats (int):
                 number of extra repeats of the same events. The default is 0.
 
         Examples:
@@ -1045,44 +1045,44 @@ class Plotter:
         """
         Add a `vedo.addons.Slider2D` which can call an external custom function.
 
-        Arguments:
-            sliderfunc : (Callable)
+        Args:
+            sliderfunc (Callable):
                 external function to be called by the widget
-            xmin : (float)
+            xmin (float):
                 lower value of the slider
-            xmax : (float)
+            xmax (float):
                 upper value
-            value : (float)
+            value (float):
                 current value
-            pos : (list, str)
+            pos (list, str):
                 position corner number: horizontal [1-5] or vertical [11-15]
                 it can also be specified by corners coordinates [(x1,y1), (x2,y2)]
                 and also by a string descriptor (eg. "bottom-left")
-            title : (str)
+            title (str):
                 title text
-            font : (str)
+            font (str):
                 title font face. Check [available fonts here](https://vedo.embl.es/fonts).
-            title_size : (float)
+            title_size (float):
                 title text scale [1.0]
-            show_value : (bool)
+            show_value (bool):
                 if True current value is shown
-            delayed : (bool)
+            delayed (bool):
                 if True the callback is delayed until when the mouse button is released
-            alpha : (float)
+            alpha (float):
                 opacity of the scalar bar texts
-            slider_length : (float)
+            slider_length (float):
                 slider length
-            slider_width : (float)
+            slider_width (float):
                 slider width
-            end_cap_length : (float)
+            end_cap_length (float):
                 length of the end cap
-            end_cap_width : (float)
+            end_cap_width (float):
                 width of the end cap
-            tube_width : (float)
+            tube_width (float):
                 width of the tube
-            title_height : (float)
+            title_height (float):
                 width of the title
-            tformat : (str)
+            tformat (str):
                 format of the title
 
         Examples:
@@ -1140,30 +1140,30 @@ class Plotter:
         """
         Add a 3D slider widget which can call an external custom function.
 
-        Arguments:
-            sliderfunc : (function)
+        Args:
+            sliderfunc (function):
                 external function to be called by the widget
-            pos1 : (list)
+            pos1 (list):
                 first position 3D coordinates
-            pos2 : (list)
+            pos2 (list):
                 second position coordinates
-            xmin : (float)
+            xmin (float):
                 lower value
-            xmax : (float)
+            xmax (float):
                 upper value
-            value : (float)
+            value (float):
                 initial value
-            s : (float)
+            s (float):
                 label scaling factor
-            t : (float)
+            t (float):
                 tube scaling factor
-            title : (str)
+            title (str):
                 title text
-            c : (color)
+            c (color):
                 slider color
-            rotation : (float)
+            rotation (float):
                 title rotation around slider axis
-            show_value : (bool)
+            show_value (bool):
                 if True current value is shown
 
         Examples:
@@ -1215,26 +1215,26 @@ class Plotter:
         """
         Add a button to the renderer window.
 
-        Arguments:
-            states : (list)
+        Args:
+            states (list):
                 a list of possible states, e.g. ['On', 'Off']
-            c : (list)
+            c (list):
                 a list of colors for each state
-            bc : (list)
+            bc (list):
                 a list of background colors for each state
-            pos : (list)
+            pos (list):
                 2D position from left-bottom corner
-            size : (float)
+            size (float):
                 size of button font
-            font : (str)
+            font (str):
                 font type. Check [available fonts here](https://vedo.embl.es/fonts).
-            bold : (bool)
+            bold (bool):
                 bold font face (False)
-            italic : (bool)
+            italic (bool):
                 italic font face (False)
-            alpha : (float)
+            alpha (float):
                 opacity level
-            angle : (float)
+            angle (float):
                 anticlockwise rotation in degrees
 
         Returns:
@@ -1275,22 +1275,22 @@ class Plotter:
         Clicking on the line itself adds an extra point.
         Selecting a point and pressing del removes it.
 
-        Arguments:
-            points : (Mesh, Points, array)
+        Args:
+            points (Mesh, Points, array):
                 the set of coordinates forming the spline nodes.
-            pc : (str)
+            pc (str):
                 point color. The default is 'k'.
-            ps : (str)
+            ps (str):
                 point size. The default is 8.
-            lc : (str)
+            lc (str):
                 line color. The default is 'r4'.
-            ac : (str)
+            ac (str):
                 active point marker color. The default is 'g5'.
-            lw : (int)
+            lw (int):
                 line width. The default is 2.
-            alpha : (float)
+            alpha (float):
                 line transparency.
-            closed : (bool)
+            closed (bool):
                 spline is meant to be closed. The default is False.
 
         Returns:
@@ -1316,11 +1316,11 @@ class Plotter:
     def add_icon(self, icon, pos=3, size=0.08) -> vedo.addons.Icon:
         """Add an inset icon mesh into the same renderer.
 
-        Arguments:
-            pos : (int, list)
+        Args:
+            pos (int, list):
                 icon position in the range [1-4] indicating one of the 4 corners,
                 or it can be a tuple (x,y) as a fraction of the renderer size.
-            size : (float)
+            size (float):
                 size of the square inset.
 
         Examples:
@@ -1337,8 +1337,8 @@ class Plotter:
     def add_global_axes(self, axtype=None, c=None) -> Self:
         """Draw axes on scene. Available axes types:
 
-        Arguments:
-            axtype : (int)
+        Args:
+            axtype (int):
                 - 0,  no axes,
                 - 1,  draw three gray grid walls
                 - 2,  show cartesian axes from (0,0,0)
@@ -1354,9 +1354,10 @@ class Plotter:
                 - 12, show polar axes
                 - 13, draw a simple ruler at the bottom of the window
 
-            Axis type-1 can be fully customized by passing a dictionary axes=dict().
+                Axis type-1 can be fully customized by passing a dictionary
+                like `axes=dict()`.
 
-        Example:
+        Examples:
             ```python
             from vedo import Box, show
             b = Box(pos=(0, 0, 0), size=(80, 90, 70)).alpha(0.1)
@@ -1411,12 +1412,12 @@ class Plotter:
         Use `add_hint(obj, False)` to disable a hinting a specific object.
         Use `add_hint(None)` to disable all hints.
 
-        Arguments:
-            obj : (Mesh, Points)
+        Args:
+            obj (Mesh, Points):
                 the object to associate the pop-up to
-            text : (str)
+            text (str):
                 string description of the pop-up
-            delay : (int)
+            delay (int):
                 milliseconds to wait before pop-up occurs
         """
         if self.offscreen or not self.interactor:
@@ -1507,14 +1508,14 @@ class Plotter:
         the current pixel and tries to compute the amount of occlusion from each of the sampled
         points.
 
-        Arguments:
-            radius : (float)
+        Args:
+            radius (float):
                 radius of influence in absolute units
-            bias : (float)
+            bias (float):
                 bias of the normals
-            blur : (bool)
+            blur (bool):
                 add a blurring to the sampled positions
-            samples : (int)
+            samples (int):
                 number of samples to probe
 
         Examples:
@@ -1621,16 +1622,16 @@ class Plotter:
         """
         Add a frame to the renderer subwindow.
 
-        Arguments:
-            c : (color)
+        Args:
+            c (color):
                 color name or index
-            alpha : (float)
+            alpha (float):
                 opacity level
-            lw : (int)
+            lw (int):
                 line width in pixels.
-            padding : (float)
+            padding (float):
                 padding space in pixels.
-            pattern : (str)
+            pattern (str):
                 a string made of characters 'b', 'r', 't', 'l'
                 to show the frame line at the bottom, right, top, left.
         """
@@ -1664,22 +1665,22 @@ class Plotter:
         Returns:
             the id of the callback function.
 
-        Arguments:
-            c : (color)
+        Args:
+            c (color):
                 Text color. If None then black or white is chosen automatically
-            pos : (str)
+            pos (str):
                 text positioning
-            font : (str)
+            font (str):
                 text font type. Check [available fonts here](https://vedo.embl.es/fonts).
-            s : (float)
+            s (float):
                 text size scale
-            bg : (color)
+            bg (color):
                 background color of the 2D box containing the text
-            alpha : (float)
+            alpha (float):
                 box transparency
-            maxlength : (int)
+            maxlength (int):
                 maximum number of characters per line
-            use_info : (bool)
+            use_info (bool):
                 visualize the content of the `obj.info` attribute
 
         Examples:
@@ -1825,19 +1826,19 @@ class Plotter:
         """
         Add a Scale Indicator. Only works in parallel mode (no perspective).
 
-        Arguments:
-            pos : (list)
+        Args:
+            pos (list):
                 fractional (x,y) position on the screen.
-            s : (float)
+            s (float):
                 size of the text.
-            length : (float)
+            length (float):
                 length of the line.
-            units : (str)
+            units (str):
                 string to show units.
-            gap : (float)
+            gap (float):
                 separation of line and text.
 
-        Example:
+        Examples:
             ```python
             from vedo import settings, Cube, Plotter
             settings.use_parallel_projection = True # or else it does not make sense!
@@ -2058,11 +2059,11 @@ class Plotter:
         """
         Render a list of objects.
 
-        Arguments:
-            at : (int)
+        Args:
+            at (int):
                 number of the renderer to plot to, in case of more than one exists
 
-            axes : (int)
+            axes (int):
                 axis type-1 can be fully customized by passing a dictionary.
                 Check `addons.Axes()` for the full list of options.
                 set the type of axes to be shown:
@@ -2087,10 +2088,10 @@ class Plotter:
             viewup: str, list
                 either `['x', 'y', 'z']` or a vector to set vertical direction
 
-            resetcam : (bool)
+            resetcam (bool):
                 re-adjust camera position to fit objects
 
-            camera : (dict, vtkCamera)
+            camera (dict, vtkCamera):
                 camera parameters can further be specified with a dictionary
                 assigned to the `camera` keyword (E.g. `show(camera={'pos':(1,2,3), 'thickness':1000,})`):
                 - pos, `(list)`,  the position of the camera in world coordinates
@@ -2113,13 +2114,13 @@ class Plotter:
                 angle = 2*atan((h/2)/d) where h is the height of the RenderWindow
                 (measured by holding a ruler up to your screen) and d is the distance from your eyes to the screen.
 
-            interactive : (bool)
+            interactive (bool):
                 pause and interact with window (True) or continue execution (False)
 
-            rate : (float)
+            rate (float):
                 maximum rate of `show()` in Hertz
 
-            mode : (int, str)
+            mode (int, str):
                 set the type of interaction:
                 - 0 = TrackballCamera [default]
                 - 1 = TrackballActor
@@ -2134,19 +2135,19 @@ class Plotter:
                 - 10 = Image
                 - Check out `vedo.interaction_modes` for more options.
 
-            bg : (str, list)
+            bg (str, list):
                 background color in RGB format, or string name
 
-            bg2 : (str, list)
+            bg2 (str, list):
                 second background color to create a gradient background
 
-            size : (str, list)
+            size (str, list):
                 size of the window, e.g. size="fullscreen", or size=[600,400]
 
-            title : (str)
+            title (str):
                 window title text
 
-            screenshot : (str)
+            screenshot (str):
                 save a screenshot of the window to file
         """
 
@@ -2375,17 +2376,17 @@ class Plotter:
     def add_inset(self, *objects, **options) -> vtki.vtkOrientationMarkerWidget | None:
         """Add a draggable inset space into a renderer.
 
-        Arguments:
-            at : (int)
+        Args:
+            at (int):
                 specify the renderer number
-            pos : (list)
+            pos (list):
                 icon position in the range [1-4] indicating one of the 4 corners,
                 or it can be a tuple (x,y) as a fraction of the renderer size.
-            size : (float)
+            size (float):
                 size of the square inset
-            draggable : (bool)
+            draggable (bool):
                 if True the subrenderer space can be dragged around
-            c : (color)
+            c (color):
                 color of the inset frame when dragged
 
         Examples:

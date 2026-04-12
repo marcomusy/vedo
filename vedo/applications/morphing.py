@@ -334,17 +334,17 @@ class MorphByLandmarkPlotter(Plotter):
         It is useful in shape analysis, morphometrics, and mesh deformation.
         The initial points are used as source points, and the points are moved to the target positions.
 
-        Arguments:
-            msh : (Mesh)
+        Args:
+            msh (Mesh):
                 the mesh to morph
-            init_pts : (list of tuples)
+            init_pts (list of tuples):
                 initial points to use for morphing
-            show_labels : (bool)
+            show_labels (bool):
                 show point labels on the mesh
-            **kwargs : (dict)
+            **kwargs (dict):
                 keyword arguments to pass to a `vedo.plotter.Plotter` instance.
 
-        Example:
+        Examples:
             ```python
             from vedo import Mesh, MorphByLandmarkPlotter
             msh = Mesh(dataurl + "bunny.ply")
@@ -635,13 +635,13 @@ class MorphBySplinesPlotter(Plotter):
         A Plotter to morph a mesh by moving points on it using splines.
         It is useful in shape analysis, morphometrics, and mesh deformation.
 
-        Arguments:
-            meshes : (list of Mesh)
+        Args:
+            meshes (list of Mesh):
                 the mesh set to be matched
-            **kwargs : (dict)
+            **kwargs (dict):
                 keyword arguments to pass to a `vedo.plotter.Plotter` instance.
 
-        Example:
+        Examples:
             ```python
             from vedo import Mesh, dataurl
             from vedo.applications import MorphBySplinesPlotter

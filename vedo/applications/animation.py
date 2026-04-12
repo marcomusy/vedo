@@ -25,16 +25,16 @@ class Animation(Plotter):
     A `Plotter` derived class that allows to animate simultaneously various objects
     by specifying event times and durations of different visual effects.
 
-    Arguments:
-        total_duration : (float)
+    Args:
+        total_duration (float):
             expand or shrink the total duration of video to this value
-        time_resolution : (float)
+        time_resolution (float):
             in seconds, save a frame at this rate
-        show_progressbar : (bool)
+        show_progressbar (bool):
             whether to show a progress bar or not
-        video_filename : (str)
+        video_filename (str):
             output file name of the video
-        video_fps : (int)
+        video_fps (int):
             desired value of the nr of frames per second
 
     .. warning:: this is still very experimental at the moment.
@@ -438,30 +438,30 @@ class AnimationPlayer(vedo.Plotter):
 
     The user has the responsibility to update all actors in the callback function.
 
-    Arguments:
-        func :  (Callable)
+    Args:
+        func (Callable):
             a function that passes an integer as input and updates the scene
-        irange : (tuple)
+        irange (tuple):
             the range of the integer input representing the time series index
-        dt : (float)
+        dt (float):
             the time interval between two calls to `func` in milliseconds
-        loop : (bool)
+        loop (bool):
             whether to loop the animation
-        c : (list, str)
+        c (list, str):
             the color of the play/pause button
-        bc : (list)
+        bc (list):
             the background color of the play/pause button and the slider
-        button_size : (int)
+        button_size (int):
             the size of the play/pause buttons
-        button_pos : (float, float)
+        button_pos (float, float):
             the position of the play/pause buttons as a fraction of the window size
-        button_gap : (float)
+        button_gap (float):
             the gap between the buttons
-        slider_length : (float)
+        slider_length (float):
             the length of the slider as a fraction of the window size
-        slider_pos : (float, float)
+        slider_pos (float, float):
             the position of the slider as a fraction of the window size
-        kwargs: (dict)
+        kwargs (dict):
             keyword arguments to be passed to `Plotter`
 
     Examples:
@@ -636,21 +636,21 @@ class Clock(vedo.Assembly):
         """
         Create a clock with current time or user provided time.
 
-        Arguments:
-            h : (int)
+        Args:
+            h (int):
                 hours in range [0,23]
-            m : (int)
+            m (int):
                 minutes in range [0,59]
-            s : (int)
+            s (int):
                 seconds in range [0,59]
-            font : (str)
+            font (str):
                 font type
-            title : (str)
+            title (str):
                 some extra text to show on the clock
-            c : (str)
+            c (str):
                 color of the numbers
 
-        Example:
+        Examples:
             ```python
             import time
             from vedo import show

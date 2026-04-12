@@ -50,19 +50,19 @@ class Text3D(Mesh):
 
         More fonts at: https://vedo.embl.es/fonts/
 
-        Arguments:
-            pos : (list)
+        Args:
+            pos (list):
                 position coordinates in 3D space
-            s : (float)
+            s (float):
                 vertical size of the text (as scaling factor)
-            depth : (float)
+            depth (float):
                 text thickness (along z)
             italic : (bool), float
                 italic font type (can be a signed float too)
-            justify : (str)
+            justify (str):
                 text justification as centering of the bounding box
                 (bottom-left, bottom-right, top-left, top-right, centered)
-            font : (str, int)
+            font (str, int):
                 some of the available 3D-polygonized fonts are:
                 Bongas, Calco, Comae, ComicMono, Kanopus, Glasgo, Ubuntu,
                 LogoType, Normografo, Quikhand, SmartCouric, Theemim, VictorMono, VTK,
@@ -74,11 +74,11 @@ class Text3D(Mesh):
 
                 Default is Normografo, which can be changed using `settings.default_font`.
 
-            hspacing : (float)
+            hspacing (float):
                 horizontal spacing of the font
-            vspacing : (float)
+            vspacing (float):
                 vertical spacing of the font for multiple lines text
-            literal : (bool)
+            literal (bool):
                 if set to True will ignore modifiers like _ or ^
 
         Examples:

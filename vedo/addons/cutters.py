@@ -166,23 +166,23 @@ class PlaneCutter(BaseCutter, vtki.vtkPlaneWidget):
         """
         Create a box widget to cut away parts of a `Mesh`.
 
-        Arguments:
-            mesh : (Mesh)
+        Args:
+            mesh (Mesh):
                 the input mesh
-            invert : (bool)
+            invert (bool):
                 invert the clipping plane
-            origin : (list)
+            origin (list):
                 origin of the plane
-            normal : (list)
+            normal (list):
                 normal to the plane
-            padding : (float)
+            padding (float):
                 padding around the input mesh
-            delayed : (bool)
+            delayed (bool):
                 if True the callback is delayed until
                 when the mouse button is released (useful for large meshes)
-            c : (color)
+            c (color):
                 color of the box cutter widget
-            alpha : (float)
+            alpha (float):
                 transparency of the cut-off part of the input mesh
 
         Examples:
@@ -308,21 +308,21 @@ class BoxCutter(BaseCutter, vtki.vtkBoxWidget):
         """
         Create a box widget to cut away parts of a Mesh.
 
-        Arguments:
-            mesh : (Mesh)
+        Args:
+            mesh (Mesh):
                 the input mesh
-            invert : (bool)
+            invert (bool):
                 invert the clipping plane
-            initial_bounds : (list)
+            initial_bounds (list):
                 initial bounds of the box widget
-            padding : (float)
+            padding (float):
                 padding space around the input mesh
-            delayed : (bool)
+            delayed (bool):
                 if True the callback is delayed until
                 when the mouse button is released (useful for large meshes)
-            c : (color)
+            c (color):
                 color of the box cutter widget
-            alpha : (float)
+            alpha (float):
                 transparency of the cut-off part of the input mesh
         """
         super().__init__()
@@ -421,7 +421,7 @@ class SphereCutter(BaseCutter, vtki.vtkSphereWidget):
         """
         Create a box widget to cut away parts of a Mesh.
 
-        Arguments:
+        Args:
             mesh : Mesh
                 the input mesh
             invert : bool
@@ -548,16 +548,16 @@ class RendererFrame(Actor2D):
         """
         Add a line around the renderer subwindow.
 
-        Arguments:
-            c : (color)
+        Args:
+            c (color):
                 color of the line.
-            alpha : (float)
+            alpha (float):
                 opacity.
-            lw : (int)
+            lw (int):
                 line width in pixels.
-            padding : (int)
+            padding (int):
                 padding in pixel units.
-            pattern : (str)
+            pattern (str):
                 combination of characters `b` for bottom, `r` for right,
                 `t` for top, `l` for left.
         """
@@ -661,17 +661,17 @@ class ProgressBarWidget(Actor2D):
         """
         Add a progress bar window.
 
-        Arguments:
-            n : (int)
+        Args:
+            n (int):
                 number of iterations.
                 If None, you need to call `update(fraction)` manually.
-            c : (color)
+            c (color):
                 color of the line.
-            alpha : (float)
+            alpha (float):
                 opacity of the line.
-            lw : (int)
+            lw (int):
                 line width in pixels.
-            autohide : (bool)
+            autohide (bool):
                 if True, hide the progress bar when completed.
         """
         self.n = 0

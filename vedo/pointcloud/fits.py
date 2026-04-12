@@ -226,8 +226,8 @@ def fit_plane(points: np.ndarray | vedo.Points, signed=False) -> vedo.shapes.Pla
 
     Extra info is stored in `Plane.normal`, `Plane.center`, `Plane.variance`.
 
-    Arguments:
-        signed : (bool)
+    Args:
+        signed (bool):
             if True flip sign of the normal based on the ordering of the points
 
     Examples:
@@ -267,25 +267,25 @@ def project_point_on_variety(
     Project a point in 3D space onto a polynomial surface defined by a set of points
     around it. The polynomial degree can be adjusted.
 
-    Arguments:
-        pt : (list or np.ndarray)
+    Args:
+        pt (list or np.ndarray):
             The point to smooth (3D coordinates).
-        points: (np.ndarray)
+        points (np.ndarray):
             A set of points (Nx3 array) to fit the polynomial surface.
-        degree: (int)
+        degree (int):
             The degree of the polynomial to fit.
-        compute_surface: (bool)
+        compute_surface (bool):
             If True, returns a surface mesh of the fitted polynomial.
 
     Returns:
-        transformed_pt : (np.ndarray)
+        transformed_pt (np.ndarray):
             The projected point on the polynomial surface.
-        surface_data : (tuple)
+        surface_data (tuple):
             If compute_surface is True, the first element is a vedo.Grid object representing the surface.
             If compute_curvature is True, the second element contains curvature information.
             Contains the fitted polynomial coefficients, rotation matrix, and centroid.
 
-    Example:
+    Examples:
         ```python
         import vedo
         from vedo.pointcloud import project_point_on_variety
@@ -473,10 +473,10 @@ def pca_ellipse(
     Normalized directions are stored in `ellipse.axis1`, `ellipse.axis2`.
     Axes sizes are stored in `ellipse.va`, `ellipse.vb`
 
-    Arguments:
-        pvalue : (float)
+    Args:
+        pvalue (float):
             ellipse will include this fraction of points
-        res : (int)
+        res (int):
             resolution of the ellipse
 
     Examples:
@@ -539,8 +539,8 @@ def pca_ellipsoid(
     Asphericity can be accessed in `ellips.asphericity()` and ellips.asphericity_error().
     A value of 0 means a perfect sphere.
 
-    Arguments:
-        pvalue : (float)
+    Args:
+        pvalue (float):
             ellipsoid will include this fraction of points
 
     Examples:

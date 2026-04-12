@@ -1,19 +1,35 @@
 site_name: vedo
 site_description: Documentation for vedo
 
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: false
+      pygments_lang_class: true
+  - pymdownx.superfences
+
+extra_css:
+  - assets/docs-overrides.css
+
 exclude_docs: |
   logos/*.py
   pdoc/**
 
 theme:
-  name: material
+  name: swan
 
 plugins:
-  - search
+  - material/search
   - mkdocstrings:
       handlers:
         python:
           paths: [.]
+          options:
+            docstring_style: google
+            filters:
+              - "!^__.*__$"
+            docstring_options:
+              warn_unknown_params: false
+              warn_missing_types: false
 
 nav:
   - Home: index.md
@@ -23,6 +39,10 @@ nav:
       - Overview: api/index.md
       - addons: api/addons.md
       - applications: api/applications.md
+      - assembly: api/assembly.md
+      - backends: api/backends.md
+      - chemistry: api/chemistry.md
+      - colors: api/colors.md
       - core: api/core.md
       - file_io: api/file_io.md
       - grids: api/grids.md
@@ -30,6 +50,9 @@ nav:
       - plotter: api/plotter.md
       - pointcloud: api/pointcloud.md
       - pyplot: api/pyplot.md
+      - settings: api/settings.md
       - shapes: api/shapes.md
+      - transformations: api/transformations.md
+      - utils: api/utils.md
       - visual: api/visual.md
       - volume: api/volume.md

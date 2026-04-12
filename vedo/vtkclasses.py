@@ -911,7 +911,7 @@ def get_class(name, module_name=""):
     """
     Get a vtk class from its name.
 
-    Example:
+    Examples:
     ```python
     from vedo import vtkclasses as vtki
     print(vtkActor)
@@ -973,7 +973,7 @@ def new(cls_name, module_name=""):
     """
     Create a new vtk object instance from its name.
 
-    Example:
+    Examples:
     ```python
     from vedo import vtkclasses as vtki
     a = new("Actor")
@@ -1008,7 +1008,7 @@ def dump_hierarchy_to_file(fname=""):
     Dumps the list to a file named `vtkmodules_<version>_hierarchy.txt`
     in the current working directory.
 
-    Example:
+    Examples:
     ```python
     from vedo.vtkclasses import dump_hierarchy_to_file
     dump_hierarchy_to_file()

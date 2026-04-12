@@ -132,12 +132,12 @@ class TessellatedBox(Mesh):
         """
         Build a cubic `Mesh` made of `n` small quads in the 3 axis directions.
 
-        Arguments:
-            pos : (list)
+        Args:
+            pos (list):
                 position of the left bottom corner
-            n : (int, list)
+            n (int, list):
                 number of subdivisions along each side
-            spacing : (float)
+            spacing (float):
                 size of the side of the single quad in the 3 directions
         """
         if utils.is_sequence(n):  # slow
@@ -185,14 +185,14 @@ class Spring(Mesh):
         """
         Build a spring of specified nr of `coils` between `start_pt` and `end_pt`.
 
-        Arguments:
-            coils : (int)
+        Args:
+            coils (int):
                 number of coils
-            r1 : (float)
+            r1 (float):
                 radius at start point
-            r2 : (float)
+            r2 (float):
                 radius at end point
-            thickness : (float)
+            thickness (float):
                 thickness of the coil section
         """
         start_pt = utils.make3d(start_pt)
@@ -260,7 +260,7 @@ class IcoSphere(Mesh):
         Create a sphere made of a uniform triangle mesh
         (from recursive subdivision of an icosahedron).
 
-        Example:
+        Examples:
         ```python
         from vedo import *
         icos = IcoSphere(subdivisions=3)
@@ -332,12 +332,12 @@ class Sphere(Mesh):
         """
         Build a sphere at position `pos` of radius `r`.
 
-        Arguments:
-            r : (float)
+        Args:
+            r (float):
                 sphere radius
-            res : (int, list)
+            res (int, list):
                 resolution in phi, resolution in theta is by default `2*res`
-            quads : (bool)
+            quads (bool):
                 sphere mesh will be made of quads instead of triangles
 
         [](https://user-images.githubusercontent.com/32848391/72433092-f0a31e00-3798-11ea-85f7-b2f5fcc31568.png)
@@ -407,12 +407,12 @@ class Ellipsoid(Mesh):
         """
         Build a 3D ellipsoid centered at position `pos`.
 
-        Arguments:
-            axis1 : (list)
+        Args:
+            axis1 (list):
                 First axis. Length corresponds to semi-axis.
-            axis2 : (list)
+            axis2 (list):
                 Second axis. Length corresponds to semi-axis.
-            axis3 : (list)
+            axis3 (list):
                 Third axis. Length corresponds to semi-axis.
         """
         self.center = utils.make3d(pos)
@@ -533,10 +533,10 @@ class Cylinder(Mesh):
         If `pos` is a list of 2 points, e.g. `pos=[v1, v2]`, build a cylinder with base
         centered at `v1` and top at `v2`.
 
-        Arguments:
-            cap : (bool)
+        Args:
+            cap (bool):
                 enable/disable the caps of the cylinder
-            res : (int)
+            res (int):
                 resolution of the cylinder sides
 
         ![](https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestCylinder.png)

@@ -276,28 +276,28 @@ class CommonVisual:
         """
         Add a 2D scalar bar for the specified object.
 
-        Arguments:
-            title : (str)
+        Args:
+            title (str):
                 scalar bar title
-            pos : (list)
+            pos (list):
                 position coordinates of the bottom left corner.
                 Can also be a pair of (x,y) values in the range [0,1]
                 to indicate the position of the bottom left and top right corners.
-            size : (float,float)
+            size (float,float):
                 size of the scalarbar in number of pixels (width, height)
-            font_size : (float)
+            font_size (float):
                 size of font for title and numeric labels
-            title_yoffset : (float)
+            title_yoffset (float):
                 vertical space offset between title and color scalarbar
-            nlabels : (int)
+            nlabels (int):
                 number of numeric labels
-            c : (list)
+            c (list):
                 color of the scalar bar text
-            horizontal : (bool)
+            horizontal (bool):
                 lay the scalarbar horizontally
-            use_alpha : (bool)
+            use_alpha (bool):
                 render transparency in the color bar itself
-            label_format : (str)
+            label_format (str):
                 c-style format string for numeric labels
 
         Examples:
@@ -362,34 +362,34 @@ class CommonVisual:
         Associate a 3D scalar bar to the object and add it to the scene.
         The new scalarbar object (Assembly) will be accessible as obj.scalarbar
 
-        Arguments:
-            size : (list)
+        Args:
+            size (list):
                 (thickness, length) of scalarbar
-            title : (str)
+            title (str):
                 scalar bar title
-            title_xoffset : (float)
+            title_xoffset (float):
                 horizontal space btw title and color scalarbar
-            title_yoffset : (float)
+            title_yoffset (float):
                 vertical space offset
-            title_size : (float)
+            title_size (float):
                 size of title wrt numeric labels
-            title_rotation : (float)
+            title_rotation (float):
                 title rotation in degrees
-            nlabels : (int)
+            nlabels (int):
                 number of numeric labels
-            label_font : (str)
+            label_font (str):
                 font type for labels
-            label_size : (float)
+            label_size (float):
                 label scale factor
-            label_offset : (float)
+            label_offset (float):
                 space btw numeric labels and scale
-            label_rotation : (float)
+            label_rotation (float):
                 label rotation in degrees
-            label_format : (str)
+            label_format (str):
                 label format for floats and integers (e.g. `':.2f'`)
-            draw_box : (bool)
+            draw_box (bool):
                 draw a box around the colorbar
-            categories : (list)
+            categories (list):
                 make a categorical scalarbar,
                 the input list will have the format `[value, color, alpha, textlabel]`
 
@@ -446,12 +446,12 @@ class CommonVisual:
 
         `volume.color([(0,'red'), (0.5,'violet'), (1,'green')])`
 
-        Arguments:
-            alpha : (list)
+        Args:
+            alpha (list):
                 use a list to specify transparencies along the scalar range
-            vmin : (float)
+            vmin (float):
                 force the min of the scalar range to be this value
-            vmax : (float)
+            vmax (float):
                 force the max of the scalar range to be this value
         """
         # supersedes method in Points, Mesh
@@ -904,12 +904,12 @@ class PointsVisual(
         Turn a 3D `Points` or `Mesh` into a flat 2D actor.
         Returns a `Actor2D`.
 
-        Arguments:
-            size : (float)
+        Args:
+            size (float):
                 size as scaling factor for the 2D actor
-            offset : (list)
+            offset (list):
                 2D (x, y) position of the actor in the range [-1, 1]
-            scale : (float)
+            scale (float):
                 Deprecated. Use `size` instead.
 
         Examples:
@@ -1119,18 +1119,18 @@ class PointsVisual(
         """
         Set the ambient, diffuse, specular and specular_power lighting constants.
 
-        Arguments:
-            style : (str)
+        Args:
+            style (str):
                 preset style, options are `[metallic, plastic, shiny, glossy, ambient, off]`
-            ambient : (float)
+            ambient (float):
                 ambient fraction of emission [0-1]
-            diffuse : (float)
+            diffuse (float):
                 emission of diffused light in fraction [0-1]
-            specular : (float)
+            specular (float):
                 fraction of reflected light [0-1]
-            specular_power : (float)
+            specular_power (float):
                 precision of reflection [1-100]
-            specular_color : (color)
+            specular_color (color):
                 color that is being reflected by the surface
 
         <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/Phong_components_version_4.png" alt="", width=700px>
@@ -1359,25 +1359,25 @@ class PointsVisual(
         """
         Set individual point/cell colors by providing a list of scalar values and a color map.
 
-        Arguments:
-            input_cmap : (str, list, vtkLookupTable, matplotlib.colors.LinearSegmentedColormap)
+        Args:
+            input_cmap (str, list, vtkLookupTable, matplotlib.colors.LinearSegmentedColormap):
                 color map scheme to transform a real number into a color.
-            input_array : (str, list, vtkArray)
+            input_array (str, list, vtkArray):
                 can be the string name of an existing array, a new array or a `vtkArray`.
-            on : (str)
+            on (str):
                 either 'points' or 'cells' or blank (automatic).
                 Apply the color map to data which is defined on either points or cells.
-            name : (str)
+            name (str):
                 give a name to the provided array (if input_array is an array)
-            vmin : (float)
+            vmin (float):
                 clip scalars to this minimum value
-            vmax : (float)
+            vmax (float):
                 clip scalars to this maximum value
-            n_colors : (int)
+            n_colors (int):
                 number of distinct colors to be used in colormap table.
-            alpha : (float, list)
+            alpha (float, list):
                 Mesh transparency. Can be a `list` of values one for each vertex.
-            logscale : (bool)
+            logscale (bool):
                 Use logscale
 
         Examples:
@@ -1776,12 +1776,12 @@ class VolumeVisual(CommonVisual):
     def cmap(self, c, alpha=None, vmin=None, vmax=None) -> Self:
         """Same as `color()`.
 
-        Arguments:
-            alpha : (list)
+        Args:
+            alpha (list):
                 use a list to specify transparencies along the scalar range
-            vmin : (float)
+            vmin (float):
                 force the min of the scalar range to be this value
-            vmax : (float)
+            vmax (float):
                 force the max of the scalar range to be this value
         """
         return self.color(c, alpha, vmin, vmax)
@@ -1801,7 +1801,7 @@ class VolumeVisual(CommonVisual):
         """
         Hide voxels (cells) from visualization.
 
-        Example:
+        Examples:
             ```python
             from vedo import *
             embryo = Volume(dataurl+'embryo.tif')
@@ -1825,7 +1825,7 @@ class VolumeVisual(CommonVisual):
         Mask a volume visualization with a binary value.
         Needs to specify `volume.mapper = "gpu"`.
 
-        Example:
+        Examples:
         ```python
         from vedo import np, Volume, show
         data_matrix = np.zeros([75, 75, 75], dtype=np.uint8)
@@ -2031,7 +2031,7 @@ class LightKit:
         - `elevation` : (float) The elevation of the light in degrees.
         - `azimuth`   : (float) The azimuth of the light in degrees.
 
-    Example:
+    Examples:
         ```python
         from vedo import *
         lightkit = LightKit(head={"warmth":0.6})

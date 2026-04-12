@@ -172,7 +172,7 @@ def add_callback(
 
     Check the complete list of events [here](https://vtk.org/doc/nightly/html/classvtkCommand.html).
 
-    Example:
+    Examples:
         ```python
         from vedo import *
 
@@ -230,8 +230,8 @@ def remove_callback(plotter, cid: int | str) -> Any:
     Remove a callback function by its id
     or a whole category of callbacks by their name.
 
-    Arguments:
-        cid : (int, str)
+    Args:
+        cid (int, str):
             Unique id of the callback.
             If an event name is passed all callbacks of that type are removed.
     """
@@ -248,7 +248,7 @@ def remove_all_observers(plotter) -> Any:
     """
     Remove all observers.
 
-    Example:
+    Examples:
     ```python
     from vedo import *
 
@@ -282,14 +282,14 @@ def timer_callback(plotter, action: str, timer_id=None, dt=1, one_shot=False) ->
     """
     Start or stop an existing timer.
 
-    Arguments:
-        action : (str)
+    Args:
+        action (str):
             Either "create"/"start" or "destroy"/"stop"
-        timer_id : (int)
+        timer_id (int):
             When stopping the timer, the ID of the timer as returned when created
-        dt : (int)
+        dt (int):
             time in milliseconds between each repeated call
-        one_shot : (bool)
+        one_shot (bool):
             create a one shot timer of prescribed duration instead of a repeating one
 
     Examples:
@@ -349,20 +349,20 @@ def compute_world_coordinate(
     Transform a 2D point on the screen into a 3D point inside the rendering scene.
     If a set of meshes is passed then points are placed onto these.
 
-    Arguments:
-        pos2d : (list)
+    Args:
+        pos2d (list):
             2D screen coordinates point.
-        at : (int)
+        at (int):
             renderer number.
-        objs : (list)
+        objs (list):
             list of Mesh objects to project the point onto.
-        bounds : (list)
+        bounds (list):
             specify a bounding box as [xmin,xmax, ymin,ymax, zmin,zmax].
-        offset : (float)
+        offset (float):
             specify an offset value.
-        pixeltol : (int)
+        pixeltol (int):
             screen tolerance in pixels.
-        worldtol : (float)
+        worldtol (float):
             world coordinates tolerance.
 
     Returns:
@@ -406,7 +406,7 @@ def compute_screen_coordinates(plotter, obj, full_window=False) -> np.ndarray:
     Given a 3D points in the current renderer (or full window),
     find the screen pixel coordinates.
 
-    Example:
+    Examples:
         ```python
         from vedo import *
 
@@ -450,7 +450,7 @@ def pick_area(plotter, pos1, pos2, at=None) -> vedo.Mesh:
     Returns a frustum Mesh that contains the visible field of view.
     This can be used to select objects in a scene or select vertices.
 
-    Example:
+    Examples:
         ```python
         from vedo import *
 

@@ -39,18 +39,18 @@ class Ribbon(Mesh):
         alpha=1.0,
     ) -> None:
         """
-        Arguments:
-            mode : (int)
+        Args:
+            mode (int):
                 If mode=0, resample evenly the input lines (based on length)
                 and generates triangle strips.
 
                 If mode=1, use the existing points and walks around the
                 polyline using existing points.
 
-            closed : (bool)
+            closed (bool):
                 if True, join the last point with the first to form a closed surface
 
-            res : (list)
+            res (list):
                 ribbon resolutions along the line and perpendicularly to it.
 
         Examples:
@@ -287,14 +287,14 @@ class Arrows(Glyph):
 
         Color can be specified as a colormap which maps the size of the arrows.
 
-        Arguments:
-            s : (float)
+        Args:
+            s (float):
                 fix aspect-ratio of the arrow and scale its cross section
-            c : (color)
+            c (color):
                 color or color map name
-            alpha : (float)
+            alpha (float):
                 set object opacity
-            res : (int)
+            res (int):
                 set arrow resolution
 
         Examples:
@@ -384,18 +384,18 @@ class Arrow2D(Mesh):
         """
         Build a 2D arrow from `start_pt` to `end_pt`.
 
-        Arguments:
-            s : (float)
+        Args:
+            s (float):
                 a global multiplicative convenience factor controlling the arrow size
-            shaft_length : (float)
+            shaft_length (float):
                 fractional shaft length
-            shaft_width : (float)
+            shaft_width (float):
                 fractional shaft width
-            head_length : (float)
+            head_length (float):
                 fractional head length
-            head_width : (float)
+            head_width (float):
                 fractional head width
-            fill : (bool)
+            fill (bool):
                 if False only generate the outline
         """
         self.fill = fill  ## needed by pyplot.__iadd()
@@ -497,16 +497,16 @@ class Arrows2D(Glyph):
 
         Color can be specified as a colormap which maps the size of the arrows.
 
-        Arguments:
-            shaft_length : (float)
+        Args:
+            shaft_length (float):
                 fractional shaft length
-            shaft_width : (float)
+            shaft_width (float):
                 fractional shaft width
-            head_length : (float)
+            head_length (float):
                 fractional head length
-            head_width : (float)
+            head_width (float):
                 fractional head width
-            fill : (bool)
+            fill (bool):
                 if False only generate the outline
         """
         if isinstance(start_pts, Points):

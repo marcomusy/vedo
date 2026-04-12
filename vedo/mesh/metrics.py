@@ -47,16 +47,16 @@ class MeshMetricsMixin:
         """
         Compute cell and vertex normals for the mesh.
 
-        Arguments:
-            points : (bool)
+        Args:
+            points (bool):
                 do the computation for the vertices too
-            cells : (bool)
+            cells (bool):
                 do the computation for the cells too
-            feature_angle : (float)
+            feature_angle (float):
                 specify the angle that defines a sharp edge.
                 If the difference in angle across neighboring polygons is greater than this value,
                 the shared edge is considered "sharp" and it is split.
-            consistency : (bool)
+            consistency (bool):
                 turn on/off the enforcement of consistent polygon ordering.
 
         .. warning::
@@ -260,8 +260,8 @@ class MeshMetricsMixin:
         See class
         [vtkMeshQuality](https://vtk.org/doc/nightly/html/classvtkMeshQuality.html).
 
-        Arguments:
-            metric : (int)
+        Args:
+            metric (int):
                 type of available estimators are:
                 - EDGE RATIO, 0
                 - ASPECT RATIO, 1
@@ -329,8 +329,8 @@ class MeshMetricsMixin:
         - Nonconvex           = 10
         - OrientedIncorrectly = 20
 
-        Arguments:
-            tol : (float)
+        Args:
+            tol (float):
                 value is used as an epsilon for floating point
                 equality checks throughout the cell checking process.
         """
@@ -352,7 +352,7 @@ class MeshMetricsMixin:
         - 2 = max curvature
         - 3 = min curvature
 
-        Example:
+        Examples:
             ```python
             from vedo import Torus
             Torus().compute_curvature().add_scalarbar().show().close()
@@ -371,15 +371,15 @@ class MeshMetricsMixin:
         """
         Add to `Mesh` a scalar array that contains distance along a specified direction.
 
-        Arguments:
-            low : (list)
+        Args:
+            low (list):
                 one end of the line (small scalar values)
-            high : (list)
+            high (list):
                 other end of the line (large scalar values)
-            vrange : (list)
+            vrange (list):
                 set the range of the scalar
 
-        Example:
+        Examples:
             ```python
             from vedo import Sphere
             s = Sphere().compute_elevation(low=(0,0,0), high=(1,1,1))

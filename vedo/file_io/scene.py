@@ -37,7 +37,7 @@ def export_window(
     """
     Exporter which writes out the rendered scene into an HTML, X3D or Numpy file.
 
-    Example:
+    Examples:
         - [export_x3d.py](https://github.com/marcomusy/vedo/tree/master/examples/other/export_x3d.py)
 
         Check out the HTML generated webpage [here](https://vedo.embl.es/examples/embryo.html).
@@ -485,12 +485,12 @@ def screenshot(
     Alternatively, press key `Shift-S` in the rendering window to save a screenshot.
     You can also use keyword `screenshot` in `show(..., screenshot="pic.png")`.
 
-    Arguments:
-        scale : (int)
+    Args:
+        scale (int):
             Set image magnification as an integer multiplicative factor.
             E.g. setting a magnification of 2 produces an image twice as large,
             but 10x slower to generate.
-        asarray : (bool)
+        asarray (bool):
             Return a numpy array of the image
     """
     filename = str(filename)

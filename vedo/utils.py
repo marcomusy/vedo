@@ -92,21 +92,21 @@ class OperationNode:
         sp.pipeline.show()
         ```
 
-        Arguments:
-            operation : (str, class)
+        Args:
+            operation (str, class):
                 descriptor label, if a class is passed then grab its name
-            parents : (list)
+            parents (list):
                 list of the parent classes the object comes from
-            comment : (str)
+            comment (str):
                 a second-line text description
-            shape : (str)
+            shape (str):
                 shape of the frame, check out [this link.](https://graphviz.org/doc/info/shapes.html)
-            c : (hex)
+            c (hex):
                 hex color
-            style : (str)
+            style (str):
                 comma-separated list of styles
 
-        Example:
+        Examples:
             ```python
             from vedo.utils import OperationNode
 
@@ -271,31 +271,31 @@ class ProgressBar:
 
         Check out also function `progressbar()`.
 
-        Arguments:
-            start : (int)
+        Args:
+            start (int):
                 starting value
-            stop : (int)
+            stop (int):
                 stopping value
-            step : (int)
+            step (int):
                 step value
-            c : (str)
+            c (str):
                 color in hex format
-            title : (str)
+            title (str):
                 title text
-            eta : (bool)
+            eta (bool):
                 estimate time of arrival
-            delay : (float)
+            delay (float):
                 minimum time before printing anything,
                 if negative use the default value
                 as set in `vedo.settings.progressbar_delay`
-            width : (int)
+            width (int):
                 width of the progress bar
-            char : (str)
+            char (str):
                 character to use for the progress bar
-            char_back : (str)
+            char_back (str):
                 character to use for the background of the progress bar
 
-        Example:
+        Examples:
             ```python
             import time
             from vedo import ProgressBar
@@ -713,31 +713,31 @@ def progressbar(
     If delay is negative, then use the default value
     as set in `vedo.settings.progressbar_delay`.
 
-    Arguments:
-        start : (int)
+    Args:
+        start (int):
             starting value
-        stop : (int)
+        stop (int):
             stopping value
-        step : (int)
+        step (int):
             step value
-        c : (str)
+        c (str):
             color in hex format
-        title : (str)
+        title (str):
             title text
-        eta : (bool)
+        eta (bool):
             estimate time of arrival
-        delay : (float)
+        delay (float):
             minimum time before printing anything,
             if negative use the default value
             set in `vedo.settings.progressbar_delay`
-        width : (int)
+        width (int):
             width of the progress bar
-        char : (str)
+        char (str):
             character to use for the progress bar
-        char_back : (str)
+        char_back (str):
             character to use for the background of the progress bar
 
-    Example:
+    Examples:
         ```python
         import time
         for i in progressbar(range(100), c='r'):
@@ -783,23 +783,23 @@ class Minimizer:
     reasonably efficient, but is not guaranteed to find
     the global minimum if several local minima exist.
 
-    Arguments:
-        function : (callable)
+    Args:
+        function (callable):
             the function to minimize
-        max_iterations : (int)
+        max_iterations (int):
             the maximum number of iterations
-        contraction_ratio : (float)
+        contraction_ratio (float):
             The contraction ratio.
             The default value of 0.5 gives fast convergence,
             but larger values such as 0.6 or 0.7 provide greater stability.
-        expansion_ratio : (float)
+        expansion_ratio (float):
             The expansion ratio.
             The default value is 2.0, which provides rapid expansion.
             Values between 1.1 and 2.0 are valid.
-        tol : (float)
+        tol (float):
             the tolerance for convergence
 
-    Example:
+    Examples:
         - [nelder-mead.py](https://github.com/marcomusy/vedo/blob/master/examples/others/nelder-mead.py)
     """
 
@@ -869,28 +869,28 @@ class Minimizer:
         tolerance, convergence flag, parameters path,
         function path, Hessian matrix, and parameter errors.
 
-        Arguments:
-            init_parameters : (dict)
+        Args:
+            init_parameters (dict):
                 the initial parameters
-            parameters : (dict)
+            parameters (dict):
                 the final parameters
-            min_value : (float)
+            min_value (float):
                 the minimum value
-            iterations : (int)
+            iterations (int):
                 the number of iterations
-            max_iterations : (int)
+            max_iterations (int):
                 the maximum number of iterations
-            tolerance : (float)
+            tolerance (float):
                 the tolerance for convergence
-            convergence_flag : (int)
+            convergence_flag (int):
                 zero if the tolerance stopping criterion has been met.
-            parameters_path : (np.array)
+            parameters_path (np.array):
                 the path of the minimization algorithm in parameter space
-            function_path : (np.array)
+            function_path (np.array):
                 the path of the minimization algorithm in function space
-            hessian : (np.array)
+            hessian (np.array):
                 the Hessian matrix of the function at the minimum
-            parameter_errors : (np.array)
+            parameter_errors (np.array):
                 the errors on the parameters
         """
         n = self.minimizer.GetNumberOfParameters()
@@ -950,8 +950,8 @@ class Minimizer:
         Compute the Hessian matrix of `function` at the
         minimum numerically.
 
-        Arguments:
-            epsilon : (float)
+        Args:
+            epsilon (float):
                 Step size used for numerical approximation.
 
         Returns:
@@ -1023,22 +1023,22 @@ def compute_hessian(
     Compute the Hessian matrix of a scalar function `func` at `params`,
     accounting for parameter boundaries.
 
-    Arguments:
-        func : (callable)
+    Args:
+        func (callable):
             Function returning a scalar. Takes `params` as input.
-        params : (np.ndarray)
+        params (np.ndarray):
             Parameter vector at which to compute the Hessian.
-        bounds : (list of tuples)
+        bounds (list of tuples):
             Optional bounds for parameters, e.g., [(lb1, ub1), ...].
-        epsilon : (float)
+        epsilon (float):
             Base step size for finite differences.
-        verbose : (bool)
+        verbose (bool):
             Whether to print progress.
 
     Returns:
         Hessian matrix of shape (n_params, n_params).
 
-    Example:
+    Examples:
     ```python
     from vedo import *
     import numpy as np
@@ -1157,13 +1157,13 @@ def andrews_curves(M, res=100) -> np.ndarray:
     The input array is an array of shape (n,m) where n is the number of
     features and m is the number of observations.
 
-    Arguments:
-        M : (ndarray)
+    Args:
+        M (ndarray):
             the data matrix (or data vector).
-        res : (int)
+        res (int):
             the resolution (n. of points) of the output curve.
 
-    Example:
+    Examples:
         - [andrews_cluster.py](https://github.com/marcomusy/vedo/blob/master/examples/pyplot/andrews_cluster.py)
 
         ![](https://vedo.embl.es/images/pyplot/andrews_cluster.png)
@@ -1570,7 +1570,7 @@ def is_ragged(arr, deep=False) -> bool:
     To check if an array is ragged, we iterate through the elements
     and check if their lengths are the same.
 
-    Example:
+    Examples:
     ```python
     arr = [[1, 2, 3], [[4, 5], [6], 1], [7, 8, 9]]
     print(is_ragged(arr, deep=True))  # output: True
@@ -1719,7 +1719,7 @@ def triangle_solver(**input_dict):
     (Note that there might be more than one solution or none).
     Angles are in radians.
 
-    Example:
+    Examples:
     ```python
     print(triangle_solver(a=3, b=4, c=5))
     print(triangle_solver(a=3, ac=0.9273, ab=1.5716))
@@ -1825,7 +1825,7 @@ def circle_from_3points(p1, p2, p3) -> np.ndarray:
 
     Returns the center of the circle.
 
-    Example:
+    Examples:
     ```python
     from vedo.utils import mag, circle_from_3points
     p1 = [0,1,1]
@@ -1900,12 +1900,12 @@ def closest(point, points, n=1, return_ids=False, use_tree=False):
     Returns the distances and the closest point(s) to the given set of points.
     Needs `scipy.spatial` library.
 
-    Arguments:
-        n : (int)
+    Args:
+        n (int):
             the nr of closest points to return
-        return_ids : (bool)
+        return_ids (bool):
             return the ids instead of the points coordinates
-        use_tree : (bool)
+        use_tree (bool):
             build a `scipy.spatial.KDTree`.
             An already existing one can be passed to avoid rebuilding.
     """
@@ -2008,7 +2008,7 @@ def get_uv(p, x, v):
     coordinates (x0, x1, x2) with the corresponding uv-coordinates v=(v0, v1, v2).
     All p and x0,x1,x2 are 3D-vectors, while v are their 2D uv-coordinates.
 
-    Example:
+    Examples:
         ```python
         from vedo import *
 
@@ -2333,30 +2333,30 @@ def print_histogram(
     Input can be a `vedo.Volume` or `vedo.Mesh`.
     Returns the raw data before binning (useful when passing vtk objects).
 
-    Arguments:
-        bins : (int)
+    Args:
+        bins (int):
             number of histogram bins
-        height : (int)
+        height (int):
             height of the histogram in character units
-        logscale : (bool)
+        logscale (bool):
             use logscale for frequencies
-        minbin : (int)
+        minbin (int):
             ignore bins before minbin
-        vrange : (tuple)
+        vrange (tuple):
             range of values to consider, e.g. (0, 1) or (None, 1) or (0, None).
             If empty, all values are considered.
-        horizontal : (bool)
+        horizontal (bool):
             show histogram horizontally
-        char : (str)
+        char (str):
             character to be used
-        bold : (bool)
+        bold (bool):
             use boldface
-        title : (str)
+        title (str):
             histogram title
-        spacer : (str)
+        spacer (str):
             horizontal spacer
 
-    Example:
+    Examples:
         ```python
         from vedo import print_histogram
         import numpy as np
@@ -2477,7 +2477,7 @@ def print_table(*columns, headers=None, c="g") -> None:
     """
     Print lists as tables.
 
-    Example:
+    Examples:
         ```python
         from vedo.utils import print_table
         list1 = ["A", "B", "C"]
@@ -2595,13 +2595,13 @@ def camera_from_quaternion(
     """
     Define a `vtkCamera` with a particular orientation.
 
-    Arguments:
-        pos: (np.array, list, tuple)
+    Args:
+        pos (np.array, list, tuple):
             an iterator of length 3 containing the focus point of the camera
-        quaternion: (np.array, list, tuple)
+        quaternion (np.array, list, tuple):
             a len(4) quaternion `(x,y,z,w)` describing the rotation of the camera
             such as returned by neuroglancer `x,y,z,w` all in `[0,1]` range
-        distance: (float)
+        distance (float):
             the desired distance from pos to the camera (default = 10000 nm)
 
     Returns:
@@ -2640,10 +2640,10 @@ def camera_from_neuroglancer(state, zoom) -> vtki.vtkCamera:
     """
     Define a `vtkCamera` from a neuroglancer state dictionary.
 
-    Arguments:
-        state: (dict)
+    Args:
+        state (dict):
             an neuroglancer state dictionary.
-        zoom: (float)
+        zoom (float):
             how much to multiply zoom by to get camera backoff distance
 
     Returns:
@@ -2689,10 +2689,10 @@ def camera_from_dict(camera, modify_inplace=None) -> vtki.vtkCamera:
     Exaplanation of the parameters can be found in the
     [vtkCamera documentation](https://vtk.org/doc/nightly/html/classvtkCamera.html).
 
-    Arguments:
-        camera: (dict)
+    Args:
+        camera (dict):
             a python dictionary containing camera parameters.
-        modify_inplace: (vtkCamera)
+        modify_inplace (vtkCamera):
             an existing `vtkCamera` object to modify in place.
 
     Returns:
@@ -2756,8 +2756,8 @@ def camera_to_dict(vtkcam) -> dict:
         - `view_angle` (float)
         - `roll` (float)
 
-    Arguments:
-        vtkcam: (vtkCamera)
+    Args:
+        vtkcam (vtkCamera):
             a `vtkCamera` object to convert.
     """
     cam = dict()
@@ -2946,23 +2946,23 @@ def grid_corners(
     Compute the 2 corners coordinates of the i-th box in a grid of shape n*m.
     The top-left square is square number 1.
 
-    Arguments:
-        i : (int)
+    Args:
+        i (int):
             input index of the desired grid square (to be used in `show(..., at=...)`).
-        nm : (list)
+        nm (list):
             grid shape as (n,m).
-        size : (list)
+        size (list):
             total size of the grid along x and y.
-        margin : (float)
+        margin (float):
             keep a small margin between boxes.
-        yflip : (bool)
+        yflip (bool):
             y-coordinate points downwards
 
     Returns:
         Two 2D points representing the bottom-left corner and the top-right corner
         of the `i`-nth box in the grid.
 
-    Example:
+    Examples:
         ```python
         from vedo import *
         acts=[]
@@ -2995,12 +2995,12 @@ def vtk_version_at_least(major, minor=0, build=0) -> bool:
 
     Return `True` if the requested VTK version is greater or equal to the actual VTK version.
 
-    Arguments:
-        major : (int)
+    Args:
+        major (int):
             Major version.
-        minor : (int)
+        minor (int):
             Minor version.
-        build : (int)
+        build (int):
             Build version.
     """
     needed_version = 10000000000 * int(major) + 100000000 * int(minor) + int(build)

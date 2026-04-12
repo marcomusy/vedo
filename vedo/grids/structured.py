@@ -41,11 +41,11 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
         except that the cells are not necessarily cubes, they can have different
         orientations but are connected in the same way as a `RectilinearGrid`.
 
-        Arguments:
-            inputobj : (vtkStructuredGrid, list, str)
+        Args:
+            inputobj (vtkStructuredGrid, list, str):
                 list of points and indices, or filename
 
-        Example:
+        Examples:
             ```python
             from vedo import *
             sgrid = StructuredGrid(dataurl+"structgrid.vts")
@@ -360,10 +360,10 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
         """
         Cut the object with the plane defined by a point and a normal.
 
-        Arguments:
-            origin : (list)
+        Args:
+            origin (list):
                 the cutting plane goes through this point
-            normal : (list, str)
+            normal (list, str):
                 normal vector to the cutting plane
 
         Returns an `UnstructuredGrid` object.

@@ -52,16 +52,16 @@ class Points(
         Build an object made of only vertex points for a list of 2D/3D points.
         Both shapes (N, 3) or (3, N) are accepted as input, if N>3.
 
-        Arguments:
-            inputobj : (list, tuple)
-            r : (int)
+        Args:
+            inputobj (list, tuple):
+            r (int):
                 Point radius in units of pixels.
-            c : (str, list)
+            c (str, list):
                 Color name or rgb tuple.
-            alpha : (float)
+            alpha (float):
                 Transparency in range [0,1].
 
-        Example:
+        Examples:
             ```python
             from vedo import *
 
@@ -461,8 +461,8 @@ class Points(
         Clone a `PointCloud` or `Mesh` object to make an exact copy of it.
         Alias of `copy()`.
 
-        Arguments:
-            deep : (bool)
+        Args:
+            deep (bool):
                 if False return a shallow copy of the mesh without copying the points array.
 
         Examples:

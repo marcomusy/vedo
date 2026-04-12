@@ -78,19 +78,14 @@ class VolumeSlicingMixin:
             - "original_bounds" : contains the original bounds of the slice
         One can access them with e.g. `myslice.metadata["shape"]`.
 
-        Arguments:
-            origin : (list)
-                position of the plane
-            normal : (list)
-                normal to the plane
-            autocrop : (bool)
-                crop the output to the minimal possible size
-            border : (float)
-                add a border to the output slice
-            mode : (str)
-                interpolation mode, one of the following: "linear", "nearest", "cubic"
+        Args:
+            origin (list[float]): Position of the plane.
+            normal (list[float]): Plane normal.
+            autocrop (bool): Crop the output to the minimal possible size.
+            border (float): Add a border to the output slice.
+            mode (str): Interpolation mode, one of `"linear"`, `"nearest"`, or `"cubic"`.
 
-        Example:
+        Examples:
             - [slice_plane1.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/slice_plane1.py)
 
                 ![](https://vedo.embl.es/images/volumetric/slicePlane1.gif)
@@ -163,25 +158,22 @@ class VolumeSlicingMixin:
         can be accessed with e.g. `mesh.metadata["slab_range"]`.
 
         Metadata:
-            slab_range : (list)
+            slab_range (list):
                 contains the range of slices extracted
-            slab_axis : (str)
+            slab_axis (str):
                 contains the axis along which the slab was extracted
-            slab_operation : (str)
+            slab_operation (str):
                 contains the operation performed on the slab
-            slab_bounding_box : (list)
+            slab_bounding_box (list):
                 contains the bounding box of the slab
 
-        Arguments:
-            slice_range : (list)
-                range of slices to extract
-            axis : (str)
-                axis along which to extract the slab
-            operation : (str)
-                operation to perform on the slab,
-                allowed values are: "sum", "min", "max", "mean".
+        Args:
+            slice_range (list): Range of slices to extract.
+            axis (str): Axis along which to extract the slab.
+            operation (str): Operation to perform on the slab. Allowed values are
+                `"sum"`, `"min"`, `"max"`, and `"mean"`.
 
-        Example:
+        Examples:
             - [slab.py](https://github.com/marcomusy/vedo/blob/master/examples/volumetric/slab_vol.py)
 
             ![](https://vedo.embl.es/images/volumetric/slab_vol.jpg)
