@@ -38,5 +38,6 @@ examples/other/embryo.x3d
 output_vedo_test.txt
 test.v*
 store/
+site/
 vedo/.codex
 .codex
