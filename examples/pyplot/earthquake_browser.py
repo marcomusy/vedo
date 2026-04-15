@@ -1,20 +1,14 @@
 """Earthquakes of magnitude 2.5+ in the past 30 days
 areas are proportional to energy release
 [hover mouse to get more info]"""
-
 import pandas
 from vedo import *
 
 num = 50  # nr of earthquakes to be visualized at once
-# Download latest USGS CSV feed.
-path = download(
-    "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_month.csv",
-    force=True,
-)
+url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_month.csv"
+path = download(url, force=True)  # Download latest USGS CSV feed.
 usecols = ["time", "place", "latitude", "longitude", "depth", "mag"]
-data = pandas.read_csv(path, usecols=usecols)[usecols][::-1].reset_index(
-    drop=True
-)  # reverse list
+data = pandas.read_csv(path, usecols=usecols)[usecols][::-1].reset_index(drop=True)
 
 pic = Image(dataurl + "images/eo_base_2020_clean_3600x1800.png")
 pic.pickable(False).level(185).window(120)  # add some contrast to the original image
@@ -24,9 +18,8 @@ comment = Text2D(__doc__, bg="green9", alpha=0.7, font="Ubuntu")
 centers = []
 for i, d in progressbar(data.iterrows()):
     M = d["mag"]  # earthquake estimated magnitude
-    E = (
-        np.sqrt(np.exp(5.24 + 1.44 * M) * scale[0]) / 10000
-    )  # empirical formula for sqrt(energy_release(M))
+    E = np.sqrt(np.exp(5.24 + 1.44 * M) * scale[0]) / 10000  
+    # empirical formula for sqrt(energy_release(M))
     rgb = color_map(E, name="Reds", vmin=0, vmax=7)  # map energy to color
     lat = np.deg2rad(d["latitude"])
     lon = np.deg2rad(d["longitude"])
@@ -47,10 +40,8 @@ def sliderfunc(widget, event):
         isinside = abs(val - ce.time) < num  # switch on if inside of time window
         ce.on() if isinside else ce.off()
 
-
-plt = Plotter(size=(2200, 1100), title="vedo - Earthquake Browser").parallel_projection(
-    True
-)
+plt = Plotter(size=(2200, 1100), title="vedo - Earthquake Browser")
+plt.parallel_projection(True)
 plt.add_slider(
     sliderfunc, 0, len(centers) - 1, value=len(centers) - 1, show_value=False
 )
