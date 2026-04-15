@@ -110,6 +110,7 @@ class Slicer3DPlotter(Plotter):
         """
         ################################
         super().__init__(**kwargs)
+        self._at = at
         self.at(at)
         ################################
 
@@ -117,10 +118,6 @@ class Slicer3DPlotter(Plotter):
         if np.sum(self.renderer.GetBackground()) < 1.5:
             cx, cy, cz = "lr", "lg", "lb"
             ch = (0.8, 0.8, 0.8)
-
-        if len(self.renderers) > 1:
-            # 2d sliders do not work with multiple renderers
-            use_slider3d = True
 
         self._slice_ambient = 0.7
         self._slice_diffuse = 0.3
@@ -300,11 +297,11 @@ class Slicer3DPlotter(Plotter):
 
     def _update_histogram(self):
         if self.histogram is not None:
-            self.remove(self.histogram)
+            self.remove(self.histogram, at=self._at)
             self.histogram = None
         self.histogram = self._make_histogram()
         if self.histogram is not None:
-            self.add(self.histogram)
+            self.add(self.histogram, at=self._at)
 
     def _make_slice(self, axis, index):
         rmin, rmax = self._scalar_range
@@ -319,11 +316,11 @@ class Slicer3DPlotter(Plotter):
         dims = self._dims
         dim = {"x": dims[0], "y": dims[1], "z": dims[2]}[axis]
         name = f"{axis.upper()}Slice"
-        self.remove(name)
+        self.remove(name, at=self._at)
         new_slice = None
         if 0 < index < dim:
             new_slice = self._make_slice(axis, index)
-            self.add(new_slice)
+            self.add(new_slice, at=self._at)
         setattr(self, f"{axis}slice", new_slice)
         if render:
             self.render()
@@ -373,6 +370,7 @@ class Slicer3DPlotter(Plotter):
                 size=self._inset_size,
                 c="w",
                 draggable=self._draggable_icon,
+                at=self._at,
             )
         elif self._inset_widget:
             self._inset_widget.SetOrientationMarker(self._inset_marker.actor)
@@ -437,12 +435,12 @@ class Slicer3DPlotter(Plotter):
                 if True render the scene after the update.
         """
         if self._box is not None:
-            self.remove(self._box)
-        self.remove(*self._slice_names)
+            self.remove(self._box, at=self._at)
+        self.remove(*self._slice_names, at=self._at)
 
         self.volume = volume
         self._box = self._make_box(volume)
-        self.add(self._box)
+        self.add(self._box, at=self._at)
         self._dims = volume.dimensions()
 
         data, self._scalar_range = self._compute_scalar_range(volume)
