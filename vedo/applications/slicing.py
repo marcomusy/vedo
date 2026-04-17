@@ -244,6 +244,7 @@ class Slicer3DPlotter(Plotter):
             self._cmap_button = None
 
         self.set_volume(volume, reset_slices=True, reset_camera=False, render=False)
+        self.reset_camera()
 
     def _make_box(self, volume):
         box = volume.box().alpha(self._box_alpha)
@@ -316,6 +317,9 @@ class Slicer3DPlotter(Plotter):
         dims = self._dims
         dim = {"x": dims[0], "y": dims[1], "z": dims[2]}[axis]
         name = f"{axis.upper()}Slice"
+        old_slice = getattr(self, f"{axis}slice")
+        if old_slice is not None:
+            self.remove(old_slice, at=self._at)
         self.remove(name, at=self._at)
         new_slice = None
         if 0 < index < dim:
