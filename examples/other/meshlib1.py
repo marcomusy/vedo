@@ -48,14 +48,18 @@ verts = np.stack((x.flatten(), y.flatten(), z.flatten()), axis=-1).reshape(-1, 3
 pc = mn.pointCloudFromPoints(verts)
 
 # Remove duplicate points
-pc.validPoints = mm.pointUniformSampling(pc, 0.1)
+settings = mm.UniformSamplingSettings()
+settings.distance = 0.1
+pc.validPoints = mm.pointUniformSampling(pc, settings)
 pc.invalidateCaches()
 
 # Triangulate it
 triangulated_pc = mm.triangulatePointCloud(pc)
 
 # Fix possible issues
-triangulated_pc = mm.offsetMesh(triangulated_pc, 0.0)
+offset_params = mm.OffsetParameters()
+offset_params.voxelSize = triangulated_pc.computeBoundingBox().diagonal() * 5e-3
+triangulated_pc = mm.offsetMesh(triangulated_pc, 0.0, offset_params)
 
 vedo.show(vedo.Points(pc), vedo.Mesh(triangulated_pc, alpha=0.4)).close()
 
@@ -134,6 +138,6 @@ edges = mesh.topology.findHoleRepresentiveEdges()
 # Connect two holes
 params = mm.StitchHolesParams()
 params.metric = mm.getUniversalMetric(mesh)
-mm.buildCylinderBetweenTwoHoles(mesh, edges[0], edges[1], params)
+mm.stitchHoles(mesh, edges[0], edges[1], params)
 
 vedo.show(vedo.Mesh(mesh).lw(1)).close()

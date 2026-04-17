@@ -11,6 +11,7 @@
 #
 import sys
 import vedo
+import numpy as np
 
 try:
     import pymeshfix
@@ -28,9 +29,9 @@ except ModuleNotFoundError:
 amesh = vedo.Mesh(vedo.dataurl + "290.vtk")
 
 # repairing also closes the mesh in a nice way
-meshfix = pymeshfix.MeshFix(amesh.points, amesh.cells)
+meshfix = pymeshfix.MeshFix(amesh.points, np.array(amesh.cells))
 meshfix.repair()
-repaired = vedo.Mesh(meshfix.mesh).linewidth(1).alpha(0.5)
+repaired = vedo.Mesh(meshfix.mesh).linewidth(1)
 
 # tetralize the closed surface
 tet = tetgen.TetGen(repaired.points, repaired.cells)

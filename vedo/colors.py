@@ -842,7 +842,7 @@ def get_color(rgb=None, hsv=None):
     if isinstance(c, str):
         return _get_color_from_string(c)
 
-    if isinstance(c, (int, float)):  # color number
+    if isinstance(c, (int, float, np.number)):  # color number
         return palettes[vedo.settings.palette % len(palettes)][abs(int(c)) % 10]
 
     return (0.5, 0.5, 0.5)

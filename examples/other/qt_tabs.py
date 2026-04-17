@@ -4,7 +4,8 @@ import sys
 from PyQt5 import QtCore, QtWidgets
 from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 from vedo import Mesh, dataurl, Plotter
-from vedo.pyplot import np, plot
+from vedo.pyplot import plot
+import numpy as np
 
 try:
     _encoding = QtWidgets.QApplication.UnicodeUTF8

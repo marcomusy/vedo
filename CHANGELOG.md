@@ -5,6 +5,8 @@ All notable changes to the project will be documented in this file.
 ===================================================================================
 # Development Version 
 - added example aizawa_attractor
+- many bug fixes and improvements
+
 
 
 ## New/Revised Examples

@@ -57,8 +57,8 @@ def _get_install_dir():
 
 def _get_gpu_info_rows():
     try:
-        from vtkmodules.vtkCommonCore import vtkObject
-        from vtkmodules.vtkRenderingOpenGL2 import vtkOpenGLRenderWindow
+        from vtkmodules.vtkCommonCore import vtkObject  # noqa: F401
+        from vtkmodules.vtkRenderingOpenGL2 import vtkOpenGLRenderWindow  # noqa: F401
 
         previous_warning_state = vtkObject.GetGlobalWarningDisplay()
         vtkObject.GlobalWarningDisplayOff()
@@ -493,7 +493,6 @@ def exe_run(args):
         if (
             f2search in os.path.basename(s).lower()
             and "__" not in s
-            and "trimesh" not in s
         )
     ]
     matching = list(sorted(matching))
@@ -618,8 +617,6 @@ def exe_search(args):
         pattern = pattern.lower()
     if len(pattern) > 3:
         for ifile in exfiles:
-            if "trimesh" in ifile:
-                continue
             with open(ifile, "r", encoding="UTF-8") as file:
                 fflag = True
                 for i, line in enumerate(file):
