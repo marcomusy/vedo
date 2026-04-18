@@ -40,12 +40,13 @@ def add(plotter, *objs, at=None) -> Any:
     ren = plotter.renderer if at is None else plotter.renderers[at]
 
     objs = utils.flatten(objs)
+    widgets = []
     plain_objs = []
     for ob in objs:
         if ob and ob not in plotter.objects:
             plotter.objects.append(ob)
         if ren and hasattr(ob, "add_to") and hasattr(ob, "widget"):
-            ob.add_to(plotter)  # generic widget (LineWidget, etc.)
+            widgets.append(ob)  # defer until after actors are in renderer
         else:
             plain_objs.append(ob)
 
@@ -76,6 +77,11 @@ def add(plotter, *objs, at=None) -> Any:
                 a.SetCamera(plotter.camera)
             elif isinstance(a, vedo.visual.LightKit):
                 a.lightkit.AddLightsToRenderer(ren)
+
+    # Activate widgets after all actors are in the renderer so that
+    # ComputeVisiblePropBounds() returns meaningful bounds for PlaceWidget.
+    for w in widgets:
+        w.add_to(plotter)
 
     return plotter
 

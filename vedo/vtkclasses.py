@@ -661,6 +661,9 @@ location["vtkLineWidget2"] = "vtkInteractionWidgets"
 location["vtkLineRepresentation"] = "vtkInteractionWidgets"
 location["vtkSphereWidget2"] = "vtkInteractionWidgets"
 location["vtkSphereRepresentation"] = "vtkInteractionWidgets"
+location["vtkPointWidget"] = "vtkInteractionWidgets"
+location["vtkHandleWidget"] = "vtkInteractionWidgets"
+location["vtkSphereHandleRepresentation"] = "vtkInteractionWidgets"
 
 for name in [
     "vtkAnnotatedCubeActor",

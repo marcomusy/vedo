@@ -373,6 +373,153 @@ class LineWidget:
         )
 
 
+class PointWidget:
+    """
+    An interactive widget to place a single draggable 3D point.
+
+    Use `add_to(plotter)` to activate the widget in a scene.
+    Read back `pos` inside an observer callback to get the current position.
+
+    Example:
+        ```python
+        from vedo import Plotter, Sphere
+        from vedo.addons import PointWidget
+
+        def on_move(widget, event):
+            print(widget.pos)
+
+        plt = Plotter()
+        plt += Sphere().alpha(0.3)
+        pw = PointWidget((0.5, 0, 0))
+        pw.add_to(plt)
+        pw.add_observer("interaction", on_move)
+        plt.show().close()
+        ```
+    """
+
+    def __init__(
+        self,
+        pos=(0, 0, 0),
+        c="red5",
+        alpha=1.0,
+        ps=0.1,
+    ):
+        """
+        Create an interactive single-point widget.
+
+        Args:
+            pos (list): initial world coordinates of the point.
+            c (color): color of the point handle.
+            alpha (float): opacity of the point handle.
+            ps (float): sphere radius of the point handle in world units.
+        """
+        self.name = "PointWidget"
+        self.widget = vtki.new("HandleWidget")
+        self.representation = vtki.new("SphereHandleRepresentation")
+        self._pos = list(pos)
+
+        self.representation.SetWorldPosition(list(pos))
+        self.representation.SetSphereRadius(ps * 0.05)
+        self.representation.GetProperty().SetColor(get_color(c))
+        self.representation.GetProperty().SetOpacity(alpha)
+        self.representation.GetSelectedProperty().SetColor(get_color("red3"))
+        self.representation.GetSelectedProperty().SetOpacity(alpha)
+        self.widget.SetRepresentation(self.representation)
+
+    # ── geometry ──────────────────────────────────────────────────────────
+
+    @property
+    def pos(self) -> np.ndarray:
+        """World position of the point."""
+        return np.array(self.representation.GetWorldPosition())
+
+    @pos.setter
+    def pos(self, value) -> None:
+        self._pos = list(value)
+        self.representation.SetWorldPosition(list(value))
+
+    # ── visual styling ────────────────────────────────────────────────────
+
+    def color(self, c) -> "PointWidget":
+        """Set the point color."""
+        self.representation.GetProperty().SetColor(get_color(c))
+        return self
+
+    def alpha(self, value: float) -> "PointWidget":
+        """Set the point opacity."""
+        self.representation.GetProperty().SetOpacity(value)
+        return self
+
+    def ps(self, value: float) -> "PointWidget":
+        """Set the sphere radius of the point handle."""
+        self.representation.SetSphereRadius(value)
+        return self
+
+    # ── lifecycle ─────────────────────────────────────────────────────────
+
+    def add_to(self, plt) -> "PointWidget":
+        """Add the widget to a `Plotter` instance and enable it."""
+        self.widget.SetInteractor(plt.interactor)
+        self.widget.SetCurrentRenderer(plt.renderer)
+        self.representation.SetWorldPosition(self._pos)
+        self.widget.On()
+        if self.widget not in plt.widgets:
+            plt.widgets.append(self.widget)
+        return self
+
+    def remove_from(self, plt) -> "PointWidget":
+        """Remove the widget from a `Plotter` instance."""
+        self.widget.Off()
+        if self.widget in plt.widgets:
+            plt.widgets.remove(self.widget)
+        return self
+
+    def on(self) -> "PointWidget":
+        """Enable the widget."""
+        self.widget.On()
+        return self
+
+    def off(self) -> "PointWidget":
+        """Disable the widget."""
+        self.widget.Off()
+        return self
+
+    def toggle(self) -> "PointWidget":
+        """Toggle the widget on/off."""
+        if self.widget.GetEnabled():
+            self.widget.Off()
+        else:
+            self.widget.On()
+        return self
+
+    def is_enabled(self) -> bool:
+        """Return True if the widget is currently enabled."""
+        return bool(self.widget.GetEnabled())
+
+    # ── observers ─────────────────────────────────────────────────────────
+
+    def add_observer(self, event, func, priority=1) -> int:
+        """Add an observer callback for a widget event."""
+        event = utils.get_vtk_name_event(event)
+        return self.widget.AddObserver(event, func, priority)
+
+    def remove_observer(self, cid: int) -> "PointWidget":
+        """Remove an observer by its callback id."""
+        self.widget.RemoveObserver(cid)
+        return self
+
+    def remove_observers(self, event="") -> "PointWidget":
+        """Remove all observers, or those for a specific event."""
+        if event:
+            self.widget.RemoveObservers(utils.get_vtk_name_event(event))
+        else:
+            self.widget.RemoveAllObservers()
+        return self
+
+    def __repr__(self) -> str:
+        return f"PointWidget(pos={self.pos.tolist()})"
+
+
 class SphereWidget:
     """
     An interactive widget to place and resize a 3D sphere.
