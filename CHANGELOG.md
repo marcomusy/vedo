@@ -104,8 +104,8 @@ Changes that will break existing code and need active thinking and some work to 
 ```
 examples/pyplot/plot_fxy0.py
 examples/volumetric/image_editor.py
-examples/other/pysr_regression.py
-examples/other/chemistry1.py
+examples/extras/pysr_regression.py
+examples/extras/chemistry1.py
 tests/issues/issue_1230.py
 ```
 
@@ -189,7 +189,7 @@ tests/snippets/test_elastic_pendulum.py
 - fix bug in `IsosurfaceBrowser` in #1064
 - add `mesh.adjacency_list()` and `graph_ball()` methods by @sergei9838
 - add `utils.circle_from_3points()` function.
-- add example `examples/other/iminuit2.py`
+- add example `examples/extras/iminuit2.py`
 - add `rotation=..` to `Arrow2D()` class
 - improvements to `applications.MorphPlotter` class
 - add `FlyOverSurface` class and  `examples/basic/interaction_modes3.py`
@@ -235,9 +235,9 @@ examples/basic/interaction_modes3.py
 examples/basic/interaction_modes4.py
 examples/basic/buttons3.py
 examples/advanced/warp4b.py
-examples/other/magic-class1.py
-examples/other/iminuit2.py
-examples/other/meshlib1.py
+examples/extras/magic-class1.py
+examples/extras/iminuit2.py
+examples/extras/meshlib1.py
 tests/issues/issue_1077.py
 ```
 
@@ -355,10 +355,10 @@ examples/volumetric/isosurfaces2.py
 examples/simulations/mag_field1.py
 examples/pyplot/andrews_cluster.py
 
-examples/other/madcad1.py
-examples/other/tetgen1.py
-examples/other/nelder-mead.py
-examples/other/fast_simpl.py
+examples/extras/madcad1.py
+examples/extras/tetgen1.py
+examples/extras/nelder-mead.py
+examples/extras/fast_simpl.py
 
 tests/issues/issue_968.py
 tests/issues/issue_1025.py
@@ -450,7 +450,7 @@ examples/volumetric/slicer1.py
 examples/volumetric/tet_astyle.py
 examples/volumetric/tet_cut1.py
 examples/volumetric/tet_cut2.py
-examples/other/flag_labels1.py
+examples/extras/flag_labels1.py
 ```
 
 
@@ -503,7 +503,7 @@ examples/basic/interaction_modes.py
 examples/advanced/timer_callback3.py
 examples/advanced/warp6.py
 examples/pyplot/histo_1d_e.py
-examples/other/tensor_grid2.py
+examples/extras/tensor_grid2.py
 examples/simulations/airplane1.py
 examples/simulations/lorenz.py
 examples/simulations/gas.py

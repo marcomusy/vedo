@@ -105,7 +105,7 @@ vedo = "vedo"
 "vedo.examples.pyplot" = "examples/pyplot"
 "vedo.examples.simulations" = "examples/simulations"
 "vedo.examples.volumetric" = "examples/volumetric"
-"vedo.examples.other" = "examples/other"
+"vedo.examples.extras" = "examples/extras"
 
 [project.scripts]
 vedo = "cli_entry:main"

@@ -1328,7 +1328,7 @@ class Plotter:
                 size of the square inset.
 
         Examples:
-            - [icon.py](https://github.com/marcomusy/vedo/tree/master/examples/other/icon.py)
+            - [icon.py](https://github.com/marcomusy/vedo/tree/master/examples/extras/icon.py)
         """
         iconw = addons.Icon(icon, pos, size)
 
@@ -1391,8 +1391,8 @@ class Plotter:
 
         Examples:
             - [legendbox.py](https://github.com/marcomusy/vedo/blob/master/examples/basic/legendbox.py),
-            - [flag_labels1.py](https://github.com/marcomusy/vedo/blob/master/examples/other/flag_labels1.py)
-            - [flag_labels2.py](https://github.com/marcomusy/vedo/blob/master/examples/other/flag_labels2.py)
+            - [flag_labels1.py](https://github.com/marcomusy/vedo/blob/master/examples/extras/flag_labels1.py)
+            - [flag_labels2.py](https://github.com/marcomusy/vedo/blob/master/examples/extras/flag_labels2.py)
         """
         acts = self.get_meshes()
         lb = addons.LegendBox(acts, **kwargs)
@@ -2394,7 +2394,7 @@ class Plotter:
                 color of the inset frame when dragged
 
         Examples:
-            - [inset.py](https://github.com/marcomusy/vedo/tree/master/examples/other/inset.py)
+            - [inset.py](https://github.com/marcomusy/vedo/tree/master/examples/extras/inset.py)
 
             ![](https://user-images.githubusercontent.com/32848391/56758560-3c3f1300-6797-11e9-9b33-49f5a4876039.jpg)
         """

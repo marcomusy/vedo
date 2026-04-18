@@ -914,7 +914,7 @@ class PointsVisual(
                 Deprecated. Use `size` instead.
 
         Examples:
-            - [clone2d.py](https://github.com/marcomusy/vedo/tree/master/examples/other/clone2d.py)
+            - [clone2d.py](https://github.com/marcomusy/vedo/tree/master/examples/extras/clone2d.py)
 
                 ![](https://vedo.embl.es/images/other/clone2d.png)
         """

@@ -106,7 +106,7 @@ cd ~/Projects/napari-vedo-bridge
     conda activate napari-env
     cd $VEDODIR && pip install -q . && cd -
     pip install -e .
-    python $VEDODIR/examples/other/napari1.py # then open plugins ...
+    python $VEDODIR/examples/extras/napari1.py # then open plugins ...
     conda deactivate
 ################
 cd ~/Projects/clonal_analysis
@@ -189,5 +189,4 @@ https://vedo.embl.es/docs
 https://vedo.embl.es/fonts
 https://github.com/marcomusy/vedo
 https://forum.image.sc/search?q=vedo%20order%3Alatest
-
 

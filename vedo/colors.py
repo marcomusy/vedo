@@ -1180,7 +1180,7 @@ def printc(
         ```
 
     Examples:
-        - [printc.py](https://github.com/marcomusy/vedo/tree/master/examples/other/printc.py)
+        - [printc.py](https://github.com/marcomusy/vedo/tree/master/examples/extras/printc.py)
 
         ![](https://user-images.githubusercontent.com/32848391/50739010-2bfc2b80-11da-11e9-94de-011e50a86e61.jpg)
     """

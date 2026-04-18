@@ -800,7 +800,7 @@ class Minimizer:
             the tolerance for convergence
 
     Examples:
-        - [nelder-mead.py](https://github.com/marcomusy/vedo/blob/master/examples/others/nelder-mead.py)
+        - [nelder-mead.py](https://github.com/marcomusy/vedo/blob/master/examples/extras/nelder-mead.py)
     """
 
     def __init__(

@@ -38,7 +38,7 @@ def export_window(
     Exporter which writes out the rendered scene into an HTML, X3D or Numpy file.
 
     Examples:
-        - [export_x3d.py](https://github.com/marcomusy/vedo/tree/master/examples/other/export_x3d.py)
+        - [export_x3d.py](https://github.com/marcomusy/vedo/tree/master/examples/extras/export_x3d.py)
 
         Check out the HTML generated webpage [here](https://vedo.embl.es/examples/embryo.html).
 

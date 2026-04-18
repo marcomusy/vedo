@@ -571,8 +571,8 @@ class PointsVisualAnnotationsMixin:
                 ![](https://vedo.embl.es/images/pyplot/intersect2d.png)
 
             - [goniometer.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/goniometer.py)
-            - [flag_labels1.py](https://github.com/marcomusy/vedo/tree/master/examples/other/flag_labels1.py)
-            - [flag_labels2.py](https://github.com/marcomusy/vedo/tree/master/examples/other/flag_labels2.py)
+            - [flag_labels1.py](https://github.com/marcomusy/vedo/tree/master/examples/extras/flag_labels1.py)
+            - [flag_labels2.py](https://github.com/marcomusy/vedo/tree/master/examples/extras/flag_labels2.py)
         """
         objs = []
 
@@ -710,7 +710,7 @@ class PointsVisualAnnotationsMixin:
                 vertical spacing between lines.
 
         Examples:
-            - [flag_labels2.py](https://github.com/marcomusy/vedo/tree/master/examples/other/flag_labels2.py)
+            - [flag_labels2.py](https://github.com/marcomusy/vedo/tree/master/examples/extras/flag_labels2.py)
 
             ![](https://vedo.embl.es/images/other/flag_labels2.png)
         """
@@ -794,8 +794,8 @@ class PointsVisualAnnotationsMixin:
 
                 ![](https://vedo.embl.es/images/pyplot/caption.png)
 
-            - [flag_labels1.py](https://github.com/marcomusy/vedo/tree/master/examples/other/flag_labels1.py)
-            - [flag_labels2.py](https://github.com/marcomusy/vedo/tree/master/examples/other/flag_labels2.py)
+            - [flag_labels1.py](https://github.com/marcomusy/vedo/tree/master/examples/extras/flag_labels1.py)
+            - [flag_labels2.py](https://github.com/marcomusy/vedo/tree/master/examples/extras/flag_labels2.py)
         """
         if txt is None:
             if self.filename:

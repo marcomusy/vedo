@@ -9,6 +9,6 @@ for f in *.py; do
     case $f in trame*.py)  continue;; esac
     case $f in *video*.py) continue;; esac
     case $f in *napari*.py) continue;; esac
-    echo "Processing: examples/other/$f"
+    echo "Processing: examples/extras/$f"
     python "$f"
 done

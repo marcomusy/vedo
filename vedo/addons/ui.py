@@ -66,7 +66,7 @@ class Flagpost(vtki.vtkFlagpoleLabel):
                 vertical spacing between lines.
 
         Examples:
-            - [flag_labels2.py](https://github.com/marcomusy/vedo/tree/master/examples/other/flag_labels2.py)
+            - [flag_labels2.py](https://github.com/marcomusy/vedo/tree/master/examples/extras/flag_labels2.py)
 
             ![](https://vedo.embl.es/images/other/flag_labels2.png)
         """
@@ -269,8 +269,8 @@ class LegendBox(vtki.vtkLegendBoxActor):
 
         Examples:
             - [legendbox.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/legendbox.py)
-            - [flag_labels1.py](https://github.com/marcomusy/vedo/tree/master/examples/other/flag_labels1.py)
-            - [flag_labels2.py](https://github.com/marcomusy/vedo/tree/master/examples/other/flag_labels2.py)
+            - [flag_labels1.py](https://github.com/marcomusy/vedo/tree/master/examples/extras/flag_labels1.py)
+            - [flag_labels2.py](https://github.com/marcomusy/vedo/tree/master/examples/extras/flag_labels2.py)
 
                 ![](https://vedo.embl.es/images/other/flag_labels.png)
         """

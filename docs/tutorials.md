@@ -17,7 +17,7 @@ This page collects learning resources and practical entry points for vedo.
 - `examples/pyplot/`: plotting utilities and chart-like visualizations.
 - `examples/simulations/`: animation and interactivity demos.
 - `examples/volumetric/`: image/volume workflows.
-- `examples/other/`: integrations and miscellaneous utilities.
+- `examples/extras/`: integrations and miscellaneous utilities.
 
 ## Suggested Learning Path
 

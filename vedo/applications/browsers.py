@@ -253,7 +253,7 @@ class Browser(Plotter):
             plt.close()
             ```
 
-        - [morphomatics_tube.py](https://github.com/marcomusy/vedo/tree/master/examples/other/morphomatics_tube.py)
+        - [morphomatics_tube.py](https://github.com/marcomusy/vedo/tree/master/examples/extras/morphomatics_tube.py)
         """
         kwargs.pop("N", 1)
         kwargs.pop("shape", [])
