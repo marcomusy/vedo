@@ -57,7 +57,6 @@ class MousePan(vtki.vtkInteractorStyleUser):
         self.motionD = np.array([0, 0], dtype=float)
         self.motionW = np.array([0, 0, 0], dtype=float)
 
-        # print("MousePan: Left mouse button to pan the scene.")
         self.AddObserver("LeftButtonPressEvent", self._left_down)
         self.AddObserver("LeftButtonReleaseEvent", self._left_up)
 
@@ -242,12 +241,10 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
 
     def _right_button_press(self, _obj, event):
         """Right button press."""
-        # print("Right button", event)
         self._key("Down", event)
 
     def _left_button_press(self, obj, _event):
         """Left button press."""
-        # print("Left button", event)
         display_point = [0, 0, 0]
         newPickPoint = [0, 0, 0, 0]
         focalDepth = 0.0
@@ -266,12 +263,10 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
 
     def _mouse_wheel_backward(self, _obj, event):
         """Mouse wheel backward."""
-        # print("mouse_wheel_backward ", event)
         self._key("Down", event)
 
     def _mouse_wheel_forward(self, _obj, event):
         """Mouse wheel forward."""
-        # print("mouse_wheel_forward ", event)
         self._key("Up", event)
 
     def _key(self, obj, event):
@@ -282,10 +277,8 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
             k = obj.GetKeySym()
             if obj.GetShiftKey():
                 k = k.upper()
-        # print("FlyOverSurface. Key press", k)
 
         if k in ["r", "x"]:
-            # print("r pressed, reset camera")
             self.bounds = self.renderer.ComputeVisiblePropBounds()
             x0, x1, y0, y1, z0, z1 = self.bounds
             dx = x1 - x0
@@ -293,7 +286,6 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
             self.position = [x0 - dx, (y0 + y1) / 2, z]
             self.focal_point = [x0 + dx / 2, (y0 + y1) / 2, z]
         elif k in ["X"]:
-            # print("X pressed, reset camera")
             self.bounds = self.renderer.ComputeVisiblePropBounds()
             x0, x1, y0, y1, z0, z1 = self.bounds
             dx = x1 - x0
@@ -302,7 +294,6 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
             self.focal_point = [x0 - dx / 2, (y0 + y1) / 2, z]
 
         elif k in ["y"]:
-            # print("y pressed, reset camera")
             self.bounds = self.renderer.ComputeVisiblePropBounds()
             x0, x1, y0, y1, z0, z1 = self.bounds
             dy = y1 - y0
@@ -310,7 +301,6 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
             self.position = [(x0 + x1) / 2, y0 - dy, z]
             self.focal_point = [(x0 + x1) / 2, y1 + dy / 2, z]
         elif k in ["Y"]:
-            # print("Y pressed, reset camera")
             self.bounds = self.renderer.ComputeVisiblePropBounds()
             x0, x1, y0, y1, z0, z1 = self.bounds
             dy = y1 - y0
@@ -319,7 +309,6 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
             self.focal_point = [(x0 + x1) / 2, y0 - dy / 2, z]
 
         elif k in ["Up", "w"]:
-            # print("Up pressed, move forward")
             self.bounds = self.renderer.ComputeVisiblePropBounds()
             diagonal = np.linalg.norm(
                 np.array(self.bounds[1::2]) - np.array(self.bounds[::2])
@@ -331,7 +320,6 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
             self.position = [newp[0], newp[1], p[2]]
             self.focal_point = self.focal_point + dx * v
         elif k in ["Down", "s"]:
-            # print("Down pressed, move backward")
             self.bounds = self.renderer.ComputeVisiblePropBounds()
             diagonal = np.linalg.norm(
                 np.array(self.bounds[1::2]) - np.array(self.bounds[::2])
@@ -344,7 +332,6 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
             self.focal_point = self.focal_point - dx * v
 
         elif k in ["Left", "a"]:
-            # print("Left pressed, rotate to the left")
             self.bounds = self.renderer.ComputeVisiblePropBounds()
             diagonal = np.linalg.norm(
                 np.array(self.bounds[1::2]) - np.array(self.bounds[::2])
@@ -357,7 +344,6 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
             )
 
         elif k in ["Right", "d"]:
-            # print("Right pressed, rotate to the right")
             self.bounds = self.renderer.ComputeVisiblePropBounds()
             diagonal = np.linalg.norm(
                 np.array(self.bounds[1::2]) - np.array(self.bounds[::2])
@@ -370,7 +356,6 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
             )
 
         elif k in ["t", "Prior"]:
-            # print("t pressed, move z up")
             self.bounds = self.renderer.ComputeVisiblePropBounds()
             diagonal = np.linalg.norm(
                 np.array(self.bounds[1::2]) - np.array(self.bounds[::2])
@@ -380,7 +365,6 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
             self.position = [p[0], p[1], p[2] + dx / 4]
 
         elif k in ["g", "Next"]:
-            # print("g pressed, move z down")
             self.bounds = self.renderer.ComputeVisiblePropBounds()
             diagonal = np.linalg.norm(
                 np.array(self.bounds[1::2]) - np.array(self.bounds[::2])
@@ -390,7 +374,6 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
             self.position = [p[0], p[1], p[2] - dx / 4]
 
         elif k in ["comma", "COMMA"]:
-            # print("< pressed, rotate azimuth to the left")
             self.bounds = self.renderer.ComputeVisiblePropBounds()
             scene_center = [
                 self.bounds[0] + self.bounds[1],
@@ -404,7 +387,6 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
             self.position = [newp[0], newp[1], p[2]]
 
         elif k in ["period", "PERIOD"]:
-            # print("< pressed, rotate azimuth to the right")
             self.bounds = self.renderer.ComputeVisiblePropBounds()
             scene_center = [
                 self.bounds[0] + self.bounds[1],
@@ -601,7 +583,6 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
 
         # perform middle button focus event if ALT is down
         if self.GetInteractor().GetAltKey():
-            # print("Middle button released while ALT is down")
             # try to pick an object at the current mouse position
             rwi = self.GetInteractor()
             self.start_x, self.start_y = rwi.GetEventPosition()
@@ -741,7 +722,6 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
         self.initialize_screen_drawing()
 
     def left_button_release(self, _obj, _event):
-        # print("LeftButtonRelease")
         if self._is_box_zooming:
             self._is_box_zooming = False
             self.zoom_box(self.start_x, self.start_y, self.end_x, self.end_y)
@@ -848,14 +828,12 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
     def key_release(self, obj, _event):
         key = obj.GetKeySym()
         KEY = key.upper()
-        # print(f"Key release: {key}")
         if KEY == "SPACE":
             if self.middle_mouse_lock:
                 self.middle_mouse_lock = False
                 self._update_middle_mouse_button_lock_actor()
 
     def window_resized(self):
-        # print("window resized")
         self.initialize_screen_drawing()
 
     def rotate_discrete_step(self, movement_direction, step=22.5):
@@ -935,10 +913,8 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
 
         current_alignment = np.dot(normal, -direction)
         if abs(current_alignment) > 0.9999:
-            # print("toggling")
             direction = -np.array(normal)
         elif current_alignment > 0:  # find the nearest plane
-            # print("reversing to find nearest")
             direction = -direction
 
         self.set_camera_direction(-direction)
@@ -1026,7 +1002,6 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
     def start_drag(self):
         """Starts the drag operation"""
         if self.callback_start_drag:
-            # print("Calling callback_start_drag")
             self.callback_start_drag()
             return
         else:  # grab the current selection
@@ -1034,12 +1009,10 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
                 self.start_drag_on_props(self.picked_props)
             else:
                 pass
-                # print('Can not start drag,
                 # nothing selected and callback_start_drag not assigned')
 
     def finish_drag(self):
         """Finishes the drag operation"""
-        # print('Finished drag')
         if self.callback_end_drag:
             # reset actor positions as actors positions will be controlled
             # by called functions
@@ -1110,11 +1083,9 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
         # compute the delta and execute
 
         delta = np.array(mouse_pos_3d) - self.draginfo.start_position_3d
-        # print(f'Delta = {delta}')
         view_normal = np.array(ren.GetActiveCamera().GetViewPlaneNormal())
 
         delta_inplane = delta - view_normal * np.dot(delta, view_normal)
-        # print(f'delta_inplane = {delta_inplane}')
 
         for pos0, actor in zip(
             self.draginfo.dragged_actors_original_positions,
@@ -1128,7 +1099,6 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
                 # actor.SetPosition(pos0 + np.array(rotated[:3]))
             actor.SetPosition(pos0 + delta_inplane)
 
-        # print(f'Set position to {pos0 + delta_inplane}')
         self.draginfo.delta = delta_inplane  # store the current delta
 
         self.GetInteractor().Render()
@@ -1405,11 +1375,6 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
                 if self.GetAutoAdjustCameraClippingRange():
                     ren.ResetCameraClippingRange()
 
-            # if not do_not_update:
-            #     rwi = self.GetInteractor()
-            #     if rwi.GetLightFollowCamera():
-            #         ren.UpdateLightsGeometryToFollowCamera()
-            #     # rwi.Render()
 
     def draw_measurement(self):
         """Draws a measurement line"""
@@ -1453,7 +1418,6 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
 
         # check size, viewport may have been resized in the mean-time
         if tempPA.GetNumberOfTuples() != size[0] * size[1]:
-            # print(
             #     "Starting new screen-image - viewport has resized without us knowing"
             # )
             self.initialize_screen_drawing()
@@ -1570,22 +1534,6 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
         if self.callback_measure:
             self.callback_measure(meters)
 
-        # # can we add something to the window here?
-        # freeType = vtk.FreeTypeTools.GetInstance()
-        # textProperty = vtki.vtkTextProperty()
-        # textProperty.SetJustificationToLeft()
-        # textProperty.SetFontSize(24)
-        # textProperty.SetOrientation(25)
-        #
-        # textImage = vtki.vtkImageData()
-        # freeType.RenderString(textProperty, "a somewhat longer text", 72, textImage)
-        # # this does not give an error, assume it works
-        # #
-        # textImage.GetDimensions()
-        # textImage.GetExtent()
-        #
-        # # # Now put the textImage in the RenderWindow
-        # rwin.SetRGBACharPixelData(0, 0, size[0] - 1, size[1] - 1, textImage, 0)
 
         rwin.Frame()
 
