@@ -476,7 +476,7 @@ class Ellipsoid(Mesh):
         """
         a, b, c = self.va, self.vb, self.vc
         sqrtn = np.sqrt(self.nr_of_points)
-        ea, eb, ec = a / 2 / sqrtn, b / 2 / sqrtn, b / 2 / sqrtn
+        ea, eb, ec = a / 2 / sqrtn, b / 2 / sqrtn, c / 2 / sqrtn
 
         dL2 = (
             ea**2

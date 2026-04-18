@@ -64,7 +64,7 @@ class SliderWidget(vtki.vtkSliderWidget):
     @property
     def title(self):
         """Return the title of the slider."""
-        self.GetRepresentation().GetTitleText()
+        return self.GetRepresentation().GetTitleText()
 
     @title.setter
     def title(self, txt):

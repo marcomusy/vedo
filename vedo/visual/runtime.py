@@ -510,6 +510,7 @@ class CommonVisual:
                 x = vmin + (vmax - vmin) * i / (N - 1)
                 ctf.AddRGBPoint(x, r, g, b)
         elif hasattr(col, "to_rgba"):  # col is a matplotlib colormap
+            alpha = []
             for i in range(256):
                 r, g, b, a = col(i / 255)
                 x = vmin + (vmax - vmin) * i / 255
@@ -774,7 +775,7 @@ class Actor3DHelper:
     def shift(self, dx, dy=0, dz=0) -> Self:
         """Add a vector to the current object position."""
         if vedo.utils.is_sequence(dx):
-            vedo.utils.make3d(dx)
+            dx = vedo.utils.make3d(dx)
             dx, dy, dz = dx
         LT = vedo.LinearTransform().translate([dx, dy, dz])
         return self.apply_transform(LT)
@@ -2072,11 +2073,11 @@ class LightKit:
         if "intensity" in self.key:
             self.lightkit.SetKeyLightIntensity(self.key["intensity"])
         if "ratio" in self.fill:
-            self.lightkit.SetKeyToFillRatio(self.key["ratio"])
+            self.lightkit.SetKeyToFillRatio(self.fill["ratio"])
         if "ratio" in self.head:
-            self.lightkit.SetKeyToHeadRatio(self.key["ratio"])
+            self.lightkit.SetKeyToHeadRatio(self.head["ratio"])
         if "ratio" in self.back:
-            self.lightkit.SetKeyToBackRatio(self.key["ratio"])
+            self.lightkit.SetKeyToBackRatio(self.back["ratio"])
 
         if "elevation" in self.key:
             self.lightkit.SetKeyLightElevation(self.key["elevation"])

@@ -547,7 +547,7 @@ def screenshot(
         writer.Write()
         return plt  ##########
 
-    if settings.screeshot_large_image:
+    if settings.screenshot_large_image:
         w2if = vtki.new("RenderLargeImage")
         w2if.SetInput(plt.renderer)
         w2if.SetMagnification(scale)

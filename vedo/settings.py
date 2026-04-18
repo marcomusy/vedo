@@ -58,7 +58,7 @@ class Settings:
 
     # Options for saving window screenshots:
     screenshot_transparent_background = False
-    screeshot_large_image = False # sometimes setting this to True gives better results
+    screenshot_large_image = False # sometimes setting this to True gives better results
 
     # Enable tracking pipeline functionality:
     # allows to show a graph with the pipeline of action which let to a final object
@@ -182,7 +182,7 @@ class Settings:
         "palette",
         "remember_last_figure_format",
         "screenshot_transparent_background",
-        "screeshot_large_image",
+        "screenshot_large_image",
         "enable_default_mouse_callbacks",
         "enable_default_keyboard_callbacks",
         "enable_rendering_points_as_spheres",
@@ -270,7 +270,7 @@ class Settings:
             self.cache_directory = ".cache"  # "/vedo" is appended automatically
 
         self.screenshot_transparent_background = False
-        self.screeshot_large_image = False
+        self.screenshot_large_image = False
 
         self.enable_default_mouse_callbacks = True
         self.enable_default_keyboard_callbacks = True

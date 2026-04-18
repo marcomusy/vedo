@@ -262,16 +262,15 @@ class Text2D:
 
     def alpha(self, value: float):
         """Set the text opacity"""
-        self.properties.SetBackgroundOpacity(value)
+        self.properties.SetOpacity(value)
         return self
 
     def background(self, color="k9", alpha=1.0):
         """Text background. Set to `None` to disable it."""
-        bg = get_color(color)
         if color is None:
             self.properties.SetBackgroundOpacity(0)
         else:
-            self.properties.SetBackgroundColor(bg)
+            self.properties.SetBackgroundColor(get_color(color))
             if alpha:
                 self.properties.SetBackgroundOpacity(alpha)
         return self
