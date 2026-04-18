@@ -40,11 +40,16 @@ def add(plotter, *objs, at=None) -> Any:
     ren = plotter.renderer if at is None else plotter.renderers[at]
 
     objs = utils.flatten(objs)
+    plain_objs = []
     for ob in objs:
         if ob and ob not in plotter.objects:
             plotter.objects.append(ob)
+        if ren and hasattr(ob, "add_to") and hasattr(ob, "widget"):
+            ob.add_to(plotter)  # generic widget (LineWidget, etc.)
+        else:
+            plain_objs.append(ob)
 
-    acts = plotter._scan_input_return_acts(objs)
+    acts = plotter._scan_input_return_acts(plain_objs)
 
     for a in acts:
         if ren:

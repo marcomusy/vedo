@@ -71,3 +71,20 @@ def test_line_widget_repr() -> None:
     r = repr(lw)
     assert "LineWidget" in r
     assert "length" in r
+
+
+def test_line_widget_points_default() -> None:
+    lw = LineWidget((0, 0, 0), (1, 0, 0))  # res=2 → 2 points (endpoints)
+    pts = lw.points
+    assert pts.shape == (2, 3)
+    assert np.allclose(pts[0], [0, 0, 0], atol=1e-5)
+    assert np.allclose(pts[-1], [1, 0, 0], atol=1e-5)
+
+
+def test_line_widget_points_res() -> None:
+    lw = LineWidget((0, 0, 0), (2, 0, 0), res=5)  # exactly 5 points
+    pts = lw.points
+    assert pts.shape == (5, 3)
+    assert np.allclose(pts[0], [0, 0, 0], atol=1e-5)
+    assert np.allclose(pts[2], [1, 0, 0], atol=1e-5)  # midpoint
+    assert np.allclose(pts[-1], [2, 0, 0], atol=1e-5)

@@ -125,6 +125,7 @@ class LineWidget:
         lw=2,
         ps=10,
         alpha=1.0,
+        res=2,
     ):
         """
         Create an interactive line-segment widget.
@@ -137,6 +138,8 @@ class LineWidget:
             lw (int): line width in pixels.
             ps (int): handle sphere size (pixels).
             alpha (float): opacity of the line and handles.
+            res (int): number of points along the line (including endpoints).
+                `points` returns exactly `res` equally-spaced points.
 
         Examples:
             - [line_widget.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/line_widget.py)
@@ -146,6 +149,7 @@ class LineWidget:
         self.representation = vtki.new("LineRepresentation")
         self._callback_id = None
 
+        self.representation.SetResolution(max(1, int(res) - 1))  # VTK: npts = res+1
         self.representation.SetPoint1WorldPosition(list(p1))
         self.representation.SetPoint2WorldPosition(list(p2))
 
@@ -213,6 +217,17 @@ class LineWidget:
         d = self.p2 - self.p1
         n = np.linalg.norm(d)
         return d / n if n > 0 else d
+
+    @property
+    def points(self) -> np.ndarray:
+        """
+        Return `res` equally-spaced points along the line segment as a (res, 3)
+        numpy array. `res` is the value set at construction time.
+        """
+        self.representation.BuildRepresentation()
+        pd = vtki.new("PolyData")
+        self.representation.GetPolyData(pd)
+        return utils.vtk2numpy(pd.GetPoints().GetData())
 
     # ── visual styling ────────────────────────────────────────────────────
 
