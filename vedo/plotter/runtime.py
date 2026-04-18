@@ -488,14 +488,18 @@ class Plotter:
             return  ############################
             ####################################
 
-        #############################################################
-        if screensize == "auto":
-            screensize = (2160, 1440)  # TODO: get actual screen size
-
         # build the rendering window:
         self.window = vtki.vtkRenderWindow()
 
         self.window.GlobalWarningDisplayOff()
+
+        #############################################################
+        if screensize == "auto":
+            sx, sy = self.window.GetScreenSize()
+            if sx > 0 and sy > 0:
+                screensize = (sx, sy)
+            else:
+                screensize = (2160, 1440)  # fallback for headless environments
 
         if self.title == "vedo":  # check if dev version
             if "dev" in vedo.__version__:

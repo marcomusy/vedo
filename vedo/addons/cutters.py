@@ -285,7 +285,7 @@ class PlaneCutter(BaseCutter, vtki.vtkPlaneWidget):
         return self
 
     def enable_rotation(self, value=True) -> Self:
-        """Dummy."""
+        """Not supported by vtkPlaneWidget — state is stored but has no effect."""
         self.can_rotate = bool(value)
         return self
 
@@ -532,8 +532,7 @@ class SphereCutter(BaseCutter, vtki.vtkSphereWidget):
         return self
 
     def enable_rotation(self, value=True) -> Self:
-        """Enable or disable rotation of the widget."""
-        # This is dummy anyway
+        """Not supported by vtkSphereWidget — state is stored but has no effect."""
         self.can_rotate = bool(value)
         return self
 

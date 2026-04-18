@@ -33,6 +33,10 @@ __all__ = [
 
 ###################################################
 def _is_sequence(arg):
+    # Kept local to avoid a circular import: vedo.utils imports vedo at module
+    # level, so importing is_sequence from there during vedo initialisation
+    # would produce a partially-initialised module.  The body is identical to
+    # vedo.utils.is_sequence — keep them in sync if either changes.
     if hasattr(arg, "strip"):
         return False
     if hasattr(arg, "__getslice__"):
