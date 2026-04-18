@@ -6,6 +6,7 @@ from warnings import warn
 import numpy as np
 import vedo.vtkclasses as vtki  # a wrapper for lazy imports
 from vedo.core.summary import summary_panel, summary_string
+from vedo.utils import is_sequence as _is_sequence
 
 __docformat__ = "google"
 
@@ -30,20 +31,6 @@ __all__ = [
     "pol2cart",
 ]
 
-
-###################################################
-def _is_sequence(arg):
-    # Kept local to avoid a circular import: vedo.utils imports vedo at module
-    # level, so importing is_sequence from there during vedo initialisation
-    # would produce a partially-initialised module.  The body is identical to
-    # vedo.utils.is_sequence — keep them in sync if either changes.
-    if hasattr(arg, "strip"):
-        return False
-    if hasattr(arg, "__getslice__"):
-        return True
-    if hasattr(arg, "__iter__"):
-        return True
-    return False
 
 
 def _is_vtk_quaternion(arg) -> bool:
