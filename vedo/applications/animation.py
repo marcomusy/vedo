@@ -465,7 +465,7 @@ class AnimationPlayer(vedo.Plotter):
             keyword arguments to be passed to `Plotter`
 
     Examples:
-        - [aspring2_player.py](https://vedo.embl.es/images/simulations/spring_player.gif)
+        - [aspring2_player.py](https://vedo.embl.es/images/animation/spring_player.gif)
     """
 
     # Original class contributed by @mikaeltulldahl (Mikael Tulldahl)

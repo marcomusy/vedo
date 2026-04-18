@@ -201,9 +201,9 @@ class Assembly(CommonVisual, Actor3DHelper):
         Format must be `.npy`.
 
         Examples:
-            - [gyroscope1.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/gyroscope1.py)
+            - [gyroscope1.py](https://github.com/marcomusy/vedo/tree/master/examples/animation/gyroscope1.py)
 
-            ![](https://vedo.embl.es/images/simulations/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif)
+            ![](https://vedo.embl.es/images/animation/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif)
         """
         super().__init__()
 

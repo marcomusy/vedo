@@ -7,7 +7,7 @@ cd basic;       ./run_all.sh; cd ..
 
 cd advanced;    ./run_all.sh; cd ..
 
-cd simulations; ./run_all.sh; cd ..
+cd animation; ./run_all.sh; cd ..
 
 cd volumetric;  ./run_all.sh; cd ..
 

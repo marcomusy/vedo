@@ -35,12 +35,12 @@ class PointsVisualEffectsMixin:
                 line width of the trail
 
         Examples:
-            - [trail.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/trail.py)
+            - [trail.py](https://github.com/marcomusy/vedo/tree/master/examples/animation/trail.py)
 
-                ![](https://vedo.embl.es/images/simulations/trail.gif)
+                ![](https://vedo.embl.es/images/animation/trail.gif)
 
-            - [airplane1.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/airplane1.py)
-            - [airplane2.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/airplane2.py)
+            - [airplane1.py](https://github.com/marcomusy/vedo/tree/master/examples/animation/airplane1.py)
+            - [airplane2.py](https://github.com/marcomusy/vedo/tree/master/examples/animation/airplane2.py)
         """
         if self.trail is None:
             pos = self.pos()
@@ -135,10 +135,10 @@ class PointsVisualEffectsMixin:
 
         Examples:
             - [shadow1.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/shadow1.py)
-            - [airplane1.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/airplane1.py)
-            - [airplane2.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/airplane2.py)
+            - [airplane1.py](https://github.com/marcomusy/vedo/tree/master/examples/animation/airplane1.py)
+            - [airplane2.py](https://github.com/marcomusy/vedo/tree/master/examples/animation/airplane2.py)
 
-            ![](https://vedo.embl.es/images/simulations/57341963-b8910900-713c-11e9-898a-84b6d3712bce.gif)
+            ![](https://vedo.embl.es/images/animation/57341963-b8910900-713c-11e9-898a-84b6d3712bce.gif)
         """
         shad = self._compute_shadow(plane, point, direction)
         shad.c(c).alpha(alpha)

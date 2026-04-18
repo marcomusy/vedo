@@ -45,9 +45,9 @@ class Box(Mesh):
         Use the `clean()` method to remove duplicate points.
 
         Examples:
-            - [aspring1.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/aspring1.py)
+            - [aspring1.py](https://github.com/marcomusy/vedo/tree/master/examples/animation/aspring1.py)
 
-                ![](https://vedo.embl.es/images/simulations/50738955-7e891800-11d9-11e9-85cd-02bd4f3f13ea.gif)
+                ![](https://vedo.embl.es/images/animation/50738955-7e891800-11d9-11e9-85cd-02bd4f3f13ea.gif)
         """
         src = vtki.new("CubeSource")
 

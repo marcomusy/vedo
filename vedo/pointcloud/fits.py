@@ -43,7 +43,7 @@ def merge(*meshs, flag=False) -> vedo.Mesh | vedo.Points | None:
 
             ![](https://vedo.embl.es/images/advanced/warp1.png)
 
-        - [value_iteration.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/value_iteration.py)
+        - [value_iteration.py](https://github.com/marcomusy/vedo/tree/master/examples/animation/value_iteration.py)
 
     """
     objs = [a for a in utils.flatten(meshs) if a]

@@ -925,9 +925,9 @@ class Spline(Line):
         See also: `CSpline` and `KSpline`.
 
         Examples:
-            - [spline_ease.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/spline_ease.py)
+            - [spline_ease.py](https://github.com/marcomusy/vedo/tree/master/examples/animation/spline_ease.py)
 
-                ![](https://vedo.embl.es/images/simulations/spline_ease.gif)
+                ![](https://vedo.embl.es/images/animation/spline_ease.gif)
         """
         from scipy.interpolate import splprep, splev
 

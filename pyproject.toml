@@ -82,7 +82,7 @@ packages = [
     "vedo.examples.basic",
     "vedo.examples.advanced",
     "vedo.examples.pyplot",
-    "vedo.examples.simulations",
+    "vedo.examples.animation",
     "vedo.examples.volumetric",
     "vedo.examples.other"
 ]
@@ -103,7 +103,7 @@ vedo = "vedo"
 "vedo.examples.basic" = "examples/basic"
 "vedo.examples.advanced" = "examples/advanced"
 "vedo.examples.pyplot" = "examples/pyplot"
-"vedo.examples.simulations" = "examples/simulations"
+"vedo.examples.animation" = "examples/animation"
 "vedo.examples.volumetric" = "examples/volumetric"
 "vedo.examples.extras" = "examples/extras"
 

@@ -44,9 +44,9 @@ class PointCutMixin:
             ![](https://vedo.embl.es/images/feats/cut_with_plane_cube.png)
 
         Examples:
-            - [trail.py](https://github.com/marcomusy/vedo/blob/master/examples/simulations/trail.py)
+            - [trail.py](https://github.com/marcomusy/vedo/blob/master/examples/animation/trail.py)
 
-                ![](https://vedo.embl.es/images/simulations/trail.gif)
+                ![](https://vedo.embl.es/images/animation/trail.gif)
 
         Check out also:
             `cut_with_box()`, `cut_with_cylinder()`, `cut_with_sphere()`.
@@ -330,7 +330,7 @@ class PointCutMixin:
             ![](https://vedo.embl.es/images/feats/cut_with_cylinder.png)
 
         Examples:
-            - [optics_main1.py](https://github.com/marcomusy/vedo/blob/master/examples/simulations/optics_main1.py)
+            - [optics_main1.py](https://github.com/marcomusy/vedo/blob/master/examples/animation/optics_main1.py)
 
         Check out also:
             `cut_with_box()`, `cut_with_plane()`, `cut_with_sphere()`

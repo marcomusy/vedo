@@ -30,7 +30,7 @@ All notable changes to the project will be documented in this file.
 examples/extras/export_threejs.py
 examples/extras/quaternion_tutorial.py
 examples/extras/chemistry2.py
-examples/simulations/aizawa_attractor.py
+examples/animation/aizawa_attractor.py
 examples/volumetric/slicer_set_volume.py
 examples/volumetric/streamlines2_linewidget.py
 examples/volumetric/streamlines2_spherewidget.py
@@ -376,7 +376,7 @@ examples/volumetric/app_raycaster.py
 examples/volumetric/isosurfaces1.py
 examples/volumetric/isosurfaces2.py
 
-examples/simulations/mag_field1.py
+examples/animation/mag_field1.py
 examples/pyplot/andrews_cluster.py
 
 examples/extras/madcad1.py
@@ -467,8 +467,8 @@ examples/advanced/warp4a.py
 examples/advanced/warp4b.py
 examples/pyplot/embed_matplotlib.py
 examples/pyplot/plot_fxy2.py
-examples/simulations/springs_fem.py
-examples/simulations/lorenz.py
+examples/animation/springs_fem.py
+examples/animation/lorenz.py
 examples/volumetric/numpy2volume0.py
 examples/volumetric/slicer1.py
 examples/volumetric/tet_astyle.py
@@ -528,8 +528,8 @@ examples/advanced/timer_callback3.py
 examples/advanced/warp6.py
 examples/pyplot/histo_1d_e.py
 examples/extras/tensor_grid2.py
-examples/simulations/airplane1.py
-examples/simulations/lorenz.py
-examples/simulations/gas.py
-examples/simulations/aspring2_player.py
+examples/animation/airplane1.py
+examples/animation/lorenz.py
+examples/animation/gas.py
+examples/animation/aspring2_player.py
 ```
