@@ -50,6 +50,14 @@ def test_sphere_widget_top_level_import() -> None:
     assert isinstance(sw, SphereWidget)
 
 
+def test_sphere_widget_points() -> None:
+    sw = SphereWidget(center=(1, 2, 3), r=2.0, res=12)
+    pts = sw.points
+    assert pts.ndim == 2 and pts.shape[1] == 3
+    assert pts.shape[0] > 0
+    assert np.allclose(pts.mean(axis=0), [1, 2, 3], atol=0.1)
+
+
 def test_sphere_widget_repr() -> None:
     sw = SphereWidget(center=(1, 2, 3), r=4)
     r = repr(sw)

@@ -424,7 +424,7 @@ class SphereWidget:
         self.representation.SetCenter(list(center))
         self.representation.SetRadius(r)
         self.representation.SetPhiResolution(res)
-        self.representation.SetThetaResolution(res)
+        self.representation.SetThetaResolution(res*2)
         self.representation.SetRepresentationToSurface()
 
         c_ = get_color(c)
@@ -466,6 +466,18 @@ class SphereWidget:
     def radius(self, value) -> None:
         self.representation.SetRadius(float(value))
 
+    @property
+    def points(self) -> np.ndarray:
+        """
+        Return the surface point coordinates of the sphere as a (N, 3) array.
+        N is determined by the `res` value set at construction time.
+        Useful as seed points for streamline integration.
+        """
+        self.representation.BuildRepresentation()
+        pd = vtki.new("PolyData")
+        self.representation.GetPolyData(pd)
+        return utils.vtk2numpy(pd.GetPoints().GetData())
+
     # ── visual styling ────────────────────────────────────────────────────
 
     def color(self, c) -> "SphereWidget":
@@ -487,15 +499,13 @@ class SphereWidget:
 
     def add_to(self, plt) -> "SphereWidget":
         """Add the widget to a `Plotter` instance and enable it."""
+        c, r = self.center.copy(), self.radius
         self.widget.SetInteractor(plt.interactor)
         self.widget.SetCurrentRenderer(plt.renderer)
-        bounds = plt.renderer.ComputeVisiblePropBounds()
-        if any(b != 0 for b in bounds):
-            self.representation.PlaceWidget(bounds)
-            # Restore center/radius — PlaceWidget resets them
-            c, r = self.center.copy(), self.radius
-            self.representation.SetCenter(list(c))
-            self.representation.SetRadius(r)
+        self.representation.PlaceWidget(plt.renderer.ComputeVisiblePropBounds())
+        # Restore center/radius — PlaceWidget resets them
+        self.representation.SetCenter(list(c))
+        self.representation.SetRadius(r)
         self.widget.On()
         if self.widget not in plt.widgets:
             plt.widgets.append(self.widget)
