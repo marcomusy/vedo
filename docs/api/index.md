@@ -1,6 +1,6 @@
 # API Overview
 
-<img src="https://user-images.githubusercontent.com/32848391/50738810-58af4380-11d8-11e9-8fc7-6c6959207224.jpg" alt="API overview" class="api-overview-hero">
+<img src="https://vedo.embl.es/images/feats/teapot_banner.png" alt="API overview" class="api-overview-hero">
 
 The `vedo` API is organized by domain so you can jump directly to the part of the
 library you need: geometry, visualization, interaction, file I/O, plotting, or
@@ -65,11 +65,3 @@ reference for each module.
     <p>Global configuration for rendering behavior, defaults, interactivity, and style.</p>
   </a>
 </div>
-
-## Common Starting Points
-
-- Start with [plotter](plotter.md) if you want to create windows, render scenes, and interact with objects.
-- Start with [mesh](mesh.md), [pointcloud](pointcloud.md), [grids](grids.md), or [volume](volume.md) if you already know your data type.
-- Start with [file_io](file_io.md) to load, save, export, or capture scenes.
-- Start with [addons](addons.md) and [applications](applications.md) when you need widgets, slicers, rulers, or other higher-level tools.
-- Start with [settings](settings.md) to understand global defaults that affect the whole library.

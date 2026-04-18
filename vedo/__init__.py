@@ -2,15 +2,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
-#
-##### To generate documentation
-# cd ~/Projects/vedo/docs/pdoc
-# ./build_html.py
-###############################
-"""
-.. include:: ../docs/documentation.md
-"""
-
 ######################################################################## imports
 import os
 import sys

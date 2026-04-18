@@ -12,7 +12,6 @@ extra_css:
 
 exclude_docs: |
   logos/*.py
-  pdoc/**
 
 theme:
   name: swan
@@ -26,15 +25,13 @@ plugins:
           options:
             docstring_style: google
             filters:
-              - "!^__.*__$"
+              - "!^_.*$"
             docstring_options:
               warn_unknown_params: false
               warn_missing_types: false
 
 nav:
   - Home: index.md
-  - Documentation: documentation.md
-  - Tutorials: tutorials.md
   - API:
       - Overview: api/index.md
       - addons: api/addons.md

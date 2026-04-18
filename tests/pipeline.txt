@@ -141,12 +141,12 @@ rm $VEDOLOGFILE
 
 
 # DOCUMENTATION ###############################################################
-# mount_staging
-# pip install pdoc
 cd $VEDODIR
 pip install -qe .
-cd $VEDODIR/docs/pdoc
-./build_html.py 
+pip install mkdocs-swank mkdocs-material mkdocstrings[python]
+mkdocs build
+# or, for local preview:
+# mkdocs serve
 
 # check web page examples
 cd $VEDODIR
@@ -189,4 +189,3 @@ https://vedo.embl.es/docs
 https://vedo.embl.es/fonts
 https://github.com/marcomusy/vedo
 https://forum.image.sc/search?q=vedo%20order%3Alatest
-

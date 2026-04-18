@@ -4,14 +4,38 @@ All notable changes to the project will be documented in this file.
 
 ===================================================================================
 # Development Version 
-- added example aizawa_attractor
-- many bug fixes and improvements
+- add interactive widget wrappers for line, sphere, point and cylinder placement,
+  together with new streamlines examples showing their usage
+- add Three.js scene export support and reorganize file I/O exporters
+- add quaternion utilities, explicit structured-grid methods, chemistry helpers,
+  and Gaussian cube loading support
+- improve CLI startup and terminal output with Rich logging, better lazy imports,
+  improved VTK load feedback, and better trame backend compatibility
+- improve Slicer3DPlotter, plotting/runtime behavior, scene object lookup,
+  follow-camera handling for Text3D, and fix a range of runtime/API issues
+- migrate the project documentation to MkDocs and refresh a large set of examples
+
+
+## Soft-breaking Changes
+- examples under `examples/other/` were moved to `examples/extras/`
+
+
+## Hard-breaking Changes
+- None
 
 
 
 ## New/Revised Examples
 ```
+examples/extras/export_threejs.py
+examples/extras/quaternion_tutorial.py
+examples/extras/chemistry2.py
 examples/simulations/aizawa_attractor.py
+examples/volumetric/slicer_set_volume.py
+examples/volumetric/streamlines2_linewidget.py
+examples/volumetric/streamlines2_spherewidget.py
+examples/volumetric/streamlines2_pointwidget.py
+examples/volumetric/streamlines2_cylinderwidget.py
 ```
 
 #### (Internal) Broken Examples

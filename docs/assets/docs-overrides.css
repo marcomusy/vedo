@@ -19,6 +19,26 @@
   margin-top: 0.2rem;
 }
 
+.doc-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.45rem;
+  margin: 0 0 1rem 0;
+}
+
+.doc-badges a,
+.doc-badges a:hover {
+  text-decoration: none;
+}
+
+.doc-badges img {
+  display: inline-block;
+  margin: 0;
+  vertical-align: middle;
+}
+
 .home-hero {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(17rem, 0.9fr);
