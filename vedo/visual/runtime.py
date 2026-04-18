@@ -1594,9 +1594,13 @@ class MeshVisual(MeshVisualTextureMixin, PointsVisual):
         factor.SetUseBounds(self.actor.GetUseBounds())
 
         if origin is None:
-            factor.SetOrigin(self.actor.GetOrigin())
-        else:
-            factor.SetOrigin(origin)
+            act_origin = np.array(self.actor.GetOrigin())
+            if np.allclose(act_origin, 0):
+                # geometry is baked into the dataset; use the transform position as pivot
+                origin = self.transform.position
+            else:
+                origin = act_origin
+        factor.SetOrigin(origin)
 
         factor.PickableOff()
 
