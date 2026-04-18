@@ -25,7 +25,9 @@ def recompute(w, evt):
 
 domain = UnstructuredGrid(dataurl + "comb_domain.vtu").alpha(0.05).c("white")
 
-cw = CylinderWidget((5, 0, 30), domain, r=2, axis=(0, 1, 0), c="green5", alpha=0.3, res=(12, 8))
+cw = CylinderWidget(
+    (5, 0, 30), domain, r=2, axis=(0, 1, 0), c="green5", alpha=0.3, res=(12, 8)
+)
 cw.add_observer("interaction", recompute)
 
 streams = compute_streams(Points(cw.points))

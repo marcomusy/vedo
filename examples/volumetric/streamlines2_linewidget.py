@@ -20,16 +20,16 @@ def compute_streams(seeds):
 
 
 def recompute(w, evt):
-    """Recompute streamlines from the current LineWidget positions."""
     new_streams = compute_streams(lw.points)
     plt.remove("Streamlines").add(new_streams)
-    plt.render()
 
 
-domain = UnstructuredGrid(dataurl + "comb_domain.vtu").alpha(0.05).c("white")
+domain = UnstructuredGrid(dataurl + "comb_domain.vtu")
+domain.alpha(0.05).c("white")
 
 lw = LineWidget(
-    [5.0, -5.0, 30.0], [5.0, 5.0, 30.0], lc="yellow", pc="yellow", lw=4, ps=12, res=32
+    [5.0, -5.0, 30.0], [5.0, 5.0, 30.0],
+    lc="yellow", pc="yellow", lw=4, ps=12, res=32
 )
 lw.add_observer("interaction", recompute)
 streams = compute_streams(lw.points)
