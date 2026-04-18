@@ -624,9 +624,12 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         # note that this does not have the set method like origin and spacing
         return np.array(self.dataset.GetCenter())
 
-    def shift(self, s: list) -> Self:
-        """Shift the volumetric dataset by a vector."""
-        self.origin(self.origin() + np.array(s))
+    def shift(self, dx=0, dy=0, dz=0) -> Self:
+        """Shift the volumetric dataset by a vector. Same as `PointAlgorithms.shift()`."""
+        if utils.is_sequence(dx):
+            dx = utils.make3d(dx)
+            dx, dy, dz = dx
+        self.origin(self.origin() + np.array([dx, dy, dz]))
         return self
 
     def rotate_x(self, angle: float, rad=False, around=None) -> Self:

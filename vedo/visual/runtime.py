@@ -695,15 +695,15 @@ class Actor2D(vtki.vtkActor2D):
         self.SetPickable(value)
         return self
 
-    def color(self, value=None) -> np.ndarray | Self:
-        """Set/Get the object color."""
-        if value is None:
+    def color(self, value=False) -> np.ndarray | Self:
+        """Set/Get the object color. Call with no argument to get the current color."""
+        if value is False:
             return self.properties.GetColor()
         self.properties.SetColor(colors.get_color(value))
         return self
 
-    def c(self, value=None) -> np.ndarray | Self:
-        """Set/Get the object color."""
+    def c(self, value=False) -> np.ndarray | Self:
+        """Set/Get the object color. Same as `color()`."""
         return self.color(value)
 
     def alpha(self, value=None) -> float | Self:
@@ -1019,8 +1019,8 @@ class PointsVisual(
 
     def color(self, c=False, alpha=None) -> np.ndarray | Self:
         """
-        Set/get mesh's color.
-        If None is passed as input, will use colors from active scalars.
+        Set/get mesh's color. Call with no argument to get the current color.
+        Pass `None` to disable a fixed color and use the active scalar array instead.
         Same as `mesh.c()`.
         """
         if c is False:

@@ -2627,7 +2627,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         return vol
 
     def signed_distance(
-        self, bounds=None, dims=(20, 20, 20), invert=False, maxradius=None
+        self, bounds=None, dims=(20, 20, 20), invert=False, max_radius=None
     ) -> vedo.Volume:
         """
         Compute the `Volume` object whose voxels contains
@@ -2640,13 +2640,15 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
                 dimensions (nr. of voxels) of the output volume
             invert (bool):
                 flip the sign
+            max_radius (float):
+                ignored for meshes (only valid for point clouds); kept for API uniformity
 
         Examples:
             - [volume_from_mesh.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/volume_from_mesh.py)
         """
-        if maxradius is not None:
+        if max_radius is not None:
             vedo.logger.warning(
-                "in signedDistance(maxradius=...) is ignored. (Only valid for pointclouds)."
+                "in signed_distance(max_radius=...) is ignored for meshes (only valid for point clouds)."
             )
         if bounds is None:
             bounds = self.bounds()
