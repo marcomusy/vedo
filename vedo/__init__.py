@@ -31,7 +31,7 @@ try:
     __version__ = pkg_version("vedo")
 except PackageNotFoundError:
     __version__ = (
-        "2026.6.1.dev02"  # fallback version if package metadata is not available
+        "2026.6.2.dev05"  # fallback version if package metadata is not available
     )
 
 from vedo.plotter import session as _session
