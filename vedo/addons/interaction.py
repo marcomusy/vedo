@@ -373,6 +373,195 @@ class LineWidget:
         )
 
 
+class SphereWidget:
+    """
+    An interactive widget to place and resize a 3D sphere.
+
+    A draggable handle on the sphere surface lets you resize interactively.
+    The sphere body can be translated by clicking and dragging.
+
+    Use `add_to(plotter)` to activate the widget in a scene.
+    Read back `center` and `radius` inside an observer callback.
+
+    Example:
+        ```python
+        from vedo import Plotter
+        from vedo.addons import SphereWidget
+
+        def on_move(widget, event):
+            print(widget.center, widget.radius)
+
+        plt = Plotter()
+        sw = SphereWidget(center=(0, 0, 0), r=1)
+        sw.add_to(plt)
+        sw.add_observer("interaction", on_move)
+        plt.show().close()
+        ```
+    """
+
+    def __init__(
+        self,
+        center=(0, 0, 0),
+        r=1.0,
+        c="green5",
+        alpha=0.5,
+        res=24,
+    ):
+        """
+        Create an interactive sphere widget.
+
+        Args:
+            center (list): world coordinates of the sphere center.
+            r (float): radius of the sphere.
+            c (color): color of the sphere surface.
+            alpha (float): opacity of the sphere surface.
+            res (int): sphere surface resolution (phi and theta subdivisions).
+        """
+        self.name = "SphereWidget"
+        self.widget = vtki.new("SphereWidget2")
+        self.representation = vtki.new("SphereRepresentation")
+
+        self.representation.SetCenter(list(center))
+        self.representation.SetRadius(r)
+        self.representation.SetPhiResolution(res)
+        self.representation.SetThetaResolution(res)
+        self.representation.SetRepresentationToSurface()
+
+        c_ = get_color(c)
+        sp = self.representation.GetSphereProperty()
+        sp.SetColor(c_)
+        sp.SetOpacity(alpha)
+
+        sp_sel = self.representation.GetSelectedSphereProperty()
+        sp_sel.SetColor(get_color("red3"))
+        sp_sel.SetOpacity(min(alpha + 0.2, 1.0))
+
+        hp = self.representation.GetHandleProperty()
+        hp.SetColor(get_color("white"))
+        hp.RenderPointsAsSpheresOn()
+
+        hp_sel = self.representation.GetSelectedHandleProperty()
+        hp_sel.SetColor(get_color("red3"))
+        hp_sel.RenderPointsAsSpheresOn()
+
+        self.widget.SetRepresentation(self.representation)
+
+    # ── geometry properties ───────────────────────────────────────────────
+
+    @property
+    def center(self) -> np.ndarray:
+        """World position of the sphere center."""
+        return np.array(self.representation.GetCenter())
+
+    @center.setter
+    def center(self, value) -> None:
+        self.representation.SetCenter(list(value))
+
+    @property
+    def radius(self) -> float:
+        """Radius of the sphere."""
+        return float(self.representation.GetRadius())
+
+    @radius.setter
+    def radius(self, value) -> None:
+        self.representation.SetRadius(float(value))
+
+    # ── visual styling ────────────────────────────────────────────────────
+
+    def color(self, c) -> "SphereWidget":
+        """Set the sphere surface color."""
+        self.representation.GetSphereProperty().SetColor(get_color(c))
+        return self
+
+    def alpha(self, value: float) -> "SphereWidget":
+        """Set the sphere surface opacity."""
+        self.representation.GetSphereProperty().SetOpacity(value)
+        return self
+
+    def lw(self, value: int) -> "SphereWidget":
+        """Set the wireframe line width (when in wireframe mode)."""
+        self.representation.GetSphereProperty().SetLineWidth(value)
+        return self
+
+    # ── lifecycle ─────────────────────────────────────────────────────────
+
+    def add_to(self, plt) -> "SphereWidget":
+        """Add the widget to a `Plotter` instance and enable it."""
+        self.widget.SetInteractor(plt.interactor)
+        self.widget.SetCurrentRenderer(plt.renderer)
+        bounds = plt.renderer.ComputeVisiblePropBounds()
+        if any(b != 0 for b in bounds):
+            self.representation.PlaceWidget(bounds)
+            # Restore center/radius — PlaceWidget resets them
+            c, r = self.center.copy(), self.radius
+            self.representation.SetCenter(list(c))
+            self.representation.SetRadius(r)
+        self.widget.On()
+        if self.widget not in plt.widgets:
+            plt.widgets.append(self.widget)
+        return self
+
+    def remove_from(self, plt) -> "SphereWidget":
+        """Remove the widget from a `Plotter` instance."""
+        self.widget.Off()
+        if self.widget in plt.widgets:
+            plt.widgets.remove(self.widget)
+        return self
+
+    def on(self) -> "SphereWidget":
+        """Enable the widget."""
+        self.widget.On()
+        return self
+
+    def off(self) -> "SphereWidget":
+        """Disable the widget."""
+        self.widget.Off()
+        return self
+
+    def toggle(self) -> "SphereWidget":
+        """Toggle the widget on/off."""
+        if self.widget.GetEnabled():
+            self.widget.Off()
+        else:
+            self.widget.On()
+        return self
+
+    def is_enabled(self) -> bool:
+        """Return True if the widget is currently enabled."""
+        return bool(self.widget.GetEnabled())
+
+    # ── observers ─────────────────────────────────────────────────────────
+
+    def add_observer(self, event, func, priority=1) -> int:
+        """Add an observer callback for a widget event."""
+        event = utils.get_vtk_name_event(event)
+        return self.widget.AddObserver(event, func, priority)
+
+    def remove_observer(self, cid: int) -> "SphereWidget":
+        """Remove an observer by its callback id."""
+        self.widget.RemoveObserver(cid)
+        return self
+
+    def remove_observers(self, event="") -> "SphereWidget":
+        """Remove all observers, or those for a specific event."""
+        if event:
+            self.widget.RemoveObservers(utils.get_vtk_name_event(event))
+        else:
+            self.widget.RemoveAllObservers()
+        return self
+
+    # ── output ────────────────────────────────────────────────────────────
+
+    def get_sphere(self) -> "vedo.Sphere":
+        """Return the current sphere as a `vedo.Sphere` object."""
+        return vedo.shapes.Sphere(self.center, r=self.radius)
+
+    def __repr__(self) -> str:
+        return (
+            f"SphereWidget(center={self.center.tolist()}, radius={self.radius:.4g})"
+        )
+
+
 class SplineTool(vtki.vtkContourWidget):
     """
     Spline tool, draw a spline through a set of points interactively.

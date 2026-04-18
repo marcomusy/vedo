@@ -18,7 +18,7 @@ _LAZY_EXPORT_MAP, __all__ = build_attr_map(
     ("vedo.addons.core", ["Goniometer", "Light", "ScalarBar", "ScalarBar3D"]),
     ("vedo.addons.axes", ["Axes", "add_global_axes"]),
     ("vedo.addons.widgets", ["ButtonWidget", "Button", "DrawingWidget"]),
-    ("vedo.addons.interaction", ["LineWidget", "PointCloudWidget", "SplineTool"]),
+    ("vedo.addons.interaction", ["LineWidget", "SphereWidget", "PointCloudWidget", "SplineTool"]),
     ("vedo.addons.ui", ["Flagpost", "Icon", "LegendBox"]),
     ("vedo.addons.sliders", ["SliderWidget", "Slider2D", "Slider3D"]),
     (

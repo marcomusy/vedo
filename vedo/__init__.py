@@ -316,6 +316,7 @@ _LAZY_EXPORT_MAP, _LAZY_EXPORTS = build_attr_map(
             "RulerAxes",
             "DistanceTool",
             "LineWidget",
+            "SphereWidget",
             "SplineTool",
             "DrawingWidget",
             "Goniometer",
