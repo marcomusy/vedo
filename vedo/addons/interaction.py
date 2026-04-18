@@ -719,6 +719,243 @@ class SphereWidget:
         )
 
 
+class CylinderWidget:
+    """
+    An interactive widget to place and resize a 3D cylinder.
+
+    The cylinder axis, center, and radius can be manipulated interactively.
+    Use `add_to(plotter)` to activate the widget in a scene.
+    Read back `center`, `radius`, `axis`, and `points` in an observer callback.
+
+    Example:
+        ```python
+        from vedo import Plotter, UnstructuredGrid, dataurl
+        from vedo.addons import CylinderWidget
+
+        def on_move(widget, event):
+            print(cw.center, cw.radius, cw.axis)
+
+        domain = UnstructuredGrid(dataurl + "comb_domain.vtu")
+        plt = Plotter()
+        cw = CylinderWidget((5, 0, 30), domain, r=2, axis=(0, 0, 1))
+        cw.add_to(plt)
+        cw.add_observer("interaction", on_move)
+        plt.show().close()
+        ```
+    """
+
+    def __init__(
+        self,
+        center,
+        bounds,
+        r=1.0,
+        axis=(1, 0, 0),
+        c="green5",
+        alpha=0.3,
+        res=12,
+    ):
+        """
+        Create an interactive cylinder widget.
+
+        Args:
+            center (list): world coordinates of the cylinder center.
+            bounds (list, vedo object): placement bounds as `[xmin,xmax, ymin,ymax, zmin,zmax]`
+                or any vedo object whose `.bounds()` is used.
+            r (float): cylinder radius.
+            axis (list): unit vector along the cylinder axis.
+            c (color): color of the cylinder surface.
+            alpha (float): opacity of the cylinder surface.
+            res (int, tuple): resolution as `(radial, axial)` or a single int for both.
+        """
+        self.name = "CylinderWidget"
+        self.widget = vtki.new("ImplicitCylinderWidget")
+        self.representation = vtki.new("ImplicitCylinderRepresentation")
+        if utils.is_sequence(res):
+            self._res_r, self._res_a = int(res[0]), int(res[1])
+        else:
+            self._res_r = self._res_a = int(res)
+
+        self.widget.SetRepresentation(self.representation)
+        self.representation.DrawCylinderOn()
+        self.representation.GetOutlineProperty().SetOpacity(0)
+        self.representation.GetSelectedOutlineProperty().SetOpacity(0)
+        self.representation.GetEdgesProperty().SetOpacity(0)
+        self.representation.OutlineTranslationOff()
+
+        c_ = get_color(c)
+        cp = self.representation.GetCylinderProperty()
+        cp.SetColor(c_)
+        cp.SetOpacity(alpha)
+
+        sp = self.representation.GetSelectedCylinderProperty() if hasattr(
+            self.representation, "GetSelectedCylinderProperty") else None
+        if sp:
+            sp.SetColor(get_color("red3"))
+            sp.SetOpacity(min(alpha + 0.2, 1.0))
+
+        ap = self.representation.GetAxisProperty()
+        ap.SetColor(c_)
+        ap.SetLineWidth(2)
+
+        if hasattr(bounds, "bounds"):
+            bounds = bounds.bounds()
+        bounds = np.asarray(bounds, dtype=float)
+        # Use tight bounds around the cylinder so the visual is not clipped.
+        # Half-length is derived from the domain diagonal so the cylinder
+        # reaches across the scene naturally.
+        c = np.asarray(center, dtype=float)
+        half_len = np.linalg.norm(bounds[1::2] - bounds[::2]) / 2
+        pad = max(float(r), half_len)
+        tight = [c[0]-pad, c[0]+pad, c[1]-pad, c[1]+pad, c[2]-pad, c[2]+pad]
+        self.representation.PlaceWidget(tight)
+        self.representation.SetCenter(list(c))
+        self.representation.SetAxis(list(axis))
+        self.representation.SetRadius(float(r))
+
+    # ── geometry properties ───────────────────────────────────────────────
+
+    @property
+    def center(self) -> np.ndarray:
+        """World position of the cylinder center."""
+        return np.array(self.representation.GetCenter())
+
+    @center.setter
+    def center(self, value) -> None:
+        self.representation.SetCenter(list(value))
+
+    @property
+    def radius(self) -> float:
+        """Radius of the cylinder."""
+        return float(self.representation.GetRadius())
+
+    @radius.setter
+    def radius(self, value) -> None:
+        self.representation.SetRadius(float(value))
+
+    @property
+    def axis(self) -> np.ndarray:
+        """Unit vector along the cylinder axis."""
+        a = np.array(self.representation.GetAxis())
+        n = np.linalg.norm(a)
+        return a / n if n > 0 else a
+
+    @axis.setter
+    def axis(self, value) -> None:
+        self.representation.SetAxis(list(value))
+
+    @property
+    def length(self) -> float:
+        """Cylinder length derived from the widget placement bounds."""
+        b = np.array(self.representation.GetWidgetBounds())
+        ax = self.axis
+        corners = np.array([[b[i], b[j], b[k]]
+            for i in [0, 1] for j in [2, 3] for k in [4, 5]])
+        projs = corners @ ax
+        return float(projs.max() - projs.min())
+
+    @property
+    def points(self) -> np.ndarray:
+        """
+        Return surface points of the cylinder as a (N, 3) array.
+        Points are sampled with `res` circumferential divisions and 2 rows
+        (top/bottom caps), derived analytically from center, axis, and radius.
+        """
+        ax = self.axis
+        half = self.length / 2
+        perp = np.array([1, 0, 0]) if abs(ax[0]) < 0.9 else np.array([0, 1, 0])
+        e1 = np.cross(ax, perp); e1 /= np.linalg.norm(e1)
+        e2 = np.cross(ax, e1)
+
+        u = np.linspace(0, 2 * np.pi, self._res_r, endpoint=False)
+        v = np.linspace(-half, half, self._res_a)
+        uu, vv = np.meshgrid(u, v)
+
+        pts = (
+            self.center
+            + self.radius * (np.cos(uu)[..., None] * e1 + np.sin(uu)[..., None] * e2)
+            + vv[..., None] * ax
+        )
+        return pts.reshape(-1, 3)
+
+    # ── visual styling ────────────────────────────────────────────────────
+
+    def color(self, c) -> "CylinderWidget":
+        """Set the cylinder surface color."""
+        self.representation.GetCylinderProperty().SetColor(get_color(c))
+        return self
+
+    def alpha(self, value: float) -> "CylinderWidget":
+        """Set the cylinder surface opacity."""
+        self.representation.GetCylinderProperty().SetOpacity(value)
+        return self
+
+    # ── lifecycle ─────────────────────────────────────────────────────────
+
+    def add_to(self, plt) -> "CylinderWidget":
+        """Add the widget to a `Plotter` instance and enable it."""
+        self.widget.SetInteractor(plt.interactor)
+        self.widget.SetCurrentRenderer(plt.renderer)
+        self.widget.On()
+        if self.widget not in plt.widgets:
+            plt.widgets.append(self.widget)
+        return self
+
+    def remove_from(self, plt) -> "CylinderWidget":
+        """Remove the widget from a `Plotter` instance."""
+        self.widget.Off()
+        if self.widget in plt.widgets:
+            plt.widgets.remove(self.widget)
+        return self
+
+    def on(self) -> "CylinderWidget":
+        """Enable the widget."""
+        self.widget.On()
+        return self
+
+    def off(self) -> "CylinderWidget":
+        """Disable the widget."""
+        self.widget.Off()
+        return self
+
+    def toggle(self) -> "CylinderWidget":
+        """Toggle the widget on/off."""
+        if self.widget.GetEnabled():
+            self.widget.Off()
+        else:
+            self.widget.On()
+        return self
+
+    def is_enabled(self) -> bool:
+        """Return True if the widget is currently enabled."""
+        return bool(self.widget.GetEnabled())
+
+    # ── observers ─────────────────────────────────────────────────────────
+
+    def add_observer(self, event, func, priority=1) -> int:
+        """Add an observer callback for a widget event."""
+        event = utils.get_vtk_name_event(event)
+        return self.widget.AddObserver(event, func, priority)
+
+    def remove_observer(self, cid: int) -> "CylinderWidget":
+        """Remove an observer by its callback id."""
+        self.widget.RemoveObserver(cid)
+        return self
+
+    def remove_observers(self, event="") -> "CylinderWidget":
+        """Remove all observers, or those for a specific event."""
+        if event:
+            self.widget.RemoveObservers(utils.get_vtk_name_event(event))
+        else:
+            self.widget.RemoveAllObservers()
+        return self
+
+    def __repr__(self) -> str:
+        return (
+            f"CylinderWidget(center={self.center.tolist()}, "
+            f"radius={self.radius:.4g}, axis={self.axis.tolist()})"
+        )
+
+
 class SplineTool(vtki.vtkContourWidget):
     """
     Spline tool, draw a spline through a set of points interactively.
