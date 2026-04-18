@@ -89,6 +89,275 @@ class PointCloudWidget:
         return np.array(v)
 
 
+class LineWidget:
+    """
+    An interactive widget to place and manipulate a 3D line segment.
+
+    Two draggable sphere handles mark the endpoints. The line can be
+    translated, scaled, and its endpoints repositioned interactively.
+
+    Use `add_to(plotter)` to activate the widget in a scene.
+    Read back `p1`/`p2` inside an observer callback to get updated positions.
+
+    Example:
+        ```python
+        from vedo import Plotter, Sphere
+        from vedo.addons import LineWidget
+
+        def on_move(widget, event):
+            print(widget.p1, "->", widget.p2, "  length:", round(widget.length, 3))
+
+        plt = Plotter()
+        plt += Sphere().alpha(0.3)
+        lw = LineWidget((-0.5, 0, 0), (0.5, 0, 0))
+        lw.add_to(plt)
+        lw.add_observer("interaction", on_move)
+        plt.show().close()
+        ```
+    """
+
+    def __init__(
+        self,
+        p1=(-0.5, 0, 0),
+        p2=(0.5, 0, 0),
+        lc="k3",
+        pc="k4",
+        lw=2,
+        ps=10,
+        alpha=1.0,
+    ):
+        """
+        Create an interactive line-segment widget.
+
+        Args:
+            p1 (list): world coordinates of the first endpoint.
+            p2 (list): world coordinates of the second endpoint.
+            lc (color): color of the line.
+            pc (color): color of the endpoint handles.
+            lw (int): line width in pixels.
+            ps (int): handle sphere size (pixels).
+            alpha (float): opacity of the line and handles.
+
+        Examples:
+            - [line_widget.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/line_widget.py)
+        """
+        self.name = "LineWidget"
+        self.widget = vtki.new("LineWidget2")
+        self.representation = vtki.new("LineRepresentation")
+        self._callback_id = None
+
+        self.representation.SetPoint1WorldPosition(list(p1))
+        self.representation.SetPoint2WorldPosition(list(p2))
+
+        lc_ = get_color(lc)
+        pc_ = get_color(pc)
+
+        lp = self.representation.GetLineProperty()
+        lp.SetColor(lc_)
+        lp.SetLineWidth(lw)
+        lp.SetOpacity(alpha)
+        lp.LightingOff()
+
+        for ep_prop in (
+            self.representation.GetEndPointProperty(),
+            self.representation.GetEndPoint2Property(),
+        ):
+            ep_prop.SetColor(pc_)
+            ep_prop.SetOpacity(alpha)
+            ep_prop.RenderPointsAsSpheresOn()
+
+        for sel_prop in (
+            self.representation.GetSelectedEndPointProperty(),
+            self.representation.GetSelectedEndPoint2Property(),
+        ):
+            sel_prop.SetColor(get_color("red3"))
+            sel_prop.SetOpacity(alpha)
+            sel_prop.RenderPointsAsSpheresOn()
+
+        self.representation.SetHandleSize(ps)
+        self.widget.SetRepresentation(self.representation)
+
+    # ── geometry properties ───────────────────────────────────────────────
+
+    @property
+    def p1(self) -> np.ndarray:
+        """World position of the first endpoint."""
+        return np.array(self.representation.GetPoint1WorldPosition())
+
+    @p1.setter
+    def p1(self, value) -> None:
+        self.representation.SetPoint1WorldPosition(list(value))
+
+    @property
+    def p2(self) -> np.ndarray:
+        """World position of the second endpoint."""
+        return np.array(self.representation.GetPoint2WorldPosition())
+
+    @p2.setter
+    def p2(self, value) -> None:
+        self.representation.SetPoint2WorldPosition(list(value))
+
+    @property
+    def midpoint(self) -> np.ndarray:
+        """Midpoint of the line segment."""
+        return (self.p1 + self.p2) / 2
+
+    @property
+    def length(self) -> float:
+        """Length of the line segment."""
+        return float(np.linalg.norm(self.p2 - self.p1))
+
+    @property
+    def direction(self) -> np.ndarray:
+        """Unit vector from p1 to p2. Returns zeros if the two points coincide."""
+        d = self.p2 - self.p1
+        n = np.linalg.norm(d)
+        return d / n if n > 0 else d
+
+    # ── visual styling ────────────────────────────────────────────────────
+
+    def line_color(self, c) -> "LineWidget":
+        """Set the color of the line."""
+        self.representation.GetLineProperty().SetColor(get_color(c))
+        return self
+
+    def handle_color(self, c) -> "LineWidget":
+        """Set the color of both endpoint handles."""
+        c_ = get_color(c)
+        self.representation.GetEndPointProperty().SetColor(c_)
+        self.representation.GetEndPoint2Property().SetColor(c_)
+        return self
+
+    def lw(self, value: int) -> "LineWidget":
+        """Set the line width in pixels."""
+        self.representation.GetLineProperty().SetLineWidth(value)
+        return self
+
+    def ps(self, value: int) -> "LineWidget":
+        """Set the handle sphere size in pixels."""
+        self.representation.SetHandleSize(value)
+        return self
+
+    def show_distance(self, value=True, fmt="{:.3g}") -> "LineWidget":
+        """
+        Show or hide the distance annotation along the line.
+
+        Args:
+            value (bool): whether to show the annotation.
+            fmt (str): Python format string used for the numeric label.
+        """
+        self.representation.SetDistanceAnnotationVisibility(value)
+        if value:
+            self.representation.SetDistanceAnnotationFormat(
+                fmt.replace("{:.3g}", "%-#6.3g")
+                   .replace("{:.2f}", "%-#6.2f")
+                   .replace("{:.1f}", "%-#6.1f")
+            )
+        return self
+
+    # ── lifecycle ─────────────────────────────────────────────────────────
+
+    def add_to(self, plt) -> "LineWidget":
+        """
+        Add the widget to a `Plotter` instance and enable it.
+
+        Args:
+            plt (Plotter): the target plotter.
+        """
+        _p1 = self.p1.copy()
+        _p2 = self.p2.copy()
+        self.widget.SetInteractor(plt.interactor)
+        self.widget.SetCurrentRenderer(plt.renderer)
+        self.representation.PlaceWidget(plt.renderer.ComputeVisiblePropBounds())
+        # PlaceWidget resets endpoint positions — restore the user-specified ones
+        self.representation.SetPoint1WorldPosition(list(_p1))
+        self.representation.SetPoint2WorldPosition(list(_p2))
+        self.widget.On()
+        if self.widget not in plt.widgets:
+            plt.widgets.append(self.widget)
+        return self
+
+    def remove_from(self, plt) -> "LineWidget":
+        """Remove the widget from a `Plotter` instance."""
+        self.widget.Off()
+        if self.widget in plt.widgets:
+            plt.widgets.remove(self.widget)
+        return self
+
+    def on(self) -> "LineWidget":
+        """Enable the widget."""
+        self.widget.On()
+        return self
+
+    def off(self) -> "LineWidget":
+        """Disable the widget."""
+        self.widget.Off()
+        return self
+
+    def toggle(self) -> "LineWidget":
+        """Toggle the widget on/off."""
+        if self.widget.GetEnabled():
+            self.widget.Off()
+        else:
+            self.widget.On()
+        return self
+
+    def is_enabled(self) -> bool:
+        """Return True if the widget is currently enabled."""
+        return bool(self.widget.GetEnabled())
+
+    # ── observers ─────────────────────────────────────────────────────────
+
+    def add_observer(self, event, func, priority=1) -> int:
+        """
+        Add an observer callback to the widget.
+
+        The callback receives `(widget, event_name)` and can read
+        `widget.p1`, `widget.p2`, `widget.length`, etc.
+
+        Args:
+            event (str): event name, e.g. `"interaction"`, `"start"`, `"end"`.
+            func (callable): callback function.
+            priority (int): observer priority.
+
+        Returns:
+            int: observer id (use with `remove_observer`).
+        """
+        event = utils.get_vtk_name_event(event)
+        return self.widget.AddObserver(event, func, priority)
+
+    def remove_observer(self, cid: int) -> "LineWidget":
+        """Remove a specific observer by its id."""
+        self.widget.RemoveObserver(cid)
+        return self
+
+    def remove_observers(self, event="") -> "LineWidget":
+        """Remove all observers, or only those for a specific event."""
+        if not event:
+            self.widget.RemoveAllObservers()
+        else:
+            self.widget.RemoveObservers(utils.get_vtk_name_event(event))
+        return self
+
+    # ── output ────────────────────────────────────────────────────────────
+
+    def get_line(self) -> "vedo.Line":
+        """
+        Return the current widget state as a `vedo.Line` object.
+
+        Useful for extracting geometry after interaction.
+        """
+        pd = vtki.vtkPolyData()
+        self.representation.GetPolyData(pd)
+        return vedo.Line(self.p1, self.p2)
+
+    def __repr__(self) -> str:
+        return (
+            f"LineWidget(p1={self.p1.tolist()}, p2={self.p2.tolist()}, "
+            f"length={self.length:.4g})"
+        )
+
+
 class SplineTool(vtki.vtkContourWidget):
     """
     Spline tool, draw a spline through a set of points interactively.

@@ -657,6 +657,8 @@ for name in [
     location[name] = "vtkInteractionWidgets"
 
 location["vtkCameraOrientationWidget"] = "vtkInteractionWidgets"
+location["vtkLineWidget2"] = "vtkInteractionWidgets"
+location["vtkLineRepresentation"] = "vtkInteractionWidgets"
 
 for name in [
     "vtkAnnotatedCubeActor",
