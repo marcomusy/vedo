@@ -916,7 +916,7 @@ class PointsVisual(
         Examples:
             - [clone2d.py](https://github.com/marcomusy/vedo/tree/master/examples/extras/clone2d.py)
 
-                ![](https://vedo.embl.es/images/other/clone2d.png)
+                ![](https://vedo.embl.es/images/extras/clone2d.png)
         """
         # assembly.Assembly.clone2d() superseeds this method
         if scale is not None:

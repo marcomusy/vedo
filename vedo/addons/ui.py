@@ -68,7 +68,7 @@ class Flagpost(vtki.vtkFlagpoleLabel):
         Examples:
             - [flag_labels2.py](https://github.com/marcomusy/vedo/tree/master/examples/extras/flag_labels2.py)
 
-            ![](https://vedo.embl.es/images/other/flag_labels2.png)
+            ![](https://vedo.embl.es/images/extras/flag_labels2.png)
         """
 
         super().__init__()
@@ -272,7 +272,7 @@ class LegendBox(vtki.vtkLegendBoxActor):
             - [flag_labels1.py](https://github.com/marcomusy/vedo/tree/master/examples/extras/flag_labels1.py)
             - [flag_labels2.py](https://github.com/marcomusy/vedo/tree/master/examples/extras/flag_labels2.py)
 
-                ![](https://vedo.embl.es/images/other/flag_labels.png)
+                ![](https://vedo.embl.es/images/extras/flag_labels.png)
         """
         super().__init__()
 

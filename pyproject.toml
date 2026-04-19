@@ -84,7 +84,7 @@ packages = [
     "vedo.examples.pyplot",
     "vedo.examples.animation",
     "vedo.examples.volumetric",
-    "vedo.examples.other"
+    "vedo.examples.extras"
 ]
 
 include-package-data = true

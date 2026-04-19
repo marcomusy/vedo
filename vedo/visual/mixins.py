@@ -712,7 +712,7 @@ class PointsVisualAnnotationsMixin:
         Examples:
             - [flag_labels2.py](https://github.com/marcomusy/vedo/tree/master/examples/extras/flag_labels2.py)
 
-            ![](https://vedo.embl.es/images/other/flag_labels2.png)
+            ![](https://vedo.embl.es/images/extras/flag_labels2.png)
         """
         if txt is None:
             if self.filename:

@@ -74,8 +74,8 @@ def export(plotter, filename="scene.npz", binary=False, backend=None, backend_op
     Export scene to file to HTML, X3D or Numpy file.
 
     Examples:
-        - [export_x3d.py](https://github.com/marcomusy/vedo/tree/master/examples/other/export_x3d.py)
-        - [export_numpy.py](https://github.com/marcomusy/vedo/tree/master/examples/other/export_numpy.py)
+        - [export_x3d.py](https://github.com/marcomusy/vedo/tree/master/examples/extras/export_x3d.py)
+        - [export_numpy.py](https://github.com/marcomusy/vedo/tree/master/examples/extras/export_numpy.py)
     """
     vedo.file_io.export_window(
         filename,

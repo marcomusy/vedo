@@ -1373,7 +1373,7 @@ class TransformInterpolator:
             plt += Cube().color(i).apply_transform(T)
         plt.show().close()
         ```
-        ![](https://vedo.embl.es/images/other/transf_interp.png)
+        ![](https://vedo.embl.es/images/extras/transf_interp.png)
     """
 
     def __init__(self, mode="linear") -> None:
