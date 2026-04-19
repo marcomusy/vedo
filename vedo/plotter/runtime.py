@@ -206,8 +206,6 @@ def show(
             from your eyes to the screen.
         interactive (bool):
             pause and interact with window (True) or continue execution (False)
-        rate (float):
-            maximum rate of `show()` in Hertz
         mode (int, str):
             set the type of interaction:
             - 0 = TrackballCamera [default]
@@ -367,7 +365,8 @@ def _configure_renderer_common(renderer, bg, bg2=None):
 
 
 def _apply_gradient_mode(renderer):
-    if vedo.settings.background_gradient_orientation <= 0:
+    ori = vedo.settings.background_gradient_orientation
+    if ori <= 0:
         return
     try:
         modes = [
@@ -375,7 +374,7 @@ def _apply_gradient_mode(renderer):
             vtki.vtkViewport.GradientModes.VTK_GRADIENT_RADIAL_VIEWPORT_FARTHEST_SIDE,
             vtki.vtkViewport.GradientModes.VTK_GRADIENT_RADIAL_VIEWPORT_FARTHEST_CORNER,
         ]
-        renderer.SetGradientMode(modes[vedo.settings.background_gradient_orientation - 1])
+        renderer.SetGradientMode(modes[min(ori - 1, len(modes) - 1)])
         renderer.GradientBackgroundOn()
     except AttributeError:
         pass
@@ -456,7 +455,6 @@ class Plotter:
         if interactive is None:
             interactive = bool(N in (0, 1, None) and shape == (1, 1))
         self._interactive = interactive
-        # print("interactive", interactive, N, shape)
 
         self.objects = []  # list of objects to be shown
         self.clicked_object = None  # holds the object that has been clicked
@@ -666,7 +664,7 @@ class Plotter:
                     self.background_renderer = vtki.vtkRenderer()
                     self.background_renderer.SetLayer(0)
                     self.background_renderer.InteractiveOff()
-                    self.background_renderer.SetBackground(vedo.get_color(bg2))
+                    self.background_renderer.SetBackground(vedo.get_color(bg2 or "black"))
                     image_actor = vedo.Image(self.backgrcol).actor
                     self.window.AddRenderer(self.background_renderer)
                     self.background_renderer.AddActor(image_actor)
@@ -797,7 +795,7 @@ class Plotter:
             )
             rows.append(
                 (
-                    "activ renderer",
+                    "active renderer",
                     f"nr.{self.renderers.index(self.renderer)} (out of {len(self.renderers)} renderers)",
                 )
             )
@@ -882,11 +880,13 @@ class Plotter:
                 raise TypeError
 
         if yren is not None:
+            if len(self.shape) != 2:
+                vedo.logger.error("at(nx, ny) requires a 2D grid shape.")
+                raise RuntimeError
             a, b = self.shape
             x, y = nren, yren
             nren_orig = nren
             nren = x * b + y
-            # print("at (", x, y, ")  -> ren", nren)
             if nren < 0 or nren > len(self.renderers) or x >= a or y >= b:
                 vedo.logger.error(f"at({nren_orig, yren}) is malformed!")
                 raise RuntimeError
@@ -912,7 +912,7 @@ class Plotter:
                     0 = vertical,
                     1 = horizontal,
                     2 = radial farthest side,
-                    3 = radia farthest corner.
+                    3 = radial farthest corner.
         """
         if not self.renderers:
             return self
@@ -945,7 +945,7 @@ class Plotter:
 
     ##################################################################
 
-    def check_actors_trasform(self, at=None) -> Self:
+    def check_actors_transform(self, at=None) -> Self:
         """
         Reset the transformation matrix of all actors at specified renderer.
         This is only useful when actors have been moved/rotated/scaled manually
@@ -993,12 +993,11 @@ class Plotter:
         erec = vtki.new("InteractorEventRecorder")
         erec.SetInteractor(self.interactor)
         if not filename:
-            if not os.path.exists(vedo.settings.cache_directory):
-                os.makedirs(vedo.settings.cache_directory)
             home_dir = os.path.expanduser("~")
             filename = os.path.join(
                 home_dir, vedo.settings.cache_directory, "vedo", "recorded_events.log"
             )
+            os.makedirs(os.path.dirname(filename), exist_ok=True)
             print("Events will be recorded in", filename)
         erec.SetFileName(filename)
         erec.SetKeyPressActivationValue("R")
@@ -1223,10 +1222,12 @@ class Plotter:
             c,
             show_value,
         )
-        slider3d.renderer = self.renderer
-        slider3d.interactor = self.interactor
-        slider3d.on()
-        self.sliders.append([slider3d, sliderfunc])
+        if self.renderer:
+            slider3d.renderer = self.renderer
+            if self.interactor:
+                slider3d.interactor = self.interactor
+                slider3d.on()
+                self.sliders.append([slider3d, sliderfunc])
         return slider3d
 
     def add_button(
@@ -1332,6 +1333,10 @@ class Plotter:
 
             ![](https://vedo.embl.es/images/basic/spline_tool.png)
         """
+        if not self.interactor:
+            return addons.SplineTool(
+                points, pc, ps, lc, ac, lw, alpha, closed, ontop, can_add_nodes
+            )
         sw = addons.SplineTool(
             points, pc, ps, lc, ac, lw, alpha, closed, ontop, can_add_nodes
         )
@@ -1358,11 +1363,11 @@ class Plotter:
             - [icon.py](https://github.com/marcomusy/vedo/tree/master/examples/extras/icon.py)
         """
         iconw = addons.Icon(icon, pos, size)
-
-        iconw.SetInteractor(self.interactor)
-        iconw.EnabledOn()
-        iconw.InteractiveOff()
-        self.widgets.append(iconw)
+        if self.interactor:
+            iconw.SetInteractor(self.interactor)
+            iconw.EnabledOn()
+            iconw.InteractiveOff()
+            self.widgets.append(iconw)
         return iconw
 
     def add_global_axes(self, axtype=None, c=None) -> Self:
@@ -1402,7 +1407,6 @@ class Plotter:
             )
             ```
 
-        Examples:
             - [custom_axes1.py](https://github.com/marcomusy/vedo/blob/master/examples/pyplot/custom_axes1.py)
             - [custom_axes2.py](https://github.com/marcomusy/vedo/blob/master/examples/pyplot/custom_axes2.py)
             - [custom_axes3.py](https://github.com/marcomusy/vedo/blob/master/examples/pyplot/custom_axes3.py)
@@ -1462,10 +1466,11 @@ class Plotter:
             return None
 
         if obj is None:
-            self.hint_widget.EnabledOff()
-            self.hint_widget.SetInteractor(None)
-            self.hint_widget = None
-            return self.hint_widget
+            if self.hint_widget:
+                self.hint_widget.EnabledOff()
+                self.hint_widget.SetInteractor(None)
+                self.hint_widget = None
+            return None
 
         if text is False and self.hint_widget:
             self.hint_widget.RemoveBalloon(obj)
@@ -1828,8 +1833,7 @@ class Plotter:
                 _bgcol = (0.9, 0.9, 0.9)
                 if sum(bgcol) > 1.5:
                     _bgcol = (0.1, 0.1, 0.1)
-                if len(set(_bgcol).intersection(bgcol)) < 3:
-                    hoverlegend.color(_bgcol)
+                hoverlegend.color(_bgcol)
 
             if hoverlegend.mapper.GetInput() != t:
                 hoverlegend.mapper.SetInput(t)
@@ -2001,16 +2005,15 @@ class Plotter:
                     acs.InitTraversal()
                     for i in range(acs.GetNumberOfItems()):
                         act = acs.GetNextItem()
-                        if isinstance(act, vedo.shapes.Text2D):
+                        if hasattr(act, "SetInput"):  # vtkTextActor
                             aposx, aposy = act.GetPosition()
                             if aposx < 0.01 and aposy > 0.99:  # "top-left"
-                                act.text(a)  # update content! no appending nada
+                                act.SetInput(a)  # update content! no appending nada
                                 changed = True
                                 break
                     if not changed:
                         out = vedo.shapes.Text2D(a)  # append a new one
                         scanned_acts.append(out)
-                # scanned_acts.append(vedo.shapes.Text2D(a)) # naive version
 
             elif isinstance(a, vtki.vtkPolyData):
                 scanned_acts.append(vedo.Mesh(a).actor)
@@ -2368,7 +2371,7 @@ class Plotter:
                         int(pid)
                     )
                     x.activateWithOptions_(NSApplicationActivateIgnoringOtherApps)
-            except:
+            except Exception:
                 # vedo.logger.debug("On Mac OSX try: pip install pyobjc")
                 pass
 
@@ -2386,15 +2389,11 @@ class Plotter:
                 return self
 
             if rate:
-                if self.clock is None:  # set clock and limit rate
-                    self._clockt0 = time.time()
-                    self.clock = 0.0
-                else:
-                    t = time.time() - self._clockt0
-                    elapsed = t - self.clock
-                    mint = 1.0 / rate
-                    if elapsed < mint:
-                        time.sleep(mint - elapsed)
+                t = time.time() - self._clockt0
+                elapsed = t - self.clock
+                mint = 1.0 / rate
+                if elapsed < mint:
+                    time.sleep(mint - elapsed)
                     self.clock = time.time() - self._clockt0
 
         # 2d ####################################################################
@@ -2434,7 +2433,6 @@ class Plotter:
             )
             return None
 
-        options = dict(options)
         pos = options.pop("pos", 0)
         size = options.pop("size", 0.1)
         c = options.pop("c", "lb")

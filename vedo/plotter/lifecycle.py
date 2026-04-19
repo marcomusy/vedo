@@ -124,7 +124,7 @@ def clear(plotter, at=None, deep=False) -> Any:
 def break_interaction(plotter) -> Any:
     """Break window interaction and return to the python execution flow"""
     if plotter.interactor:
-        plotter.check_actors_trasform()
+        plotter.check_actors_transform()
         plotter.interactor.ExitCallback()
     return plotter
 
@@ -160,7 +160,7 @@ def user_mode(plotter, mode) -> Any:
 
     curr_style = plotter.interactor.GetInteractorStyle().GetClassName()
     if curr_style.endswith("Actor"):
-        plotter.check_actors_trasform()
+        plotter.check_actors_transform()
 
     if isinstance(mode, (str, int)):
         # Set the style of interaction
