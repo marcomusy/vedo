@@ -69,14 +69,10 @@ def interactive(plotter) -> Any:
         return plotter
     plotter.initialize_interactor()
     if plotter.interactor:
-        # print("plotter.interactor.Start()")
         plotter.interactor.Start()
-        # print("plotter.interactor.Start() done")
         if plotter._must_close_now:
-            # print("plotter.interactor.TerminateApp()")
-            if plotter.interactor:
-                plotter.interactor.GetRenderWindow().Finalize()
-                plotter.interactor.TerminateApp()
+            plotter.interactor.GetRenderWindow().Finalize()
+            plotter.interactor.TerminateApp()
             plotter.interactor = None
             plotter.window = None
             plotter.renderer = None
@@ -103,6 +99,8 @@ def clear(plotter, at=None, deep=False) -> Any:
 
     if deep:
         renderer.RemoveAllViewProps()
+        plotter.objects.clear()
+        plotter.axes_instances.clear()
     else:
         for ob in set(
             plotter.get_meshes()
@@ -161,7 +159,6 @@ def user_mode(plotter, mode) -> Any:
         return plotter
 
     curr_style = plotter.interactor.GetInteractorStyle().GetClassName()
-    # print("Current style:", curr_style)
     if curr_style.endswith("Actor"):
         plotter.check_actors_trasform()
 
@@ -255,20 +252,19 @@ def close(plotter) -> Any:
 
     plotter._must_close_now = True
 
-    if plotter.interactor:
-        if plotter._interactive:
-            plotter.break_interaction()
-        plotter.interactor.GetRenderWindow().Finalize()
-        try:
-            if "Darwin" in vedo.sys_platform:
-                plotter.interactor.ProcessEvents()
-        except:
-            pass
-        plotter.interactor.TerminateApp()
-        plotter.camera = None
-        plotter.renderer = None
-        plotter.renderers = []
-        plotter.window = None
-        plotter.interactor = None
+    if plotter._interactive:
+        plotter.break_interaction()
+    plotter.interactor.GetRenderWindow().Finalize()
+    try:
+        if "Darwin" in vedo.sys_platform:
+            plotter.interactor.ProcessEvents()
+    except Exception:
+        pass
+    plotter.interactor.TerminateApp()
+    plotter.camera = None
+    plotter.renderer = None
+    plotter.renderers = []
+    plotter.window = None
+    plotter.interactor = None
 
     return plotter  # must return plotter for consistency
