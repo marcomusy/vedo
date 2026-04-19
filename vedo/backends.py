@@ -40,33 +40,48 @@ def _import_trame_components():
         ("trame.widgets.vuetify", "vue2"),
     ]
 
+    def _safe_import(module_name):
+        try:
+            return import_module(module_name)
+        except ModuleNotFoundError as exc:
+            # Fall back only when the candidate package itself is missing.
+            if exc.name == module_name:
+                return None
+            raise
+
     VAppLayout = None
     client_type = None
     for module_name, attr_name, layout_client_type in layout_paths:
+        module = _safe_import(module_name)
+        if module is None:
+            continue
         try:
-            VAppLayout = getattr(import_module(module_name), attr_name)
-            client_type = layout_client_type
-            break
-        except ImportError:
-            pass
+            VAppLayout = getattr(module, attr_name)
+        except AttributeError as exc:
+            raise ImportError(
+                f"Trame layout module {module_name!r} does not provide {attr_name!r}. "
+                "This trame installation is incompatible with vedo."
+            ) from exc
+        client_type = layout_client_type
+        break
 
-    t_vtk = None
-    try:
-        t_vtk = import_module("trame.widgets.vtk")
-    except ImportError:
-        pass
+    t_vtk = _safe_import("trame.widgets.vtk")
 
     vuetify = None
     vuetify_client_type = None
     for module_name, current_client_type in vuetify_paths:
-        try:
-            vuetify = import_module(module_name)
-            vuetify_client_type = current_client_type
-            break
-        except ImportError:
-            pass
+        vuetify = _safe_import(module_name)
+        if vuetify is None:
+            continue
+        vuetify_client_type = current_client_type
+        break
 
-    if VAppLayout and t_vtk and vuetify and client_type is not None:
+    if (
+        VAppLayout is not None
+        and t_vtk is not None
+        and vuetify is not None
+        and client_type is not None
+    ):
         if client_type != vuetify_client_type:
             raise ImportError(
                 f"Trame version mismatch: layout loaded as {client_type} but "
@@ -111,6 +126,14 @@ def get_notebook_backend(actors2show=()):
     if not backend:
         vedo.logger.error("No jupyter backend configured (settings.default_backend is empty).")
         return None
+    if not isinstance(backend, str):
+        vedo.logger.error(
+            "Invalid jupyter backend configuration: "
+            f"settings.default_backend must be a string, got {type(backend).__name__}."
+        )
+        return None
+
+    backend = backend.strip().lower()
 
     if backend == "2d":
         return start_2d()
@@ -143,14 +166,15 @@ def start_2d():
 
     if hasattr(plt, "window") and plt.window:
         try:
-            nn = vedo.file_io.screenshot(asarray=True, scale=1)
-            pil_img = PIL.Image.fromarray(nn)
+            image_array = vedo.file_io.screenshot(asarray=True, scale=1)
+            pil_img = PIL.Image.fromarray(image_array)
         except Exception as e:
             vedo.logger.warning(f"2d backend screenshot failed: {e}")
             return None
 
         vedo.set_current_notebook_plotter(pil_img)
-        if settings.backend_autoclose and plt.renderer == plt.renderers[-1]:
+        renderers = getattr(plt, "renderers", ())
+        if settings.backend_autoclose and renderers and plt.renderer == renderers[-1]:
             plt.close()
         return pil_img
 
@@ -233,12 +257,17 @@ def start_k3d(actors2show):
         scals_min, scals_max = mapper.GetScalarRange()
         color_attribute = (vtkscals.GetName(), scals_min, scals_max)
         lut = mapper.GetLookupTable()
+        if lut is None:
+            return polydata, vtkscals, color_attribute, None, (scals_min, scals_max)
         lut.Build()
         kcmap = []
         nlut = lut.GetNumberOfTableValues()
+        if nlut <= 0:
+            return polydata, vtkscals, color_attribute, None, (scals_min, scals_max)
+        lut_scale = max(nlut - 1, 1)
         for i in range(nlut):
             r, g, b, _ = lut.GetTableValue(i)
-            kcmap += [i / (nlut - 1), r, g, b]
+            kcmap += [i / lut_scale, r, g, b]
         return polydata, vtkscals, color_attribute, kcmap, (scals_min, scals_max)
 
     already_has_axes = False
@@ -304,7 +333,7 @@ def start_k3d(actors2show):
         if hasattr(ia, "filename"):
             if ia.filename:
                 name = os.path.basename(ia.filename)
-            if ia.name:
+            if hasattr(ia, "name") and ia.name:
                 name = os.path.basename(ia.name)
 
         ################################################################## scalars
@@ -379,7 +408,7 @@ def start_k3d(actors2show):
             and ia.dataset.GetNumberOfPolys() == 0
         ):
             for i, ln_idx in enumerate(ia.lines):
-                if i > 200:
+                if i >= 200:
                     vedo.logger.warning("in k3d, nr. of lines is limited to 200.")
                     break
 
@@ -409,6 +438,7 @@ def start_k3d(actors2show):
                 vcols = ia.dataset.GetPointData().GetScalars()
 
                 if not vcols:
+                    iacloned = ia.clone()
                     iacloned.map_cells_to_points()
                     vcols = iacloned.dataset.GetPointData().GetScalars()
 
@@ -502,9 +532,13 @@ def start_trame():
         vedo.logger.error("No active Plotter found for the trame backend.")
         return None
     if hasattr(plt, "window") and plt.window:
-        _warn_trame_xopengl(plt.window)
+        render_window = plt.window
+        _warn_trame_xopengl(render_window)
         plt.renderer.ResetCamera()
-        server = get_server("jupyter-1", client_type=client_type)
+        server_name = f"vedo-jupyter-{id(plt)}"
+        view_ref = f"vedo_trame_view_{id(plt)}"
+        scene_state_key = f"scene_{view_ref}"
+        server = get_server(server_name, client_type=client_type)
         state, ctrl = server.state, server.controller
         plt.server = server
         plt.controller = ctrl
@@ -514,8 +548,8 @@ def start_trame():
             with layout.root:
                 with vuetify.VContainer(fluid=True, classes="pa-0 fill-height"):
                     plt.reset_camera()
-                    server.state["scene_vedo_trame_view"] = {}
-                    view = t_vtk.VtkLocalView(plt.window, ref="vedo_trame_view")
+                    server.state[scene_state_key] = {}
+                    view = t_vtk.VtkLocalView(render_window, ref=view_ref)
                     ctrl.view_update = view.update
                     ctrl.view_reset_camera = view.reset_camera
                     ctrl.view_update()
@@ -524,7 +558,7 @@ def start_trame():
         vedo.set_current_notebook_plotter(layout)
         return layout
     vedo.logger.error("No window present for the trame backend.")
-    return
+    return None
 
 
 #####################################################################################
@@ -552,6 +586,10 @@ def start_ipyvtklink():
 
 #####################################################################################
 def _rgb2int(rgb_tuple):
-    # Return the int number of a color from (r,g,b), with 0<r<1 etc.
-    rgb = (int(rgb_tuple[0] * 255), int(rgb_tuple[1] * 255), int(rgb_tuple[2] * 255))
-    return 65536 * rgb[0] + 256 * rgb[1] + rgb[2]
+    """Return the packed RGB integer from normalized color components."""
+    rgb = np.asarray(rgb_tuple, dtype=float).ravel()
+    if rgb.size < 3:
+        raise ValueError("rgb_tuple must contain at least 3 components.")
+    rgb = np.clip(rgb[:3], 0.0, 1.0)
+    rgb = np.rint(rgb * 255).astype(np.uint32)
+    return int(65536 * rgb[0] + 256 * rgb[1] + rgb[2])

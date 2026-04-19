@@ -11,6 +11,16 @@ All notable changes to the project will be documented in this file.
   and Gaussian cube loading support
 - improve CLI startup and terminal output with Rich logging, better lazy imports,
   improved VTK load feedback, and better trame backend compatibility
+- fix `backends.py`: trame component imports now distinguish missing packages from
+  internal import failures and report incompatible layouts cleanly; notebook backend
+  dispatch now validates and normalizes `settings.default_backend`; the 2D backend
+  guards renderer autoclose against empty renderer lists; the k3d backend avoids
+  mutating the original mesh when mapping cell colors to points, handles degenerate
+  lookup tables safely, tightens line export limits, and hardens object-name lookup;
+  the trame backend now uses per-plotter server/view ids to avoid state collisions
+  across multiple notebook views; `_rgb2int()` now clamps inputs, ignores any alpha
+  component, validates underspecified colors, and rounds instead of truncating when
+  converting normalized colors to packed integers
 - improve Slicer3DPlotter, plotting/runtime behavior, scene object lookup,
   follow-camera handling for Text3D, and fix a range of runtime/API issues
 - fix `colors.py`: `_setup_colormaps` now raises distinct `RuntimeError` messages for missing
