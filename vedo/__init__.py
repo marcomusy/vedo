@@ -36,7 +36,7 @@ except PackageNotFoundError:
 
 from vedo.plotter import session as _session
 
-from vedo.settings import Settings
+from vedo.settings import Settings, init_colab, start_xvfb
 
 settings = Settings()
 
@@ -369,6 +369,8 @@ __all__ = [
     "dot",
     "cross",
     "settings",
+    "init_colab",
+    "start_xvfb",
     "installdir",
     "dataurl",
     "fonts_path",

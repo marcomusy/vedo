@@ -140,7 +140,7 @@ Check for more examples in the
 Start your notebook with:
 ```python
 import vedo
-vedo.settings.init_colab()
+vedo.init_colab()
 ```
 
 Then test it with:
@@ -161,7 +161,13 @@ sudo apt install libgl1-mesa-glx libgl1-mesa-dev xvfb
 pip install vedo
 ```
 
-- Execute on startup:
+- Either start Xvfb from Python before rendering:
+```python
+import vedo
+vedo.start_xvfb()
+```
+
+- Or execute the equivalent on startup via bash:
 ```bash
 set -x
 export DISPLAY=:99.0

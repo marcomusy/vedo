@@ -51,10 +51,20 @@ All notable changes to the project will be documented in this file.
   `minimize()` resets paths on repeated calls; `_summary_rows` uses enumerate and avoids
   recomputing the Hessian on every `__str__` call
 - migrate the project documentation to MkDocs and refresh a large set of examples
+- refactor `Settings` class: `__str__` now generates output from live values grouped
+  by category (General, Rendering, Lighting, …) instead of scraping the class docstring;
+  `init_colab()` and `start_xvfb()` moved to module-level functions and exported from
+  `vedo` directly; `__getitem__` now raises `KeyError` (not `AttributeError`) for unknown
+  keys; `__contains__` added so `"key" in settings` works; `dry_run_mode` included in
+  `keys()` / `values()` / `items()` and visible in `print(settings)`; `clear_cache` path
+  construction made explicit for absolute vs. relative `cache_directory`; `set_vtk_verbosity`
+  now imports through `vedo.vtkclasses` instead of `vtkmodules` directly
 
 
 ## Soft-breaking Changes
 - examples under `examples/other/` were moved to `examples/extras/`
+- `settings.init_colab()` and `Settings.start_xvfb()` are now module-level functions;
+  use `vedo.init_colab()` and `vedo.start_xvfb()` instead
 
 
 ## Hard-breaking Changes
