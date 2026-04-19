@@ -21,13 +21,13 @@ __all__ = ["CommonAlgorithms"]
 class CommonAlgorithms:
     """Common algorithms."""
 
-    def _ensure_cell_locator(cls):
+    def _ensure_cell_locator(self):
         """Build and cache a cell locator for the current dataset if missing."""
-        if not cls.cell_locator:
-            cls.cell_locator = vtki.new("CellTreeLocator")
-            cls.cell_locator.SetDataSet(cls.dataset)
-            cls.cell_locator.BuildLocator()
-        return cls.cell_locator
+        if not self.cell_locator:
+            self.cell_locator = vtki.new("CellTreeLocator")
+            self.cell_locator.SetDataSet(self.dataset)
+            self.cell_locator.BuildLocator()
+        return self.cell_locator
 
     @staticmethod
     def _vtk_idlist_to_numpy(id_list) -> np.ndarray:
@@ -47,7 +47,7 @@ class CommonAlgorithms:
         return conn
 
     def _run_gradient_filter(
-        cls,
+        self,
         mode: str,
         on: str,
         array_name: str | None,
@@ -57,12 +57,12 @@ class CommonAlgorithms:
         """Shared implementation for gradient/divergence/vorticity extraction."""
         gf = vtki.new("GradientFilter")
         if on.startswith("p"):
-            varr = cls.dataset.GetPointData()
+            varr = self.dataset.GetPointData()
             assoc = vtki.vtkDataObject.FIELD_ASSOCIATION_POINTS
             def getter(out):
                 return out.GetPointData().GetArray(result_name)
         elif on.startswith("c"):
-            varr = cls.dataset.GetCellData()
+            varr = self.dataset.GetCellData()
             assoc = vtki.vtkDataObject.FIELD_ASSOCIATION_CELLS
             def getter(out):
                 return out.GetCellData().GetArray(result_name)
@@ -83,13 +83,22 @@ class CommonAlgorithms:
                     raise RuntimeError(f"in {mode}(): no vectors found for '{on}'")
             array_name = active.GetName()
 
-        gf.SetInputData(cls.dataset)
+        gf.SetInputData(self.dataset)
         gf.SetInputScalars(assoc, array_name)
         gf.SetFasterApproximation(fast)
 
-        gf.ComputeGradientOn() if mode == "gradient" else gf.ComputeGradientOff()
-        gf.ComputeDivergenceOn() if mode == "divergence" else gf.ComputeDivergenceOff()
-        gf.ComputeVorticityOn() if mode == "vorticity" else gf.ComputeVorticityOff()
+        if mode == "gradient":
+            gf.ComputeGradientOn()
+        else:
+            gf.ComputeGradientOff()
+        if mode == "divergence":
+            gf.ComputeDivergenceOn()
+        else:
+            gf.ComputeDivergenceOff()
+        if mode == "vorticity":
+            gf.ComputeVorticityOn()
+        else:
+            gf.ComputeVorticityOff()
 
         if mode == "gradient":
             gf.SetResultArrayName(result_name)
@@ -104,9 +113,9 @@ class CommonAlgorithms:
     # ====== Data access ======
 
     @property
-    def pointdata(cls):
+    def pointdata(self):
         """
-        Create and/or return a `numpy.array` associated to points (vertices).
+        Return a `DataArrayHelper` to access point (vertex) data arrays.
         A data array can be indexed either as a string or by an integer number.
         E.g.:  `myobj.pointdata["arrayname"]`
 
@@ -115,12 +124,12 @@ class CommonAlgorithms:
             - `myobj.pointdata.select(name)` makes this array the active one.
             - `myobj.pointdata.remove(name)` removes this array.
         """
-        return DataArrayHelper(cls, 0)
+        return DataArrayHelper(self, 0)
 
     @property
-    def celldata(cls):
+    def celldata(self):
         """
-        Create and/or return a `numpy.array` associated to cells (faces).
+        Return a `DataArrayHelper` to access cell (face) data arrays.
         A data array can be indexed either as a string or by an integer number.
         E.g.:  `myobj.celldata["arrayname"]`
 
@@ -129,12 +138,12 @@ class CommonAlgorithms:
             - `myobj.celldata.select(name)` makes this array the active one.
             - `myobj.celldata.remove(name)` removes this array.
         """
-        return DataArrayHelper(cls, 1)
+        return DataArrayHelper(self, 1)
 
     @property
-    def metadata(cls):
+    def metadata(self):
         """
-        Create and/or return a `numpy.array` associated to neither cells nor faces.
+        Return a `DataArrayHelper` to access field data arrays (not tied to points or cells).
         A data array can be indexed either as a string or by an integer number.
         E.g.:  `myobj.metadata["arrayname"]`
 
@@ -143,40 +152,40 @@ class CommonAlgorithms:
             - `myobj.metadata.select(name)` makes this array the active one.
             - `myobj.metadata.remove(name)` removes this array.
         """
-        return DataArrayHelper(cls, 2)
+        return DataArrayHelper(self, 2)
 
     # ====== Object info ======
 
-    def rename(cls, newname: str) -> Self:
+    def rename(self, newname: str) -> Self:
         """Rename the object"""
         try:
-            cls.name = newname
+            self.name = newname
         except AttributeError:
-            vedo.logger.error(f"Cannot rename object {cls}")
-        return cls
+            vedo.logger.error(f"Cannot rename object {self}")
+        return self
 
-    def memory_address(cls) -> int:
+    def memory_address(self) -> int:
         """
         Return a unique memory address integer which may serve as the ID of the
         object, or passed to c++ code.
         """
         # https://www.linkedin.com/pulse/speedup-your-code-accessing-python-vtk-objects-from-c-pletzer/
         # https://github.com/tfmoraes/polydata_connectivity
-        return int(cls.dataset.GetAddressAsString("")[5:], 16)
+        return int(self.dataset.GetAddressAsString("")[5:], 16)
 
-    def memory_size(cls) -> int:
+    def memory_size(self) -> int:
         """Return the approximate memory size of the object in kilobytes."""
-        return cls.dataset.GetActualMemorySize()
+        return self.dataset.GetActualMemorySize()
 
-    def modified(cls) -> Self:
+    def modified(self) -> Self:
         """Use in conjunction with `tonumpy()` to update any modifications to the image array."""
-        cls.dataset.GetPointData().Modified()
-        scals = cls.dataset.GetPointData().GetScalars()
+        self.dataset.GetPointData().Modified()
+        scals = self.dataset.GetPointData().GetScalars()
         if scals:
             scals.Modified()
-        return cls
+        return self
 
-    def box(cls, scale=1, padding=0) -> vedo.Mesh:
+    def box(self, scale=1, padding=0) -> vedo.Mesh:
         """
         Return the bounding box as a new `Mesh` object.
 
@@ -186,7 +195,7 @@ class CommonAlgorithms:
             padding (float, list):
                 a constant padding can be added (can be a list `[padx,pady,padz]`)
         """
-        b = cls.bounds()
+        b = self.bounds()
         if not utils.is_sequence(padding):
             padding = [padding, padding, padding]
         length, width, height = b[1] - b[0], b[3] - b[2], b[5] - b[4]
@@ -201,7 +210,7 @@ class CommonAlgorithms:
         )
         try:
             pr = vtki.vtkProperty()
-            pr.DeepCopy(cls.properties)
+            pr.DeepCopy(self.properties)
             bx.actor.SetProperty(pr)
             bx.properties = pr
         except (AttributeError, TypeError):
@@ -209,104 +218,104 @@ class CommonAlgorithms:
         bx.flat().lighting("off").wireframe(True)
         return bx
 
-    def update_dataset(cls, dataset, **kwargs) -> Self:
+    def update_dataset(self, dataset, **kwargs) -> Self:
         """Update the dataset of the object with the provided VTK dataset."""
-        cls._update(dataset, **kwargs)
-        return cls
+        self._update(dataset, **kwargs)
+        return self
 
     # ====== Geometry & bounds ======
 
-    def bounds(cls) -> np.ndarray:
+    def bounds(self) -> np.ndarray:
         """
         Get the object bounds.
         Returns a list in format `[xmin,xmax, ymin,ymax, zmin,zmax]`.
         """
         try:  # this is very slow for large meshes
-            pts = cls.vertices
+            pts = self.vertices
             xmin, ymin, zmin = np.nanmin(pts, axis=0)
             xmax, ymax, zmax = np.nanmax(pts, axis=0)
             return np.array([xmin, xmax, ymin, ymax, zmin, zmax])
         except (AttributeError, ValueError):
-            return np.array(cls.dataset.GetBounds())
+            return np.array(self.dataset.GetBounds())
 
-    def xbounds(cls) -> np.ndarray:
+    def xbounds(self) -> np.ndarray:
         """Get the bounds `[xmin,xmax]`."""
-        b = cls.bounds()
+        b = self.bounds()
         return np.array([b[0], b[1]])
 
-    def ybounds(cls) -> np.ndarray:
+    def ybounds(self) -> np.ndarray:
         """Get the bounds `[ymin,ymax]`."""
-        b = cls.bounds()
+        b = self.bounds()
         return np.array([b[2], b[3]])
 
-    def zbounds(cls) -> np.ndarray:
+    def zbounds(self) -> np.ndarray:
         """Get the bounds `[zmin,zmax]`."""
-        b = cls.bounds()
+        b = self.bounds()
         return np.array([b[4], b[5]])
 
-    def diagonal_size(cls) -> float:
+    def diagonal_size(self) -> float:
         """Get the length of the diagonal of the bounding box."""
-        b = cls.bounds()
+        b = self.bounds()
         return np.sqrt((b[1] - b[0]) ** 2 + (b[3] - b[2]) ** 2 + (b[5] - b[4]) ** 2)
 
-    def average_size(cls) -> float:
+    def average_size(self) -> float:
         """
         Calculate and return the average size of the object.
         This is the mean of the vertex distances from the center of mass.
         """
-        coords = cls.vertices
-        cm = np.mean(coords, axis=0)
+        coords = self.vertices
         if coords.shape[0] == 0:
             return 0.0
+        cm = np.mean(coords, axis=0)
         cc = coords - cm
         return np.mean(np.linalg.norm(cc, axis=1))
 
-    def center_of_mass(cls) -> np.ndarray:
+    def center_of_mass(self) -> np.ndarray:
         """Get the center of mass of the object."""
-        if isinstance(cls, (vedo.RectilinearGrid, vedo.Volume)):
-            return np.array(cls.dataset.GetCenter())
+        if isinstance(self, (vedo.RectilinearGrid, vedo.Volume)):
+            return np.array(self.dataset.GetCenter())
         cmf = vtki.new("CenterOfMass")
-        cmf.SetInputData(cls.dataset)
+        cmf.SetInputData(self.dataset)
         cmf.Update()
         c = cmf.GetCenter()
         return np.array(c)
 
-    def copy_data_from(cls, obj: Any) -> Self:
+    def copy_data_from(self, obj: Any) -> Self:
         """Copy all data (point and cell data) from this input object"""
-        cls.dataset.GetPointData().PassData(obj.dataset.GetPointData())
-        cls.dataset.GetCellData().PassData(obj.dataset.GetCellData())
-        cls.pipeline = utils.OperationNode(
+        self.dataset.GetPointData().PassData(obj.dataset.GetPointData())
+        self.dataset.GetCellData().PassData(obj.dataset.GetCellData())
+        self.pipeline = utils.OperationNode(
             "copy_data_from",
-            parents=[cls, obj],
+            parents=[self, obj],
             comment=f"{obj.__class__.__name__}",
             shape="note",
             c="#ccc5b9",
         )
-        return cls
+        return self
 
-    def inputdata(cls):
+    def inputdata(self):
         """Obsolete, use `.dataset` instead."""
         vedo.logger.warning(
             "'inputdata()' is obsolete, use '.dataset' instead."
         )
-        return cls.dataset
+        return self.dataset
 
     @property
-    def npoints(cls):
+    def npoints(self):
         """Retrieve the number of points (or vertices)."""
-        return cls.dataset.GetNumberOfPoints()
+        return self.dataset.GetNumberOfPoints()
 
     @property
-    def nvertices(cls):
+    def nvertices(self):
         """Retrieve the number of vertices (or points)."""
-        return cls.dataset.GetNumberOfPoints()
+        return self.dataset.GetNumberOfPoints()
 
     @property
-    def ncells(cls):
+    def ncells(self):
         """Retrieve the number of cells."""
-        return cls.dataset.GetNumberOfCells()
+        return self.dataset.GetNumberOfCells()
 
-    def cell_centers(cls, copy_arrays=False) -> vedo.Points:
+    def cell_centers(self, copy_arrays=False) -> vedo.Points:
         """
         Get the coordinates of the cell centers as a `Points` object.
 
@@ -316,17 +325,17 @@ class CommonAlgorithms:
         vcen = vtki.new("CellCenters")
         vcen.SetCopyArrays(copy_arrays)
         vcen.SetVertexCells(copy_arrays)
-        vcen.SetInputData(cls.dataset)
+        vcen.SetInputData(self.dataset)
         vcen.Update()
         vpts = vedo.Points(vcen.GetOutput())
         if copy_arrays:
-            vpts.copy_properties_from(cls)
+            vpts.copy_properties_from(self)
         return vpts
 
     # ====== Connectivity ======
 
     @property
-    def lines(cls):
+    def lines(self):
         """
         Get lines connectivity ids as a python array
         formatted as `[[id0,id1], [id3,id4], ...]`
@@ -334,13 +343,13 @@ class CommonAlgorithms:
         See also: `lines_as_flat_array()`.
         """
         try:
-            arr1d = _get_data_legacy_format(cls.dataset.GetLines())
+            arr1d = _get_data_legacy_format(self.dataset.GetLines())
         except AttributeError:
             return []
-        return cls._parse_vtk_flat_connectivity(arr1d)
+        return self._parse_vtk_flat_connectivity(arr1d)
 
     @property
-    def lines_as_flat_array(cls):
+    def lines_as_flat_array(self):
         """
         Get lines connectivity ids as a 1D numpy array.
         Format is e.g. [2,  10,20,  3, 10,11,12,  2, 70,80, ...]
@@ -348,25 +357,25 @@ class CommonAlgorithms:
         See also: `lines()`.
         """
         try:
-            return _get_data_legacy_format(cls.dataset.GetLines())
+            return _get_data_legacy_format(self.dataset.GetLines())
         except AttributeError:
             return np.array([], dtype=int)
 
     # ====== Spatial queries ======
 
-    def mark_boundaries(cls) -> Self:
+    def mark_boundaries(self) -> Self:
         """
         Mark cells and vertices if they lie on a boundary.
         A new array called `BoundaryCells` is added to the object.
         """
         mb = vtki.new("MarkBoundaryFilter")
-        mb.SetInputData(cls.dataset)
+        mb.SetInputData(self.dataset)
         mb.Update()
-        cls.dataset.DeepCopy(mb.GetOutput())
-        cls.pipeline = utils.OperationNode("mark_boundaries", parents=[cls])
-        return cls
+        self.dataset.DeepCopy(mb.GetOutput())
+        self.pipeline = utils.OperationNode("mark_boundaries", parents=[self])
+        return self
 
-    def find_cells_in_bounds(cls, xbounds=(), ybounds=(), zbounds=()) -> np.ndarray:
+    def find_cells_in_bounds(self, xbounds=(), ybounds=(), zbounds=()) -> np.ndarray:
         """
         Find cells that are within the specified bounds.
         """
@@ -378,7 +387,7 @@ class CommonAlgorithms:
         if len(xbounds) == 6:
             bnds = xbounds
         else:
-            bnds = list(cls.bounds())
+            bnds = list(self.bounds())
             if len(xbounds) == 2:
                 bnds[0] = xbounds[0]
                 bnds[1] = xbounds[1]
@@ -390,26 +399,26 @@ class CommonAlgorithms:
                 bnds[5] = zbounds[1]
 
         cell_ids = vtki.vtkIdList()
-        cls._ensure_cell_locator().FindCellsWithinBounds(bnds, cell_ids)
-        return cls._vtk_idlist_to_numpy(cell_ids)
+        self._ensure_cell_locator().FindCellsWithinBounds(bnds, cell_ids)
+        return self._vtk_idlist_to_numpy(cell_ids)
 
-    def find_cells_along_line(cls, p0, p1, tol=0.001) -> np.ndarray:
+    def find_cells_along_line(self, p0, p1, tol=0.001) -> np.ndarray:
         """
         Find cells that are intersected by a line segment.
         """
         cell_ids = vtki.vtkIdList()
-        cls._ensure_cell_locator().FindCellsAlongLine(p0, p1, tol, cell_ids)
-        return cls._vtk_idlist_to_numpy(cell_ids)
+        self._ensure_cell_locator().FindCellsAlongLine(p0, p1, tol, cell_ids)
+        return self._vtk_idlist_to_numpy(cell_ids)
 
-    def find_cells_along_plane(cls, origin, normal, tol=0.001) -> np.ndarray:
+    def find_cells_along_plane(self, origin, normal, tol=0.001) -> np.ndarray:
         """
         Find cells that are intersected by a plane.
         """
         cell_ids = vtki.vtkIdList()
-        cls._ensure_cell_locator().FindCellsAlongPlane(origin, normal, tol, cell_ids)
-        return cls._vtk_idlist_to_numpy(cell_ids)
+        self._ensure_cell_locator().FindCellsAlongPlane(origin, normal, tol, cell_ids)
+        return self._vtk_idlist_to_numpy(cell_ids)
 
-    def keep_cell_types(cls, types=()):
+    def keep_cell_types(self, types=()) -> Self:
         """
         Extract cells of a specific type.
 
@@ -417,7 +426,7 @@ class CommonAlgorithms:
         https://vtk.org/doc/nightly/html/vtkCellType_8h.html
         """
         fe = vtki.new("ExtractCellsByType")
-        fe.SetInputData(cls.dataset)
+        fe.SetInputData(self.dataset)
         for t in types:
             try:
                 if utils.is_integer(t):
@@ -429,12 +438,12 @@ class CommonAlgorithms:
                 continue
             fe.AddCellType(it)
         fe.Update()
-        cls._update(fe.GetOutput())
-        return cls
+        self._update(fe.GetOutput())
+        return self
 
     # ====== Data mapping ======
 
-    def map_cells_to_points(cls, arrays=(), move=False) -> Self:
+    def map_cells_to_points(self, arrays=(), move=False) -> Self:
         """
         Interpolate cell data (i.e., data specified per cell or face)
         into point data (i.e., data specified at each vertex).
@@ -446,7 +455,7 @@ class CommonAlgorithms:
         Set `move=True` to delete the original `celldata` array.
         """
         c2p = vtki.new("CellDataToPointData")
-        c2p.SetInputData(cls.dataset)
+        c2p.SetInputData(self.dataset)
         if not move:
             c2p.PassCellDataOn()
         if arrays:
@@ -457,104 +466,104 @@ class CommonAlgorithms:
         else:
             c2p.ProcessAllArraysOn()
         c2p.Update()
-        cls._update(c2p.GetOutput(), reset_locators=False)
-        cls.mapper.SetScalarModeToUsePointData()
-        cls.pipeline = utils.OperationNode("map_cells_to_points", parents=[cls])
-        return cls
+        self._update(c2p.GetOutput(), reset_locators=False)
+        self.mapper.SetScalarModeToUsePointData()
+        self.pipeline = utils.OperationNode("map_cells_to_points", parents=[self])
+        return self
 
     # ====== Vertices & coordinates ======
 
     @property
-    def vertices(cls):
+    def vertices(self):
         """
         Return the vertices (points) coordinates.
         This is equivalent to `points` and `coordinates`.
         """
         try:
             # for polydata and unstructured grid
-            vpts = cls.dataset.GetPoints()
+            vpts = self.dataset.GetPoints()
             if vpts is None:
                 return np.array([], dtype=float)
             varr = vpts.GetData()
         except AttributeError:
             # 'vtkImageData' object has no attribute 'GetPoints'
             v2p = vtki.new("ImageToPoints")
-            v2p.SetInputData(cls.dataset)
+            v2p.SetInputData(self.dataset)
             v2p.Update()
             varr = v2p.GetOutput().GetPoints().GetData()
         except TypeError:
             # for RectilinearGrid, StructuredGrid
             vpts = vtki.vtkPoints()
-            cls.dataset.GetPoints(vpts)
+            self.dataset.GetPoints(vpts)
             varr = vpts.GetData()
         except Exception as e:
-            vedo.logger.error(f"Cannot get point coords for {type(cls)}: {e}")
+            vedo.logger.error(f"Cannot get point coords for {type(self)}: {e}")
             return np.array([], dtype=float)
 
         return utils.vtk2numpy(varr)
 
     # setter
     @vertices.setter
-    def vertices(cls, pts):
+    def vertices(self, pts):
         """Set vertex coordinates. Same as `points` and `coordinates`."""
         pts = utils.make3d(pts)
         arr = utils.numpy2vtk(pts, dtype=np.float32)
         try:
-            vpts = cls.dataset.GetPoints()
+            vpts = self.dataset.GetPoints()
             vpts.SetData(arr)
             vpts.Modified()
         except (AttributeError, TypeError):
-            vedo.logger.error(f"Cannot set vertices for {type(cls)}")
+            vedo.logger.error(f"Cannot set vertices for {type(self)}")
             return
         # reset mesh to identity matrix position/rotation:
-        cls.point_locator = None
-        cls.cell_locator = None
-        cls.line_locator = None
-        cls.transform = LinearTransform()
+        self.point_locator = None
+        self.cell_locator = None
+        self.line_locator = None
+        self.transform = LinearTransform()
 
     @property
-    def points(cls):
+    def points(self):
         """
         Return the points coordinates. Same as `vertices` and `coordinates`.
         """
-        return cls.vertices
+        return self.vertices
 
     @points.setter
-    def points(cls, pts):
+    def points(self, pts):
         """Set points coordinates. Same as `vertices` and `coordinates`."""
-        cls.vertices = pts
+        self.vertices = pts
 
     @property
-    def coordinates(cls):
+    def coordinates(self):
         """Return the points coordinates. Same as `vertices` and `points`."""
-        return cls.vertices
+        return self.vertices
 
     @coordinates.setter
-    def coordinates(cls, pts):
+    def coordinates(self, pts):
         """Set points coordinates. Same as `vertices` and `points`."""
-        cls.vertices = pts
+        self.vertices = pts
 
     # ====== Cell connectivity ======
 
     @property
-    def cells_as_flat_array(cls):
+    def cells_as_flat_array(self):
         """
         Get cell connectivity ids as a 1D numpy array.
         Format is e.g. [3,  10,20,30  4, 10,11,12,13  ...]
         """
         try:
             # valid for unstructured grid
-            arr1d = _get_data_legacy_format(cls.dataset.GetCells())
+            arr1d = _get_data_legacy_format(self.dataset.GetCells())
         except AttributeError:
             try:
                 # valid for polydata
-                arr1d = _get_data_legacy_format(cls.dataset.GetPolys())
+                arr1d = _get_data_legacy_format(self.dataset.GetPolys())
             except AttributeError:
                 return np.array([], dtype=int)
         return arr1d
 
     @property
-    def cells(cls):
+    def cells(self):
         """
         Get the cells connectivity ids as a numpy array.
 
@@ -562,16 +571,16 @@ class CommonAlgorithms:
         """
         try:
             # valid for unstructured grid
-            arr1d = _get_data_legacy_format(cls.dataset.GetCells())
+            arr1d = _get_data_legacy_format(self.dataset.GetCells())
         except AttributeError:
             try:
                 # valid for polydata
-                arr1d = _get_data_legacy_format(cls.dataset.GetPolys())
+                arr1d = _get_data_legacy_format(self.dataset.GetPolys())
             except AttributeError:
                 return []
-        return cls._parse_vtk_flat_connectivity(arr1d)
+        return self._parse_vtk_flat_connectivity(arr1d)
 
-    def cell_edge_neighbors(cls):
+    def cell_edge_neighbors(self):
         """
         Get the cell neighbor indices of each cell.
 
@@ -579,20 +588,14 @@ class CommonAlgorithms:
         """
 
         def face_to_edges(face):
-            edges = []
-            size = len(face)
-            for i in range(1, size + 1):
-                if i == size:
-                    edges.append([face[i - 1], face[0]])
-                else:
-                    edges.append([face[i - 1], face[i]])
-            return edges
+            n = len(face)
+            return [[face[i], face[(i + 1) % n]] for i in range(n)]
 
-        pd = cls.dataset
+        pd = self.dataset
         pd.BuildLinks()
 
         neicells = []
-        for i, cell in enumerate(cls.cells):
+        for i, cell in enumerate(self.cells):
             nn = []
             for edge in face_to_edges(cell):
                 neighbors = vtki.vtkIdList()
@@ -604,7 +607,7 @@ class CommonAlgorithms:
 
         return neicells
 
-    def map_points_to_cells(cls, arrays=(), move=False) -> Self:
+    def map_points_to_cells(self, arrays=(), move=False) -> Self:
         """
         Interpolate point data (i.e., data specified per point or vertex)
         into cell data (i.e., data specified per cell).
@@ -619,7 +622,7 @@ class CommonAlgorithms:
             - [mesh_map2cell.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mesh_map2cell.py)
         """
         p2c = vtki.new("PointDataToCellData")
-        p2c.SetInputData(cls.dataset)
+        p2c.SetInputData(self.dataset)
         if not move:
             p2c.PassPointDataOn()
         if arrays:
@@ -630,12 +633,12 @@ class CommonAlgorithms:
         else:
             p2c.ProcessAllArraysOn()
         p2c.Update()
-        cls._update(p2c.GetOutput(), reset_locators=False)
-        cls.mapper.SetScalarModeToUseCellData()
-        cls.pipeline = utils.OperationNode("map_points_to_cells", parents=[cls])
-        return cls
+        self._update(p2c.GetOutput(), reset_locators=False)
+        self.mapper.SetScalarModeToUseCellData()
+        self.pipeline = utils.OperationNode("map_points_to_cells", parents=[self])
+        return self
 
-    def resample_data_from(cls, source, tol=None, categorical=False) -> Self:
+    def resample_data_from(self, source, tol=None, categorical=False) -> Self:
         """
         Resample point and cell data from another dataset.
         The output has the same structure but its point data have
@@ -662,7 +665,7 @@ class CommonAlgorithms:
         ```
         """
         rs = vtki.new("ResampleWithDataSet")
-        rs.SetInputData(cls.dataset)
+        rs.SetInputData(self.dataset)
         rs.SetSourceData(source.dataset)
 
         rs.SetPassPointArrays(True)
@@ -671,20 +674,20 @@ class CommonAlgorithms:
         rs.SetCategoricalData(categorical)
 
         rs.SetComputeTolerance(True)
-        if tol:
+        if tol is not None:
             rs.SetComputeTolerance(False)
             rs.SetTolerance(tol)
         rs.Update()
-        cls._update(rs.GetOutput(), reset_locators=False)
-        cls.pipeline = utils.OperationNode(
+        self._update(rs.GetOutput(), reset_locators=False)
+        self.pipeline = utils.OperationNode(
             "resample_data_from",
             comment=f"{source.__class__.__name__}",
-            parents=[cls, source],
+            parents=[self, source],
         )
-        return cls
+        return self
 
     def interpolate_data_from(
-        cls,
+        self,
         source,
         radius=None,
         n=None,
@@ -767,25 +770,18 @@ class CommonAlgorithms:
             kern.SetRadius(radius)
             kern.SetKernelFootprintToRadius()
 
-        # remove arrays that are already present in cls dataset
-        # this is because the interpolator will ignore them otherwise
-        clsnames = []
-        for i in range(cls.dataset.GetPointData().GetNumberOfArrays()):
-            name = cls.dataset.GetPointData().GetArrayName(i)
-            clsnames.append(name)
-
-        pointsnames = []
-        for i in range(points.GetPointData().GetNumberOfArrays()):
-            name = points.GetPointData().GetArrayName(i)
-            pointsnames.append(name)
+        # remove arrays already present in self so the interpolator doesn't skip them
+        clspd = self.dataset.GetPointData()
+        clsnames = [clspd.GetArrayName(i) for i in range(clspd.GetNumberOfArrays())]
+        srcpd = points.GetPointData()
+        pointsnames = [srcpd.GetArrayName(i) for i in range(srcpd.GetNumberOfArrays())]
 
         for cname in clsnames:
             if cname in set(pointsnames) - set(exclude):
-                cls.dataset.GetPointData().RemoveArray(cname)
-                # print(f"Removed {cname} from cls dataset")
+                clspd.RemoveArray(cname)
 
         interpolator = vtki.new("PointInterpolator")
-        interpolator.SetInputData(cls.dataset)
+        interpolator.SetInputData(self.dataset)
         interpolator.SetSourceData(points)
         interpolator.SetKernel(kern)
         interpolator.SetLocator(locator)
@@ -809,14 +805,14 @@ class CommonAlgorithms:
         else:
             cpoly = interpolator.GetOutput()
 
-        cls._update(cpoly, reset_locators=False)
+        self._update(cpoly, reset_locators=False)
 
-        cls.pipeline = utils.OperationNode(
-            "interpolate_data_from", parents=[cls, source]
+        self.pipeline = utils.OperationNode(
+            "interpolate_data_from", parents=[self, source]
         )
-        return cls
+        return self
 
-    def add_ids(cls) -> Self:
+    def add_ids(self) -> Self:
         """
         Generate point and cell ids arrays.
 
@@ -828,28 +824,28 @@ class CommonAlgorithms:
                 "add_ids(): cannot instantiate vtkIdFilter/vtkGenerateIds"
             )
             raise RuntimeError("add_ids(): missing VTK ids filter")
-        ids.SetInputData(cls.dataset)
+        ids.SetInputData(self.dataset)
         ids.PointIdsOn()
         ids.CellIdsOn()
         ids.FieldDataOff()
         ids.SetPointIdsArrayName("PointID")
         ids.SetCellIdsArrayName("CellID")
         ids.Update()
-        # cls._update(ids.GetOutput(), reset_locators=False)  # https://github.com/marcomusy/vedo/issues/1267
+        # self._update(ids.GetOutput(), reset_locators=False)  # https://github.com/marcomusy/vedo/issues/1267
         point_arr = ids.GetOutput().GetPointData().GetArray("PointID")
         cell_arr = ids.GetOutput().GetCellData().GetArray("CellID")
         if point_arr:
-            cls.dataset.GetPointData().AddArray(point_arr)
+            self.dataset.GetPointData().AddArray(point_arr)
         if cell_arr:
-            cls.dataset.GetCellData().AddArray(cell_arr)
-        cls.pipeline = utils.OperationNode("add_ids", parents=[cls])
-        return cls
+            self.dataset.GetCellData().AddArray(cell_arr)
+        self.pipeline = utils.OperationNode("add_ids", parents=[self])
+        return self
 
     # ====== Field operations ======
 
-    def gradient(cls, input_array=None, on="points", fast=False) -> np.ndarray:
+    def gradient(self, input_array=None, on="points", fast=False) -> np.ndarray:
         """
-        Compute and return the gradiend of the active scalar field as a numpy array.
+        Compute and return the gradient of the active scalar field as a numpy array.
 
         Args:
             input_array (str):
@@ -866,7 +862,7 @@ class CommonAlgorithms:
 
             ![](https://user-images.githubusercontent.com/32848391/72433087-f00a8780-3798-11ea-9778-991f0abeca70.png)
         """
-        return cls._run_gradient_filter(
+        return self._run_gradient_filter(
             mode="gradient",
             on=on,
             array_name=input_array,
@@ -874,7 +870,7 @@ class CommonAlgorithms:
             result_name="Gradient",
         )
 
-    def divergence(cls, array_name=None, on="points", fast=False) -> np.ndarray:
+    def divergence(self, array_name=None, on="points", fast=False) -> np.ndarray:
         """
         Compute and return the divergence of a vector field as a numpy array.
 
@@ -888,7 +884,7 @@ class CommonAlgorithms:
                 if True, will use a less accurate algorithm
                 that performs fewer derivative calculations and is therefore faster.
         """
-        return cls._run_gradient_filter(
+        return self._run_gradient_filter(
             mode="divergence",
             on=on,
             array_name=array_name,
@@ -896,7 +892,7 @@ class CommonAlgorithms:
             result_name="Divergence",
         )
 
-    def vorticity(cls, array_name=None, on="points", fast=False) -> np.ndarray:
+    def vorticity(self, array_name=None, on="points", fast=False) -> np.ndarray:
         """
         Compute and return the vorticity of a vector field as a numpy array.
 
@@ -910,7 +906,7 @@ class CommonAlgorithms:
                 if True, will use a less accurate algorithm
                 that performs fewer derivative calculations (and is therefore faster).
         """
-        return cls._run_gradient_filter(
+        return self._run_gradient_filter(
             mode="vorticity",
             on=on,
             array_name=array_name,
@@ -919,7 +915,7 @@ class CommonAlgorithms:
         )
 
     def probe(
-        cls,
+        self,
         source,
         categorical=False,
         snap=False,
@@ -951,7 +947,7 @@ class CommonAlgorithms:
         """
         probe_filter = vtki.new("ProbeFilter")
         probe_filter.SetSourceData(source.dataset)
-        probe_filter.SetInputData(cls.dataset)
+        probe_filter.SetInputData(self.dataset)
         probe_filter.PassCellArraysOn()
         probe_filter.PassFieldArraysOn()
         probe_filter.PassPointArraysOn()
@@ -962,12 +958,12 @@ class CommonAlgorithms:
             probe_filter.SetTolerance(tol)
         probe_filter.SetSnapToCellWithClosestPoint(snap)
         probe_filter.Update()
-        cls._update(probe_filter.GetOutput(), reset_locators=False)
-        cls.pipeline = utils.OperationNode("probe", parents=[cls, source])
-        cls.pointdata.rename("vtkValidPointMask", "ValidPointMask")
-        return cls
+        self._update(probe_filter.GetOutput(), reset_locators=False)
+        self.pipeline = utils.OperationNode("probe", parents=[self, source])
+        self.pointdata.rename("vtkValidPointMask", "ValidPointMask")
+        return self
 
-    def compute_cell_size(cls) -> Self:
+    def compute_cell_size(self) -> Self:
         """
         Add to this object a cell data array
         containing the area, volume and edge length
@@ -976,7 +972,7 @@ class CommonAlgorithms:
         Array names are: `Area`, `Volume`, `Length`.
         """
         csf = vtki.new("CellSizeFilter")
-        csf.SetInputData(cls.dataset)
+        csf.SetInputData(self.dataset)
         csf.SetComputeArea(1)
         csf.SetComputeVolume(1)
         csf.SetComputeLength(1)
@@ -985,24 +981,25 @@ class CommonAlgorithms:
         csf.SetVolumeArrayName("Volume")
         csf.SetLengthArrayName("Length")
         csf.Update()
-        cls._update(csf.GetOutput(), reset_locators=False)
-        return cls
+        self._update(csf.GetOutput(), reset_locators=False)
+        self.pipeline = utils.OperationNode("compute_cell_size", parents=[self])
+        return self
 
-    def generate_random_data(cls) -> Self:
+    def generate_random_data(self) -> Self:
         """Fill a dataset with random attributes"""
         gen = vtki.new("RandomAttributeGenerator")
-        gen.SetInputData(cls.dataset)
+        gen.SetInputData(self.dataset)
         gen.GenerateAllDataOn()
         gen.SetDataTypeToFloat()
         gen.GeneratePointNormalsOff()
         gen.GeneratePointTensorsOn()
         gen.GenerateCellScalarsOn()
         gen.Update()
-        cls._update(gen.GetOutput(), reset_locators=False)
-        cls.pipeline = utils.OperationNode("generate_random_data", parents=[cls])
-        return cls
+        self._update(gen.GetOutput(), reset_locators=False)
+        self.pipeline = utils.OperationNode("generate_random_data", parents=[self])
+        return self
 
-    def integrate_data(cls) -> dict:
+    def integrate_data(self) -> dict:
         """
         Integrate point and cell data arrays while computing length,
         area or volume of the domain. It works for 1D, 2D or 3D cells.
@@ -1049,7 +1046,7 @@ class CommonAlgorithms:
             ```
         """
         vinteg = vtki.new("IntegrateAttributes")
-        vinteg.SetInputData(cls.dataset)
+        vinteg.SetInputData(self.dataset)
         vinteg.Update()
         ugrid = vedo.UnstructuredGrid(vinteg.GetOutput())
         data = dict(
@@ -1061,18 +1058,18 @@ class CommonAlgorithms:
 
     # ====== IO & conversion ======
 
-    def write(cls, filename, binary=True) -> None:
+    def write(self, filename, binary=True) -> None:
         """Write object to file."""
-        vedo.file_io.write(cls, filename, binary)
-        cls.pipeline = utils.OperationNode(
+        vedo.file_io.write(self, filename, binary)
+        self.pipeline = utils.OperationNode(
             "write",
-            parents=[cls],
+            parents=[self],
             comment=str(filename)[:15],
             shape="folder",
             c="#8a817c",
         )
 
-    def tomesh(cls, bounds=(), shrink=0) -> vedo.Mesh:
+    def tomesh(self, bounds=(), shrink=0) -> vedo.Mesh:
         """
         Extract boundary geometry from dataset (or convert data to polygonal type).
 
@@ -1089,12 +1086,12 @@ class CommonAlgorithms:
 
         if shrink:
             sf = vtki.new("ShrinkFilter")
-            sf.SetInputData(cls.dataset)
+            sf.SetInputData(self.dataset)
             sf.SetShrinkFactor(shrink)
             sf.Update()
             geo.SetInputData(sf.GetOutput())
         else:
-            geo.SetInputData(cls.dataset)
+            geo.SetInputData(self.dataset)
 
         geo.SetPassThroughCellIds(1)
         geo.SetPassThroughPointIds(1)
@@ -1107,13 +1104,13 @@ class CommonAlgorithms:
             geo.ExtentClippingOn()
         geo.Update()
         msh = vedo.mesh.Mesh(geo.GetOutput())
-        msh.pipeline = utils.OperationNode("tomesh", parents=[cls], c="#9e2a2b")
+        msh.pipeline = utils.OperationNode("tomesh", parents=[self], c="#9e2a2b")
         return msh
 
     # ====== Distance operations ======
 
     def signed_distance(
-        cls, dims=(20, 20, 20), bounds=None, invert=False, max_radius=None
+        self, dims=(20, 20, 20), bounds=None, invert=False, max_radius=None
     ) -> vedo.Volume:
         """
         Compute the `Volume` object whose voxels contains the signed distance from
@@ -1135,11 +1132,11 @@ class CommonAlgorithms:
                 ![](https://vedo.embl.es/images/basic/distance2mesh.png)
         """
         if bounds is None:
-            bounds = cls.bounds()
+            bounds = self.bounds()
         if max_radius is None:
-            max_radius = cls.diagonal_size() / 2
+            max_radius = self.diagonal_size() / 2
         dist = vtki.new("SignedDistance")
-        dist.SetInputData(cls.dataset)
+        dist.SetInputData(self.dataset)
         dist.SetRadius(max_radius)
         dist.SetBounds(bounds)
         dist.SetDimensions(dims)
@@ -1157,33 +1154,33 @@ class CommonAlgorithms:
         vol.name = "SignedDistanceVolume"
         vol.pipeline = utils.OperationNode(
             "signed_distance",
-            parents=[cls],
+            parents=[self],
             comment=f"dims={tuple(vol.dimensions())}",
             c="#e9c46a:#0096c7",
         )
         return vol
 
     def unsigned_distance(
-        cls, dims=(25, 25, 25), bounds=(), max_radius=0, cap_value=0
+        self, dims=(25, 25, 25), bounds=(), max_radius=0, cap_value=0
     ) -> vedo.Volume:
         """
         Compute the `Volume` object whose voxels contains the unsigned distance
         from the input object.
         """
         dist = vtki.new("UnsignedDistance")
-        dist.SetInputData(cls.dataset)
+        dist.SetInputData(self.dataset)
         dist.SetDimensions(dims)
 
         if len(bounds) == 6:
             dist.SetBounds(bounds)
         else:
-            dist.SetBounds(cls.bounds())
+            dist.SetBounds(self.bounds())
         if not max_radius:
-            max_radius = cls.diagonal_size() / 10
+            max_radius = self.diagonal_size() / 10
         dist.SetRadius(max_radius)
 
-        if cls.point_locator:
-            dist.SetLocator(cls.point_locator)
+        if self.point_locator:
+            dist.SetLocator(self.point_locator)
 
         if cap_value is not None:
             dist.CappingOn()
@@ -1193,12 +1190,12 @@ class CommonAlgorithms:
         vol = vedo.Volume(dist.GetOutput())
         vol.name = "UnsignedDistanceVolume"
         vol.pipeline = utils.OperationNode(
-            "unsigned_distance", parents=[cls], c="#e9c46a:#0096c7"
+            "unsigned_distance", parents=[self], c="#e9c46a:#0096c7"
         )
         return vol
 
     def smooth_data(
-        cls,
+        self,
         niter=10,
         relaxation_factor=0.1,
         strategy=0,
@@ -1269,7 +1266,7 @@ class CommonAlgorithms:
                 list of arrays to be excluded from smoothing
         """
         saf = vtki.new("AttributeSmoothingFilter")
-        saf.SetInputData(cls.dataset)
+        saf.SetInputData(self.dataset)
         saf.SetRelaxationFactor(relaxation_factor)
         saf.SetNumberOfIterations(niter)
 
@@ -1283,34 +1280,35 @@ class CommonAlgorithms:
         elif mode == "average":
             saf.SetWeightsTypeToAverage()
         else:
-            vedo.logger.error(f"smooth_data(): unknown mode {mode}")
-            raise TypeError
+            vedo.logger.error(f"smooth_data(): unknown mode '{mode}'")
+            raise TypeError(f"smooth_data(): unknown mode '{mode}', use 'distance2', 'distance', or 'average'")
 
-        saf.SetSmoothingStrategy(strategy)
         if mask is not None:
             saf.SetSmoothingStrategyToSmoothingMask()
             if isinstance(mask, str):
-                mask_ = cls.dataset.GetPointData().GetArray(mask)
+                mask_ = self.dataset.GetPointData().GetArray(mask)
                 if not mask_:
                     vedo.logger.error(f"smooth_data(): mask array {mask} not found")
-                    return cls
+                    return self
                 mask_array = vtki.vtkUnsignedCharArray()
                 mask_array.ShallowCopy(mask_)
                 mask_array.SetName(mask_.GetName())
             else:
                 mask_array = utils.numpy2vtk(mask, dtype=np.uint8)
             saf.SetSmoothingMask(mask_array)
+        else:
+            saf.SetSmoothingStrategy(strategy)
 
         saf.Update()
 
-        cls._update(saf.GetOutput())
-        cls.pipeline = utils.OperationNode(
-            "smooth_data", comment=f"strategy {strategy}", parents=[cls], c="#9e2a2b"
+        self._update(saf.GetOutput())
+        self.pipeline = utils.OperationNode(
+            "smooth_data", comment=f"strategy {strategy}", parents=[self], c="#9e2a2b"
         )
-        return cls
+        return self
 
     def compute_streamlines(
-        cls,
+        self,
         seeds: Any,
         integrator="rk4",
         direction="forward",
@@ -1349,7 +1347,7 @@ class CommonAlgorithms:
             compute_vorticity (bool):
                 whether to compute the vorticity at each streamline point
         """
-        b = cls.dataset.GetBounds()
+        b = self.dataset.GetBounds()
         size = (b[5] - b[4] + b[3] - b[2] + b[1] - b[0]) / 3
         if initial_step_size is None:
             initial_step_size = size / 1000.0
@@ -1362,10 +1360,10 @@ class CommonAlgorithms:
 
         sti = vtki.new("StreamTracer")
         sti.SetSourceData(seeds.dataset)
-        if isinstance(cls, vedo.RectilinearGrid):
-            sti.SetInputData(vedo.UnstructuredGrid(cls.dataset).dataset)
+        if isinstance(self, vedo.RectilinearGrid):
+            sti.SetInputData(vedo.UnstructuredGrid(self.dataset).dataset)
         else:
-            sti.SetInputDataObject(cls.dataset)
+            sti.SetInputDataObject(self.dataset)
 
         sti.SetInitialIntegrationStep(initial_step_size)
         sti.SetComputeVorticity(compute_vorticity)
@@ -1403,10 +1401,10 @@ class CommonAlgorithms:
 
         stlines = vedo.shapes.Lines(sti.GetOutput(), lw=4)
         stlines.name = "StreamLines"
-        cls.pipeline = utils.OperationNode(
+        self.pipeline = utils.OperationNode(
             "compute_streamlines",
             comment=f"{integrator}",
-            parents=[cls, seeds],
+            parents=[self, seeds],
             c="#9e2a2b",
         )
         return stlines
