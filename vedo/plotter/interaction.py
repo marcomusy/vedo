@@ -10,7 +10,7 @@ import numpy as np
 
 import vedo
 import vedo.vtkclasses as vtki
-from vedo import addons, utils
+from vedo import utils
 from vedo.plotter.events import Event
 
 
@@ -29,7 +29,7 @@ def fill_event(plotter, ename="", pos=(), enable_picking=True) -> Event:
 
     if len(pos) > 0:
         x, y = pos
-        plotter.interactor.SetEventPosition(pos)
+        plotter.interactor.SetEventPosition(int(x), int(y))
     else:
         x, y = plotter.interactor.GetEventPosition()
     plotter.renderer = plotter.interactor.FindPokedRenderer(x, y)
@@ -96,7 +96,10 @@ def fill_event(plotter, ename="", pos=(), enable_picking=True) -> Event:
     event.timerid = -1  # will be set by the timer wrapper function
     event.priority = -1  # will be set by the timer wrapper function
     event.time = time.time()
-    event.at = plotter.renderers.index(plotter.renderer)
+    try:
+        event.at = plotter.renderers.index(plotter.renderer)
+    except ValueError:
+        event.at = -1
     event.keypress = key
     if enable_picking:
         try:
@@ -131,12 +134,11 @@ def add_callback(
 
     Return a unique id for the callback.
 
-    The callback function (see example below) exposes a dictionary
+    The callback function (see example below) receives an `Event` object
     with the following information:
     - `name`: event name,
     - `id`: event unique identifier,
     - `priority`: event priority (float),
-    - `interactor`: the interactor object,
     - `at`: renderer nr. where the event occurred
     - `keypress`: key pressed as string
     - `actor`: object picked by the mouse
@@ -298,6 +300,10 @@ def timer_callback(plotter, action: str, timer_id=None, dt=1, one_shot=False) ->
 
         ![](https://vedo.embl.es/images/advanced/timer_callback1.jpg)
     """
+    if not plotter.interactor:
+        vedo.logger.warning("in timer_callback() no interactor is available.")
+        return -1
+
     if action in ("create", "start"):
         if "Windows" in vedo.sys_platform:
             # otherwise on windows it gets stuck
@@ -386,16 +392,20 @@ def compute_world_coordinate(
 
     if len(bounds) == 6:
         pp.SetPointBounds(bounds)
-    if pixeltol:
+    if pixeltol is not None:
         pp.SetPixelTolerance(pixeltol)
-    if worldtol:
+    if worldtol is not None:
         pp.SetWorldTolerance(worldtol)
-    if offset:
+    if offset is not None:
         pp.SetOffset(offset)
 
     worldPos: MutableSequence[float] = [0, 0, 0]
     worldOrient: MutableSequence[float] = [0, 0, 0, 0, 0, 0, 0, 0, 0]
-    pp.ComputeWorldPosition(renderer, pos2d, worldPos, worldOrient)
+    valid = pp.ComputeWorldPosition(renderer, pos2d, worldPos, worldOrient)
+    if not valid:
+        vedo.logger.warning(
+            "in compute_world_coordinate() could not compute a valid world position."
+        )
     # validw = pp.ValidateWorldPosition(worldPos, worldOrient)
     # validd = pp.ValidateDisplayPosition(renderer, pos2d)
     return np.array(worldPos)
@@ -428,8 +438,18 @@ def compute_screen_coordinates(plotter, obj, full_window=False) -> np.ndarray:
     except AttributeError:
         pass
 
-    if utils.is_sequence(obj):
-        pts = obj
+    pts = np.asarray(obj)
+    if pts.ndim == 1:
+        if len(pts) != 3:
+            raise ValueError(
+                "compute_screen_coordinates() expects a 3D point or a sequence of 3D points."
+            )
+        pts = pts[None, :]
+    elif pts.ndim != 2 or pts.shape[1] != 3:
+        raise ValueError(
+            "compute_screen_coordinates() expects a 3D point or a sequence of 3D points."
+        )
+
     p2d = []
     cs = vtki.vtkCoordinate()
     cs.SetCoordinateSystemToWorld()
@@ -502,8 +522,10 @@ def default_mouseleftclick(plotter, iren, event) -> None:
 
     plotter.renderer = renderer
 
+    plotter.clicked_actor = None
+    plotter.clicked_object = None
+
     clicked_actor = picker.GetActor()
-    # clicked_actor2D = picker.GetActor2D()
 
     # print('_default_mouseleftclick mouse at', x, y)
     # print("picked Volume:",   [picker.GetVolume()])
@@ -517,11 +539,14 @@ def default_mouseleftclick(plotter, iren, event) -> None:
     if not clicked_actor:
         clicked_actor = picker.GetProp3D()
 
-    if not hasattr(clicked_actor, "GetPickable") or not clicked_actor.GetPickable():
-        return
+    if not clicked_actor:
+        clicked_actor = picker.GetActor2D()
 
     plotter.picked3d = picker.GetPickPosition()
     plotter.picked2d = np.array([x, y])
+
+    if not hasattr(clicked_actor, "GetPickable") or not clicked_actor.GetPickable():
+        return
 
     if not clicked_actor:
         return
@@ -535,4 +560,4 @@ def default_mouseleftclick(plotter, iren, event) -> None:
         plotter.clicked_object.picked3d = plotter.picked3d
         plotter.clicked_object.picked2d = plotter.picked2d
     except AttributeError:
-        pass
+        plotter.clicked_object = None
