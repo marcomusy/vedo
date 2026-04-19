@@ -24,6 +24,14 @@ All notable changes to the project will be documented in this file.
   uses `np.isclose` instead of `==` for x1 boundary; loop variable renamed from `s` to
   `tok` to avoid shadowing the numeric step size; `useformat` branch skipped when logscale
   is active to avoid building a discarded string
+- fix `cart2cyl`: replace `np.sqrt(x*x + y*y)` with `np.hypot(x, y)` for consistency
+  with `cart2spher` and overflow safety on large inputs
+- fix `NonLinearTransform`: `sigma` getter/setter docstrings were swapped; `invert` return
+  annotation changed from `NonLinearTransform` to `Self`; `source_points`/`target_points`
+  setters simplified (drop `if …: pass else:` idiom); `compute_main_axes` now subtracts the
+  base transformed position `p0 = transform_point(pt)` so that the finite-difference Jacobian
+  is correct at any pivot, not just the origin; `sqrt` of eigenvalues guarded with `np.abs`
+  against tiny negative values from floating-point noise
 - fix `LinearTransform`: sequence input now validated as a square 2D array (raises
   `ValueError` for flat or non-square inputs); JSON loading uses `.get()` for `name`/`comment`
   so missing optional keys no longer raise `KeyError`; legacy-format parser switches from

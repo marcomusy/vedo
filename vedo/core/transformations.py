@@ -1164,9 +1164,7 @@ class NonLinearTransform:
     @source_points.setter
     def source_points(self, pts):
         """Set source points."""
-        if _is_sequence(pts):
-            pass
-        else:
+        if not _is_sequence(pts):
             pts = pts.coordinates
         vpts = vtki.vtkPoints()
         for p in pts:
@@ -1190,9 +1188,7 @@ class NonLinearTransform:
     @target_points.setter
     def target_points(self, pts):
         """Set target points."""
-        if _is_sequence(pts):
-            pass
-        else:
+        if not _is_sequence(pts):
             pts = pts.coordinates
         vpts = vtki.vtkPoints()
         for p in pts:
@@ -1203,12 +1199,12 @@ class NonLinearTransform:
 
     @property
     def sigma(self) -> float:
-        """Set sigma."""
+        """Get sigma."""
         return self.T.GetSigma()
 
     @sigma.setter
     def sigma(self, s):
-        """Get sigma."""
+        """Set sigma."""
         self.T.SetSigma(s)
 
     @property
@@ -1254,7 +1250,7 @@ class NonLinearTransform:
             json.dump(dictionary, outfile, sort_keys=True, indent=2)
         return self
 
-    def invert(self) -> NonLinearTransform:
+    def invert(self) -> Self:
         """Invert transformation."""
         self.T.Inverse()
         self.inverse_flag = bool(self.T.GetInverseFlag())
@@ -1289,15 +1285,16 @@ class NonLinearTransform:
         if len(pt) == 2:
             pt = [pt[0], pt[1], 0]
         pt = np.asarray(pt)
+        p0 = self.transform_point(pt)
         m = np.array(
             [
-                self.move(pt + [ds, 0, 0]),
-                self.move(pt + [0, ds, 0]),
-                self.move(pt + [0, 0, ds]),
+                self.transform_point(pt + [ds, 0, 0]) - p0,
+                self.transform_point(pt + [0, ds, 0]) - p0,
+                self.transform_point(pt + [0, 0, ds]) - p0,
             ]
         )
         eigval, eigvec = np.linalg.eig(m @ m.T)
-        eigval = np.sqrt(eigval)
+        eigval = np.sqrt(np.abs(eigval))
         return np.array(
             [
                 eigvec[:, 0] * eigval[0],
@@ -1533,7 +1530,7 @@ def spher2cart(rho, theta, phi) -> np.ndarray:
 
 def cart2cyl(x, y, z) -> np.ndarray:
     """3D Cartesian to Cylindrical coordinate conversion."""
-    rho = np.sqrt(x * x + y * y)
+    rho = np.hypot(x, y)
     theta = np.arctan2(y, x)
     return np.array([rho, theta, z])
 
