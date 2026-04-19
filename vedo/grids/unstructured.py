@@ -657,7 +657,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
     @property
     def cell_types_array(self):
         """Return the list of cell types in the dataset."""
-        uarr = self.dataset.GetCellTypesArray()
+        uarr = self.dataset.GetCellTypes()
         return utils.vtk2numpy(uarr)
 
     def extract_cells_by_type(self, ctype) -> UnstructuredGrid:
@@ -670,7 +670,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
                     f"extract_cells_by_type: cell type {ctype} does not exist. Skip."
                 )
                 return self
-        uarr = self.dataset.GetCellTypesArray()
+        uarr = self.dataset.GetCellTypes()
         ctarrtyp = np.where(utils.vtk2numpy(uarr) == ctype)[0]
         uarrtyp = utils.numpy2vtk(ctarrtyp, deep=False, dtype="id")
         selection_node = vtki.new("SelectionNode")

@@ -14,8 +14,8 @@ def is_path_like(obj) -> bool:
     return isinstance(obj, (str, os.PathLike))
 
 
-def as_path(pathlike) -> str:
-    """Convert a path-like object to string path."""
+def as_path(pathlike) -> "str | bytes":
+    """Convert a path-like object to string (or bytes) path."""
     return os.fspath(pathlike)
 
 
@@ -29,6 +29,8 @@ def as_dataset(obj):
 def geometry_filter_to_polydata(inputobj):
     """Convert a generic VTK dataset to vtkPolyData via vtkGeometryFilter."""
     dataset = as_dataset(inputobj)
+    if dataset is None or not hasattr(dataset, "GetClassName"):
+        raise TypeError(f"expected a VTK dataset, got {type(inputobj)}")
     gf = vtki.new("GeometryFilter")
     gf.SetInputData(dataset)
     gf.Update()
@@ -50,7 +52,7 @@ def points_polydata_from_dataset(inputobj):
     if vvpts is None:
         raise TypeError("input dataset has no points")
 
-    poly = vtki.vtkPolyData()
+    poly = vtki.new("PolyData")
     poly.SetPoints(vvpts)
 
     pd = dataset.GetPointData()
@@ -60,7 +62,7 @@ def points_polydata_from_dataset(inputobj):
         if arr is not None:
             out_pd.AddArray(arr)
 
-    carr = vtki.vtkCellArray()
+    carr = vtki.new("CellArray")
     for i in range(poly.GetNumberOfPoints()):
         carr.InsertNextCell(1)
         carr.InsertCellPoint(i)
