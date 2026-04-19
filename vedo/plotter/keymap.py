@@ -127,7 +127,7 @@ def _print_keymap_notice(
             vedo.printc(message, c=color)
 
 
-def _print_keymap_info(title: str, obj) -> None:
+def _print_keymap_info(obj) -> None:
     printer = getattr(obj, "print", None)
     if callable(printer):
         printer()
@@ -135,8 +135,7 @@ def _print_keymap_info(title: str, obj) -> None:
         print(obj)
 
 
-def _normalize_key(iren) -> str:
-    key = iren.GetKeySym()
+def _normalize_key(iren, key) -> str:
     if iren.GetShiftKey():
         key = key.upper()
     if iren.GetControlKey():
@@ -278,14 +277,14 @@ def _key_toggle_depth_peeling(plotter, _iren, renderer) -> bool:
         renderer.SetMaximumNumberOfPeels(vedo.settings.max_number_of_peels)
         renderer.SetOcclusionRatio(vedo.settings.occlusion_ratio)
     plotter.interactor.Render()
-    wasUsed = renderer.GetLastRenderingUsedDepthPeeling()
+    was_used = renderer.GetLastRenderingUsedDepthPeeling()
     rnr = plotter.renderers.index(renderer)
     rows = [
         ("renderer", f"nr.{rnr}"),
         ("enabled", str(bool(udp))),
-        ("used last render", str(bool(wasUsed))),
+        ("used last render", str(bool(was_used))),
     ]
-    if udp and not wasUsed:
+    if udp and not was_used:
         rows.append(("note", "enabled, but last rendering did not actually use it"))
     _print_keymap_notice("Depth Peeling", rows=rows, color="cyan" if udp else "white")
     return True
@@ -380,12 +379,9 @@ def _key_export_x3d(_plotter, _iren, _renderer) -> bool:
 def _key_print_info(plotter, _iren, _renderer) -> bool:
     if plotter.clicked_object:
         obj = plotter.clicked_object
-        # _print_keymap_info(
-        #     f"Clicked Object: {getattr(obj, 'name', '') or obj.__class__.__name__}", obj
-        # )
         print(obj)
     else:
-        _print_keymap_info("Plotter Info", plotter)
+        _print_keymap_info(plotter)
     return False
 
 
@@ -431,7 +427,7 @@ def handle_default_keypress(plotter, iren, event) -> None:
     if "_L" in key or "_R" in key:
         return
 
-    key = _normalize_key(iren)
+    key = _normalize_key(iren, key)
 
     #######################################################
     # utils.vedo.printc('Pressed key:', key, c='y', box='-')
@@ -871,13 +867,9 @@ def handle_default_keypress(plotter, iren, event) -> None:
             idx = bg2cols.index(bg2name)
         else:
             idx = 4
-        if idx is not None:
-            bg2name_next = bg2cols[(idx + 1) % (len(bg2cols) - 1)]
-        if not bg2name_next:
-            renderer.GradientBackgroundOff()
-        else:
-            renderer.GradientBackgroundOn()
-            renderer.SetBackground2(vedo.get_color(bg2name_next))
+        bg2name_next = bg2cols[(idx + 1) % (len(bg2cols) - 1)]
+        renderer.GradientBackgroundOn()
+        renderer.SetBackground2(vedo.get_color(bg2name_next))
 
     elif key in ["plus", "equal", "KP_Add", "minus", "KP_Subtract"]:  # cycle axes style
         i = plotter.renderers.index(renderer)
@@ -913,13 +905,9 @@ def handle_default_keypress(plotter, iren, event) -> None:
     elif "KP_" in key or key in [
         "Insert",
         "End",
-        "Down",
         "Next",
-        "Left",
         "Begin",
-        "Right",
         "Home",
-        "Up",
         "Prior",
     ]:
         asso = {  # change axes style
@@ -931,25 +919,21 @@ def handle_default_keypress(plotter, iren, event) -> None:
             "End": 1,
             "KP_Down": 2,
             "KP_2": 2,
-            "Down": 2,
             "KP_Next": 3,
             "KP_3": 3,
             "Next": 3,
             "KP_Left": 4,
             "KP_4": 4,
-            "Left": 4,
             "KP_Begin": 5,
             "KP_5": 5,
             "Begin": 5,
             "KP_Right": 6,
             "KP_6": 6,
-            "Right": 6,
             "KP_Home": 7,
             "KP_7": 7,
             "Home": 7,
             "KP_Up": 8,
             "KP_8": 8,
-            "Up": 8,
             "Prior": 9,  # on windows OS
         }
         clickedr = plotter.renderers.index(renderer)
@@ -967,7 +951,7 @@ def handle_default_keypress(plotter, iren, event) -> None:
             addons.add_global_axes(axtype=asso[key], c=None, bounds=bounds)
             plotter.interactor.Render()
 
-    if key == "O":
+    elif key == "O":
         renderer.RemoveLight(plotter._extralight)
         plotter._extralight = None
 
@@ -1011,7 +995,7 @@ def handle_default_keypress(plotter, iren, event) -> None:
             try:
                 lnr = (ia._ligthingnr + 1) % 6
                 ia.lighting(shds[lnr])
-                ia._ligthingnr = lnr
+                ia._lightingnr = lnr
             except AttributeError:
                 pass
 

@@ -55,7 +55,7 @@ class Event:
         self.angle2d = 0
         self.speed2d = ()
         self.delta3d = ()
-        self.speed3d = 0
+        self.speed3d = ()
         self.isPoints = False
         self.isMesh = False
         self.isAssembly = False
@@ -81,7 +81,7 @@ class Event:
     def _summary_rows(self):
         rows = []
         for n in self.__slots__:
-            if n == "actor":
+            if n in ("actor", "object"):
                 continue
             rows.append((n, str(self[n]).replace("\n", "")[:65].rstrip()))
         return rows

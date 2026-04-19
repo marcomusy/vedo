@@ -34,27 +34,18 @@ def screenshot(plotter, filename="screenshot.png", scale=1, asarray=False) -> An
         plt.close()
         ```
 
-    Example:
-        ```py
-        from vedo import *
-        sphere = Sphere().linewidth(1)
-        plt = show(sphere, interactive=False)
-        plt.screenshot('anotherimage.png')
-        plt.interactive()
-        plt.close()
-        ```
     """
     return vedo.file_io.screenshot(filename, scale, asarray)
 
 def toimage(plotter, scale=1) -> vedo.image.Image:
     """
-    Generate a `Image` object from the current rendering window.
+    Generate an `Image` object from the current rendering window.
 
     Arguments:
         scale : (int)
             set image magnification as an integer multiplicating factor
     """
-    if vedo.settings.screeshot_large_image:
+    if vedo.settings.screenshot_large_image:
         w2if = vtki.new("RenderLargeImage")
         w2if.SetInput(plotter.renderer)
         w2if.SetMagnification(scale)

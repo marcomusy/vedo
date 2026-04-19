@@ -60,7 +60,7 @@ class CommonVisual:
 
         self.rendered_at = set()
 
-        self._ligthingnr = 0  # index of the lighting mode changed from CLI
+        self._lightingnr = 0  # index of the lighting mode changed from CLI
         self._cmap_name = ""  # remember the cmap name for self._keypress
         self._caption = None
 
