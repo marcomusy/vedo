@@ -35,12 +35,9 @@ def _import_trame_components():
         ("trame.ui.vuetify3", "VAppLayout", "vue3"),
         ("trame.ui.vuetify", "VAppLayout", "vue2"),
     ]
-    widget_paths = [
-        ("trame.widgets.vtk", None),
-    ]
     vuetify_paths = [
-        ("trame.widgets.vuetify3", None, "vue3"),
-        ("trame.widgets.vuetify", None, "vue2"),
+        ("trame.widgets.vuetify3", "vue3"),
+        ("trame.widgets.vuetify", "vue2"),
     ]
 
     VAppLayout = None
@@ -54,16 +51,14 @@ def _import_trame_components():
             pass
 
     t_vtk = None
-    for module_name, _ in widget_paths:
-        try:
-            t_vtk = import_module(module_name)
-            break
-        except ImportError:
-            pass
+    try:
+        t_vtk = import_module("trame.widgets.vtk")
+    except ImportError:
+        pass
 
     vuetify = None
     vuetify_client_type = None
-    for module_name, _, current_client_type in vuetify_paths:
+    for module_name, current_client_type in vuetify_paths:
         try:
             vuetify = import_module(module_name)
             vuetify_client_type = current_client_type
@@ -71,13 +66,13 @@ def _import_trame_components():
         except ImportError:
             pass
 
-    if (
-        VAppLayout
-        and t_vtk
-        and vuetify
-        and client_type is not None
-        and client_type == vuetify_client_type
-    ):
+    if VAppLayout and t_vtk and vuetify and client_type is not None:
+        if client_type != vuetify_client_type:
+            raise ImportError(
+                f"Trame version mismatch: layout loaded as {client_type} but "
+                f"vuetify widgets loaded as {vuetify_client_type}. "
+                "Ensure trame-vuetify version matches your trame installation."
+            )
         return get_server, VAppLayout, t_vtk, vuetify, client_type
 
     missing = []
@@ -96,7 +91,7 @@ def _import_trame_components():
 ############################################################################################
 def _warn_trame_xopengl(render_window):
     """Warn about unstable interactive trame rendering on X/GLX offscreen VTK."""
-    if not render_window or not hasattr(render_window, "GetClassName"):
+    if not render_window:
         return
     if render_window.GetClassName() == "vtkXOpenGLRenderWindow":
         vedo.logger.warning(
@@ -107,9 +102,15 @@ def _warn_trame_xopengl(render_window):
 
 ############################################################################################
 def get_notebook_backend(actors2show=()):
-    """Return the appropriate notebook viewer"""
-
+    """Return the appropriate notebook viewer.
+    `actors2show` is only forwarded to the k3d backend; other backends
+    read actors directly from the active Plotter.
+    """
     backend = settings.default_backend
+
+    if not backend:
+        vedo.logger.error("No jupyter backend configured (settings.default_backend is empty).")
+        return None
 
     if backend == "2d":
         return start_2d()
@@ -119,10 +120,10 @@ def get_notebook_backend(actors2show=()):
         return start_trame()
     if backend.startswith("ipyvtk"):
         return start_ipyvtklink()
-    if backend.startswith("panel"):
+    if backend == "panel":
         return start_panel()
 
-    vedo.logger.error(f"Unknown jupyter backend: {settings.default_backend}")
+    vedo.logger.error(f"Unknown jupyter backend: {backend!r}")
     return None
 
 
@@ -131,10 +132,9 @@ def start_2d():
     """Start a 2D display in the notebook"""
     try:
         import PIL.Image
-        # import IPython
     except ImportError:
-        print("PIL or IPython not available")
-        return
+        vedo.logger.error("Pillow is not installed, try:\n> pip install Pillow")
+        return None
 
     plt = vedo.current_plotter()
     if not plt:
@@ -145,14 +145,17 @@ def start_2d():
         try:
             nn = vedo.file_io.screenshot(asarray=True, scale=1)
             pil_img = PIL.Image.fromarray(nn)
-        except ValueError:
-            return
+        except Exception as e:
+            vedo.logger.warning(f"2d backend screenshot failed: {e}")
+            return None
 
-        # IPython.display.display(pil_img)
         vedo.set_current_notebook_plotter(pil_img)
         if settings.backend_autoclose and plt.renderer == plt.renderers[-1]:
             plt.close()
         return pil_img
+
+    vedo.logger.error("No window present for the 2d backend.")
+    return None
 
 
 #####################################################################################
@@ -164,15 +167,11 @@ def start_panel():
         pn.extension(
             "vtk", design="material", sizing_mode="stretch_width", template="material"
         )
-        # pn.state.template.config.raw_css.append("""
-        # #main {
-        # padding: 0;
-        # }""")
     except ImportError:
-        print("panel is not installed, try:\n> conda install panel")
+        vedo.logger.error("panel is not installed, try:\n> conda install panel")
         return None
 
-    print("panel backend NOT YET FUNCTIONAL")
+    vedo.logger.warning("panel backend is experimental and may not render correctly.")
     plt = vedo.current_plotter()
     if not plt:
         vedo.logger.error("No active Plotter found for the panel backend.")
@@ -189,7 +188,10 @@ def start_panel():
             enable_keybindings=True,
         )
         vedo.set_current_notebook_plotter(vtkpan)
-        return vedo.current_notebook_plotter()
+        return vtkpan
+
+    vedo.logger.error("No window present for the panel backend.")
+    return None
 
 
 ####################################################################################
