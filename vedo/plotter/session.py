@@ -25,9 +25,7 @@ _STATE = _SessionState()
 
 
 def get_plotter(fallback=None):
-    if _STATE.plotter is None and fallback is not None:
-        _STATE.plotter = fallback
-    return _STATE.plotter
+    return _STATE.plotter if _STATE.plotter is not None else fallback
 
 
 def set_plotter(value: Any) -> None:
@@ -35,9 +33,7 @@ def set_plotter(value: Any) -> None:
 
 
 def get_notebook_plotter(fallback=None):
-    if _STATE.notebook_plotter is None and fallback is not None:
-        _STATE.notebook_plotter = fallback
-    return _STATE.notebook_plotter
+    return _STATE.notebook_plotter if _STATE.notebook_plotter is not None else fallback
 
 
 def set_notebook_plotter(value: Any) -> None:
@@ -45,9 +41,7 @@ def set_notebook_plotter(value: Any) -> None:
 
 
 def get_notebook_backend(fallback=None):
-    if _STATE.notebook_backend is None and fallback is not None:
-        _STATE.notebook_backend = fallback
-    return _STATE.notebook_backend
+    return _STATE.notebook_backend if _STATE.notebook_backend is not None else fallback
 
 
 def set_notebook_backend(value: Any) -> None:
@@ -55,9 +49,7 @@ def set_notebook_backend(value: Any) -> None:
 
 
 def get_last_figure(fallback=None):
-    if _STATE.last_figure is None and fallback is not None:
-        _STATE.last_figure = fallback
-    return _STATE.last_figure
+    return _STATE.last_figure if _STATE.last_figure is not None else fallback
 
 
 def set_last_figure(value: Any) -> None:
