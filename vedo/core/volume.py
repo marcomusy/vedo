@@ -18,17 +18,17 @@ __all__ = ["VolumeAlgorithms"]
 class VolumeAlgorithms(CommonAlgorithms):
     """Methods for Volume objects."""
 
-    def bounds(cls) -> np.ndarray:
+    def bounds(self) -> np.ndarray:
         """
         Get the object bounds.
         Returns a list in format `[xmin,xmax, ymin,ymax, zmin,zmax]`.
         """
         # OVERRIDE CommonAlgorithms.bounds() which is too slow
-        return np.array(cls.dataset.GetBounds())
+        return np.array(self.dataset.GetBounds())
 
-    def isosurface(cls, value=None, flying_edges=False) -> vedo.mesh.Mesh:
+    def isosurface(self, value=None, flying_edges=False) -> vedo.mesh.Mesh:
         """
-        Return an `Mesh` isosurface extracted from the `Volume` object.
+        Return a `Mesh` isosurface extracted from the `Volume` object.
 
         Set `value` as single float or list of values to draw the isosurface(s).
         Use flying_edges for faster results (but sometimes can interfere with `smooth()`).
@@ -40,7 +40,7 @@ class VolumeAlgorithms(CommonAlgorithms):
 
                 ![](https://vedo.embl.es/images/volumetric/isosurfaces.png)
         """
-        scrange = cls.dataset.GetScalarRange()
+        scrange = self.dataset.GetScalarRange()
 
         if flying_edges:
             cf = vtki.new("FlyingEdges3D")
@@ -49,7 +49,7 @@ class VolumeAlgorithms(CommonAlgorithms):
             cf = vtki.new("ContourFilter")
             cf.UseScalarTreeOn()
 
-        cf.SetInputData(cls.dataset)
+        cf.SetInputData(self.dataset)
         cf.ComputeNormalsOn()
 
         if utils.is_sequence(value):
@@ -71,14 +71,14 @@ class VolumeAlgorithms(CommonAlgorithms):
 
         out.pipeline = utils.OperationNode(
             "isosurface",
-            parents=[cls],
+            parents=[self],
             comment=f"#pts {out.dataset.GetNumberOfPoints()}",
             c="#4cc9f0:#e9c46a",
         )
         return out
 
     def isosurface_discrete(
-        cls,
+        self,
         values,
         background_label=None,
         internal_boundaries=True,
@@ -102,12 +102,12 @@ class VolumeAlgorithms(CommonAlgorithms):
         The values can be accessed with `mesh.metadata["isovalue"]`.
 
         Args:
-            value (float, list):
+            values (float, list):
                 single value or list of values to draw the isosurface(s).
             background_label (float):
                 this value specifies the label value to use when referencing the background
                 region outside of any of the specified regions.
-            boundaries (bool, list):
+            internal_boundaries (bool, list):
                 if True, the output will only contain the boundary surface. Internal surfaces will be removed.
                 If a list of integers is provided, only the boundaries between the specified labels will be extracted.
             use_quads (bool):
@@ -122,7 +122,7 @@ class VolumeAlgorithms(CommonAlgorithms):
         logger.SetStderrVerbosity(logger.VERBOSITY_ERROR)
 
         snets = vtki.new("SurfaceNets3D")
-        snets.SetInputData(cls.dataset)
+        snets.SetInputData(self.dataset)
 
         if nsmooth:
             snets.SmoothingOn()
@@ -147,7 +147,6 @@ class VolumeAlgorithms(CommonAlgorithms):
 
         n = len(values)
         snets.SetNumberOfContours(n)
-        snets.SetNumberOfLabels(n)
 
         if background_label is not None:
             snets.SetBackgroundLabel(background_label)
@@ -165,7 +164,7 @@ class VolumeAlgorithms(CommonAlgorithms):
         out.metadata["isovalue"] = values
         out.pipeline = utils.OperationNode(
             "isosurface_discrete",
-            parents=[cls],
+            parents=[self],
             comment=f"#pts {out.dataset.GetNumberOfPoints()}",
             c="#4cc9f0:#e9c46a",
         )
@@ -174,12 +173,12 @@ class VolumeAlgorithms(CommonAlgorithms):
         return out
 
     def legosurface(
-        cls,
+        self,
         vmin=None,
         vmax=None,
         invert=False,
         boundary=True,
-        array_name="input_scalars",
+        array_name=None,
     ) -> vedo.mesh.Mesh:
         """
         Represent an object - typically a `Volume` - as lego blocks (voxels).
@@ -201,12 +200,16 @@ class VolumeAlgorithms(CommonAlgorithms):
 
                 ![](https://vedo.embl.es/images/volumetric/56820682-da40e500-684c-11e9-8ea3-91cbcba24b3a.png)
         """
+        if array_name is None:
+            pt_scalars = self.dataset.GetPointData().GetScalars()
+            array_name = pt_scalars.GetName() if pt_scalars is not None else "input_scalars"
+
         imp_dataset = vtki.new("ImplicitDataSet")
-        imp_dataset.SetDataSet(cls.dataset)
+        imp_dataset.SetDataSet(self.dataset)
         window = vtki.new("ImplicitWindowFunction")
         window.SetImplicitFunction(imp_dataset)
 
-        srng = list(cls.dataset.GetScalarRange())
+        srng = list(self.dataset.GetScalarRange())
         if vmin is not None:
             srng[0] = vmin
         if vmax is not None:
@@ -219,7 +222,7 @@ class VolumeAlgorithms(CommonAlgorithms):
         # print("legosurface window range:", srng)
 
         extract = vtki.new("ExtractGeometry")
-        extract.SetInputData(cls.dataset)
+        extract.SetInputData(self.dataset)
         extract.SetImplicitFunction(window)
         extract.SetExtractInside(invert)
         extract.SetExtractBoundaryCells(boundary)
@@ -235,13 +238,13 @@ class VolumeAlgorithms(CommonAlgorithms):
 
         m.pipeline = utils.OperationNode(
             "legosurface",
-            parents=[cls],
+            parents=[self],
             comment=f"array: {array_name}",
             c="#4cc9f0:#e9c46a",
         )
         return m
 
-    def tomesh(cls, fill=True, shrink=1.0) -> vedo.mesh.Mesh:
+    def tomesh(self, fill=True, shrink=1.0) -> vedo.mesh.Mesh:
         """
         Build a polygonal Mesh from the current object.
 
@@ -254,7 +257,7 @@ class VolumeAlgorithms(CommonAlgorithms):
         gf = vtki.new("GeometryFilter")
         if fill:
             sf = vtki.new("ShrinkFilter")
-            sf.SetInputData(cls.dataset)
+            sf.SetInputData(self.dataset)
             sf.SetShrinkFactor(shrink)
             sf.Update()
             gf.SetInputData(sf.GetOutput())
@@ -270,17 +273,17 @@ class VolumeAlgorithms(CommonAlgorithms):
                 clean_poly.Update()
                 poly = clean_poly.GetOutput()
         else:
-            gf.SetInputData(cls.dataset)
+            gf.SetInputData(self.dataset)
             gf.Update()
             poly = gf.GetOutput()
 
         msh = vedo.mesh.Mesh(poly).flat()
-        msh.scalarbar = cls.scalarbar
-        lut = utils.ctf2lut(cls)
+        msh.scalarbar = self.scalarbar
+        lut = utils.ctf2lut(self)
         if lut:
             msh.mapper.SetLookupTable(lut)
 
         msh.pipeline = utils.OperationNode(
-            "tomesh", parents=[cls], comment=f"fill={fill}", c="#9e2a2b:#e9c46a"
+            "tomesh", parents=[self], comment=f"fill={fill}", c="#9e2a2b:#e9c46a"
         )
         return msh
