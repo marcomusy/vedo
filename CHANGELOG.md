@@ -13,6 +13,35 @@ All notable changes to the project will be documented in this file.
   improved VTK load feedback, and better trame backend compatibility
 - improve Slicer3DPlotter, plotting/runtime behavior, scene object lookup,
   follow-camera handling for Text3D, and fix a range of runtime/API issues
+- fix `OperationNode`: safe early-return when pipeline disabled, stable graphviz node IDs,
+  cycle detection in tree traversal, explicit `__str__`, removed dead `counts` attribute
+- fix `ProgressBar`: restore cursor + newline on `__del__`, correct `_fit_line` width
+  accounting, fix `progressbar()` docstring to match actual signature
+- fix `grid_corners`: `yflip` used `n` (columns) instead of `m` (rows), producing negative
+  row indices and wrong box positions for non-square grids; row index now computed with `//`
+- fix `make_ticks`: `raise RuntimeError` now carries a message; `if not n` guard changed
+  to `if n is None` to avoid silently overriding a caller-supplied zero; custom-label path
+  uses `np.isclose` instead of `==` for x1 boundary; loop variable renamed from `s` to
+  `tok` to avoid shadowing the numeric step size; `useformat` branch skipped when logscale
+  is active to avoid building a discarded string
+- fix `LinearTransform`: sequence input now validated as a square 2D array (raises
+  `ValueError` for flat or non-square inputs); JSON loading uses `.get()` for `name`/`comment`
+  so missing optional keys no longer raise `KeyError`; legacy-format parser switches from
+  `split(" ")` to `split()` to handle tabs and multiple spaces; `is_identity` simplified to
+  `np.allclose(M, np.eye(4))`; `reorient` antiparallel branch now picks a proper perpendicular
+  axis instead of perturbing `newaxis`, clamps the `arccos` argument to `[-1, 1]`, and replaces
+  the magic constant `1.4142` with `np.sqrt(2)`
+- fix standalone utils: `is_sequence` drops dead Py2 `__getslice__` check; `point_in_triangle`
+  converts all inputs to arrays; `intersection_ray_triangle` degenerate check now tests the
+  cross-product `n` instead of edge vector `v`; `triangle_solver` angle-zero guards use
+  `is not None`; `get_uv` replaces deprecated `np.matrix` with `np.array`; `grep` drops
+  redundant newline strip; `print_histogram` removes dead vtkImageData/vtkPolyData branches;
+  `make_ticks` saves/restores numpy print options in a `finally` block; `camera_from_dict`
+  uses `is not None` guard for `modify_inplace`
+- fix `Minimizer`: convergence flag no longer calls `Iterate()` after `Minimize()`;
+  `eval()` passes list not dict to user function; `set_parameters()` guards scalar values;
+  `minimize()` resets paths on repeated calls; `_summary_rows` uses enumerate and avoids
+  recomputing the Hessian on every `__str__` call
 - migrate the project documentation to MkDocs and refresh a large set of examples
 
 

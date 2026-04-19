@@ -90,10 +90,15 @@ class LinearTransform:
         elif _is_sequence(T):
             S = vtki.vtkTransform()
             M = vtki.vtkMatrix4x4()
-            n = len(T)
+            arr = np.asarray(T, dtype=float)
+            if arr.ndim != 2 or arr.shape[0] != arr.shape[1]:
+                raise ValueError(
+                    f"LinearTransform: expected a square 2D matrix, got shape {arr.shape}"
+                )
+            n = arr.shape[0]
             for i in range(n):
                 for j in range(n):
-                    M.SetElement(i, j, T[i][j])
+                    M.SetElement(i, j, arr[i, j])
             S.SetMatrix(M)
             T = S
 
@@ -114,8 +119,8 @@ class LinearTransform:
             try:
                 with open(self.filename, "r") as read_file:
                     D = json.load(read_file)
-                self.name = D["name"]
-                self.comment = D["comment"]
+                self.name = D.get("name", "LinearTransform")
+                self.comment = D.get("comment", "")
                 matrix = np.array(D["matrix"])
             except json.decoder.JSONDecodeError:
                 ### assuming legacy vedo format E.g.:
@@ -132,7 +137,7 @@ class LinearTransform:
                         if line.startswith("#"):
                             self.comment = line.replace("#", "").strip()
                             continue
-                        vals = line.split(" ")
+                        vals = line.split()
                         for j in range(len(vals)):
                             v = vals[j].replace("\n", "")
                             if v != "":
@@ -292,9 +297,7 @@ class LinearTransform:
         """Check if the transformation is the identity."""
         m = self.T.GetMatrix()
         M = [[m.GetElement(i, j) for j in range(4)] for i in range(4)]
-        if np.allclose(M - np.eye(4), 0):
-            return True
-        return False
+        return bool(np.allclose(M, np.eye(4)))
 
     def invert(self) -> Self:
         """Invert the transformation. Acts in-place."""
@@ -610,12 +613,17 @@ class LinearTransform:
             return self
 
         if not np.any(initaxis + newaxis):
-            warn("In reorient() initaxis and newaxis are parallel", stacklevel=2)
-            newaxis += np.array([0.0000001, 0.0000002, 0.0])
+            # antiparallel: pick any axis perpendicular to initaxis
+            warn("In reorient() initaxis and newaxis are antiparallel", stacklevel=2)
+            perp = np.array([1.0, 0.0, 0.0])
+            if abs(np.dot(perp, initaxis)) > 0.9:
+                perp = np.array([0.0, 1.0, 0.0])
+            crossvec = np.cross(initaxis, perp)
+            crossvec /= np.linalg.norm(crossvec)
             angleth = np.pi
         else:
-            angleth = np.arccos(np.dot(initaxis, newaxis))
-        crossvec = np.cross(initaxis, newaxis)
+            angleth = np.arccos(np.clip(np.dot(initaxis, newaxis), -1.0, 1.0))
+            crossvec = np.cross(initaxis, newaxis)
 
         p = np.asarray(around)
         self.T.Translate(-p)
@@ -627,7 +635,7 @@ class LinearTransform:
         self.T.RotateWXYZ(np.rad2deg(angleth), crossvec)
 
         if xyplane:
-            self.T.RotateWXYZ(-self.orientation[0] * 1.4142, newaxis)
+            self.T.RotateWXYZ(-self.orientation[0] * np.sqrt(2), newaxis)
 
         self.T.Translate(p)
         return self

@@ -131,7 +131,11 @@ class OperationNode:
             ```
             ![](https://vedo.embl.es/images/feats/operation_node.png)
         """
-        if not vedo.settings.enable_pipeline:
+        self._enabled = vedo.settings.enable_pipeline
+        if not self._enabled:
+            self.parents = []
+            self.operation = ""
+            self.operation_plain = ""
             return
 
         if isinstance(operation, str):
@@ -154,15 +158,23 @@ class OperationNode:
         self.shape = shape
         self.style = style
         self.color = c
-        self.counts = 0
 
     def add_parent(self, parent) -> None:
         """Add a parent to the list."""
         self.parents.append(parent)
 
-    def _build_tree(self, dot):
+    def _node_id(self):
+        return self.operation_plain + str(self.time)
+
+    def _build_tree(self, dot, visited=None):
+        if visited is None:
+            visited = set()
+        nid = self._node_id()
+        if nid in visited:
+            return
+        visited.add(nid)
         dot.node(
-            str(id(self)),
+            nid,
             label=self.operation,
             shape=self.shape,
             color=self.color,
@@ -171,10 +183,12 @@ class OperationNode:
         for parent in self.parents:
             if parent:
                 t = f"{self.time - parent.time: .1f}s"
-                dot.edge(str(id(parent)), str(id(self)), label=t)
-                parent._build_tree(dot)
+                dot.edge(parent._node_id(), nid, label=t)
+                parent._build_tree(dot, visited)
 
     def __repr__(self):
+        if not self._enabled:
+            return ""
         try:
             from treelib import Tree
         except ImportError:
@@ -184,7 +198,10 @@ class OperationNode:
             )
             return ""
 
-        def _build_tree(parent):
+        def _build_tree(parent, visited):
+            if id(parent) in visited:
+                return
+            visited.add(id(parent))
             for par in parent.parents:
                 if par:
                     op = par.operation_plain
@@ -193,26 +210,29 @@ class OperationNode:
                         op + str(par.time),
                         parent=parent.operation_plain + str(parent.time),
                     )
-                    _build_tree(par)
+                    _build_tree(par, visited)
 
         try:
             tree = Tree()
             tree.create_node(
                 self.operation_plain, self.operation_plain + str(self.time)
             )
-            _build_tree(self)
+            _build_tree(self, set())
             out = tree.show(stdout=False)
         except Exception as e:
             out = f"Sorry treelib failed to build the tree for '{self.operation_plain}()': {e}."
         return out
 
+    def __str__(self):
+        return self.__repr__()
+
     def print(self) -> None:
         """Print the tree of operations."""
-        print(self.__str__())
+        print(self.__repr__())
 
     def show(self, orientation="LR", popup=True) -> None:
         """Show the graphviz output for the pipeline of this object"""
-        if not vedo.settings.enable_pipeline:
+        if not self._enabled:
             return
 
         try:
@@ -224,7 +244,6 @@ class OperationNode:
             vedo.logger.error("  sudo apt-get install graphviz -y")
             return
 
-        # visualize the entire tree
         dot = Digraph(
             node_attr={
                 "fontcolor": "#201010",
@@ -235,7 +254,6 @@ class OperationNode:
         )
         dot.attr(rankdir=orientation)
 
-        self.counts = 0
         self._build_tree(dot)
         self.dot = dot
 
@@ -382,7 +400,7 @@ class ProgressBar:
 
     def __del__(self):
         if getattr(self, "_cursor_hidden", False):
-            print("\x1b[?25h", end="", flush=True)
+            print("\x1b[?25h\n", end="", flush=True)
 
     def __iter__(self):
         self._iter_value = self.start
@@ -401,7 +419,7 @@ class ProgressBar:
         except Exception:
             cols = 80
         pbar_vis = len(_ANSI_RE.sub("", self.pbar))
-        avail = cols - pbar_vis - 1  # -1 for the space separator
+        avail = cols - pbar_vis - 2  # -1 space separator, -1 for double-space before txt
         if avail <= 0:
             return f"{self.percent_int}%" if pbar_vis > cols else self.pbar
         suffix = f"{eta_str}  {txt}".rstrip() if txt else eta_str
@@ -480,12 +498,8 @@ def progressbar(
     as set in `vedo.settings.progressbar_delay`.
 
     Args:
-        start (int):
-            starting value
-        stop (int):
-            stopping value
-        step (int):
-            step value
+        iterable (iterable or int):
+            an iterable object, or an integer N (equivalent to `range(N)`)
         c (str):
             color in hex format
         title (str):
@@ -498,10 +512,6 @@ def progressbar(
             set in `vedo.settings.progressbar_delay`
         width (int):
             width of the progress bar
-        char (str):
-            character to use for the progress bar
-        char_back (str):
-            character to use for the background of the progress bar
 
     Examples:
         ```python
@@ -595,7 +605,6 @@ class Minimizer:
         self.minimizer.SetFunctionValue(r)
         self.parameters_path.append(ain)
         self.function_path.append(r)
-        return r
 
     def eval(self, parameters=()) -> float:
         """
@@ -604,7 +613,7 @@ class Minimizer:
         if len(parameters) == 0:
             return self.minimizer.EvaluateFunction()
         self.set_parameters(parameters)
-        return self.function(parameters)
+        return self.function(list(parameters.values()))
 
     def set_parameter(self, name, value, scale=1.0) -> None:
         """
@@ -620,7 +629,7 @@ class Minimizer:
         Set the parameters names and values from a dictionary.
         """
         for name, value in parameters.items():
-            if len(value) == 2:
+            if is_sequence(value) and len(value) == 2:
                 self.set_parameter(name, value[0], value[1])
             else:
                 self.set_parameter(name, value)
@@ -659,6 +668,9 @@ class Minimizer:
             parameter_errors (np.array):
                 the errors on the parameters
         """
+        self.parameters_path = []
+        self.function_path = []
+
         n = self.minimizer.GetNumberOfParameters()
         out = [
             (
@@ -678,7 +690,9 @@ class Minimizer:
         self.minimizer.SetMaxIterations(self.max_iterations)
 
         self.minimizer.Minimize()
-        self.results["convergence_flag"] = not bool(self.minimizer.Iterate())
+        self.results["convergence_flag"] = (
+            self.minimizer.GetIterations() < self.minimizer.GetMaxIterations()
+        )
 
         out = [
             (
@@ -756,10 +770,10 @@ class Minimizer:
         rows.append(("initial params", "\n".join(init_lines)))
 
         final_lines = []
-        for name, value in self.results["parameters"].items():
+        errors = self.results["parameter_errors"]
+        for ierr, (name, value) in enumerate(self.results["parameters"].items()):
             line = name.ljust(20) + f"{value:.6f}"
-            ierr = list(self.results["parameters"]).index(name)
-            err = self.results["parameter_errors"][ierr]
+            err = errors[ierr]
             if err:
                 line += f" ± {err:.4f}"
             final_lines.append(line)
@@ -769,16 +783,20 @@ class Minimizer:
         rows.append(("Max iterations", f"{self.results['max_iterations']}"))
         rows.append(("Convergence flag", f"{self.results['convergence_flag']}"))
         rows.append(("Tolerance", f"{self.results['tolerance']}"))
-        try:
-            arr = np.array2string(
-                self.compute_hessian(),
-                separator=", ",
-                precision=6,
-                suppress_small=True,
-            )
-            rows.append(("Hessian Matrix", arr))
-        except Exception:
-            rows.append(("Hessian Matrix", "(not available)"))
+        hessian = self.results.get("hessian")
+        if hessian is not None and np.any(hessian):
+            try:
+                arr = np.array2string(
+                    hessian,
+                    separator=", ",
+                    precision=6,
+                    suppress_small=True,
+                )
+                rows.append(("Hessian Matrix", arr))
+            except Exception:
+                rows.append(("Hessian Matrix", "(not available)"))
+        else:
+            rows.append(("Hessian Matrix", "(not computed)"))
         return rows
 
 
@@ -1322,8 +1340,6 @@ def is_sequence(arg) -> bool:
     """Check if the input is iterable."""
     if hasattr(arg, "strip"):
         return False
-    if hasattr(arg, "__getslice__"):
-        return True
     if hasattr(arg, "__iter__"):
         return True
     return False
@@ -1407,6 +1423,8 @@ def point_in_triangle(p, p1, p2, p3) -> bool | None:
     a triangle defined by 3 points in space.
     """
     p1 = np.array(p1)
+    p2 = np.array(p2)
+    p3 = np.array(p3)
     u = p2 - p1
     v = p3 - p1
     n = np.cross(u, v)
@@ -1442,7 +1460,7 @@ def intersection_ray_triangle(P0, P1, V0, V1, V2) -> bool | None | np.ndarray:
     u = V1 - V0
     v = V2 - V0
     n = np.cross(u, v)
-    if not np.abs(v).sum():  # triangle is degenerate
+    if not np.abs(n).sum():  # triangle is degenerate
         return None  # do not deal with this case
 
     rd = P1 - P0  # ray direction vector
@@ -1503,11 +1521,11 @@ def triangle_solver(**input_dict):
     bc = input_dict.get("bc")
     ac = input_dict.get("ac")
 
-    if ab and bc:
+    if ab is not None and bc is not None:
         ac = np.pi - bc - ab
-    elif bc and ac:
+    elif bc is not None and ac is not None:
         ab = np.pi - bc - ac
-    elif ab and ac:
+    elif ab is not None and ac is not None:
         bc = np.pi - ab - ac
 
     if a is not None and b is not None and c is not None:
@@ -1828,7 +1846,7 @@ def get_uv(p, x, v):
     vp = p - x0
 
     # finding a minor with independent rows
-    M = np.matrix([s, t])
+    M = np.array([s, t])
     mnr = [0, 1]
     A = M[:, mnr]
     if np.abs(np.linalg.det(A)) < 0.000001:
@@ -1839,7 +1857,7 @@ def get_uv(p, x, v):
             A = M[:, mnr]
     Ainv = np.linalg.inv(A)
     alpha_beta = vp[mnr].dot(Ainv)  # [alpha, beta]
-    return np.asarray(vt0 + alpha_beta.dot(np.matrix([vs, vt])))[0]
+    return vt0 + alpha_beta.dot(np.array([vs, vt]))
 
 
 def vector(x, y=None, z=0.0, dtype=np.float64) -> np.ndarray:
@@ -2043,10 +2061,10 @@ def grep(filename: str, tag: str, column=None, first_occurrence_only=False) -> l
         for line in afile:
             if re.search(tag, line):
                 c = line.split()
-                c[-1] = c[-1].replace("\n", "")
                 if column is not None:
-                    c = c[column]
-                content.append(c)
+                    content.append(c[column])
+                else:
+                    content.append(c)
                 if first_occurrence_only:
                     break
     return content
@@ -2153,24 +2171,6 @@ def print_histogram(
             data = data[data >= vrange[0]]
         else:
             data = data[(data >= vrange[0]) & (data <= vrange[1])]
-
-    if isinstance(data, vtki.vtkImageData):
-        dims = data.GetDimensions()
-        nvx = min(100000, dims[0] * dims[1] * dims[2])
-        idxs = np.random.randint(0, min(dims), size=(nvx, 3))
-        data = []
-        for ix, iy, iz in idxs:
-            d = data.GetScalarComponentAsFloat(ix, iy, iz, 0)
-            data.append(d)
-        data = np.array(data)
-
-    elif isinstance(data, vtki.vtkPolyData):
-        arr = data.GetPointData().GetScalars()
-        if not arr:
-            arr = data.GetCellData().GetScalars()
-            if not arr:
-                return np.array([])
-        data = vtk2numpy(arr)
 
     try:
         h = np.histogram(data, bins=bins)
@@ -2464,7 +2464,7 @@ def camera_from_dict(camera, modify_inplace=None) -> vtki.vtkCamera:
     Returns:
         `vtki.vtkCamera`, a vtk camera setup that matches this state.
     """
-    if modify_inplace:
+    if modify_inplace is not None:
         vcam = modify_inplace
     else:
         vcam = vtki.vtkCamera()
@@ -2596,12 +2596,12 @@ def make_ticks(
     if logscale:
         if x0 <= 0 or x1 <= 0:
             vedo.logger.error("make_ticks: zero or negative range with log scale.")
-            raise RuntimeError
+            raise RuntimeError("make_ticks: zero or negative range with log scale.")
         if n is None:
             n = int(abs(np.log10(x1) - np.log10(x0))) + 1
         x0, x1 = np.log10([x0, x1])
 
-    if not n:
+    if n is None:
         n = 5
 
     if labels is not None:
@@ -2610,7 +2610,7 @@ def make_ticks(
         ticks_float.append(0)
         ticks_str.append("")
         for tp, ts in labels:
-            if tp == x1:
+            if np.isclose(tp, x1):
                 continue
             ticks_str.append(str(ts))
             tickn = lin_interpolate(tp, [x0, x1], [0, 1])
@@ -2655,16 +2655,11 @@ def make_ticks(
         fulaxis = np.unique(np.clip(np.concatenate([negaxis, posaxis]), x0, x1))
         # end of the nightmare
 
-        if useformat:
+        if useformat and not logscale:
             sf = "{" + f"{useformat}" + "}"
-            sas = ""
-            for x in fulaxis:
-                sas += sf.format(x) + " "
+            sas = " ".join(sf.format(x) for x in fulaxis)
         elif digits is None:
-            np.set_printoptions(suppress=True)  # avoid zero precision
-            sas = str(fulaxis).replace("[", "").replace("]", "")
-            sas = sas.replace(".e", "e").replace("e+0", "e+").replace("e-0", "e-")
-            np.set_printoptions(suppress=None)  # set back to default
+            sas = " ".join(f"{x:g}" for x in fulaxis)
         else:
             sas = precision(fulaxis, digits, vrange=(x0, x1))
             sas = (
@@ -2672,14 +2667,14 @@ def make_ticks(
             )
 
         sas2 = []
-        for s in sas.split():
-            if s.endswith("."):
-                s = s[:-1]
-            if s == "-0":
-                s = "0"
-            if digits is not None and "e" in s:
-                s += " "  # add space to terminate modifiers
-            sas2.append(s)
+        for tok in sas.split():
+            if tok.endswith("."):
+                tok = tok[:-1]
+            if tok == "-0":
+                tok = "0"
+            if digits is not None and "e" in tok:
+                tok += " "  # add space to terminate modifiers
+            sas2.append(tok)
 
         for ts, tp in zip(sas2, fulaxis):
             if tp == x1:
@@ -2747,9 +2742,9 @@ def grid_corners(
     sx, sy = size
     dx, dy = sx / n, sy / m
     nx = i % n
-    ny = int((i - nx) / n)
+    ny = i // n
     if yflip:
-        ny = n - ny
+        ny = m - 1 - ny
     c1 = (dx * nx + margin, dy * ny + margin)
     c2 = (dx * (nx + 1) - margin, dy * (ny + 1) - margin)
     return np.array(c1), np.array(c2)
