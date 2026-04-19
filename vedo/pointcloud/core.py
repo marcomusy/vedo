@@ -187,9 +187,6 @@ class Points(
 
     _summary_color = "green"
 
-    def _summary_address(self) -> str:
-        return hex(self.memory_address())
-
     def _summary_rows(self):
         rows = []
 

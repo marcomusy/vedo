@@ -745,7 +745,7 @@ class Settings:
             pass
         module = self.__class__.__module__
         name = self.__class__.__name__
-        header = f"{module}.{name} at ({hex(id(self))})".ljust(75)
+        header = f"{module}.{name}".ljust(75)
         return f"\x1b[1m\x1b[7m{header}\x1b[0m\n" + s.strip()
 
     def __repr__(self) -> str:
@@ -760,7 +760,7 @@ class Settings:
         name = self.__class__.__name__
         return Panel(
             Syntax(body, "python", theme="zenburn"),
-            title=f"{module}.{name} at ({hex(id(self))})",
+            title=f"{module}.{name}",
             title_align="left",
             border_style="bold white",
         )

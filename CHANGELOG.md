@@ -3,124 +3,25 @@
 All notable changes to the project will be documented in this file.
 
 ===================================================================================
-# Development Version 
-- add interactive widget wrappers for line, sphere, point and cylinder placement,
-  together with new streamlines examples showing their usage
-- add Three.js scene export support and reorganize file I/O exporters
-- add quaternion utilities, explicit structured-grid methods, chemistry helpers,
-  and Gaussian cube loading support
-- improve CLI startup and terminal output with Rich logging, better lazy imports,
-  improved VTK load feedback, and better trame backend compatibility
-- fix `cli.py`: make source-checkout install-dir detection independent of the
-  parent folder name; harden GPU capability probing cleanup and cached CLI runtime
-  initialization; tighten parser semantics for `--info`, `--convert`, `--mode`,
-  and mutually exclusive top-level actions; improve system-info formatting and
-  keep the full install path visible; fix example summary extraction in `--run`;
-  make format conversion replace only the final file suffix and handle
-  case-insensitive extensions; make `--search` highlighting work correctly in
-  ignore-case mode and report 1-based line numbers; make `--search-code` match
-  source text as documented and avoid aborting after unsupported objects; make
-  cached `--search-vtk` index refresh failures fall back cleanly; and avoid a
-  redundant second module-import scan in `--locate`; fix `--eog` left/right
-  window controls, safe single-image sizing, and empty-input reporting; and fix
-  `draw_scene()` camera-sharing semantics, defer plotter creation until needed,
-  and tighten case-insensitive file-type dispatch
-- fix `backends.py`: trame component imports now distinguish missing packages from
-  internal import failures and report incompatible layouts cleanly; notebook backend
-  dispatch now validates and normalizes `settings.default_backend`; the 2D backend
-  guards renderer autoclose against empty renderer lists; the k3d backend avoids
-  mutating the original mesh when mapping cell colors to points, handles degenerate
-  lookup tables safely, tightens line export limits, and hardens object-name lookup;
-  the trame backend now uses per-plotter server/view ids to avoid state collisions
-  across multiple notebook views; `_rgb2int()` now clamps inputs, ignores any alpha
-  component, validates underspecified colors, and rounds instead of truncating when
-  converting normalized colors to packed integers
-- improve Slicer3DPlotter, plotting/runtime behavior, scene object lookup,
-  follow-camera handling for Text3D, and fix a range of runtime/API issues
-- fix `colors.py`: `_setup_colormaps` now raises distinct `RuntimeError` messages for missing
-  vs outdated (< 3.5) matplotlib; `_has_colors` no longer uses fragile `from builtins import
-  get_ipython` (replaced with `getattr(builtins, "get_ipython", None)`) and simplified to a
-  single return; `_hex_to_rgb_cached` removes the intermediate list allocation; unknown VTK
-  named colors in `_get_color_from_string` now warn and return gray consistently instead of
-  silently returning black; `get_color` removes stale hard-coded fast-paths for "r"/"g"/"b"
-  (covered by the lru-cached string resolver), replaces `.isdigit()` with `int()` try/except
-  so negative-integer strings like `"-7"` are handled correctly, and unifies the 0-255 RGBA
-  branch to divide all components (including alpha) by 255; `get_color_name` removes
-  redundant `str()` wrap on an already-string dict key; `hsv2rgb`/`rgb2hsv` now share a
-  lazy module-level `vtkMath` singleton instead of constructing a new VTK object per call;
-  `rgb2hex` uses `round()` instead of `int()` to avoid truncation bias (e.g. 0.5 → #80 not #7f);
-  `color_map`: rename `cut` → `is_array`, fix degenerate `vmax==vmin` scalar path to return
-  `[0.0]` instead of `[value-vmin]`, and return a plain tuple `(0.5,0.5,0.5)` on error for
-  scalar input (was `np.array`); `build_palette`: replace misleading `get_color()` passthrough
-  on already-converted HSV values with plain `np.asarray`, fix docstring `N` → `n`;
-  `build_lut`: remove leftover commented-out debug print;
-  `printc`: replace bare `except:` with `except Exception:` to avoid swallowing
-  `KeyboardInterrupt` and `SystemExit`;
-  `printd`: guard `GetPosition()` call with `hasattr(obj, "GetPosition")` so non-VTK
-  objects with a `.name` attribute no longer crash; use `str(obj.name)` to handle
-  non-string name values; wrap `min`/`max` stats print in `try/except` to skip
-  non-numeric sequences cleanly
-- fix `core/common.py`: `write()` was setting `out.pipeline` on the discarded return value of
-  `file_io.write()` instead of `cls.pipeline`; add `_parse_vtk_flat_connectivity()` static
-  helper and refactor `lines` and `cells` properties to use it, eliminating ~40 lines of
-  duplicated VTK flat-array unpacking; unify the empty-result return type of `lines` from
-  `np.array([], dtype=int)` to `[]` to match `cells`; replace six bare/empty
-  `raise RuntimeError` / `raise RuntimeError()` calls with descriptive messages; annotate the
-  `add_ids()` workaround with the full GitHub issue URL; add section-boundary comments
-  (`Data access`, `Object info`, `Geometry & bounds`, `Connectivity`, `Spatial queries`,
-  `Data mapping`, `Vertices & coordinates`, `Cell connectivity`, `Field operations`,
-  `IO & conversion`, `Distance operations`)
-- fix `OperationNode`: safe early-return when pipeline disabled, stable graphviz node IDs,
-  cycle detection in tree traversal, explicit `__str__`, removed dead `counts` attribute
-- fix `ProgressBar`: restore cursor + newline on `__del__`, correct `_fit_line` width
-  accounting, fix `progressbar()` docstring to match actual signature
-- fix `grid_corners`: `yflip` used `n` (columns) instead of `m` (rows), producing negative
-  row indices and wrong box positions for non-square grids; row index now computed with `//`
-- fix `make_ticks`: `raise RuntimeError` now carries a message; `if not n` guard changed
-  to `if n is None` to avoid silently overriding a caller-supplied zero; custom-label path
-  uses `np.isclose` instead of `==` for x1 boundary; loop variable renamed from `s` to
-  `tok` to avoid shadowing the numeric step size; `useformat` branch skipped when logscale
-  is active to avoid building a discarded string
-- fix `cart2cyl`: replace `np.sqrt(x*x + y*y)` with `np.hypot(x, y)` for consistency
-  with `cart2spher` and overflow safety on large inputs
-- fix `NonLinearTransform`: `sigma` getter/setter docstrings were swapped; `invert` return
-  annotation changed from `NonLinearTransform` to `Self`; `source_points`/`target_points`
-  setters simplified (drop `if …: pass else:` idiom); `compute_main_axes` now subtracts the
-  base transformed position `p0 = transform_point(pt)` so that the finite-difference Jacobian
-  is correct at any pivot, not just the origin; `sqrt` of eigenvalues guarded with `np.abs`
-  against tiny negative values from floating-point noise
-- fix `LinearTransform`: sequence input now validated as a square 2D array (raises
-  `ValueError` for flat or non-square inputs); JSON loading uses `.get()` for `name`/`comment`
-  so missing optional keys no longer raise `KeyError`; legacy-format parser switches from
-  `split(" ")` to `split()` to handle tabs and multiple spaces; `is_identity` simplified to
-  `np.allclose(M, np.eye(4))`; `reorient` antiparallel branch now picks a proper perpendicular
-  axis instead of perturbing `newaxis`, clamps the `arccos` argument to `[-1, 1]`, and replaces
-  the magic constant `1.4142` with `np.sqrt(2)`
-- fix standalone utils: `is_sequence` drops dead Py2 `__getslice__` check; `point_in_triangle`
-  converts all inputs to arrays; `intersection_ray_triangle` degenerate check now tests the
-  cross-product `n` instead of edge vector `v`; `triangle_solver` angle-zero guards use
-  `is not None`; `get_uv` replaces deprecated `np.matrix` with `np.array`; `grep` drops
-  redundant newline strip; `print_histogram` removes dead vtkImageData/vtkPolyData branches;
-  `make_ticks` saves/restores numpy print options in a `finally` block; `camera_from_dict`
-  uses `is not None` guard for `modify_inplace`
-- fix `Minimizer`: convergence flag no longer calls `Iterate()` after `Minimize()`;
-  `eval()` passes list not dict to user function; `set_parameters()` guards scalar values;
-  `minimize()` resets paths on repeated calls; `_summary_rows` uses enumerate and avoids
-  recomputing the Hessian on every `__str__` call
-- fix `lazy_imports`: remove redundant `seen` set and `ordered` list in `build_attr_map`
-  (replaced with `list(attr_map)`, relying on Python 3.7+ dict insertion-order guarantee);
-  `getattr_lazy` now wraps the import+getattr in a `try/except` and raises a clear
-  `ImportError` with context instead of a bare traceback; `if attr_map`/`if module_map`
-  truthiness guards replaced with `is not None` throughout
-- migrate the project documentation to MkDocs and refresh a large set of examples
-- refactor `Settings` class: `__str__` now generates output from live values grouped
-  by category (General, Rendering, Lighting, …) instead of scraping the class docstring;
-  `init_colab()` and `start_xvfb()` moved to module-level functions and exported from
-  `vedo` directly; `__getitem__` now raises `KeyError` (not `AttributeError`) for unknown
-  keys; `__contains__` added so `"key" in settings` works; `dry_run_mode` included in
-  `keys()` / `values()` / `items()` and visible in `print(settings)`; `clear_cache` path
-  construction made explicit for absolute vs. relative `cache_directory`; `set_vtk_verbosity`
-  now imports through `vedo.vtkclasses` instead of `vtkmodules` directly
+# Development Version
+
+## Changes and Fixes
+- add interactive widget wrappers for line, sphere, point and cylinder placement
+- add Three.js scene export support
+- add quaternion utilities, Gaussian cube loading, and explicit structured-grid methods
+- improve CLI: Rich logging, better `--search`, `--convert`, `--eog`, and `--run` behaviour
+- fix trame backend state collisions across multiple notebook views
+- fix k3d backend: cell-to-point color mapping no longer mutates the original mesh
+- fix `NonLinearTransform.compute_main_axes`: Jacobian now correct at any pivot, not just the origin
+- fix `LinearTransform.reorient`: antiparallel case now picks a proper perpendicular axis
+- fix `grid_corners`: wrong box positions for non-square grids when `yflip=True`
+- fix `color_map`: degenerate `vmax==vmin` scalar path returned wrong value
+- fix `Minimizer`: convergence check, `eval()` argument type, and repeated `minimize()` calls
+- fix `cart2cyl`: use `np.hypot` to avoid overflow on large inputs
+- fix `write()`: pipeline was attached to discarded return value instead of the object
+- migrate documentation to MkDocs; refresh examples
+- improve `Settings.__str__` to show live values grouped by category;
+  `"key" in settings` now works; `dry_run_mode` visible in `print(settings)`
 
 
 ## Soft-breaking Changes
@@ -137,7 +38,7 @@ All notable changes to the project will be documented in this file.
 ## New/Revised Examples
 ```
 examples/extras/export_threejs.py
-examples/extras/quaternion_tutorial.py
+examples/extras/quaternion.py
 examples/extras/chemistry2.py
 examples/animation/aizawa_attractor.py
 examples/volumetric/slicer_set_volume.py

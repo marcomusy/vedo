@@ -8,15 +8,9 @@ import sys
 import numpy as np
 
 
-def summary_title(obj, address: str | None = None) -> str:
+def summary_title(obj) -> str:
     """Build the standard summary title for an object."""
-    if address is None:
-        address_getter = getattr(obj, "_summary_address", None)
-        if callable(address_getter):
-            address = address_getter()
-        else:
-            address = hex(id(obj))
-    return f"{obj.__class__.__module__}.{obj.__class__.__name__} at ({address})"
+    return f"{obj.__class__.__module__}.{obj.__class__.__name__}"
 
 
 def summary_panel(obj, rows, color: str = "white", expand: bool = False):
