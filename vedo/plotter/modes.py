@@ -70,7 +70,7 @@ class MousePan(vtki.vtkInteractorStyleUser):
             self.AddObserver("MouseWheelForwardEvent", self._wheel_forward)
             self.AddObserver("MouseWheelBackwardEvent", self._wheel_backward)
 
-        if enable_pan:
+        if enable_pan or enable_rotate or enable_zoom:
             self.AddObserver("MouseMoveEvent", self._mouse_move)
 
     def _get_motion(self):
@@ -111,7 +111,8 @@ class MousePan(vtki.vtkInteractorStyleUser):
         if abs(self.motionD[0]) > abs(self.motionD[1]):
             self.camera.Azimuth(-2.0 * self.speed * self.motionD[0])
         else:
-            self.camera.Zoom(1 + self.motionD[1] / 100)
+            zoom_factor = max(0.01, 1 + self.motionD[1] / 100)
+            self.camera.Zoom(zoom_factor)
         self.interactor.Render()
 
     def _mouse_wheel_forward(self):
@@ -543,6 +544,7 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
 
         self.middle_mouse_lock = False
         self.middle_mouse_lock_actor = None  # will be created when required
+        self._middle_mouse_lock_from_space = False
 
         # Special Modes
         self._is_box_zooming = False
@@ -786,8 +788,9 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
             if self.draginfo:
                 self.finish_drag()
         elif KEY == "SPACE":
+            self._middle_mouse_lock_from_space = not self.middle_mouse_lock
             self.middle_mouse_lock = True
-            # self._update_middle_mouse_button_lock_actor()
+            self._update_middle_mouse_button_lock_actor()
             # self.GrabFocus("MouseMoveEvent", self)
             # # TODO: grab and release focus; possible from python?
         elif KEY == "B":
@@ -828,12 +831,12 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
     def key_release(self, obj, _event):
         key = obj.GetKeySym()
         KEY = key.upper()
-        if KEY == "SPACE":
-            if self.middle_mouse_lock:
-                self.middle_mouse_lock = False
-                self._update_middle_mouse_button_lock_actor()
+        if KEY == "SPACE" and self._middle_mouse_lock_from_space:
+            self.middle_mouse_lock = False
+            self._middle_mouse_lock_from_space = False
+            self._update_middle_mouse_button_lock_actor()
 
-    def window_resized(self):
+    def window_resized(self, _obj=None, _event=None):
         self.initialize_screen_drawing()
 
     def rotate_discrete_step(self, movement_direction, step=22.5):
@@ -1508,32 +1511,29 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
         rwin.SetRGBACharPixelData(0, 0, size[0] - 1, size[1] - 1, tempPA, 0)
 
         camera = self.GetCurrentRenderer().GetActiveCamera()
-        scale = camera.GetParallelScale()
-
-        # Set/Get the scaling used for a parallel projection, i.e.
-        #
-        # the half of the height of the viewport in world-coordinate distances.
-        # The default is 1. Note that the "scale" parameter works as an "inverse scale"
-        #  larger numbers produce smaller images.
-        # This method has no effect in perspective projection mode
-
-        half_height = size[1] / 2
-        # half_height [px] = scale [world-coordinates]
-
         length = ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5
-        meters_per_pixel = scale / half_height
-        meters = length * meters_per_pixel
 
         if camera.GetParallelProjection():
+            scale = camera.GetParallelScale()
+
+            # Set/Get the scaling used for a parallel projection, i.e.
+            #
+            # the half of the height of the viewport in world-coordinate distances.
+            # The default is 1. Note that the "scale" parameter works as an "inverse scale"
+            #  larger numbers produce smaller images.
+            # This method has no effect in perspective projection mode
+            half_height = size[1] / 2
+            # half_height [px] = scale [world-coordinates]
+
+            meters_per_pixel = scale / half_height
+            meters = length * meters_per_pixel
             print(f"Line length = {length} px = {meters} m")
+            if self.callback_measure:
+                self.callback_measure(meters)
         else:
             print(
                 "Need to be in non-perspective mode to measure. Press 2 or 3 to get there"
             )
-
-        if self.callback_measure:
-            self.callback_measure(meters)
-
 
         rwin.Frame()
 
