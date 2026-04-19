@@ -47,10 +47,15 @@ def _setup_colormaps():
         _ = _mpl.colormaps  # matplotlib >=3.5
         matplotlib = _mpl
         _has_matplotlib = True
-    except (ModuleNotFoundError, AttributeError):
+    except ModuleNotFoundError:
         raise RuntimeError(
             "matplotlib is required for vedo color maps. "
             "Install it with `pip install matplotlib`."
+        )
+    except AttributeError:
+        raise RuntimeError(
+            "matplotlib >= 3.5 is required for vedo color maps. "
+            "Upgrade with `pip install --upgrade matplotlib`."
         )
 
 
@@ -712,19 +717,13 @@ emoji = {
 
 # terminal or notebook can do color print
 def _has_colors(stream):
-    try:
-        # Avoid importing IPython at module import time: this slows down startup.
-        from builtins import get_ipython
-
-        return get_ipython() is not None
-    except Exception:
-        pass
-
+    import builtins
+    ip = getattr(builtins, "get_ipython", None)
+    if ip is not None and ip() is not None:
+        return True
     if not hasattr(stream, "isatty"):
         return False
-    if not stream.isatty():
-        return False
-    return True
+    return stream.isatty()
 
 
 _terminal_has_colors = _has_colors(sys.stdout)
@@ -751,8 +750,7 @@ def _hex_to_rgb_cached(hx: str) -> tuple:
     h = hx.lstrip("#")
     if len(h) != 6:
         raise ValueError(f"Invalid hex color '{hx}'")
-    rgb255 = [int(h[i : i + 2], 16) for i in (0, 2, 4)]
-    return (rgb255[0] / 255.0, rgb255[1] / 255.0, rgb255[2] / 255.0)
+    return (int(h[0:2], 16) / 255.0, int(h[2:4], 16) / 255.0, int(h[4:6], 16) / 255.0)
 
 
 @lru_cache(maxsize=4096)
@@ -775,6 +773,9 @@ def _get_color_from_string(name: str) -> tuple:
             return (0.5, 0.5, 0.5)
 
     named_colors = _get_named_colors()
+    if not named_colors.IsColor(c):
+        vedo.logger.warning(f"in get_color(): unknown color name '{name}'")
+        return (0.5, 0.5, 0.5)
     rgba = [0, 0, 0, 0]
     named_colors.GetColor(c, rgba)
     return (rgba[0] / 255.0, rgba[1] / 255.0, rgba[2] / 255.0)
@@ -813,17 +814,11 @@ def get_color(rgb=None, hsv=None):
         except (TypeError, IndexError):
             pass
 
-    # because they are most common:
     if isinstance(rgb, str):
-        if rgb == "r":
-            return (0.9960784313725, 0.11764705882352, 0.121568627450980)
-        if rgb == "g":
-            return (0.0156862745098, 0.49803921568627, 0.062745098039215)
-        if rgb == "b":
-            return (0.0588235294117, 0.0, 0.984313725490196)
-
-    if isinstance(rgb, str) and rgb.isdigit():
-        rgb = int(rgb)
+        try:
+            rgb = int(rgb)
+        except (ValueError, TypeError):
+            pass
 
     c = hsv2rgb(hsv) if hsv is not None else rgb
 
@@ -833,11 +828,7 @@ def get_color(rgb=None, hsv=None):
             return (0.5, 0.5, 0.5)
         if np.max(arr[:3]) <= 1:
             return tuple(arr.tolist())
-        if arr.size == 3:
-            return tuple((arr / 255.0).tolist())
-        rgba = arr.copy()
-        rgba[:3] /= 255.0
-        return tuple(rgba.tolist())
+        return tuple((arr / 255.0).tolist())
 
     if isinstance(c, str):
         return _get_color_from_string(c)
@@ -862,30 +853,38 @@ def get_color_name(c) -> str:
         d = np.linalg.norm(c - ci)
         if d < mdist:
             mdist = d
-            kclosest = str(key)
+            kclosest = key
     return kclosest
+
+
+_vtk_math = None
+
+
+def _get_vtk_math():
+    global _vtk_math
+    if _vtk_math is None:
+        _vtk_math = vtki.new("Math")
+    return _vtk_math
 
 
 def hsv2rgb(hsv: list) -> list:
     """Convert HSV to RGB color."""
-    ma = vtki.new("Math")
     rgb = [0, 0, 0]
-    ma.HSVToRGB(hsv, rgb)
+    _get_vtk_math().HSVToRGB(hsv, rgb)
     return rgb
 
 
 def rgb2hsv(rgb: list) -> list:
     """Convert RGB to HSV color."""
-    ma = vtki.new("Math")
     hsv = [0, 0, 0]
-    ma.RGBToHSV(get_color(rgb), hsv)
+    _get_vtk_math().RGBToHSV(get_color(rgb), hsv)
     return hsv
 
 
 def rgb2hex(rgb: list) -> str:
     """Convert RGB to Hex color."""
     arr = np.clip(np.asarray(rgb, dtype=float)[:3], 0, 1)
-    return "#%02x%02x%02x" % (int(arr[0] * 255), int(arr[1] * 255), int(arr[2] * 255))
+    return "#%02x%02x%02x" % (round(arr[0] * 255), round(arr[1] * 255), round(arr[2] * 255))
 
 
 def hex2rgb(hx: str) -> list:
@@ -929,9 +928,9 @@ def color_map(value, name="jet", vmin=None, vmax=None):
             <img src="https://vedo.embl.es/images/pyplot/plot_bars.png" width="400"/>
 
     """
-    cut = _is_sequence(value)  # to speed up later
+    is_array = _is_sequence(value)
 
-    if cut:
+    if is_array:
         values = np.asarray(value, dtype=float)
         if vmin is None:
             vmin = np.min(values)
@@ -951,7 +950,7 @@ def color_map(value, name="jet", vmin=None, vmax=None):
             vedo.logger.warning("in color_map() you must specify vmax! Assume 1.")
             vmax = 1
         if vmax == vmin:
-            values = [value - vmin]
+            values = [0.0]
         else:
             values = [(value - vmin) / (vmax - vmin)]
 
@@ -965,14 +964,14 @@ def color_map(value, name="jet", vmin=None, vmax=None):
             vedo.logger.error(
                 f"Available color maps are:\n{list(matplotlib.colormaps.keys())}"
             )
-            return (
-                np.array([0.5, 0.5, 0.5]) if not cut else np.full((len(values), 3), 0.5)
-            )
+            if is_array:
+                return np.full((len(values), 3), 0.5)
+            return (0.5, 0.5, 0.5)
     else:
         mp = name  # assume matplotlib.colors.LinearSegmentedColormap
     result = mp(values)[:, [0, 1, 2]]
 
-    if cut:
+    if is_array:
         return result
     return result[0]
 
@@ -983,7 +982,7 @@ def build_palette(color1, color2, n, hsv=True) -> np.ndarray:
     by linear interpolation in HSV or RGB spaces.
 
     Args:
-        N (int):
+        n (int):
             number of output colors.
         color1 (color):
             first color.
@@ -1000,8 +999,8 @@ def build_palette(color1, color2, n, hsv=True) -> np.ndarray:
     if hsv:
         color1 = rgb2hsv(color1)
         color2 = rgb2hsv(color2)
-    c1 = np.array(get_color(color1))
-    c2 = np.array(get_color(color2))
+    c1 = np.asarray(color1)
+    c2 = np.asarray(color2)
     cols = []
     for f in np.linspace(0, 1, n, endpoint=True):
         c = c1 * (1 - f) + c2 * f
@@ -1108,7 +1107,6 @@ def build_lut(
                 alpha = colorlist[i][2]
             else:
                 alpha = 1.0
-            # print("colorlist entry:", colorlist[i])
             rgba = list(get_color(colorlist[i][1])) + [alpha]
             lut.SetTableValue(i, rgba)
 
@@ -1300,7 +1298,7 @@ def printc(
             else:
                 sys.stdout.write(out + end)
 
-    except:  # --------------------------------------------------- fallback
+    except Exception:  # ----------------------------------------- fallback
         if return_string:
             return "".join(map(str, strings))
 
@@ -1347,25 +1345,25 @@ def printd(*strings, q=False):
             continue
         if loc.startswith("_"):
             continue
-        if hasattr(obj, "name"):
-            if not obj.name:
-                oname = str(type(obj))
-            else:
-                oname = obj.name
+        if hasattr(obj, "name") and hasattr(obj, "GetPosition"):
+            oname = str(obj.name) if obj.name else str(type(obj))
             var = oname + ", at " + vedo.utils.precision(obj.GetPosition(), 3)
 
         var = var.replace("vtkmodules.", "")
         print("      \x1b[37m", loc, "\t\t=", var[:60].replace("\n", ""), reset)
         if vedo.utils.is_sequence(obj) and len(obj) > 4:
-            print(
-                "           \x1b[37m\x1b[2m\x1b[3m len:",
-                len(obj),
-                " min:",
-                vedo.utils.precision(min(obj), 4),
-                " max:",
-                vedo.utils.precision(max(obj), 4),
-                reset,
-            )
+            try:
+                print(
+                    "           \x1b[37m\x1b[2m\x1b[3m len:",
+                    len(obj),
+                    " min:",
+                    vedo.utils.precision(min(obj), 4),
+                    " max:",
+                    vedo.utils.precision(max(obj), 4),
+                    reset,
+                )
+            except (TypeError, ValueError):
+                pass
 
     if q:
         print(f"    \x1b[1m\x1b[37mExiting python now (q={bool(q)}).\x1b[0m\x1b[37m")

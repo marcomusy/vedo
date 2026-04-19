@@ -13,6 +13,29 @@ All notable changes to the project will be documented in this file.
   improved VTK load feedback, and better trame backend compatibility
 - improve Slicer3DPlotter, plotting/runtime behavior, scene object lookup,
   follow-camera handling for Text3D, and fix a range of runtime/API issues
+- fix `colors.py`: `_setup_colormaps` now raises distinct `RuntimeError` messages for missing
+  vs outdated (< 3.5) matplotlib; `_has_colors` no longer uses fragile `from builtins import
+  get_ipython` (replaced with `getattr(builtins, "get_ipython", None)`) and simplified to a
+  single return; `_hex_to_rgb_cached` removes the intermediate list allocation; unknown VTK
+  named colors in `_get_color_from_string` now warn and return gray consistently instead of
+  silently returning black; `get_color` removes stale hard-coded fast-paths for "r"/"g"/"b"
+  (covered by the lru-cached string resolver), replaces `.isdigit()` with `int()` try/except
+  so negative-integer strings like `"-7"` are handled correctly, and unifies the 0-255 RGBA
+  branch to divide all components (including alpha) by 255; `get_color_name` removes
+  redundant `str()` wrap on an already-string dict key; `hsv2rgb`/`rgb2hsv` now share a
+  lazy module-level `vtkMath` singleton instead of constructing a new VTK object per call;
+  `rgb2hex` uses `round()` instead of `int()` to avoid truncation bias (e.g. 0.5 → #80 not #7f);
+  `color_map`: rename `cut` → `is_array`, fix degenerate `vmax==vmin` scalar path to return
+  `[0.0]` instead of `[value-vmin]`, and return a plain tuple `(0.5,0.5,0.5)` on error for
+  scalar input (was `np.array`); `build_palette`: replace misleading `get_color()` passthrough
+  on already-converted HSV values with plain `np.asarray`, fix docstring `N` → `n`;
+  `build_lut`: remove leftover commented-out debug print;
+  `printc`: replace bare `except:` with `except Exception:` to avoid swallowing
+  `KeyboardInterrupt` and `SystemExit`;
+  `printd`: guard `GetPosition()` call with `hasattr(obj, "GetPosition")` so non-VTK
+  objects with a `.name` attribute no longer crash; use `str(obj.name)` to handle
+  non-string name values; wrap `min`/`max` stats print in `try/except` to skip
+  non-numeric sequences cleanly
 - fix `OperationNode`: safe early-return when pipeline disabled, stable graphviz node IDs,
   cycle detection in tree traversal, explicit `__str__`, removed dead `counts` attribute
 - fix `ProgressBar`: restore cursor + newline on `__del__`, correct `_fit_line` width
