@@ -24,7 +24,7 @@ for name in cmaps_names:
 
     # Add a text label with the colormap name to the left of the strip
     tx1 = Text3D(":rightarrow " + name, justify="left-center", s=0.75, font=2)
-    tx1.pos(gr.xbounds(1), gr.y()).c("w")
+    tx1.pos(gr.xbounds()[1], gr.y()).c("w")
     tx2 = tx1.clone(deep=False).c("k")
     vnames1.append(tx1)
     vnames2.append(tx2)

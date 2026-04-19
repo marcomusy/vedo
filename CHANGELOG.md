@@ -60,6 +60,16 @@ All notable changes to the project will be documented in this file.
   objects with a `.name` attribute no longer crash; use `str(obj.name)` to handle
   non-string name values; wrap `min`/`max` stats print in `try/except` to skip
   non-numeric sequences cleanly
+- fix `core/common.py`: `write()` was setting `out.pipeline` on the discarded return value of
+  `file_io.write()` instead of `cls.pipeline`; add `_parse_vtk_flat_connectivity()` static
+  helper and refactor `lines` and `cells` properties to use it, eliminating ~40 lines of
+  duplicated VTK flat-array unpacking; unify the empty-result return type of `lines` from
+  `np.array([], dtype=int)` to `[]` to match `cells`; replace six bare/empty
+  `raise RuntimeError` / `raise RuntimeError()` calls with descriptive messages; annotate the
+  `add_ids()` workaround with the full GitHub issue URL; add section-boundary comments
+  (`Data access`, `Object info`, `Geometry & bounds`, `Connectivity`, `Spatial queries`,
+  `Data mapping`, `Vertices & coordinates`, `Cell connectivity`, `Field operations`,
+  `IO & conversion`, `Distance operations`)
 - fix `OperationNode`: safe early-return when pipeline disabled, stable graphviz node IDs,
   cycle detection in tree traversal, explicit `__str__`, removed dead `counts` attribute
 - fix `ProgressBar`: restore cursor + newline on `__del__`, correct `_fit_line` width

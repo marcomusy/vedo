@@ -34,6 +34,18 @@ class CommonAlgorithms:
         """Convert a vtkIdList to a numpy array of ids."""
         return np.array([id_list.GetId(i) for i in range(id_list.GetNumberOfIds())])
 
+    @staticmethod
+    def _parse_vtk_flat_connectivity(arr1d) -> list:
+        """Unpack VTK flat connectivity [nids, id0...idn, ...] into a list of lists."""
+        i = 0
+        conn = []
+        n = len(arr1d)
+        while i < n:
+            nids = arr1d[i]
+            conn.append([int(arr1d[i + k]) for k in range(1, nids + 1)])
+            i += nids + 1
+        return conn
+
     def _run_gradient_filter(
         cls,
         mode: str,
@@ -56,19 +68,19 @@ class CommonAlgorithms:
                 return out.GetCellData().GetArray(result_name)
         else:
             vedo.logger.error(f"in {mode}(): unknown option {on}")
-            raise RuntimeError
+            raise RuntimeError(f"in {mode}(): unknown option '{on}'")
 
         if array_name is None:
             if mode == "gradient":
                 active = varr.GetScalars()
                 if not active:
                     vedo.logger.error(f"in gradient: no scalars found for {on}")
-                    raise RuntimeError
+                    raise RuntimeError(f"in gradient(): no scalars found for '{on}'")
             else:
                 active = varr.GetVectors()
                 if not active:
                     vedo.logger.error(f"in {mode}(): no vectors found for {on}")
-                    raise RuntimeError
+                    raise RuntimeError(f"in {mode}(): no vectors found for '{on}'")
             array_name = active.GetName()
 
         gf.SetInputData(cls.dataset)
@@ -88,6 +100,8 @@ class CommonAlgorithms:
 
         gf.Update()
         return utils.vtk2numpy(getter(gf.GetOutput()))
+
+    # ====== Data access ======
 
     @property
     def pointdata(cls):
@@ -130,6 +144,8 @@ class CommonAlgorithms:
             - `myobj.metadata.remove(name)` removes this array.
         """
         return DataArrayHelper(cls, 2)
+
+    # ====== Object info ======
 
     def rename(cls, newname: str) -> Self:
         """Rename the object"""
@@ -198,6 +214,8 @@ class CommonAlgorithms:
         cls._update(dataset, **kwargs)
         return cls
 
+    # ====== Geometry & bounds ======
+
     def bounds(cls) -> np.ndarray:
         """
         Get the object bounds.
@@ -211,29 +229,19 @@ class CommonAlgorithms:
         except (AttributeError, ValueError):
             return np.array(cls.dataset.GetBounds())
 
-    def xbounds(cls, i=None) -> np.ndarray:
-        """Get the bounds `[xmin,xmax]`. Can specify upper or lower with i (0,1)."""
+    def xbounds(cls) -> np.ndarray:
+        """Get the bounds `[xmin,xmax]`."""
         b = cls.bounds()
-        if i is not None:
-            return b[i]
         return np.array([b[0], b[1]])
 
-    def ybounds(cls, i=None) -> np.ndarray:
-        """Get the bounds `[ymin,ymax]`. Can specify upper or lower with i (0,1)."""
+    def ybounds(cls) -> np.ndarray:
+        """Get the bounds `[ymin,ymax]`."""
         b = cls.bounds()
-        if i == 0:
-            return b[2]
-        if i == 1:
-            return b[3]
         return np.array([b[2], b[3]])
 
-    def zbounds(cls, i=None) -> np.ndarray:
-        """Get the bounds `[zmin,zmax]`. Can specify upper or lower with i (0,1)."""
+    def zbounds(cls) -> np.ndarray:
+        """Get the bounds `[zmin,zmax]`."""
         b = cls.bounds()
-        if i == 0:
-            return b[4]
-        if i == 1:
-            return b[5]
         return np.array([b[4], b[5]])
 
     def diagonal_size(cls) -> float:
@@ -315,6 +323,8 @@ class CommonAlgorithms:
             vpts.copy_properties_from(cls)
         return vpts
 
+    # ====== Connectivity ======
+
     @property
     def lines(cls):
         """
@@ -323,23 +333,11 @@ class CommonAlgorithms:
 
         See also: `lines_as_flat_array()`.
         """
-        # Get cell connettivity ids as a 1D array. The vtk format is:
-        #    [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
         try:
             arr1d = _get_data_legacy_format(cls.dataset.GetLines())
         except AttributeError:
-            return np.array([], dtype=int)
-        i = 0
-        conn = []
-        n = len(arr1d)
-        for _ in range(n):
-            cell = [arr1d[i + k + 1] for k in range(arr1d[i])]
-            conn.append(cell)
-            i += arr1d[i] + 1
-            if i >= n:
-                break
-
-        return conn  # cannot always make a numpy array of it!
+            return []
+        return cls._parse_vtk_flat_connectivity(arr1d)
 
     @property
     def lines_as_flat_array(cls):
@@ -353,6 +351,8 @@ class CommonAlgorithms:
             return _get_data_legacy_format(cls.dataset.GetLines())
         except AttributeError:
             return np.array([], dtype=int)
+
+    # ====== Spatial queries ======
 
     def mark_boundaries(cls) -> Self:
         """
@@ -432,6 +432,8 @@ class CommonAlgorithms:
         cls._update(fe.GetOutput())
         return cls
 
+    # ====== Data mapping ======
+
     def map_cells_to_points(cls, arrays=(), move=False) -> Self:
         """
         Interpolate cell data (i.e., data specified per cell or face)
@@ -459,6 +461,8 @@ class CommonAlgorithms:
         cls.mapper.SetScalarModeToUsePointData()
         cls.pipeline = utils.OperationNode("map_cells_to_points", parents=[cls])
         return cls
+
+    # ====== Vertices & coordinates ======
 
     @property
     def vertices(cls):
@@ -530,6 +534,8 @@ class CommonAlgorithms:
         """Set points coordinates. Same as `vertices` and `points`."""
         cls.vertices = pts
 
+    # ====== Cell connectivity ======
+
     @property
     def cells_as_flat_array(cls):
         """
@@ -563,20 +569,7 @@ class CommonAlgorithms:
                 arr1d = _get_data_legacy_format(cls.dataset.GetPolys())
             except AttributeError:
                 return []
-
-        # Get cell connettivity ids as a 1D array. vtk format is:
-        # [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
-        i = 0
-        conn = []
-        n = len(arr1d)
-        if n:
-            while True:
-                cell = [int(arr1d[i + k]) for k in range(1, arr1d[i] + 1)]
-                conn.append(cell)
-                i += arr1d[i] + 1
-                if i >= n:
-                    break
-        return conn
+        return cls._parse_vtk_flat_connectivity(arr1d)
 
     def cell_edge_neighbors(cls):
         """
@@ -736,7 +729,7 @@ class CommonAlgorithms:
             vedo.logger.error(
                 "in interpolate_data_from(): please set either radius or n"
             )
-            raise RuntimeError
+            raise RuntimeError("in interpolate_data_from(): please set either radius or n")
 
         if on == "points":
             points = source.dataset
@@ -749,7 +742,7 @@ class CommonAlgorithms:
             vedo.logger.error(
                 "in interpolate_data_from(), on must be on points or cells"
             )
-            raise RuntimeError()
+            raise RuntimeError("in interpolate_data_from(): 'on' must be 'points' or 'cells'")
 
         locator = vtki.new("PointLocator")
         locator.SetDataSet(points)
@@ -765,7 +758,7 @@ class CommonAlgorithms:
             kern = vtki.new("LinearKernel")
         else:
             vedo.logger.error("available kernels are: [shepard, gaussian, linear]")
-            raise RuntimeError()
+            raise RuntimeError("in interpolate_data_from(): unknown kernel, use shepard/gaussian/linear")
 
         if n:
             kern.SetNumberOfPoints(n)
@@ -842,7 +835,7 @@ class CommonAlgorithms:
         ids.SetPointIdsArrayName("PointID")
         ids.SetCellIdsArrayName("CellID")
         ids.Update()
-        # cls._update(ids.GetOutput(), reset_locators=False) # bug #1267
+        # cls._update(ids.GetOutput(), reset_locators=False)  # https://github.com/marcomusy/vedo/issues/1267
         point_arr = ids.GetOutput().GetPointData().GetArray("PointID")
         cell_arr = ids.GetOutput().GetCellData().GetArray("CellID")
         if point_arr:
@@ -851,6 +844,8 @@ class CommonAlgorithms:
             cls.dataset.GetCellData().AddArray(cell_arr)
         cls.pipeline = utils.OperationNode("add_ids", parents=[cls])
         return cls
+
+    # ====== Field operations ======
 
     def gradient(cls, input_array=None, on="points", fast=False) -> np.ndarray:
         """
@@ -1064,10 +1059,12 @@ class CommonAlgorithms:
         )
         return data
 
+    # ====== IO & conversion ======
+
     def write(cls, filename, binary=True) -> None:
         """Write object to file."""
-        out = vedo.file_io.write(cls, filename, binary)
-        out.pipeline = utils.OperationNode(
+        vedo.file_io.write(cls, filename, binary)
+        cls.pipeline = utils.OperationNode(
             "write",
             parents=[cls],
             comment=str(filename)[:15],
@@ -1112,6 +1109,8 @@ class CommonAlgorithms:
         msh = vedo.mesh.Mesh(geo.GetOutput())
         msh.pipeline = utils.OperationNode("tomesh", parents=[cls], c="#9e2a2b")
         return msh
+
+    # ====== Distance operations ======
 
     def signed_distance(
         cls, dims=(20, 20, 20), bounds=None, invert=False, max_radius=None

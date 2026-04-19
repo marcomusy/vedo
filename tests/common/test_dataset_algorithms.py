@@ -52,7 +52,7 @@ def test_basic_dataset_properties(dataset_bundle, dataset_name: str) -> None:
     assert len(dataset.center_of_mass()) == 3
     assert dataset.compute_cell_size() is dataset
     assert dataset.copy_data_from(dataset.clone()) is not None
-    assert isinstance(dataset.lines, np.ndarray)
+    assert isinstance(dataset.lines, list)
     assert isinstance(dataset.lines_as_flat_array, np.ndarray)
     assert dataset.mark_boundaries() is dataset
     assert isinstance(dataset.memory_address(), int) and dataset.memory_address() > 0
