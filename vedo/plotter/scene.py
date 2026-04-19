@@ -43,7 +43,7 @@ def add(plotter, *objs, at=None) -> Any:
     widgets = []
     plain_objs = []
     for ob in objs:
-        if ob and ob not in plotter.objects:
+        if ob is not None and ob not in plotter.objects:
             plotter.objects.append(ob)
         if ren and hasattr(ob, "add_to") and hasattr(ob, "widget"):
             widgets.append(ob)  # defer until after actors are in renderer
@@ -88,10 +88,10 @@ def add(plotter, *objs, at=None) -> Any:
 
 def remove(plotter, *objs, at=None) -> Any:
     """
-    Remove input object to the internal list of objects to be shown.
+    Remove input object from the internal list of objects to be shown.
 
     Objects to be removed can be referenced by their assigned name,
-    or by passing the object instance itplotter.
+    or by passing the object instance itself.
 
     Wildcards are supported in the names.
     E.g. `Eleph*nt` or `Eleph?nt` or `Eleph[aio]nt` will match `Elephant`.
@@ -106,13 +106,11 @@ def remove(plotter, *objs, at=None) -> Any:
     ir = plotter.renderers.index(ren)
 
     on_scene_actors = plotter.get_actors(include_non_pickables=True)
-    # print("remove() called", [objs])
-    # print("on_scene_actors", (on_scene_actors))
 
     # add to objs_to_remove the ones with string name and remove the rest
     objs_to_remove = []
     for ob in utils.flatten(objs):
-        if not ob:
+        if ob is None:
             continue
         if isinstance(ob, str):
             name = ob
@@ -129,14 +127,14 @@ def remove(plotter, *objs, at=None) -> Any:
 
         elif isinstance(ob, vedo.visual.LightKit):
             ob.lightkit.RemoveLightsFromRenderer(ren)
+            objs_to_remove.append(ob)
+            continue
 
         else:
             objs_to_remove.append(ob)
 
     # remove objs_to_remove actors from the scene
     for ob in objs_to_remove:
-        # print("->> removing", [ob])
-
         if hasattr(ob, "rendered_at"):
             ob.rendered_at.discard(ir)
 
@@ -188,7 +186,7 @@ def pop(plotter, at=None) -> Any:
         raise RuntimeError()
 
     if plotter.objects:
-        plotter.remove(plotter.objects[-1], at)
+        plotter.remove(plotter.objects[-1], at=at)
     return plotter
 
 
@@ -269,7 +267,7 @@ def get_volumes(plotter, at=None, include_non_pickables=False) -> list:
 
 def get_actors(plotter, at=None, include_non_pickables=False) -> list:
     """
-    Return a list of Volumes from the specified renderer.
+    Return a list of actors/props from the specified renderer.
 
     Args:
         at (int):
