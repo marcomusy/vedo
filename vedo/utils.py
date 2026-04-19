@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 import os
+import shutil
 import time
 import re
+_ANSI_RE = re.compile(r"\x1b\[[0-9;]*[mK]")
 
 from collections.abc import MutableSequence
 import numpy as np
@@ -253,18 +255,18 @@ class ProgressBar:
 
     def __init__(
         self,
-        start,
-        stop,
-        step=1,
-        c=None,
-        bold=True,
-        italic=False,
-        title="",
-        eta=True,
-        delay=-1,
-        width=25,
-        char="\U00002501",
-        char_back="\U00002500",
+        start: int,
+        stop: int,
+        step: int = 1,
+        c: str | None = None,
+        bold: bool = True,
+        italic: bool = False,
+        title: str = "",
+        eta: bool = True,
+        delay: float = -1,
+        width: int | None = 25,
+        char: str = "\U00002501",
+        char_back: str = "\U00002500",
     ) -> None:
         """
         Class to print a progress bar with optional text message.
@@ -289,7 +291,7 @@ class ProgressBar:
                 if negative use the default value
                 as set in `vedo.settings.progressbar_delay`
             width (int):
-                width of the progress bar
+                width of the progress bar; None adapts to terminal width
             char (str):
                 character to use for the progress bar
             char_back (str):
@@ -308,391 +310,155 @@ class ProgressBar:
         """
         self.char = char
         self.char_back = char_back
-
-        self.title = title + " "
-        if title:
-            self.title = " " + self.title
+        self.title = (" " + title + " ") if title else ""
 
         if delay < 0:
             delay = vedo.settings.progressbar_delay
 
         self.start = start
         self.stop = stop
-        self.step = step
+        self.step = step if step != 0 else 1
+        if self.stop < self.start and self.step > 0:
+            self.step = -self.step
 
         self.color = c
         self.bold = bold
         self.italic = italic
-        self.width = width
+        self._fixed_width = width
+        self.width = self._compute_width()
         self.pbar = ""
         self.percent = 0.0
         self.percent_int = 0
         self.eta = eta
-        self.delay = delay
+        self.delay = float(delay)
 
-        self.t0 = time.time()
-        self._remaining = 1e10
+        self._t0 = time.perf_counter()
+        self._last_print = ""
+        self._finished = False
+        self._cursor_hidden = False
+        self._ema_rate: float | None = None
 
-        self._update(0)
+        self._counts = start
+        self._prev_counts = start
 
-        self._counts = 0
-        self._oldbar = ""
-        self._lentxt = 0
-        self._range = np.arange(start, stop, step)
+        self._update(self._counts)
+        self._range = np.arange(start, stop, self.step)
 
-    def print(self, txt="", c=None) -> None:
+    def print(self, txt: str = "", c: str | None = None) -> None:
         """Print the progress bar with an optional message."""
-        if not c:
-            c = self.color
+        if self._finished:
+            return
 
         self._update(self._counts + self.step)
 
-        if self.delay:
-            if time.time() - self.t0 < self.delay:
-                return
+        if self.delay and (time.perf_counter() - self._t0) < self.delay:
+            return
 
-        if self.pbar != self._oldbar:
-            self._oldbar = self.pbar
+        if self.pbar != self._last_print:
+            self._last_print = self.pbar
+            if not self._cursor_hidden:
+                print("\x1b[?25l", end="", flush=True)
+                self._cursor_hidden = True
 
-            if self.eta and self._counts > 1:
-                tdenom = time.time() - self.t0
-                if tdenom:
-                    vel = self._counts / tdenom
-                    self._remaining = (self.stop - self._counts) / vel
-                else:
-                    vel = 1
-                    self._remaining = 0.0
+            eta_str = self._format_eta() if (self.eta and self._counts != self.start) else ""
+            s = self._fit_line(eta_str, txt)
+            vedo.printc(s, c=c or self.color, bold=self.bold, italic=self.italic, end="\x1b[K\r")
 
-                if self._remaining > 60:
-                    _mins = int(self._remaining / 60)
-                    _secs = self._remaining - 60 * _mins
-                    mins = f"{_mins}m"
-                    secs = f"{int(_secs + 0.5)}s "
-                else:
-                    mins = ""
-                    secs = f"{int(self._remaining + 0.5)}s "
-
-                vel = round(vel, 1)
-                eta = f"eta: {mins}{secs}({vel} it/s) "
-                if self._remaining < 0.5:
-                    dt = time.time() - self.t0
-                    if dt > 60:
-                        _mins = int(dt / 60)
-                        _secs = dt - 60 * _mins
-                        mins = f"{_mins}m"
-                        secs = f"{int(_secs + 0.5)}s "
-                    else:
-                        mins = ""
-                        secs = f"{int(dt + 0.5)}s "
-                    eta = f"elapsed: {mins}{secs}({vel} it/s)    "
-                    txt = ""
-            else:
-                eta = ""
-
-            s = f"{self.pbar:<{self._lentxt}} {eta:<20}{txt:<{self._lentxt}}"
-            vedo.printc(s, c=c, bold=self.bold, italic=self.italic, end="\r")
-            if self.percent > 99.999:
-                print("")
-
-            self._lentxt = len(txt)
+            if self.percent >= 99.999:
+                self.finish()
 
     def range(self) -> np.ndarray:
         """Return the range iterator."""
         return self._range
 
-    def _update(self, counts):
-        if counts < self.start:
-            counts = self.start
-        elif counts > self.stop:
-            counts = self.stop
-        self._counts = counts
+    def finish(self) -> None:
+        """Force a final newline."""
+        if not self._finished:
+            if self._cursor_hidden:
+                print("\x1b[?25h", end="", flush=True)
+                self._cursor_hidden = False
+            print("")
+            self._finished = True
 
-        self.percent = (self._counts - self.start) * 100.0
+    def __del__(self):
+        if getattr(self, "_cursor_hidden", False):
+            print("\x1b[?25h", end="", flush=True)
 
-        delta = self.stop - self.start
-        if delta:
-            self.percent /= delta
-        else:
-            self.percent = 0.0
+    def __iter__(self):
+        self._iter_value = self.start
+        return self
 
+    def __next__(self):
+        v = self._iter_value
+        if (self.step > 0 and v >= self.stop) or (self.step < 0 and v <= self.stop):
+            raise StopIteration
+        self._iter_value += self.step
+        return v
+
+    def _fit_line(self, eta_str: str, txt: str) -> str:
+        try:
+            cols = shutil.get_terminal_size().columns
+        except Exception:
+            cols = 80
+        pbar_vis = len(_ANSI_RE.sub("", self.pbar))
+        avail = cols - pbar_vis - 1  # -1 for the space separator
+        if avail <= 0:
+            return f"{self.percent_int}%" if pbar_vis > cols else self.pbar
+        suffix = f"{eta_str}  {txt}".rstrip() if txt else eta_str
+        if len(suffix) <= avail:
+            return f"{self.pbar} {suffix}"
+        if len(eta_str) <= avail:
+            return f"{self.pbar} {eta_str}"
+        if avail >= 2:
+            return f"{self.pbar} {eta_str[:avail - 1]}…"
+        return self.pbar
+
+    def _compute_width(self) -> int:
+        if self._fixed_width is not None:
+            return max(8, int(self._fixed_width))
+        try:
+            cols = shutil.get_terminal_size().columns
+        except Exception:
+            cols = 80
+        return max(8, cols - max(30, len(self.title) + 12))
+
+    def _update(self, counts: int) -> None:
+        lo, hi = min(self.start, self.stop), max(self.start, self.stop)
+        self._prev_counts = self._counts
+        self._counts = max(lo, min(hi, counts))
+
+        if self._fixed_width is None:
+            self.width = self._compute_width()
+
+        total = self.stop - self.start or 1
+        self.percent = max(0.0, min(100.0, 100.0 * (self._counts - self.start) / total))
         self.percent_int = int(round(self.percent))
-        af = self.width - 2
-        nh = int(round(self.percent_int / 100 * af))
-        pbar_background = "\x1b[2m" + self.char_back * (af - nh)
-        self.pbar = f"{self.title}{self.char * (nh - 1)}{pbar_background}"
-        if self.percent < 100.0:
-            ps = f" {self.percent_int}%"
-        else:
-            ps = ""
-        self.pbar += ps
 
+        af = max(2, self.width - 2)
+        nh = max(0, min(af, int(round(self.percent / 100.0 * af))))
+        bg = "\x1b[2m" + self.char_back * (af - nh) + "\x1b[22m"
+        ps = "" if self.percent >= 100.0 else f" {self.percent_int}%"
+        self.pbar = f"{self.title}{self.char * nh}{bg}{ps}"
 
-# class _ProgressBar:
-#     """
-#     Class to print a progress bar with optional text message.
+        delta = abs(self._counts - self._prev_counts)
+        if delta > 0:
+            dt = max(1e-9, time.perf_counter() - self._t0)
+            inst = abs(self._counts - self.start) / dt
+            self._ema_rate = inst if self._ema_rate is None else 0.2 * inst + 0.8 * self._ema_rate
 
-#     Check out also function `progressbar()`.
+    def _format_eta(self) -> str:
+        rate = max(self._ema_rate or 0.0, 1e-12)
+        remaining = max(0.0, abs(self.stop - self._counts) / rate)
 
-#       - iterator protocol: for i in ProgressBar(...):
-#       - auto_width when width=None (adapts to terminal)
-#       - smoother ETA via EMA of iteration rate
-#       - .finish() to force a final newline
+        def _fmt(s: float) -> str:
+            if s >= 60:
+                m = int(s // 60)
+                return f"{m}m{int(round(s - 60*m))}s "
+            return f"{int(round(s))}s "
 
-#     Arguments:
-#         start : (int)
-#             starting value
-#         stop : (int)
-#             stopping value
-#         step : (int)
-#             step value
-#         c : (str)
-#             color in hex format
-#         title : (str)
-#             title text
-#         eta : (bool)
-#             estimate time of arrival
-#         delay : (float)
-#             minimum time before printing anything,
-#             if negative use the default value
-#             as set in `vedo.settings.progressbar_delay`
-#         width : (int)
-#             width of the progress bar
-#         char : (str)
-#             character to use for the progress bar
-#         char_back : (str)
-#             character to use for the background of the progress bar
-
-#     Example:
-#         ```python
-#         import time
-#         from vedo import ProgressBar
-#         pb = ProgressBar(0,40, c='r')
-#         for i in pb.range():
-#             time.sleep(0.1)
-#             pb.print()
-#         ```
-#         ![](https://user-images.githubusercontent.com/32848391/51858823-ed1f4880-2335-11e9-8788-2d102ace2578.png)
-#     """
-
-#     def __init__(
-#         self,
-#         start: int,
-#         stop: int,
-#         step: int = 1,
-#         c: str | None = None,
-#         bold: bool = True,
-#         italic: bool = False,
-#         title: str = "",
-#         eta: bool = True,
-#         delay: float = -1,
-#         width: int | None = 25,
-#         char: str = "\u2501",       # heavy horizontal
-#         char_back: str = "\u2500",  # light horizontal
-#     ) -> None:
-
-#         self.char = char
-#         self.char_back = char_back
-
-#         # Title spacing kept compatible with original
-#         self.title = ((" " + title + " ") if title else "")
-
-#         if delay < 0:
-#             delay = vedo.settings.progressbar_delay
-
-#         self.start = start
-#         self.stop = stop
-#         self.step = step
-
-#         self.color = c
-#         self.bold = bold
-#         self.italic = italic
-#         self.fixed_width = width  # None => auto width
-#         self.width = self._compute_width()  # initial
-#         self.pbar = ""
-#         self.percent = 0.0
-#         self.percent_int = 0
-#         self.eta_enabled = eta
-#         self.delay = float(delay)
-
-#         self._t0 = time.perf_counter()
-#         self._last_print = ""
-#         self._lentxt = 0
-#         self._finished = False
-
-#         # rate smoothing (EMA)
-#         self._ema_rate = None
-#         self._ema_alpha = 0.2  # smoothing factor
-
-#         # iteration counters
-#         self._counts = start
-#         self._prev_counts = start
-
-#         # clamp invariants
-#         if self.step == 0:
-#             self.step = 1
-#         if self.stop < self.start:
-#             # handle descending ranges
-#             if self.step > 0:
-#                 self.step = -self.step
-
-#         # prime layout & state
-#         self._update(self._counts)
-
-#         # keep numpy output for compatibility
-#         self._range = np.arange(start, stop, self.step)
-
-#     # ---------- public API ----------
-
-#     def print(self, txt: str = "", c: str | None = None) -> None:
-#         """Print the progress bar with an optional message."""
-#         if self._finished:
-#             return  # nothing else to print after finish
-
-#         if c is None:
-#             c = self.color
-
-#         # advance one "step" by default to mirror original behavior
-#         next_count = self._counts + self.step
-#         self._update(next_count)
-
-#         # honor delay before first visible output
-#         if self.delay and (time.perf_counter() - self._t0) < self.delay:
-#             return
-
-#         # only render when bar has visually changed
-#         if self.pbar != self._last_print:
-#             self._last_print = self.pbar
-
-#             eta_str = ""
-#             if self.eta_enabled and (self._counts != self.start):
-#                 eta_str = self._format_eta()
-
-#             # pad message to avoid tail leftovers from longer previous lines
-#             line = f"{self.pbar:<{self.width}} {eta_str:<20}{txt:<{self._lentxt}}"
-#             vedo.printc(line, c=c, bold=self.bold, italic=self.italic, end="\r")
-
-#             if self.percent >= 99.999:
-#                 # finalize exactly once
-#                 self.finish()
-
-#             self._lentxt = len(txt)
-
-#     def range(self) -> np.ndarray:
-#         """Return the range iterator (NumPy array for backward-compat)."""
-#         return self._range
-
-#     # New but optional for callers
-#     def finish(self) -> None:
-#         """Force a final newline once."""
-#         if not self._finished:
-#             print("")
-#             self._finished = True
-
-#     # Allow: for i in ProgressBar(...):
-#     def __iter__(self):
-#         self._iter_value = self.start
-#         return self
-
-#     def __next__(self):
-#         v = self._iter_value
-#         if (self.step > 0 and v >= self.stop) or (self.step < 0 and v <= self.stop):
-#             raise StopIteration
-#         self._iter_value += self.step
-#         return v
-
-#     # ---------- internals ----------
-
-#     def _compute_width(self) -> int:
-#         """Decide bar width. If fixed_width is None, adapt to terminal."""
-#         min_width = 8  # leave room for at least 1 fill + % text
-#         if self.fixed_width is not None:
-#             return max(min_width, int(self.fixed_width))
-#         # auto width: reserve ~30 chars for title, eta, spaces, percent, txt
-#         try:
-#             cols = shutil.get_terminal_size().columns
-#         except Exception:
-#             cols = 80
-#         dynamic = max(min_width, cols - max(30, len(self.title) + 12))
-#         return dynamic
-
-#     def _update(self, counts: int) -> None:
-#         # clamp counts in [min(start, stop), max(start, stop)]
-#         lo, hi = (self.stop, self.start) if self.step < 0 else (self.start, self.stop)
-#         if counts < lo:
-#             counts = lo
-#         if counts > hi:
-#             counts = hi
-
-#         # recompute width if auto
-#         if self.fixed_width is None:
-#             self.width = self._compute_width()
-
-#         # state
-#         self._prev_counts = self._counts
-#         self._counts = counts
-
-#         # progress %
-#         total = (self.stop - self.start)
-#         traversed = (self._counts - self.start)
-#         total = total if total != 0 else 1  # avoid zero division
-#         self.percent = 100.0 * (traversed / total)
-#         # keep within [0, 100]
-#         if self.percent < 0:
-#             self.percent = 0.0
-#         elif self.percent > 100:
-#             self.percent = 100.0
-#         self.percent_int = int(round(self.percent))
-
-#         # build bar
-#         # Two edges + inside area
-#         af = max(2, self.width - 2)  # available fill
-#         nh = int(round((self.percent / 100.0) * af))
-#         nh = max(0, min(af, nh))
-
-#         # Foreground + dimmed background, with ANSI reset
-#         dim_on, dim_off = "\x1b[2m", "\x1b[0m"
-#         fg = self.char * nh
-#         bg = dim_on + (self.char_back * (af - nh)) + dim_off
-#         core = fg + bg
-
-#         # Percent suffix only while not complete (matches original intent)
-#         ps = "" if self.percent >= 100.0 else f" {self.percent_int}%"
-
-#         self.pbar = f"{self.title}{core}{ps}"
-
-#         # update smoothed rate for ETA
-#         self._update_rate()
-
-#     def _update_rate(self) -> None:
-#         # iterations progressed since last update
-#         delta_c = abs(self._counts - self._prev_counts)
-#         if delta_c <= 0:
-#             return
-#         dt = max(1e-9, time.perf_counter() - self._t0)  # since start
-#         inst_rate = abs(self._counts - self.start) / dt  # it/s since start
-#         if self._ema_rate is None:
-#             self._ema_rate = inst_rate
-#         else:
-#             a = self._ema_alpha
-#             self._ema_rate = a * inst_rate + (1 - a) * self._ema_rate
-
-#     def _format_eta(self) -> str:
-#         # If nearly done, show elapsed instead of ETA (like original)
-#         rate = max(self._ema_rate or 0.0, 1e-12)  # avoid div-by-zero
-#         remaining = max(0.0, abs(self.stop - self._counts) / rate)
-
-#         def _fmt_seconds(s: float) -> str:
-#             if s >= 60:
-#                 m = int(s // 60)
-#                 sec = int(round(s - 60 * m))
-#                 return f"{m}m{sec}s "
-#             return f"{int(round(s))}s "
-
-#         if remaining < 0.5:
-#             elapsed = time.perf_counter() - self._t0
-#             return f"elapsed: {_fmt_seconds(elapsed)}({round(rate, 1)} it/s)    "
-#         else:
-#             return f"eta: {_fmt_seconds(remaining)}({round(rate, 1)} it/s) "
+        if remaining < 0.5:
+            return f"elapsed: {_fmt(time.perf_counter() - self._t0)}({round(rate,1)} it/s)"
+        return f"eta: {_fmt(remaining)}({round(rate,1)} it/s)"
 
 
 #####################################
