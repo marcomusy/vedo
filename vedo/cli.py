@@ -27,11 +27,15 @@ import importlib
 import inspect
 import os
 import pkgutil
+import re
 import subprocess
 import sys
 from importlib.metadata import PackageNotFoundError, version as pkg_version
 
 __all__ = []
+
+_IMAGE_OUTPUT_EXTS = {".png", ".jpg", ".jpeg", ".pdf", ".svg", ".eps"}
+_SCENE_OUTPUT_EXTS = {".npy", ".npz", ".x3d", ".html"}
 
 vedo = None
 np = None
@@ -40,37 +44,48 @@ get_color = None
 printc = None
 
 
-def _get_pkg_version(dist_name, fallback="unknown"):
+def _get_pkg_version(dist_name: str, fallback: str = "unknown") -> str:
+    """Return the installed distribution version or a fallback label."""
     try:
         return pkg_version(dist_name)
     except PackageNotFoundError:
         return fallback
 
 
-def _get_install_dir():
-    package_dir = os.path.dirname(os.path.abspath(__file__))
-    parent_dir = os.path.dirname(package_dir)
-    if os.path.basename(package_dir) == "vedo" and os.path.basename(parent_dir) == "vedo":
-        return parent_dir
+def _get_install_dir() -> str:
+    """Return the package directory, or the project root in a source checkout."""
+    package_dir = os.path.dirname(os.path.realpath(__file__))
+    project_root = os.path.dirname(package_dir)
+
+    if (
+        os.path.isfile(os.path.join(package_dir, "__init__.py"))
+        and os.path.isfile(os.path.join(project_root, "pyproject.toml"))
+        and os.path.isdir(os.path.join(project_root, "examples"))
+    ):
+        return project_root
     return package_dir
 
 
-def _get_gpu_info_rows():
+def _get_gpu_info_rows() -> list[tuple[str, str]]:
+    """Return GPU information rows for system_info(), when available."""
     try:
-        from vtkmodules.vtkCommonCore import vtkObject  # noqa: F401
-        from vtkmodules.vtkRenderingOpenGL2 import vtkOpenGLRenderWindow  # noqa: F401
+        from vtkmodules.vtkCommonCore import vtkObject
+        from vtkmodules.vtkRenderingOpenGL2 import vtkOpenGLRenderWindow
 
         previous_warning_state = vtkObject.GetGlobalWarningDisplay()
-        vtkObject.GlobalWarningDisplayOff()
         render_window = None
         try:
+            vtkObject.GlobalWarningDisplayOff()
             render_window = vtkOpenGLRenderWindow()
             render_window.SetOffScreenRendering(1)
             render_window.Initialize()
             capabilities = render_window.ReportCapabilities() or ""
         finally:
-            if render_window is not None:
-                render_window.Finalize()
+            try:
+                if render_window is not None:
+                    render_window.Finalize()
+            except Exception:
+                pass
             if previous_warning_state:
                 vtkObject.GlobalWarningDisplayOn()
             else:
@@ -78,13 +93,14 @@ def _get_gpu_info_rows():
     except Exception:
         return []
 
+    prefixes = {
+        "OpenGL vendor string": "vendor",
+        "OpenGL renderer string": "renderer",
+        "OpenGL version string": "version",
+    }
     values = {}
-    for key, prefix in (
-        ("vendor", "OpenGL vendor string"),
-        ("renderer", "OpenGL renderer string"),
-        ("version", "OpenGL version string"),
-    ):
-        for line in capabilities.splitlines():
+    for line in capabilities.splitlines():
+        for prefix, key in prefixes.items():
             if line.startswith(prefix):
                 values[key] = line.split(":", 1)[1].strip()
                 break
@@ -106,8 +122,11 @@ def _get_gpu_info_rows():
 
 
 def _ensure_cli_runtime():
+    """Import and cache CLI runtime dependencies, then return the vedo module."""
     global vedo, np, humansort, get_color, printc
+    install_dir = _get_install_dir()
     if vedo is not None:
+        vedo.installdir = install_dir
         return vedo
 
     import numpy as np_module
@@ -120,8 +139,65 @@ def _ensure_cli_runtime():
     humansort = humansort_fn
     get_color = get_color_fn
     printc = printc_fn
-    vedo.installdir = _get_install_dir()
+    vedo.installdir = install_dir
     return vedo
+
+
+def _normalize_output_path(output_path: str | None) -> str:
+    """Return a normalized CLI output path."""
+    return (output_path or "").strip()
+
+
+def _classify_output_path(output_path: str | None) -> str | None:
+    """Classify an output path as an image export, scene export, or unsupported."""
+    normalized = _normalize_output_path(output_path)
+    if not normalized:
+        return None
+
+    ext = os.path.splitext(normalized)[1].lower()
+    if ext in _IMAGE_OUTPUT_EXTS:
+        return "image"
+    if ext in _SCENE_OUTPUT_EXTS:
+        return "scene"
+    return None
+
+
+def _should_render_offscreen(args) -> bool:
+    """Return whether the CLI should render non-interactively."""
+    return bool(args.offscreen or _normalize_output_path(args.output))
+
+
+def _write_cli_output(plt, args) -> bool:
+    """Write the current plotter output if requested."""
+    output_path = _normalize_output_path(args.output)
+    if not output_path:
+        return False
+
+    output_kind = _classify_output_path(output_path)
+    if output_kind == "image":
+        plt.screenshot(output_path, scale=args.scale)
+    elif output_kind == "scene":
+        vedo.file_io.export_window(output_path, plt=plt, backend=args.backend)
+    else:
+        raise ValueError(f"Unsupported output path: {output_path}")
+
+    vedo.logger.info(f"Saved output to {output_path}")
+    return True
+
+
+def _show_and_finalize(plt, args, *objects, close_on_exit=False, **show_kwargs):
+    """Show a plotter, optionally export the result, and close when appropriate."""
+    if _should_render_offscreen(args):
+        show_kwargs["interactive"] = False
+
+    plt.show(*objects, **show_kwargs)
+
+    if args.output:
+        _write_cli_output(plt, args)
+
+    if args.output or args.offscreen or close_on_exit:
+        plt.close()
+    return plt
 
 
 ##############################################################################################
@@ -129,8 +205,25 @@ def main():
     """Execute the command line interface and return the result."""
     parser = get_parser()
     args = parser.parse_args()
+    args.output = _normalize_output_path(args.output)
 
-    if args.info is not None:
+    if args.scale < 1:
+        parser.error("--scale must be greater than or equal to 1")
+
+    output_kind = _classify_output_path(args.output)
+    if args.output and output_kind is None:
+        parser.error(
+            "--output format must be one of: "
+            + ", ".join(sorted(_IMAGE_OUTPUT_EXTS | _SCENE_OUTPUT_EXTS))
+        )
+
+    if args.backend and output_kind != "scene":
+        parser.error("--backend can only be used with --output <file.html>")
+
+    if args.backend and not args.output.lower().endswith(".html"):
+        parser.error("--backend can only be used with HTML scene exports")
+
+    if args.info:
         system_info()
         return 0
 
@@ -158,7 +251,9 @@ def main():
         exe_locate(args)
         return 0
 
-    elif args.convert:
+    elif args.convert is not None:
+        if not args.convert:
+            parser.error("--convert requires at least one input file")
         _ensure_cli_runtime()
         exe_convert(args)
         return 0
@@ -168,7 +263,7 @@ def main():
         exe_eog(args)
         return 0
 
-    elif len(args.files) == 0:
+    elif not args.files:
         system_info()
         message = "No input files provided. Try one of these:"
         example = (
@@ -209,7 +304,8 @@ def main():
 
 
 ##############################################################################################
-def get_parser():
+def get_parser() -> argparse.ArgumentParser:
+    """Build and return the CLI argument parser."""
 
     descr = f"version {_get_pkg_version('vedo')}"
     descr += " - check out home page at https://vedo.embl.es"
@@ -218,6 +314,7 @@ def get_parser():
         description=descr,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
+    action_group = pr.add_mutually_exclusive_group()
     pr.add_argument("files", nargs="*", help="input filename(s)")
     pr.add_argument(
         "-c",
@@ -333,7 +430,8 @@ def get_parser():
     )
     pr.add_argument(
         "--mode",
-        help="volume rendering style (composite/maxproj/...)",
+        type=int,
+        help="volume rendering mode [0=composite, 1=maxproj, 2=minproj, 3=avg, 4=additive]",
         default=0,
         metavar="",
     )
@@ -349,29 +447,29 @@ def get_parser():
     pr.add_argument(
         "--slicer3d", help="3D Slicer Mode for volumetric data", action="store_true"
     )
-    pr.add_argument("-r", "--run", help="run example from vedo/examples", metavar="")
-    pr.add_argument(
+    action_group.add_argument("-r", "--run", help="run example from vedo/examples", metavar="")
+    action_group.add_argument(
         "--search",
         type=str,
         help="search/grep for word in vedo examples",
         default="",
         metavar="",
     )
-    pr.add_argument(
+    action_group.add_argument(
         "--search-vtk",
         type=str,
         help="search examples for the input vtk class",
         default="",
         metavar="",
     )
-    pr.add_argument(
+    action_group.add_argument(
         "--search-code",
         type=str,
         help="search keyword in source code",
         default="",
         metavar="",
     )
-    pr.add_argument(
+    action_group.add_argument(
         "--locate",
         type=str,
         help="locate module path of a vedo class",
@@ -383,10 +481,10 @@ def get_parser():
         help="reload the file, ignoring any previous download",
         action="store_true",
     )
-    pr.add_argument(
-        "--info", nargs="*", help="get an info printout of the current installation"
+    action_group.add_argument(
+        "--info", help="get an info printout of the current installation", action="store_true"
     )
-    pr.add_argument("--convert", nargs="*", help="input file(s) to be converted")
+    action_group.add_argument("--convert", nargs="+", help="input file(s) to be converted")
     pr.add_argument(
         "--to",
         type=str,
@@ -395,13 +493,40 @@ def get_parser():
         metavar="",
     )
     pr.add_argument("--image", help="image mode for 2d objects", action="store_true")
-    pr.add_argument("--eog", help="eog-like image visualizer", action="store_true")
+    action_group.add_argument("--eog", help="eog-like image visualizer", action="store_true")
     pr.add_argument("--font", help="font name", default="Normografo", metavar="")
+    pr.add_argument(
+        "--output",
+        type=str,
+        help="write a non-interactive output (.png, .jpg, .pdf, .svg, .eps, .html, .x3d, .npy, .npz)",
+        default="",
+        metavar="",
+    )
+    pr.add_argument(
+        "--backend",
+        choices=("k3d", "threejs"),
+        help="scene export backend for HTML outputs",
+        default=None,
+        metavar="",
+    )
+    pr.add_argument(
+        "--offscreen",
+        help="render without opening a window",
+        action="store_true",
+    )
+    pr.add_argument(
+        "--scale",
+        type=int,
+        help="screenshot magnification factor",
+        default=1,
+        metavar="",
+    )
     return pr
 
 
 #################################################################################################
-def system_info():
+def system_info() -> None:
+    """Print a summary of the current vedo runtime environment."""
     vedo_version = _get_pkg_version("vedo")
     vtk_version = _get_pkg_version("vtk", fallback="unknown")
     numpy_version = _get_pkg_version("numpy", fallback="unknown")
@@ -410,9 +535,9 @@ def system_info():
         ("homepage", "https://vedo.embl.es"),
         ("vtk version", vtk_version),
         ("numpy version", numpy_version),
-        ("python version", sys.version.replace(chr(10), "")),
+        ("python version", " ".join(sys.version.split())),
         ("python interpreter", sys.executable),
-        ("installation point", _get_install_dir()[:70]),
+        ("installation point", _get_install_dir()),
     ]
 
     try:
@@ -483,7 +608,8 @@ def system_info():
 
 
 #################################################################################################
-def exe_run(args):
+def exe_run(args) -> None:
+    """Run an example script, or list matching examples when the query is ambiguous."""
     expath = os.path.join(vedo.installdir, "examples", "**", "*.py")
     exfiles = list(glob.glob(expath, recursive=True))
     f2search = os.path.basename(args.run).lower()
@@ -495,25 +621,26 @@ def exe_run(args):
             and "__" not in s
         )
     ]
-    matching = list(sorted(matching))
+    humansort(matching)
     nmat = len(matching)
     if nmat == 0:
         vedo.logger.warning(f"No matching example with name: {args.run}")
         # Nothing found, try to search for a script content:
-        args.search = args.run
-        args.run = ""
-        exe_search(args)
+        search_args = argparse.Namespace(**vars(args))
+        search_args.search = args.run
+        search_args.run = ""
+        exe_search(search_args)
         return
 
+    show_summary = args.full_screen or nmat > 1
     if nmat > 1:
         printc(f":target: Found {nmat} scripts containing string '{args.run}':", c="c")
-        args.full_screen = True  # to print out the one line description
 
-    if args.full_screen:  # -f option not to dump the full code but just the first line
+    if show_summary:  # -f option not to dump the full code but just the first line
         for mat in matching[:30]:
             printc(os.path.basename(mat).replace(".py", ""), c="c", end=" ")
             with open(mat, "r", encoding="UTF-8") as fm:
-                lline = "".join(fm.readlines(60))
+                lline = "".join(line for _, line in zip(range(60), fm))
                 maxidx1 = lline.find("import ")
                 maxidx2 = lline.find("from vedo")
                 cut_points = [idx for idx in (maxidx1, maxidx2) if idx >= 0]
@@ -536,7 +663,7 @@ def exe_run(args):
         printc(":idea: Type 'vedo -r <name>' to run one of them", bold=0, c="c")
         return
 
-    if not args.full_screen:  # -f option not to dump the full code
+    if not show_summary:  # -f option not to dump the full code
         with open(matching[0], "r", encoding="UTF-8") as fm:
             code = fm.read()
         code = "#" * 80 + "\n" + code + "\n" + "#" * 80
@@ -566,7 +693,8 @@ def exe_run(args):
 
 
 ################################################################################################
-def exe_convert(args):
+def exe_convert(args) -> None:
+    """Convert input files to a different supported output format."""
 
     allowed_exts = [
         "vtk",
@@ -587,7 +715,7 @@ def exe_convert(args):
     humansort(args.convert)
     nfiles = len(args.convert)
     if nfiles == 0:
-        sys.exit()
+        return
 
     target_ext = args.to.lower()
 
@@ -598,72 +726,73 @@ def exe_convert(args):
         sys.exit()
 
     for f in args.convert:
-        source_ext = f.split(".")[-1]
+        root, source_ext = os.path.splitext(f)
+        source_ext = source_ext.lower().lstrip(".")
+
+        if not source_ext:
+            vedo.logger.warning(f"Skipping {f}: cannot determine source file extension")
+            continue
 
         if target_ext == source_ext:
             continue
 
         a = vedo.load(f)
-        newf = f.replace("." + source_ext, "") + "." + target_ext
+        newf = root + "." + target_ext
         a.write(newf, binary=True)
 
 
 ##############################################################################################
-def exe_search(args):
+def exe_search(args) -> None:
+    """Search the example scripts for a text pattern and print matching lines."""
     expath = os.path.join(vedo.installdir, "examples", "**", "*.py")
-    exfiles = list(sorted(glob.glob(expath, recursive=True)))
+    exfiles = list(glob.glob(expath, recursive=True))
+    humansort(exfiles)
     pattern = args.search
-    if args.no_camera_share:
-        pattern = pattern.lower()
-    if len(pattern) > 3:
-        for ifile in exfiles:
-            with open(ifile, "r", encoding="UTF-8") as file:
-                fflag = True
-                for i, line in enumerate(file):
-                    if args.no_camera_share:
-                        bline = line.lower()
-                    else:
-                        bline = line
-                    if pattern in bline:
-                        if fflag:
-                            name = os.path.basename(ifile)
-                            try:
-                                etype = ifile.split("/")[-2]
-                                printc(
-                                    "--> examples/" + etype + "/" + name + ":",
-                                    c="y",
-                                    italic=1,
-                                    invert=1,
-                                )
-                            except IndexError:
-                                etype = ifile.split("\\")[-2]
-                                printc(
-                                    "--> examples\\" + etype + "\\" + name + ":",
-                                    c="y",
-                                    italic=1,
-                                    invert=1,
-                                )
-                            fflag = False
-                        line = line.replace(
-                            pattern, "\x1b[4m\x1b[1m" + pattern + "\x1b[0m\u001b[33m"
-                        )
-                        print(f"\u001b[33m{i}\t{line}\x1b[0m", end="")
-                        # printc(i, line, c='y', bold=False, end='')
-    else:
+    ignore_case = args.no_camera_share
+    if len(pattern) <= 3:
         vedo.logger.warning("Please use at least 4 letters in keyword search!")
+        return
+
+    flags = re.IGNORECASE if ignore_case else 0
+    matcher = re.compile(re.escape(pattern), flags)
+    examples_dir = os.path.join(vedo.installdir, "examples")
+    highlight_prefix = "\x1b[4m\x1b[1m"
+    highlight_suffix = "\x1b[0m\u001b[33m"
+
+    for ifile in exfiles:
+        with open(ifile, "r", encoding="UTF-8") as file:
+            show_file_header = True
+            for line_no, line in enumerate(file, start=1):
+                if not matcher.search(line):
+                    continue
+                if show_file_header:
+                    relpath = os.path.relpath(ifile, examples_dir)
+                    printc(
+                        f"--> examples/{relpath}:",
+                        c="y",
+                        italic=1,
+                        invert=1,
+                    )
+                    show_file_header = False
+                highlighted = matcher.sub(
+                    lambda match: f"{highlight_prefix}{match.group(0)}{highlight_suffix}",
+                    line,
+                )
+                print(f"\u001b[33m{line_no}\t{highlighted}\x1b[0m", end="")
+                # printc(line_no, highlighted, c='y', bold=False, end='')
 
 
 ##############################################################################################
-def exe_search_code(args):
+def exe_search_code(args) -> None:
+    """Search vedo source code for a keyword and print matching symbols."""
 
-    import inspect
     from pygments import highlight
     from pygments.lexers import Python3Lexer
     from pygments.formatters import Terminal256Formatter
 
     # styles: autumn, material, rrt, zenburn
     style = "zenburn"
-    key = args.search_code
+    key = (args.search_code or "").strip()
     iopt = args.no_camera_share
     if key.lower() == key:
         iopt = True
@@ -672,61 +801,58 @@ def exe_search_code(args):
         vedo.logger.warning("Please use at least 4 letters in keyword search!")
         return
 
-    def _dump(mcontent):
-        for name, mm in mcontent:
+    matcher = re.compile(re.escape(key), re.IGNORECASE if iopt else 0)
+
+    def _dump(mcontent) -> None:
+        for name, member in mcontent:
             if name.startswith("_"):
                 continue
             if name.startswith("vtk"):
                 continue
-            # if not inspect.isfunction(mm):
-            #     continue
 
             try:
-                mmdoc = inspect.getsource(mm)
-            except TypeError:
-                return
-
-            if mmdoc is None:
+                source = inspect.getsource(member)
+            except (OSError, TypeError):
                 continue
 
-            if iopt:
-                # -i option to ignore case
-                mmdoc_lower = mmdoc.lower()
-                key_lower = key.lower()
-                name_lower = name.lower()
-            else:
-                mmdoc_lower = mmdoc
-                key_lower = key
-                name_lower = name
-
-            if "eprecated" in mmdoc_lower:
+            if source is None:
                 continue
 
-            if key_lower in name_lower:
-                sname = inspect.getmodule(mm).__name__ + " -> " + name
-                if sname in snames:
-                    continue
-                snames.append(sname)
+            if "eprecated" in source.lower():
+                continue
 
-                printc(
-                    ":checked:Found matching",
-                    mm,
-                    "in module",
-                    os.path.basename(inspect.getfile(mm)),
-                    c="y",
-                    invert=True,
-                )
-                mmdoc = mmdoc.replace("``", '"').replace("`", '"')
-                mmdoc = mmdoc.replace(".. warning::", "Warning!")
-                result = highlight(
-                    mmdoc, Python3Lexer(), Terminal256Formatter(style=style)
-                )
-                idcomment = result.rfind('"""')
-                print(result[: idcomment + 3], "\x1b[0m\n")
+            if not matcher.search(name) and not matcher.search(source):
+                continue
+
+            module = inspect.getmodule(member)
+            module_name = module.__name__ if module else "<unknown>"
+            sname = module_name + " -> " + name
+            if sname in snames:
+                continue
+            snames.add(sname)
+
+            try:
+                filename = os.path.basename(inspect.getfile(member))
+            except (OSError, TypeError):
+                filename = "<unknown>"
+
+            printc(
+                ":checked:Found matching",
+                sname,
+                "in module",
+                filename,
+                c="y",
+                invert=True,
+            )
+            source = source.replace("``", '"').replace("`", '"')
+            source = source.replace(".. warning::", "Warning!")
+            result = highlight(source, Python3Lexer(), Terminal256Formatter(style=style))
+            print(result, end="")
+            print("\x1b[0m")
 
     # printc("..parsing source code, please wait", c="y", bold=False)
     content = inspect.getmembers(vedo)
-    snames = []
+    snames: set[str] = set()
     for name, m in content:
         if name.startswith("_"):
             continue
@@ -742,24 +868,31 @@ def exe_search_code(args):
         _dump([[name, m]])
 
         # class case
-        mcontent = inspect.getmembers(m)
-        _dump(mcontent)
+        if inspect.isclass(m):
+            _dump(inspect.getmembers(m))
 
 
 ##############################################################################################
-def exe_search_vtk(args):
+def exe_search_vtk(args) -> None:
+    """Search the VTK examples cross-reference for a class name."""
+
     # input a vtk class name to get links to examples that involve that class
     # From https://kitware.github.io/vtk-examples/site/Python/Utilities/SelectExamples/
     import json
     import tempfile
-    from datetime import datetime
+    import time
     from pathlib import Path
-    from urllib.error import HTTPError
+    from urllib.error import HTTPError, URLError
     from urllib.request import urlretrieve
 
     xref_url = "https://raw.githubusercontent.com/Kitware/vtk-examples/gh-pages/src/Coverage/vtk_vtk-examples_xref.json"
 
-    def _download_file(dl_path, dl_url, overwrite=False):
+    vtk_class = (args.search_vtk or "").strip()
+    if not vtk_class:
+        vedo.logger.warning("Please provide a VTK class name, e.g. `vedo --search-vtk vtkActor`")
+        return
+
+    def _download_file(dl_path: str, dl_url: str, overwrite: bool = False) -> Path:
         file_name = dl_url.split("/")[-1]
         # Create necessary sub-directories in the dl_path (if they don't exist).
         Path(dl_path).mkdir(parents=True, exist_ok=True)
@@ -768,54 +901,60 @@ def exe_search_vtk(args):
         if not path.is_file() or overwrite:
             try:
                 urlretrieve(dl_url, path)
-            except HTTPError as e:
-                raise RuntimeError(f"Failed to download {dl_url}. {e.reason}")
+            except (HTTPError, URLError, OSError) as e:
+                reason = getattr(e, "reason", str(e))
+                raise RuntimeError(f"Failed to download {dl_url}: {reason}") from e
         return path
 
-    def _get_examples(d, vtk_class, lang):
-        try:
-            kv = d[vtk_class][lang].items()
-        except KeyError as e:
-            print(
-                f"For the combination {vtk_class} and {lang}, this key does not exist: {e}"
-            )
-            return None, None
-        total = len(kv)
-        samples = list(kv)
-        return total, [f"{s[1]}" for s in samples]
+    def _get_examples(data: dict, class_name: str, lang: str) -> list[str]:
+        class_examples = data.get(class_name, {})
+        if not isinstance(class_examples, dict):
+            return []
+        language_examples = class_examples.get(lang, {})
+        if not isinstance(language_examples, dict):
+            return []
+        return [str(example) for example in language_examples.values()]
 
-    vtk_class, language, all_values, number = args.search_vtk, "Python", True, 10000
+    language = "Python"
     tmp_dir = tempfile.gettempdir()
-    path = _download_file(tmp_dir, xref_url, overwrite=False)
+    try:
+        path = _download_file(tmp_dir, xref_url, overwrite=False)
+    except RuntimeError as exc:
+        vedo.logger.warning(str(exc))
+        return
+
     if not path.is_file():
-        print(f"The path: {str(path)} does not exist.")
+        vedo.logger.warning(f"VTK examples index not found at {path}")
+        return
 
-    dt = datetime.today().timestamp() - os.path.getmtime(path)
+    cache_age = time.time() - path.stat().st_mtime
     # Force a new download if the time difference is > 10 minutes.
-    if dt > 600:
-        path = _download_file(tmp_dir, xref_url, overwrite=True)
-    with open(path, "r", encoding="UTF-8") as json_file:
-        xref_dict = json.load(json_file)
+    if cache_age > 600:
+        try:
+            path = _download_file(tmp_dir, xref_url, overwrite=True)
+        except RuntimeError as exc:
+            vedo.logger.warning(f"{exc}. Reusing cached index at {path}.")
 
-    total_number, examples = _get_examples(xref_dict, vtk_class, language)
+    try:
+        with open(path, "r", encoding="UTF-8") as json_file:
+            xref_dict = json.load(json_file)
+    except (OSError, json.JSONDecodeError) as exc:
+        vedo.logger.warning(f"Failed to read VTK examples index {path}: {exc}")
+        return
+
+    examples = _get_examples(xref_dict, vtk_class, language)
     if examples:
-        if total_number <= number or all_values:
-            print(
-                f"VTK Class: {vtk_class}, language: {language}\n"
-                f"Number of example(s): {total_number}."
-            )
-        else:
-            print(
-                f"VTK Class: {vtk_class}, language: {language}\n"
-                f"Number of example(s): {total_number} with {number} random sample(s) shown."
-            )
+        print(
+            f"VTK Class: {vtk_class}, language: {language}\n"
+            f"Number of example(s): {len(examples)}."
+        )
         print("\n".join(examples))
     else:
         print(f"No examples for the VTK Class: {vtk_class} and language: {language}")
 
 
 ##############################################################################################
-def exe_locate(args):
+def exe_locate(args) -> None:
     """Locate the fully qualified module path for a vedo class name."""
     target = (args.locate or "").strip()
     if not target:
@@ -824,7 +963,10 @@ def exe_locate(args):
         )
         return
 
-    matches = set()
+    target_lower = target.lower()
+    matches: set[str] = set()
+    case_insensitive_matches: set[str] = set()
+    class_names_seen: set[str] = set()
 
     # Fast path: check top-level vedo namespace first.
     try:
@@ -834,8 +976,11 @@ def exe_locate(args):
     if inspect.isclass(obj):
         matches.add(f"{obj.__module__}.{obj.__name__}")
 
-    class_names_seen = set()
-    class_names_lower = set()
+    for name, obj in inspect.getmembers(vedo, inspect.isclass):
+        class_names_seen.add(name)
+        if name.lower() == target_lower:
+            case_insensitive_matches.add(f"{obj.__module__}.{obj.__name__}")
+
     skip_prefixes = ("vedo.backends",)
     for module_info in pkgutil.walk_packages(vedo.__path__, prefix="vedo."):
         module_name = module_info.name
@@ -851,9 +996,10 @@ def exe_locate(args):
             if cls.__module__ != module_name:
                 continue
             class_names_seen.add(cname)
-            class_names_lower.add(cname.lower())
             if cname == target:
                 matches.add(f"{module_name}.{cname}")
+            if cname.lower() == target_lower:
+                case_insensitive_matches.add(f"{module_name}.{cname}")
 
     if matches:
         for match in sorted(matches):
@@ -861,24 +1007,12 @@ def exe_locate(args):
         return
 
     # Case-insensitive fallback and friendly hint.
-    target_lower = target.lower()
     fuzzy = sorted(name for name in class_names_seen if target_lower in name.lower())[
         :20
     ]
-    if target_lower in class_names_lower:
-        for module_info in pkgutil.walk_packages(vedo.__path__, prefix="vedo."):
-            module_name = module_info.name
-            if module_name.startswith(skip_prefixes):
-                continue
-            try:
-                module = importlib.import_module(module_name)
-            except Exception:
-                continue
-            for cname, cls in inspect.getmembers(module, inspect.isclass):
-                if cls.__module__ != module_name:
-                    continue
-                if cname.lower() == target_lower:
-                    print(f"{module_name}.{cname}")
+    if case_insensitive_matches:
+        for match in sorted(case_insensitive_matches):
+            print(match)
         return
 
     vedo.logger.warning(f"No vedo class found with name '{target}'.")
@@ -889,8 +1023,8 @@ def exe_locate(args):
 
 
 #################################################################################################################
-def exe_eog(args):
-    # print("EOG emulator")
+def exe_eog(args) -> None:
+    """Display one or more images with the lightweight EOG-style viewer."""
     settings = vedo.settings
     if settings.dry_run_mode >= 2:
         print(f"EOG emulator in dry run mode {settings.dry_run_mode}. Skip.")
@@ -906,7 +1040,7 @@ def exe_eog(args):
     if args.background_grad:
         args.background_grad = get_color(args.background_grad)
 
-    files = [f for f in args.files if not f.endswith(".gif")]
+    files = [f for f in args.files if not f.lower().endswith(".gif")]
 
     def vfunc(event):
         # print(event.keypress)
@@ -919,7 +1053,7 @@ def exe_eog(args):
                 p.level(p.level() - 10)
             if event.keypress == "Right":
                 p.window(p.window() + 10)
-            elif event.keypress == "Down":
+            elif event.keypress == "Left":
                 p.window(p.window() - 10)
             elif event.keypress == "m":
                 p.mirror()
@@ -969,21 +1103,27 @@ def exe_eog(args):
                 pic = vedo.Image(f)
                 if pic:
                     pics.append(pic)
-            except:
+            except Exception:
                 vedo.logger.error(f"Could not load image {f}")
         else:
             vedo.logger.error(f"Could not load image {f}")
 
     n = len(pics)
     if not n:
+        vedo.logger.warning("No loadable image files were provided to --eog.")
         return
 
+    render_offscreen = _should_render_offscreen(args)
     pic = pics[0]
     lev, win = pic.level(), pic.window()
 
     if n > 1:
         plt = vedo.Plotter(
-            N=n, sharecam=True, bg=args.background, bg2=args.background_grad
+            N=n,
+            sharecam=True,
+            bg=args.background,
+            bg2=args.background_grad,
+            offscreen=render_offscreen,
         )
         plt.add_callback("key press", vfunc)
         for i in range(n):
@@ -994,27 +1134,47 @@ def exe_eog(args):
             plt.show(p, axes=0, at=i, mode="image")
         plt.show(interactive=False)
         plt.reset_camera(tight=0.05)
+        if args.output:
+            _write_cli_output(plt, args)
+            plt.close()
+            return
+        if args.offscreen:
+            plt.close()
+            return
         plt.interactor.Start()
         if vedo.vtk_version == (9, 2, 2):
             plt.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
 
     else:
-        shape = pic.shape
-        if shape[0] > 1500:
-            shape[1] = shape[1] / shape[0] * 1500
-            shape[0] = 1500
+        width, height = pic.shape[:2]
+        if width > 1500:
+            height = height / width * 1500
+            width = 1500
 
-        if shape[1] > 1200:
-            shape[0] = shape[0] / shape[1] * 1200
-            shape[1] = 1200
+        if height > 1200:
+            width = width / height * 1200
+            height = 1200
+
+        size = (int(round(width)), int(round(height)))
 
         plt = vedo.Plotter(
-            title=files[0], size=shape, bg=args.background, bg2=args.background_grad
+            title=files[0],
+            size=size,
+            bg=args.background,
+            bg2=args.background_grad,
+            offscreen=render_offscreen,
         )
         plt.add_callback("key press", vfunc)
         plt.add_hover_legend(c="k8", bg="k2", alpha=0.4)
         plt.show(pic, mode="image", interactive=False)
         plt.reset_camera(tight=0.0)
+        if args.output:
+            _write_cli_output(plt, args)
+            plt.close()
+            return
+        if args.offscreen:
+            plt.close()
+            return
         plt.interactor.Start()
         if vedo.vtk_version == (9, 2, 2):
             plt.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
@@ -1023,7 +1183,8 @@ def exe_eog(args):
 
 
 #################################################################################################################
-def draw_scene(args):
+def draw_scene(args) -> None:
+    """Load the requested input files and dispatch them to the appropriate viewer."""
     settings = vedo.settings
     if settings.dry_run_mode >= 2:
         print(f"draw_scene called in dry run mode {settings.dry_run_mode}. Skip.")
@@ -1049,21 +1210,32 @@ def draw_scene(args):
     if args.background_grad:
         args.background_grad = get_color(args.background_grad)
 
-    if nfiles == 1 and args.files[0].endswith(".gif"):  ###can be improved
+    first_file = args.files[0]
+    first_file_lower = first_file.lower()
+
+    if nfiles == 1 and first_file_lower.endswith(".gif"):
         frames = vedo.load(args.files[0])
-        vedo.applications.Browser(frames).show(
-            bg=args.background, bg2=args.background_grad
+        plt = vedo.applications.Browser(
+            frames,
+            offscreen=_should_render_offscreen(args),
+        )
+        _show_and_finalize(
+            plt,
+            args,
+            bg=args.background,
+            bg2=args.background_grad,
+            close_on_exit=True,
         )
         return  ##########################################################
 
-    if args.sequence_mode:
-        args.multirenderer_mode = False
+    multirenderer_mode = args.multirenderer_mode and not args.sequence_mode
+    render_offscreen = _should_render_offscreen(args)
     settings.default_font = args.font
 
-    sharecam = args.no_camera_share
+    sharecam = not args.no_camera_share
 
     N = None
-    if args.multirenderer_mode:
+    if multirenderer_mode:
         if nfiles < 201:
             N = nfiles
         if nfiles > 200:
@@ -1073,24 +1245,8 @@ def draw_scene(args):
         if N > 4:
             settings.use_depth_peeling = False
 
-        plt = vedo.Plotter(
-            size=wsize,
-            N=N,
-            bg=args.background,
-            bg2=args.background_grad,
-            sharecam=sharecam,
-        )
-        settings.immediate_rendering = False
-        plt.axes = args.axes_type
-        for i in range(N):
-            plt.add_hover_legend(at=i)
-        if args.axes_type in (4, 5):
-            plt.axes = 0
     else:
         N = nfiles
-        plt = vedo.Plotter(size=wsize, bg=args.background, bg2=args.background_grad)
-        plt.axes = args.axes_type
-        plt.add_hover_legend()
 
     ##########################################################
     # special case of SLC/TIFF volumes with -g option
@@ -1108,8 +1264,8 @@ def draw_scene(args):
             [sp[0] * args.x_spacing, sp[1] * args.y_spacing, sp[2] * args.z_spacing]
         )
         vol.mode(int(args.mode)).color(args.cmap).jittering(True)
-        plt = vedo.applications.RayCastPlotter(vol)
-        plt.show(viewup="z", interactive=True).close()
+        plt = vedo.applications.RayCastPlotter(vol, offscreen=render_offscreen)
+        _show_and_finalize(plt, args, viewup="z", close_on_exit=True)
         return
 
     ##########################################################
@@ -1141,14 +1297,21 @@ def draw_scene(args):
             axes=args.axes_type,
             clamp=True,
             size=(1350, 1000),
+            offscreen=render_offscreen,
         )
         plt += vedo.Text2D(args.files[0], pos="top-left", font="VictorMono", s=1, c="k")
-        plt.show()
+        _show_and_finalize(plt, args, close_on_exit=True)
         return
 
     ########################################################################
     elif args.edit:
         # print('edit mode for meshes and pointclouds')
+        if render_offscreen:
+            vedo.logger.warning(
+                "Option '--edit' is interactive-only and cannot be combined with "
+                "--output or --offscreen."
+            )
+            return
         vedo.set_current_plotter(None)  # reset
         settings.use_parallel_projection = True
 
@@ -1177,19 +1340,16 @@ def draw_scene(args):
         vol.spacing(
             [sp[0] * args.x_spacing, sp[1] * args.y_spacing, sp[2] * args.z_spacing]
         )
-        plt = vedo.set_current_plotter(vedo.applications.Slicer2DPlotter(vol))
-        plt.show().close()
+        plt = vedo.set_current_plotter(
+            vedo.applications.Slicer2DPlotter(vol, offscreen=render_offscreen)
+        )
+        _show_and_finalize(plt, args, close_on_exit=True)
         return
 
     ########################################################################
     # normal mode for single VOXEL file with Isosurface Slider mode
     elif nfiles == 1 and (
-        ".slc" in args.files[0].lower()
-        or ".vti" in args.files[0].lower()
-        or ".tif" in args.files[0].lower()
-        or ".mhd" in args.files[0].lower()
-        or ".nrrd" in args.files[0].lower()
-        or ".dem" in args.files[0].lower()
+        first_file_lower.endswith((".slc", ".vti", ".tif", ".mhd", ".nrrd", ".dem"))
     ):
         # print('DEBUG normal mode for single VOXEL file with Isosurface Slider mode')
         vol = vedo.file_io.load(args.files[0], force=args.reload)
@@ -1197,8 +1357,15 @@ def draw_scene(args):
         if vol.shape[2] == 1:
             # print('DEBUG It is a 2D image!')
             img = vedo.Image(args.files[0])
-            plt = vedo.Plotter().parallel_projection()
-            plt.show(img, zoom="tightest", mode="image").close()
+            plt = vedo.Plotter(offscreen=render_offscreen).parallel_projection()
+            _show_and_finalize(
+                plt,
+                args,
+                img,
+                zoom="tightest",
+                mode="image",
+                close_on_exit=True,
+            )
             return
 
         sp = vol.spacing()
@@ -1208,9 +1375,14 @@ def draw_scene(args):
         if not args.color:
             args.color = "gold"
         plt = vedo.applications.IsosurfaceBrowser(
-            vol, c=args.color, cmap=args.cmap, precompute=False, use_gpu=True
+            vol,
+            c=args.color,
+            cmap=args.cmap,
+            precompute=False,
+            use_gpu=True,
+            offscreen=render_offscreen,
         )
-        plt.show(zoom=args.zoom, viewup="z").close()
+        _show_and_finalize(plt, args, zoom=args.zoom, viewup="z", close_on_exit=True)
         return
 
     ########################################################################
@@ -1224,20 +1396,57 @@ def draw_scene(args):
 
         ##########################################################
         # loading a full scene or list of objects
-        if ".npy" in args.files[0] or ".npz" in args.files[0]:
+        if first_file_lower.endswith((".npy", ".npz")):
             try:  # full scene
                 plt = vedo.file_io.import_window(args.files[0])
-                plt.show(mode=interactor_mode).close()
+                plt.offscreen = render_offscreen
+                _show_and_finalize(
+                    plt,
+                    args,
+                    mode=interactor_mode,
+                    close_on_exit=True,
+                )
                 return
             except KeyError:  # list of objects, create Assembly
                 objs = vedo.Assembly(args.files[0])
                 for i, ob in enumerate(objs):
                     if ob:
                         ob.c(i)
-                plt = vedo.Plotter()
-                plt.show(objs, mode=interactor_mode).close()
+                plt = vedo.Plotter(offscreen=render_offscreen)
+                _show_and_finalize(
+                    plt,
+                    args,
+                    objs,
+                    mode=interactor_mode,
+                    close_on_exit=True,
+                )
                 return
         #########################################################
+
+        if multirenderer_mode:
+            plt = vedo.Plotter(
+                size=wsize,
+                N=N,
+                bg=args.background,
+                bg2=args.background_grad,
+                sharecam=sharecam,
+                offscreen=render_offscreen,
+            )
+            settings.immediate_rendering = False
+            plt.axes = args.axes_type
+            for i in range(N):
+                plt.add_hover_legend(at=i)
+            if args.axes_type in (4, 5):
+                plt.axes = 0
+        else:
+            plt = vedo.Plotter(
+                size=wsize,
+                bg=args.background,
+                bg2=args.background_grad,
+                offscreen=render_offscreen,
+            )
+            plt.axes = args.axes_type
+            plt.add_hover_legend()
 
         ds = 0
         objs = []
@@ -1288,7 +1497,7 @@ def draw_scene(args):
 
             objs.append(obj)
 
-            if args.multirenderer_mode:
+            if multirenderer_mode:
                 try:
                     ds = obj.diagonal_size() * 3
                     plt.camera.SetClippingRange(0, ds)
@@ -1308,7 +1517,14 @@ def draw_scene(args):
                         "Please do not use wildcards within single or double quotes"
                     )
 
-        if args.multirenderer_mode:
+        if multirenderer_mode:
+            if args.output:
+                _write_cli_output(plt, args)
+                plt.close()
+                return
+            if args.offscreen:
+                plt.close()
+                return
             plt.interactor.Start()
             if vedo.vtk_version == (9, 2, 2):
                 plt.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
@@ -1318,18 +1534,23 @@ def draw_scene(args):
             if all(a is None for a in objs):
                 vedo.logger.error("Could not load file(s). Quit.")
                 return
-            plt.show(objs, interactive=True, zoom=args.zoom, mode=interactor_mode)
+            _show_and_finalize(
+                plt,
+                args,
+                objs,
+                interactive=True,
+                zoom=args.zoom,
+                mode=interactor_mode,
+            )
         return
 
     ########################################################################
     # sequence mode  -s
     else:
         # print("DEBUG simple browser mode  -s")
-        if plt.axes == 4:
-            plt.axes = 1
+        axes = 1 if args.axes_type == 4 else args.axes_type
 
         acts = vedo.load(args.files, force=args.reload)
-        plt += acts
         for a in acts:
             if hasattr(a, "c"):  # Image doesnt have it
                 a.c(args.color)
@@ -1354,5 +1575,5 @@ def draw_scene(args):
 
             a.alpha(args.alpha)
 
-        plt = vedo.applications.Browser(acts, axes=1)
-        plt.show(zoom=args.zoom).close()
+        plt = vedo.applications.Browser(acts, axes=axes, offscreen=render_offscreen)
+        _show_and_finalize(plt, args, zoom=args.zoom, close_on_exit=True)

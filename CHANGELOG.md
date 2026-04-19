@@ -11,6 +11,20 @@ All notable changes to the project will be documented in this file.
   and Gaussian cube loading support
 - improve CLI startup and terminal output with Rich logging, better lazy imports,
   improved VTK load feedback, and better trame backend compatibility
+- fix `cli.py`: make source-checkout install-dir detection independent of the
+  parent folder name; harden GPU capability probing cleanup and cached CLI runtime
+  initialization; tighten parser semantics for `--info`, `--convert`, `--mode`,
+  and mutually exclusive top-level actions; improve system-info formatting and
+  keep the full install path visible; fix example summary extraction in `--run`;
+  make format conversion replace only the final file suffix and handle
+  case-insensitive extensions; make `--search` highlighting work correctly in
+  ignore-case mode and report 1-based line numbers; make `--search-code` match
+  source text as documented and avoid aborting after unsupported objects; make
+  cached `--search-vtk` index refresh failures fall back cleanly; and avoid a
+  redundant second module-import scan in `--locate`; fix `--eog` left/right
+  window controls, safe single-image sizing, and empty-input reporting; and fix
+  `draw_scene()` camera-sharing semantics, defer plotter creation until needed,
+  and tighten case-insensitive file-type dispatch
 - fix `backends.py`: trame component imports now distinguish missing packages from
   internal import failures and report incompatible layouts cleanly; notebook backend
   dispatch now validates and normalizes `settings.default_backend`; the 2D backend

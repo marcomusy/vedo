@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 from vedo import Text2D
+import vedo.colors as colors_module
 from vedo.colors import get_color, color_map
 
 
@@ -58,6 +59,12 @@ def test_text2d_background_alpha() -> None:
     assert np.isclose(t.properties.GetBackgroundOpacity(), 0.3)
 
 
+def test_text2d_background_auto_does_not_crash() -> None:
+    t = Text2D("hi")
+    t.background("auto", alpha=0.3)
+    assert np.isclose(t.properties.GetBackgroundOpacity(), 0.3)
+
+
 def test_text2d_background_returns_self() -> None:
     t = Text2D("hi")
     result = t.background("white")
@@ -92,6 +99,22 @@ def test_get_color_integer_index() -> None:
 def test_get_color_white_black() -> None:
     assert np.allclose(get_color("white"), [1, 1, 1], atol=0.01)
     assert np.allclose(get_color("black"), [0, 0, 0], atol=0.01)
+
+
+def test_get_color_uses_colorexists_fallback(monkeypatch) -> None:
+    color_name = "customvtkblue"
+
+    class DummyNamedColors:
+        def ColorExists(self, name: str) -> bool:
+            return name == color_name
+
+        def GetColor(self, name: str, rgba) -> None:
+            rgba[:] = [0, 0, 255, 255]
+
+    colors_module._get_color_from_string.cache_clear()
+    monkeypatch.setattr(colors_module, "_named_colors", DummyNamedColors())
+    assert np.allclose(get_color(color_name), [0, 0, 1], atol=0.01)
+    colors_module._get_color_from_string.cache_clear()
 
 
 # ── colors.color_map ──────────────────────────────────────────────────────────

@@ -773,7 +773,14 @@ def _get_color_from_string(name: str) -> tuple:
             return (0.5, 0.5, 0.5)
 
     named_colors = _get_named_colors()
-    if not named_colors.IsColor(c):
+    if hasattr(named_colors, "IsColor"):
+        color_exists = bool(named_colors.IsColor(c))
+    elif hasattr(named_colors, "ColorExists"):
+        color_exists = bool(named_colors.ColorExists(c))
+    else:
+        color_exists = True
+
+    if not color_exists:
         vedo.logger.warning(f"in get_color(): unknown color name '{name}'")
         return (0.5, 0.5, 0.5)
     rgba = [0, 0, 0, 0]

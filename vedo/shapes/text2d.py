@@ -269,6 +269,9 @@ class Text2D:
         """Text background. Set to `None` to disable it."""
         if color is None:
             self.properties.SetBackgroundOpacity(0)
+        elif isinstance(color, str) and color.replace(" ", "").lower() == "auto":
+            if alpha:
+                self.properties.SetBackgroundOpacity(alpha)
         else:
             self.properties.SetBackgroundColor(get_color(color))
             if alpha:

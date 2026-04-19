@@ -38,8 +38,17 @@ For example, type in your terminal:
 ```bash
 vedo --help
 vedo https://vedo.embl.es/examples/data/panther.stl.gz
+vedo https://vedo.embl.es/examples/data/panther.stl.gz --output panther.png
 ```
 ![](https://vedo.embl.es/images/feats/vedo_cli_panther.png)
+
+You can also render non-interactively from the terminal and write the result directly to disk:
+
+```bash
+vedo bunny.obj --output bunny.png
+vedo volume.tif -g --output volume.png --offscreen --scale 2
+vedo scene.npz --output scene.html --backend threejs
+```
 
 Pressing `h` will then show a number of options to interact with your 3D scene:
 ```             
@@ -114,6 +123,23 @@ in your 3D scene. You can then interact with it normally, for example using the 
 
 Another option is to export to a template HTML web page by pressing `F` with the `x3d` backend.
 You can also export programmatically in `k3d` format from a Jupyter notebook.
+
+From the CLI you can export without opening an interactive window using `--output`.
+Supported image outputs include `.png`, `.jpg`, `.pdf`, `.svg` and `.eps`.
+Supported scene outputs include `.npy`, `.npz`, `.x3d` and `.html`.
+
+```bash
+vedo bunny.obj --output bunny.png
+vedo bunny.obj --output bunny.pdf
+vedo scene.npz --output exported_scene.x3d
+vedo scene.npz --output exported_scene.html --backend threejs
+```
+
+Use `--offscreen` explicitly for headless environments, and `--scale` to increase screenshot resolution:
+
+```bash
+vedo bunny.obj --output bunny.png --offscreen --scale 2
+```
 
 
 ## File format conversion
