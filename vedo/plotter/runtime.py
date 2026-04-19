@@ -12,7 +12,6 @@ import vedo
 from vedo import utils
 from vedo import addons
 from vedo.core.summary import format_bounds, summary_panel, summary_string
-from .bootstrap import apply_gradient_mode, configure_renderer_common
 from .camera import (
     azimuth,
     dolly,
@@ -352,6 +351,36 @@ def close() -> None:
     return
 
 
+def _configure_renderer_common(renderer, bg, bg2=None):
+    renderer.SetLightFollowCamera(vedo.settings.light_follows_camera)
+    renderer.SetTwoSidedLighting(vedo.settings.two_sided_lighting)
+    renderer.SetUseDepthPeeling(vedo.settings.use_depth_peeling)
+    if vedo.settings.use_depth_peeling:
+        renderer.SetMaximumNumberOfPeels(vedo.settings.max_number_of_peels)
+        renderer.SetOcclusionRatio(vedo.settings.occlusion_ratio)
+    renderer.SetUseFXAA(vedo.settings.use_fxaa)
+    renderer.SetPreserveDepthBuffer(vedo.settings.preserve_depth_buffer)
+    renderer.SetBackground(vedo.get_color(bg))
+    if bg2:
+        renderer.GradientBackgroundOn()
+        renderer.SetBackground2(vedo.get_color(bg2))
+
+
+def _apply_gradient_mode(renderer):
+    if vedo.settings.background_gradient_orientation <= 0:
+        return
+    try:
+        modes = [
+            vtki.vtkViewport.GradientModes.VTK_GRADIENT_HORIZONTAL,
+            vtki.vtkViewport.GradientModes.VTK_GRADIENT_RADIAL_VIEWPORT_FARTHEST_SIDE,
+            vtki.vtkViewport.GradientModes.VTK_GRADIENT_RADIAL_VIEWPORT_FARTHEST_CORNER,
+        ]
+        renderer.SetGradientMode(modes[vedo.settings.background_gradient_orientation - 1])
+        renderer.GradientBackgroundOn()
+    except AttributeError:
+        pass
+
+
 ########################################################################
 class Plotter:
     """Main class to manage objects."""
@@ -584,7 +613,7 @@ class Plotter:
                 self.renderers.append(arenderer)
 
             for r in self.renderers:
-                configure_renderer_common(r, self.backgrcol)
+                _configure_renderer_common(r, self.backgrcol)
                 self.axes_instances.append(None)
 
             self.shape = (n + m,)
@@ -603,7 +632,7 @@ class Plotter:
 
                 arenderer = vtki.vtkRenderer()
                 arenderer.SetViewport(x0, y0, x1, y1)
-                configure_renderer_common(arenderer, bg_, bg2_)
+                _configure_renderer_common(arenderer, bg_, bg2_)
 
                 self.renderers.append(arenderer)
                 self.axes_instances.append(None)
@@ -647,9 +676,7 @@ class Plotter:
             for i in reversed(range(shape[0])):
                 for j in range(shape[1]):
                     arenderer = vtki.vtkRenderer()
-                    configure_renderer_common(
-                        arenderer, self.backgrcol, bg2, two_sided=True
-                    )
+                    _configure_renderer_common(arenderer, self.backgrcol, bg2)
 
                     if image_actor:
                         arenderer.SetLayer(1)
@@ -678,7 +705,7 @@ class Plotter:
         #########################################################
         for r in self.renderers:
             self.window.AddRenderer(r)
-            apply_gradient_mode(r)
+            _apply_gradient_mode(r)
 
         # Backend ####################################################
         if vedo.settings.default_backend in ["panel", "trame", "k3d"]:
