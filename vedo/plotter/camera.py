@@ -52,7 +52,7 @@ def reset_clipping_range(plotter, bounds=None) -> Any:
     if bounds is None:
         plotter.renderer.ResetCameraClippingRange()
     else:
-        plotter.renderer.ResetCameraClippingRange(bounds)
+        plotter.renderer.ResetCameraClippingRange(*bounds)
     return plotter
 
 
@@ -100,25 +100,6 @@ def reset_viewup(plotter, smooth=True) -> Any:
             plotter.camera.SetPosition(pp)
             plotter.camera.SetFocalPoint(ff)
             plotter.render()
-
-        # interpolator does not respect parallel view...:
-        # cam1 = dict(
-        #     pos=poc,
-        #     viewup=vu,
-        #     focal_point=(mx,my,mz),
-        #     clipping_range=plotter.camera.GetClippingRange()
-        # )
-        # # cam1 = plotter.camera
-        # cam2 = dict(
-        #     pos=positions[pui],
-        #     viewup=viewups[vui],
-        #     focal_point=(mx,my,mz),
-        #     clipping_range=plotter.camera.GetClippingRange()
-        # )
-        # vcams = plotter.move_camera([cam1, cam2], output_times=outtimes, smooth=0)
-        # for c in vcams:
-        #     plotter.renderer.SetActiveCamera(c)
-        #     plotter.render()
     else:
         plotter.camera.SetViewUp(viewups[vui])
         plotter.camera.SetPosition(positions[pui])
@@ -166,13 +147,13 @@ def move_camera(plotter, cameras, t=0, times=(), smooth=True, output_times=()) -
     rng = maxt - mint
 
     if len(output_times) == 0:
-        cin.InterpolateCamera(t * rng, plotter.camera)
+        cin.InterpolateCamera(mint + t * rng, plotter.camera)
         return [plotter.camera]
     else:
         vcams = []
         for tt in output_times:
             c = vtki.vtkCamera()
-            cin.InterpolateCamera(tt * rng, c)
+            cin.InterpolateCamera(mint + tt * rng, c)
             vcams.append(c)
         return vcams
 
@@ -218,7 +199,7 @@ def look_at(plotter, plane="xy") -> Any:
         cam.SetPosition(fp[0] + dist, fp[1], fp[2])
         cam.SetViewUp(0.0, 0.0, 1.0)
     else:
-        vedo.logger.error(f"in plotter.look() cannot understand argument {plane}")
+        vedo.logger.error(f"in plotter.look_at() cannot understand argument {plane}")
     return plotter
 
 
@@ -240,7 +221,7 @@ def parallel_projection(plotter, value=True, at=None) -> Any:
 
 def render_hidden_lines(plotter, value=True) -> Any:
     """Remove hidden lines when in wireframe mode."""
-    plotter.renderer.SetUseHiddenLineRemoval(not value)
+    plotter.renderer.SetUseHiddenLineRemoval(value)
     return plotter
 
 
@@ -284,6 +265,6 @@ def roll(plotter, angle: float) -> Any:
 
 
 def dolly(plotter, value: float) -> Any:
-    """Move the camera towards (value>0) or away from (value<0) the focal point."""
+    """Move the camera towards (value>1) or away from (value<1) the focal point."""
     plotter.renderer.GetActiveCamera().Dolly(value)
     return plotter
