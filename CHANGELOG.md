@@ -50,6 +50,11 @@ All notable changes to the project will be documented in this file.
   `eval()` passes list not dict to user function; `set_parameters()` guards scalar values;
   `minimize()` resets paths on repeated calls; `_summary_rows` uses enumerate and avoids
   recomputing the Hessian on every `__str__` call
+- fix `lazy_imports`: remove redundant `seen` set and `ordered` list in `build_attr_map`
+  (replaced with `list(attr_map)`, relying on Python 3.7+ dict insertion-order guarantee);
+  `getattr_lazy` now wraps the import+getattr in a `try/except` and raises a clear
+  `ImportError` with context instead of a bare traceback; `if attr_map`/`if module_map`
+  truthiness guards replaced with `is not None` throughout
 - migrate the project documentation to MkDocs and refresh a large set of examples
 - refactor `Settings` class: `__str__` now generates output from live values grouped
   by category (General, Rendering, Lighting, …) instead of scraping the class docstring;
