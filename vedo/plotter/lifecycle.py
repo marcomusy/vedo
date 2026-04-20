@@ -70,7 +70,7 @@ def interactive(plotter) -> Any:
     plotter.initialize_interactor()
     if plotter.interactor:
         plotter.interactor.Start()
-        if plotter._must_close_now:
+        if plotter._must_close_now and plotter.interactor:
             plotter.interactor.GetRenderWindow().Finalize()
             plotter.interactor.TerminateApp()
             plotter.interactor = None
@@ -100,7 +100,8 @@ def clear(plotter, at=None, deep=False) -> Any:
     if deep:
         renderer.RemoveAllViewProps()
         plotter.objects.clear()
-        plotter.axes_instances.clear()
+        at_idx = plotter.renderers.index(renderer)
+        plotter.axes_instances[at_idx] = None
     else:
         for ob in set(
             plotter.get_meshes()

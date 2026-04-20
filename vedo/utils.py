@@ -2725,15 +2725,16 @@ def grid_corners(
 
     Examples:
         ```python
-        from vedo import *
-        acts=[]
+        from vedo.utils import grid_corners
+        from vedo import Text3D, Rectangle, show
+        objs=[]
         n,m = 5,7
         for i in range(1, n*m + 1):
-            c1,c2 = utils.grid_corners(i, [n,m], [1,1], 0.01)
+            c1, c2 = grid_corners(i, [n,m], [1,1], 0.01)
             t = Text3D(i, (c1+c2)/2, c='k', s=0.02, justify='center').z(0.01)
             r = Rectangle(c1, c2, c=i)
-            acts += [t,r]
-        show(acts, axes=1).close()
+            objs += [t,r]
+        show(objs, axes=1).close()
         ```
         ![](https://vedo.embl.es/images/feats/grid_corners.png)
     """
