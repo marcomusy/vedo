@@ -32,7 +32,7 @@ Submodule to work with point clouds.
 __all__ = ["Point", "Points"]
 
 
-def Point(pos=(0, 0, 0), r=12, c="red", alpha=1.0) -> Self:
+def Point(pos=(0, 0, 0), r=12, c="red", alpha=1.0) -> Points:
     """Build a point at position of radius size `r`, color `c` and transparency `alpha`."""
     return Points([[0, 0, 0]], r=r, c=c, alpha=alpha).pos(pos)
 
@@ -99,6 +99,8 @@ class Points(
         self.properties_backface = self.actor.GetBackfaceProperty()
         self.mapper = vtki.new("PolyDataMapper")
         self.dataset = vtki.vtkPolyData()
+        self.actor.SetMapper(self.mapper)
+        self.mapper.SetInputData(self.dataset)
 
         # Create weakref so actor can access this object (eg to pick/remove):
         self.actor.retrieve_object = weak_ref_to(self)
@@ -177,6 +179,7 @@ class Points(
     def _update(self, polydata, reset_locators=True) -> Self:
         """Overwrite the polygonal dataset with a new vtkPolyData."""
         self.dataset = polydata
+        self.actor.SetMapper(self.mapper)
         self.mapper.SetInputData(self.dataset)
         self.mapper.Modified()
         if reset_locators:
@@ -425,7 +428,7 @@ class Points(
                 if isinstance(l, vedo.Assembly):
                     alist += l.unpack()
                 else:
-                    alist += l
+                    alist.append(l)
             return vedo.assembly.Assembly(alist)
 
         if isinstance(meshs, vedo.Assembly):

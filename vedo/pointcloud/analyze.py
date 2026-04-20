@@ -12,7 +12,6 @@ import vedo.vtkclasses as vtki
 
 import vedo
 from vedo import utils
-from vedo.core.transformations import LinearTransform, NonLinearTransform
 
 
 class PointAnalyzeMixin:
@@ -35,6 +34,9 @@ class PointAnalyzeMixin:
             invert (bool):
                 flip all normals
         """
+        if n < 1:
+            raise ValueError("compute_normals_with_pca(): n must be >= 1")
+
         poly = self.dataset
         pcan = vtki.new("PCANormalEstimation")
         pcan.SetInputData(poly)
@@ -76,11 +78,16 @@ class PointAnalyzeMixin:
             ```
             ![](https://vedo.embl.es/images/feats/acoplanarity.jpg)
         """
+        if not n and radius is None:
+            raise ValueError("compute_acoplanarity(): set either n or radius")
+
         acoplanarities = []
         if "point" in on:
             pts = self.coordinates
+            search_obj = self
         elif "cell" in on:
             pts = self.cell_centers().coordinates
+            search_obj = vedo.Points(pts)
         else:
             raise ValueError(
                 f"In compute_acoplanarity() set on to either 'cells' or 'points', not {on}"
@@ -88,13 +95,14 @@ class PointAnalyzeMixin:
 
         for p in utils.progressbar(pts, delay=5, width=15, title=f"{on} acoplanarity"):
             if n:
-                data = self.closest_point(p, n=n)
-                npts = n
-            elif radius:
-                data = self.closest_point(p, radius=radius)
+                data = search_obj.closest_point(p, n=n)
+                npts = len(data)
+            elif radius is not None:
+                data = search_obj.closest_point(p, radius=radius)
                 npts = len(data)
 
             try:
+                data = np.asarray(data)
                 center = data.mean(axis=0)
                 res = np.linalg.svd(data - center)
                 acoplanarities.append(res[1][2] / npts)
@@ -256,6 +264,11 @@ class PointAnalyzeMixin:
         Examples:
             - [mesh_threshold.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mesh_threshold.py)
         """
+        if above is None and below is None:
+            raise ValueError("threshold(): specify at least one of above or below")
+        if above is not None and below is not None and above > below:
+            raise ValueError("threshold(): above cannot be greater than below")
+
         thres = vtki.new("Threshold")
         thres.SetInputData(self.dataset)
 
@@ -298,6 +311,9 @@ class PointAnalyzeMixin:
         The user should input a value and all {x,y,z} coordinates
         will be quantized to that absolute grain size.
         """
+        if value <= 0:
+            raise ValueError("quantize(): value must be > 0")
+
         qp = vtki.new("QuantizePolyDataPoints")
         qp.SetInputData(self.dataset)
         qp.SetQFactor(value)
@@ -437,6 +453,11 @@ class PointAnalyzeMixin:
         and it is also returned by the function.
         """
         points = self.coordinates
+        if len(points) < 2:
+            dists = np.zeros(len(points), dtype=np.float32)
+            self.pointdata["AutoDistance"] = dists
+            return dists
+
         if not self.point_locator:
             self.point_locator = vtki.new("StaticPointLocator")
             self.point_locator.SetDataSet(self.dataset)
@@ -512,6 +533,9 @@ class PointAnalyzeMixin:
 
         ps1 = self.coordinates
         ps2 = pcloud.coordinates
+        if len(ps1) == 0 or len(ps2) == 0:
+            vedo.logger.warning("chamfer_distance(): one of the inputs has no points")
+            return np.nan
 
         ids12 = []
         for p in ps1:
@@ -568,7 +592,7 @@ class PointAnalyzeMixin:
         sub_iters=10,
         packing_factor=1,
         max_step=0,
-        constraints=(),
+        constraints=None,
     ) -> Self:
         """
         Smooth mesh or points with a
@@ -701,14 +725,20 @@ class PointAnalyzeMixin:
         for p in coords:
             points = self.closest_point(p, n=Ncp, radius=radius)
             if len(points) < 4:
+                variances.append(0.0)
+                newline.append(p)
                 continue
 
-            points = np.array(points)
-            pointsmean = points.mean(axis=0)  # plane center
-            _, dd, vv = np.linalg.svd(points - pointsmean)
-            newp = np.dot(p - pointsmean, vv[0]) * vv[0] + pointsmean
-            variances.append(dd[1] + dd[2])
-            newline.append(newp)
+            try:
+                points = np.asarray(points)
+                pointsmean = points.mean(axis=0)  # plane center
+                _, dd, vv = np.linalg.svd(points - pointsmean)
+                newp = np.dot(p - pointsmean, vv[0]) * vv[0] + pointsmean
+                variances.append(dd[1] + dd[2])
+                newline.append(newp)
+            except np.linalg.LinAlgError:
+                variances.append(0.0)
+                newline.append(p)
 
         self.pointdata["Variances"] = np.array(variances).astype(np.float32)
         self.coordinates = newline
@@ -755,6 +785,8 @@ class PointAnalyzeMixin:
 
         variances, newpts, valid = [], [], []
         radius_is_sequence = utils.is_sequence(radius)
+        if radius_is_sequence and len(radius) != ncoords:
+            raise ValueError("smooth_mls_2d(): radius sequence length must match number of points")
 
         pb = None
         if ncoords > 10000:
@@ -771,14 +803,24 @@ class PointAnalyzeMixin:
                 pts = self.closest_point(p, n=Ncp, radius=radius)
 
             if len(pts) > 3:
-                ptsmean = pts.mean(axis=0)  # plane center
-                _, dd, vv = np.linalg.svd(pts - ptsmean)
-                cv = np.cross(vv[0], vv[1])
-                t = (np.dot(cv, ptsmean) - np.dot(cv, p)) / np.dot(cv, cv)
-                newpts.append(p + cv * t)
-                variances.append(dd[2])
-                if radius is not None:
-                    valid.append(1)
+                try:
+                    pts = np.asarray(pts)
+                    ptsmean = pts.mean(axis=0)  # plane center
+                    _, dd, vv = np.linalg.svd(pts - ptsmean)
+                    cv = np.cross(vv[0], vv[1])
+                    cv2 = np.dot(cv, cv)
+                    if cv2 == 0:
+                        raise np.linalg.LinAlgError
+                    t = (np.dot(cv, ptsmean) - np.dot(cv, p)) / cv2
+                    newpts.append(p + cv * t)
+                    variances.append(dd[2])
+                    if radius is not None:
+                        valid.append(1)
+                except np.linalg.LinAlgError:
+                    newpts.append(p)
+                    variances.append(0)
+                    if radius is not None:
+                        valid.append(0)
             else:
                 newpts.append(p)
                 variances.append(0)
@@ -808,6 +850,7 @@ class PointAnalyzeMixin:
         """
         # Credits: https://hatarilabs.com/ih-en/
         # tutorial-to-create-a-geospatial-voronoi-sh-mesh-with-python-scipy-and-geopandas
+        from scipy.spatial import QhullError
         from scipy.spatial import Voronoi as scipy_voronoi
 
         def _constrain_points(points):
@@ -840,6 +883,8 @@ class PointAnalyzeMixin:
             if area:
                 centroid_x = (1.0 / (3.0 * area)) * centroid_x
                 centroid_y = (1.0 / (3.0 * area)) * centroid_y
+            else:
+                centroid_x, centroid_y = np.mean(vertices[:-1], axis=0)
             # prevent centroids from escaping bounding box
             return _constrain_points([[centroid_x, centroid_y]])[0]
 
@@ -848,10 +893,13 @@ class PointAnalyzeMixin:
             # map to "relax" the points (i.e. jitter the points so as
             # to spread them out within the space).
             centroids = []
-            for idx in voron.point_region:
+            for i, idx in enumerate(voron.point_region):
                 # the region is a series of indices into voronoi.vertices
                 # remove point at infinity, designated by index -1
                 region = [i for i in voron.regions[idx] if i != -1]
+                if len(region) < 3:
+                    centroids.append(voron.points[i])
+                    continue
                 # enclose the polygon
                 region = region + [region[0]]
                 verts = voron.vertices[region]
@@ -864,7 +912,11 @@ class PointAnalyzeMixin:
 
         pts = self.vertices[:, (0, 1)]
         for i in range(iterations):
-            vor = scipy_voronoi(pts, qhull_options=options)
+            try:
+                vor = scipy_voronoi(pts, qhull_options=options)
+            except QhullError:
+                vedo.logger.warning("smooth_lloyd_2d(): Voronoi construction failed")
+                break
             _constrain_points(vor.vertices)
             pts = _relax(vor)
         out = vedo.Points(pts)
@@ -949,7 +1001,7 @@ class PointAnalyzeMixin:
         cpf.SetInputData(self.dataset)
         cpf.SetRadius(radius)
         if mode == 0:  # Extract all regions
-            pass
+            cpf.SetExtractionModeToAllRegions()
 
         elif mode == 1:  # Extract point seeded regions
             cpf.SetExtractionModeToPointSeededRegions()
@@ -965,16 +1017,21 @@ class PointAnalyzeMixin:
                 cpf.AddSpecifiedRegion(r)
 
         elif mode == 4:  # Extract all regions with scalar connectivity
-            cpf.SetExtractionModeToLargestRegion()
+            cpf.SetExtractionModeToAllRegions()
             cpf.ScalarConnectivityOn()
             cpf.SetScalarRange(vrange[0], vrange[1])
 
         elif mode == 5:  # Extract point seeded regions
-            cpf.SetExtractionModeToLargestRegion()
+            cpf.SetExtractionModeToPointSeededRegions()
+            for s in seeds:
+                cpf.AddSeed(s)
             cpf.ScalarConnectivityOn()
             cpf.SetScalarRange(vrange[0], vrange[1])
             cpf.AlignedNormalsOn()
             cpf.SetNormalAngle(angle)
+
+        else:
+            raise ValueError(f"compute_connections(): unknown mode {mode}")
 
         cpf.Update()
         self._update(cpf.GetOutput(), reset_locators=False)
@@ -999,7 +1056,7 @@ class PointAnalyzeMixin:
 
     def densify(
         self, target_distance=0.1, nclosest=6, radius=None, niter=1, nmax=None
-    ) -> Self:
+    ) -> vedo.Points:
         """
         Return a copy of the cloud with new added points.
         The new points are created in such a way that all points in any local neighborhood are
@@ -1119,11 +1176,15 @@ class PointAnalyzeMixin:
 
         if not utils.is_sequence(dims):
             dims = [dims, dims, dims]
+        elif len(dims) not in (2, 3):
+            raise ValueError("density(): dims must have length 2 or 3")
 
         if bounds is None:
             bounds = list(self.bounds())
         elif len(bounds) == 4:
             bounds = [*bounds, 0, 0]
+        elif len(bounds) != 6:
+            raise ValueError("density(): bounds must have length 4 or 6")
 
         if bounds[5] - bounds[4] == 0 or len(dims) == 2:  # its 2D
             dims = list(dims)
@@ -1153,7 +1214,7 @@ class PointAnalyzeMixin:
         )
         return vol
 
-    def visible_points(self, area=(), tol=None, invert=False) -> Self | None:
+    def visible_points(self, area=(), tol=None, invert=False) -> vedo.Points | None:
         """
         Extract points based on whether they are visible or not.
         Visibility is determined by accessing the z-buffer of a rendering window.
