@@ -57,7 +57,7 @@ code $VEDOLOGFILE  #### inspect logfile
 # (Try normal run too with visualization to make sure all is ok)
 
 # TUTORIALS ##################################################################
-cd ~/Projects/vedo-epug-tutorial/scripts && ./run_all.sh 
+cd ~/Projects/vedo-stuff/vedo-epug-tutorial/scripts && ./run_all.sh 
 
 # OTHERS #####################################################################
 cd $VEDODIR
@@ -151,8 +151,6 @@ mkdocs build
 # check web page examples
 cd $VEDODIR
 code docs/examples_db.js
-cp docs/examples_db.js www/examples_db.js
-code www/index.html
 
 
 # RELEASE #####################################################################

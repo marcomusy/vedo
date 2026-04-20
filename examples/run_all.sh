@@ -16,3 +16,4 @@ cd pyplot;      ./run_all.sh; cd ..
 cd other;       ./run_all.sh; cd ..
 
 echo "All examples have been processed."
+exit(0)

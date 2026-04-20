@@ -522,7 +522,11 @@ class Plotter:
 
         #############################################################
         if screensize == "auto":
-            sx, sy = self.window.GetScreenSize()
+            screen_size = self.window.GetScreenSize()
+            if utils.is_sequence(screen_size) and len(screen_size) >= 2:
+                sx, sy = screen_size[:2]
+            else:
+                sx = sy = 0
             if sx > 0 and sy > 0:
                 screensize = (sx, sy)
             else:
