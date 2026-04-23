@@ -261,7 +261,7 @@ def fit_plane(points: np.ndarray | vedo.Points, signed=False) -> vedo.shapes.Pla
 
 
 def project_point_on_variety(
-    pt, points, degree=3, compute_surface=False, compute_curvature=False
+    pt, points, degree=3, return_grid=False, normal=None
 ) -> tuple:
     """
     Project a point in 3D space onto a polynomial surface defined by a set of points
@@ -269,21 +269,29 @@ def project_point_on_variety(
 
     Args:
         pt (list or np.ndarray):
-            The point to smooth (3D coordinates).
+            The 3D point to project onto the fitted surface.
         points (np.ndarray):
-            A set of points (Nx3 array) to fit the polynomial surface.
+            Neighbourhood points (Nx3) used to fit the polynomial surface.
         degree (int):
-            The degree of the polynomial to fit.
-        compute_surface (bool):
-            If True, returns a surface mesh of the fitted polynomial.
+            Degree of the fitting polynomial.
+        return_grid (bool):
+            If True, also returns a `vedo.Grid` of the fitted surface patch.
+        normal (list or np.ndarray, optional):
+            Reference normal used to orient the local frame consistently.
+            Pass the vertex normal of `pt` for correct mean curvature sign.
 
     Returns:
-        transformed_pt (np.ndarray):
-            The projected point on the polynomial surface.
-        surface_data (tuple):
-            If compute_surface is True, the first element is a vedo.Grid object representing the surface.
-            If compute_curvature is True, the second element contains curvature information.
-            Contains the fitted polynomial coefficients, rotation matrix, and centroid.
+        projected_pt (np.ndarray):
+            The point projected onto the fitted polynomial surface.
+        poly (tuple):
+            Polynomial results `(coeffs, R, centroid, gauss_curv, mean_curv)`:
+            - `coeffs`: polynomial coefficients (length = (degree+1)(degree+2)/2)
+            - `R`: 3x3 rotation matrix mapping world -> local frame (rows are v1, v2, normal)
+            - `centroid`: centroid of the neighbourhood points
+            - `gauss_curv`: Gaussian curvature K at the projected point (0 for degree < 2)
+            - `mean_curv`: mean curvature H at the projected point (0 for degree < 2)
+        grid (vedo.Grid or None):
+            Surface patch of the fitted polynomial, or `None` if `return_grid=False`.
 
     Examples:
         ```python
@@ -296,11 +304,11 @@ def project_point_on_variety(
         pt = mesh.coordinates[30]
         points = mesh.closest_point(pt, n=200)
 
-        pt_trans, res = project_point_on_variety(pt, points, degree=3, compute_surface=True)
+        pt_trans, poly, grid = project_point_on_variety(pt, points, degree=3, return_grid=True)
         vpoints = vedo.Points(points, r=6, c="yellow2")
 
         plotter = vedo.Plotter(size=(1200, 800))
-        plotter += mesh, vedo.Point(pt), vpoints, res[0], f"Residue: {pt - pt_trans}"
+        plotter += mesh, vedo.Point(pt), vpoints, grid, f"Residue: {pt - pt_trans}"
         plotter.show(axes=1).close()
         ```
 
@@ -309,49 +317,50 @@ def project_point_on_variety(
 
     def _fit_polynomial_3d(points, degree):
         x, y, z = points.T
-        # Create a Vandermonde matrix for polynomial fitting
-        terms = []
-        for i in range(degree + 1):
-            for j in range(degree + 1 - i):
-                terms.append(x**i * y**j)
-        V = np.vstack(terms).T
-        coeffs = np.linalg.lstsq(V, z, rcond=None)[0]
-        return coeffs
+        xpow = x[:, None] ** np.arange(degree + 1)   # (N, degree+1)
+        ypow = y[:, None] ** np.arange(degree + 1)
+        V = np.column_stack([xpow[:, i] * ypow[:, j]
+                             for i in range(degree + 1)
+                             for j in range(degree + 1 - i)])
+        return np.linalg.lstsq(V, z, rcond=None)[0]
 
     def _predict_polynomial_3d(x, y, coeffs, degree):
-        idx = 0
-        z_pred = 0
+        xpow = [1.0] * (degree + 1)
+        ypow = [1.0] * (degree + 1)
+        for k in range(1, degree + 1):
+            xpow[k] = xpow[k-1] * x
+            ypow[k] = ypow[k-1] * y
+        z, idx = 0.0, 0
         for i in range(degree + 1):
             for j in range(degree + 1 - i):
-                z_pred += coeffs[idx] * x**i * y**j
+                z += coeffs[idx] * xpow[i] * ypow[j]
                 idx += 1
-        return z_pred
+        return z
 
-    def _compute_curvature(coeffs, terms, degree):
-        if not compute_curvature or degree < 2:
+    def _compute_curvature(coeffs, degree, x0, y0):
+        if degree < 2:
             return 0, 0
-        terms = [
-            f"x^{i}y^{j}" for i in range(degree + 1) for j in range(degree + 1 - i)
-        ]
-        # Print coefficients
-        # for term, coeff in zip(terms, coeffs):
-        #     print(f"Coefficient for {term}: {coeff}")
-        # Find indices of curvature-related terms
-        a_20 = a_02 = a_11 = 0
-        for idx, term in enumerate(terms):
-            if term == "x^2y^0":
-                a_20 = coeffs[idx]
-            elif term == "x^0y^2":
-                a_02 = coeffs[idx]
-            elif term == "x^1y^1":
-                a_11 = coeffs[idx]
-        # Second derivatives
-        f_xx = 2 * a_20
-        f_yy = 2 * a_02
-        f_xy = a_11
-        # Gaussian and mean curvature
-        gaussian = f_xx * f_yy - f_xy**2
-        mean = (f_xx + f_yy) / 2
+        xpow = [1.0] * (degree + 1)
+        ypow = [1.0] * (degree + 1)
+        for k in range(1, degree + 1):
+            xpow[k] = xpow[k-1] * x0
+            ypow[k] = ypow[k-1] * y0
+        f_x = f_y = f_xx = f_yy = f_xy = 0.0
+        idx = 0
+        for i in range(degree + 1):
+            for j in range(degree + 1 - i):
+                c = coeffs[idx]
+                if i >= 1: f_x  += i       * c * xpow[i-1] * ypow[j]
+                if j >= 1: f_y  += j       * c * xpow[i]   * ypow[j-1]
+                if i >= 2: f_xx += i*(i-1) * c * xpow[i-2] * ypow[j]
+                if j >= 2: f_yy += j*(j-1) * c * xpow[i]   * ypow[j-2]
+                if i >= 1 and j >= 1:
+                    f_xy += i * j  * c * xpow[i-1] * ypow[j-1]
+                idx += 1
+        denom2 = 1.0 + f_x**2 + f_y**2
+        gaussian = (f_xx * f_yy - f_xy**2) / denom2**2
+        # negated to match VTK convention: H > 0 for convex with outward normals
+        mean = -((1 + f_y**2)*f_xx - 2*f_x*f_y*f_xy + (1 + f_x**2)*f_yy) / (2 * denom2**1.5)
         return float(gaussian), float(mean)
 
     # Fit the plane: compute centroid and normal
@@ -359,50 +368,39 @@ def project_point_on_variety(
     centroid = np.mean(points, axis=0)
     centered = points - centroid
 
-    # SVD to find the normal vector
-    U, S, Vt = np.linalg.svd(centered)
-    normal = Vt[-1, :]
-    normal /= np.linalg.norm(normal)
+    # to find the normal vector
+    # eigh on the 3x3 covariance matrix is much faster than SVD on the full N×3 matrix
+    _, vv = np.linalg.eigh(centered.T @ centered)
+    svd_normal = vv[:, 0]  # eigenvector for smallest eigenvalue = normal direction
+    if normal is not None and np.dot(svd_normal, normal) < 0:
+        svd_normal = -svd_normal
+    normal = svd_normal
 
-    # Find an orthogonal basis: v1 perpendicular to normal
-    axes = np.eye(3)
-    crosses = np.cross(normal, axes)
-    norms = np.linalg.norm(crosses, axis=1)
-    max_idx = np.argmax(norms)
-    v1 = crosses[max_idx]
-    v1 /= np.linalg.norm(v1)
-    v2 = np.cross(normal, v1)
-    v2 /= np.linalg.norm(v2)
-
-    # Old basis matrix with columns v1, v2, normal
-    old_basis = np.column_stack((v1, v2, normal))
-
-    # Ensure positive determinant for proper rotation
-    if np.linalg.det(old_basis) < 0:
-        v2 = -v2
-        old_basis = np.column_stack((v1, v2, normal))
-
-    # Rotation matrix R such that new_coords = centered @ R.T
-    R = old_basis.T
+    # Build a right-handed orthogonal basis with normal as the z-axis.
+    # Cross with the least-aligned cardinal axis for numerical stability.
+    min_idx = np.argmin(np.abs(normal))
+    e = np.zeros(3); e[min_idx] = 1.0
+    v1 = np.cross(normal, e); v1 /= np.linalg.norm(v1)
+    v2 = np.cross(normal, v1); v2 /= np.linalg.norm(v2)
+    # v2 = cross(normal, v1) guarantees det([v1,v2,normal]) = +1, no check needed.
+    R = np.array([v1, v2, normal])  # rows: basis vectors; local = centered @ R.T
 
     # Transform points to new coordinate system (plane aligns with XY)
     transformed = np.dot(centered, R.T)
 
     tpt = (pt - centroid) @ R.T  # Transform point to new coordinate system
 
-    # Fit polynomial of arbitrary degree
-    coeffs = _fit_polynomial_3d(transformed, degree)
-    gauss_curv, mean_curv = _compute_curvature(coeffs, transformed, degree)
-
-    # Predict z for a new point
+    # Fit polynomial of given degree
     x_new, y_new = tpt[0], tpt[1]
+    coeffs = _fit_polynomial_3d(transformed, degree)
+    gauss_curv, mean_curv = _compute_curvature(coeffs, degree, x_new, y_new)
     z_pred = _predict_polynomial_3d(x_new, y_new, coeffs, degree)
 
     # Transform back to original
     transformed_pt = np.array([x_new, y_new, z_pred])
     back_transformed = np.dot(transformed_pt, R) + centroid
     grid = None
-    if compute_surface:
+    if return_grid:
         # Create a surface mesh from the polynomial fit
         x_min, x_max = transformed[:, 0].min(), transformed[:, 0].max()
         y_min, y_max = transformed[:, 1].min(), transformed[:, 1].max()
@@ -415,7 +413,7 @@ def project_point_on_variety(
             g[:] = np.dot(tzg, R)
         grid.shift(centroid).compute_normals()
         grid.lw(0).c("lightblue").alpha(0.5).lighting("glossy")
-    return back_transformed, (grid, coeffs, R, centroid, gauss_curv, mean_curv)
+    return back_transformed, (coeffs, R, centroid, gauss_curv, mean_curv), grid
 
 
 def fit_sphere(coords: np.ndarray | vedo.Points) -> vedo.shapes.Sphere:
