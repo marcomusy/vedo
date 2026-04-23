@@ -59,7 +59,8 @@ def merge(*meshs, flag=False) -> vedo.Mesh | vedo.Points | None:
         except AttributeError:
             polyapp.AddInputData(ob)
         if flag:
-            idarr += [i] * ob.dataset.GetNumberOfPoints()
+            npts = ob.dataset.GetNumberOfPoints() if hasattr(ob, "dataset") else ob.GetNumberOfPoints()
+            idarr += [i] * npts
     polyapp.Update()
     mpoly = polyapp.GetOutput()
 
@@ -100,8 +101,9 @@ def _rotate_points(points, n0=None, n1=(0, 0, 1)) -> np.ndarray | tuple:
 
     if n0 is None:  # fit plane
         datamean = points.mean(axis=0)
-        vv = np.linalg.svd(points - datamean)[2]
-        n0 = np.cross(vv[0], vv[1])
+        centered = points - datamean
+        _, vv = np.linalg.eigh(centered.T @ centered)
+        n0 = np.cross(vv[:, -1], vv[:, -2])
 
     n0 = n0 / np.linalg.norm(n0)
     n1 = n1 / np.linalg.norm(n1)
@@ -112,18 +114,10 @@ def _rotate_points(points, n0=None, n1=(0, 0, 1)) -> np.ndarray | tuple:
     k /= np.linalg.norm(k)
 
     ct = np.dot(n0, n1)
-    theta = np.arccos(ct)
-    st = np.sin(theta)
-    v = k * (1 - ct)
+    st = np.sin(np.arccos(ct))
 
-    rpoints = []
-    for p in points:
-        a = p * ct
-        b = np.cross(k, p) * st
-        c = v * np.dot(k, p)
-        rpoints.append(a + b + c)
-
-    return np.array(rpoints), n0
+    rpoints = points * ct + np.cross(k, points) * st + np.outer(np.dot(points, k), k) * (1 - ct)
+    return rpoints, n0
 
 
 def fit_line(points: np.ndarray | vedo.Points) -> vedo.shapes.Line:
@@ -142,15 +136,12 @@ def fit_line(points: np.ndarray | vedo.Points) -> vedo.shapes.Line:
     data = np.asarray(points)
     datamean = data.mean(axis=0)
     _, dd, vv = np.linalg.svd(data - datamean)
-    vv = vv[0] / np.linalg.norm(vv[0])
+    vv = vv[0]
     # vv contains the first principal component, i.e. the direction
     # vector of the best fit line in the least squares sense.
-    xyz_min = data.min(axis=0)
-    xyz_max = data.max(axis=0)
-    a = np.linalg.norm(xyz_min - datamean)
-    b = np.linalg.norm(xyz_max - datamean)
-    p1 = datamean - a * vv
-    p2 = datamean + b * vv
+    proj = (data - datamean) @ vv
+    p1 = datamean + proj.min() * vv
+    p2 = datamean + proj.max() * vv
     line = vedo.shapes.Line(p1, p2, lw=1)
     line.slope = vv
     line.center = datamean
@@ -207,11 +198,10 @@ def fit_circle(points: np.ndarray | vedo.Points) -> tuple:
     b2 = yy - y * y / N
     c2 = 0.5 * (xxy + yyy - y * k)
 
-    d = a2 * b1 - a1 * b2
-    if not d:
+    try:
+        x0, y0 = np.linalg.solve([[a1, b1], [a2, b2]], [c1, c2])
+    except np.linalg.LinAlgError:
         return offs, 0, n0
-    x0 = (b1 * c2 - b2 * c1) / d
-    y0 = (c1 - a1 * x0) / b1
 
     R = np.sqrt(x0 * x0 + y0 * y0 - 1 / N * (2 * x0 * x + 2 * y0 * y - xx - yy))
 
@@ -244,13 +234,16 @@ def fit_plane(points: np.ndarray | vedo.Points, signed=False) -> vedo.shapes.Pla
     dd, vv = res[1], res[2]
     n = np.cross(vv[0], vv[1])
     if signed:
-        v = np.zeros_like(pts)
+        normals = []
         for i in range(len(pts) - 1):
             vi = np.cross(pts[i], pts[i + 1])
-            v[i] = vi / np.linalg.norm(vi)
-        ns = np.mean(v, axis=0)  # normal to the points plane
-        if np.dot(n, ns) < 0:
-            n = -n
+            ni = np.linalg.norm(vi)
+            if ni:
+                normals.append(vi / ni)
+        if normals:
+            ns = np.mean(normals, axis=0)
+            if np.dot(n, ns) < 0:
+                n = -n
     xyz_min = data.min(axis=0)
     xyz_max = data.max(axis=0)
     s = np.linalg.norm(xyz_max - xyz_min)
@@ -439,13 +432,14 @@ def fit_sphere(coords: np.ndarray | vedo.Points) -> vedo.shapes.Sphere:
     y = coords[:, 1]
     z = coords[:, 2]
     f[:, 0] = x * x + y * y + z * z
-    try:
-        C, residue, rank, _ = np.linalg.lstsq(A, f, rcond=-1)  # solve AC=f
-    except TypeError:
-        C, residue, rank, _ = np.linalg.lstsq(A, f)  # solve AC=f
+    C, residue, rank, _ = np.linalg.lstsq(A, f, rcond=None)
     if rank < 4:
+        vedo.logger.debug("in fit_sphere(), not enough non-degenerate points!")
         return None
     t = (C[0] * C[0]) + (C[1] * C[1]) + (C[2] * C[2]) + C[3]
+    if t[0] <= 0:
+        vedo.logger.warning("in fit_sphere(), could not find a valid sphere!")
+        return None
     radius = np.sqrt(t)[0]
     center = np.array([C[0][0], C[1][0], C[2][0]])
     if len(residue) > 0:
@@ -495,14 +489,15 @@ def pca_ellipse(
 
     P = np.array(coords, dtype=float)[:, (0, 1)]
     cov = np.cov(P, rowvar=0)  # type: ignore
-    _, s, R = np.linalg.svd(cov)  # singular value decomposition
+    s, R = np.linalg.eigh(cov)
+    s, R = s[::-1], R[:, ::-1]  # descending order (largest eigenvalue first)
     p, n = s.size, P.shape[0]
     fppf = f.ppf(pvalue, p, n - p)  # f % point function
-    u = np.sqrt(s * fppf / 2) * 2  # semi-axes (largest first)
+    u = np.sqrt(2 * s * fppf)  # semi-axes (largest first)
     ua, ub = u
     center = utils.make3d(np.mean(P, axis=0))  # centroid of the ellipse
 
-    t = LinearTransform(R.T * u).translate(center)
+    t = LinearTransform(R * u).translate(center)
     elli = vedo.shapes.Circle(alpha=0.75, res=res)
     elli.apply_transform(t)
     elli.properties.LightingOff()
@@ -561,7 +556,8 @@ def pca_ellipsoid(
 
     P = np.array(coords, ndmin=2, dtype=float)
     cov = np.cov(P, rowvar=0)  # type: ignore
-    _, s, R = np.linalg.svd(cov)  # singular value decomposition
+    s, R = np.linalg.eigh(cov)
+    s, R = s[::-1], R[:, ::-1]  # descending order (largest eigenvalue first)
     p, n = s.size, P.shape[0]
     fppf = (
         f.ppf(pvalue, p, n - p) * (n - 1) * p * (n + 1) / n / (n - p)
@@ -570,7 +566,7 @@ def pca_ellipsoid(
     ua, ub, uc = u  # semi-axes (largest first)
     center = np.mean(P, axis=0)  # centroid of the hyperellipsoid
 
-    t = LinearTransform(R.T * u).translate(center)
+    t = LinearTransform(R * u).translate(center)
     elli = vedo.shapes.Ellipsoid((0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1), res=res)
     elli.apply_transform(t)
     elli.alpha(0.25)
