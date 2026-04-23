@@ -112,7 +112,7 @@ class MeshMetricsMixin:
     def is_closed(self) -> bool:
         """
         Return `True` if the mesh is watertight.
-        Note that if the mesh contains coincident points the result may be flase.
+        Note that if the mesh contains coincident points the result may be false.
         Use in this case `mesh.clean()` to merge coincident points.
         """
         fe = vtki.new("FeatureEdges")
@@ -233,8 +233,9 @@ class MeshMetricsMixin:
         Compute the genus of the mesh.
         The genus is a topological invariant for surfaces.
         """
-        nb = len(self.boundaries().split()) - 1
-        return (2 - self.euler_characteristic() - nb) / 2
+        b = self.boundaries()
+        nb = len(b.split()) if b.npoints > 0 else 0
+        return int((2 - self.euler_characteristic() - nb) / 2)
 
     def compute_cell_vertex_count(self) -> Self:
         """
@@ -326,8 +327,8 @@ class MeshMetricsMixin:
         - IntersectingEdges   =  2
         - IntersectingFaces   =  4
         - NoncontiguousEdges  =  8
-        - Nonconvex           = 10
-        - OrientedIncorrectly = 20
+        - Nonconvex           = 16
+        - OrientedIncorrectly = 32
 
         Args:
             tol (float):
