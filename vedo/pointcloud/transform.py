@@ -39,6 +39,9 @@ def procrustes_alignment(sources: list["vedo.Mesh"], rigid=False):
     """
     from vedo.assembly import Assembly
 
+    if not sources:
+        return None
+
     group = vtki.new("MultiBlockDataGroupFilter")
     for source in sources:
         if sources[0].npoints != source.npoints:
@@ -56,8 +59,8 @@ def procrustes_alignment(sources: list["vedo.Mesh"], rigid=False):
     for i, source in enumerate(sources):
         poly = procrustes.GetOutput().GetBlock(i)
         mesh = vedo.mesh.Mesh(poly)
-        mesh.actor.SetProperty(source.actor.GetProperty())
         mesh.properties = source.actor.GetProperty()
+        mesh.actor.SetProperty(mesh.properties)
         if hasattr(source, "name"):
             mesh.name = source.name
         acts.append(mesh)
@@ -200,7 +203,7 @@ class PointTransformMixin:
             for p in target_landmarks:
                 st.InsertNextPoint(p)
         else:
-            st = target_landmarks.GetPoints()
+            st = target_landmarks.dataset.GetPoints()
             if least_squares:
                 target_landmarks = target_landmarks.coordinates
 
@@ -274,8 +277,9 @@ class PointTransformMixin:
             axis (str):
                 axis to use for mirroring, must be set to `x, y, z`.
                 Or any combination of those.
-            origin (list):
+            origin (bool, list):
                 use this point as the origin of the mirroring transformation.
+                If `True`, use the object's own center.
 
         Examples:
             - [mirror.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mirror.py)
@@ -337,7 +341,7 @@ class PointTransformMixin:
         vpts.SetData(utils.numpy2vtk(pts + ns, dtype=np.float32))
         self.dataset.SetPoints(vpts)
         self.dataset.GetPoints().Modified()
-        self.pointdata["GaussianNoise"] = -ns
+        self.pointdata["GaussianNoise"] = ns
         self.pipeline = utils.OperationNode(
             "gaussian_noise", parents=[self], shape="egg", comment=f"sigma = {sigma}"
         )
@@ -424,7 +428,6 @@ class PointTransformMixin:
             vedo.logger.error(f"unknown plane {plane}")
             raise RuntimeError()
 
-        self.alpha(0.1)
         self.coordinates = coords
         return self
 
