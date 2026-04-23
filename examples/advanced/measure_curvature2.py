@@ -17,8 +17,8 @@ def onclick(event):
     _, poly, grid = project_point_on_variety(
         msh.points[pid], bpts,
         degree=DEGREE,
-        return_grid=True,
         normal=msh.vertex_normals[pid],
+        return_grid=True,
     )
     plt.remove("pick").add(
         Point(msh.points[pid], c="green4").rename("pick"),

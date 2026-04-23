@@ -261,7 +261,7 @@ def fit_plane(points: np.ndarray | vedo.Points, signed=False) -> vedo.shapes.Pla
 
 
 def project_point_on_variety(
-    pt, points, degree=3, return_grid=False, normal=None
+    pt, points, degree=3, normal=None, return_grid=False
 ) -> tuple:
     """
     Project a point in 3D space onto a polynomial surface defined by a set of points
@@ -274,11 +274,11 @@ def project_point_on_variety(
             Neighbourhood points (Nx3) used to fit the polynomial surface.
         degree (int):
             Degree of the fitting polynomial.
-        return_grid (bool):
-            If True, also returns a `vedo.Grid` of the fitted surface patch.
         normal (list or np.ndarray, optional):
             Reference normal used to orient the local frame consistently.
             Pass the vertex normal of `pt` for correct mean curvature sign.
+        return_grid (bool, optional):
+            If True, also returns a `vedo.Grid` of the fitted surface patch.
 
     Returns:
         projected_pt (np.ndarray):
