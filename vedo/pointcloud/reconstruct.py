@@ -4,8 +4,6 @@ from __future__ import annotations
 
 """PointReconstructMixin extracted from pointcloud core."""
 
-from typing_extensions import Self
-
 import numpy as np
 
 import vedo.vtkclasses as vtki
@@ -17,6 +15,7 @@ from vedo.core.transformations import LinearTransform, NonLinearTransform
 
 
 class PointReconstructMixin:
+
     def generate_surface_halo(
         self,
         distance=0.05,
@@ -46,8 +45,7 @@ class PointReconstructMixin:
         imp = vtki.new("ImplicitModeller")
         imp.SetInputData(self.dataset)
         imp.SetSampleDimensions(res)
-        if maxdist:
-            imp.SetMaximumDistance(maxdist)
+        imp.SetMaximumDistance(maxdist)
         if len(bounds) == 6:
             imp.SetModelBounds(bounds)
         contour = vtki.new("ContourFilter")
@@ -68,7 +66,7 @@ class PointReconstructMixin:
         grid=None,
         quads=False,
         invert=False,
-    ) -> Self:
+    ) -> vedo.Mesh:
         """
         Generate a polygonal Mesh from a closed contour line.
         If line is not closed it will be closed with a straight segment.
@@ -183,7 +181,7 @@ class PointReconstructMixin:
             boundary = list(range(contour.npoints))
 
         dln = vedo.Points(points).generate_delaunay2d(mode="xy", boundaries=[boundary])
-        dln.compute_normals(points=False)  # fixes reversd faces
+        dln.compute_normals(points=False)  # fixes reversed faces
         dln.lw(1)
 
         dln.pipeline = utils.OperationNode(
@@ -265,7 +263,7 @@ class PointReconstructMixin:
             normals = vtki.new("PCANormalEstimation")
             normals.SetInputData(pd)
             if not sample_size:
-                sample_size = int(pd.GetNumberOfPoints() / 50)
+                sample_size = max(1, int(pd.GetNumberOfPoints() / 50))
             normals.SetSampleSize(sample_size)
             normals.SetNormalOrientationToGraphTraversal()
             sdf.SetInputConnection(normals.GetOutputPort())
@@ -286,7 +284,7 @@ class PointReconstructMixin:
         surface.ComputeGradientsOff()
         surface.SetInputConnection(sdf.GetOutputPort())
         surface.Update()
-        m = vedo.mesh.Mesh(surface.GetOutput(), c=self.color())
+        m = vedo.Mesh(surface.GetOutput(), c=self.color())
 
         m.pipeline = utils.OperationNode(
             "reconstruct_surface",
@@ -335,7 +333,7 @@ class PointReconstructMixin:
         poly = self.dataset
 
         # Create a probe volume
-        probe = vtki.vtkImageData()
+        probe = vtki.new("ImageData")
         probe.SetDimensions(dims)
         if bounds is None:
             bounds = self.bounds()
@@ -387,7 +385,7 @@ class PointReconstructMixin:
         vol = vedo.Volume(interpolator.GetOutput())
 
         vol.pipeline = utils.OperationNode(
-            "signed_distance",
+            "tovolume",
             parents=[self],
             comment=f"dims={tuple(vol.dimensions())}",
             c="#e9c46a:#0096c7",
@@ -415,9 +413,14 @@ class PointReconstructMixin:
             - [moving_least_squares1D.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/moving_least_squares1D.py)
         """
         points = self.coordinates
-        segments = []
-        dists = []
         n = len(points)
+        if n < 4:
+            vedo.logger.warning("generate_segments(): need at least 4 points")
+            return vedo.shapes.Lines([])
+
+        segments = []
+        segment_set = set()  # (min,max) pairs for O(1) duplicate detection
+        dists = []
         used = np.zeros(n, dtype=int)
         for _ in range(niter):
             i = istart
@@ -425,9 +428,9 @@ class PointReconstructMixin:
                 p = points[i]
                 ids = self.closest_point(p, n=4, return_point_id=True)
                 j = ids[1]
-                if used[j] > 1 or [j, i] in segments:
+                if used[j] > 1 or (min(i, j), max(i, j)) in segment_set:
                     j = ids[2]
-                if used[j] > 1:
+                if used[j] > 1 or (min(i, j), max(i, j)) in segment_set:
                     j = ids[3]
                 d = np.linalg.norm(p - points[j])
                 if used[j] > 1 or used[i] > 1 or d > rmax:
@@ -438,6 +441,7 @@ class PointReconstructMixin:
                 used[i] += 1
                 used[j] += 1
                 segments.append([i, j])
+                segment_set.add((min(i, j), max(i, j)))
                 dists.append(d)
                 i = j
         segments = np.array(segments, dtype=int)
@@ -466,6 +470,14 @@ class PointReconstructMixin:
         Check also `generate_mesh()`.
 
         Args:
+            mode (str):
+                one of "scipy" (default), "xy", or "fit".
+                "scipy" uses scipy.spatial.Delaunay on the XY plane.
+                "xy" uses vtkDelaunay2D in the XY plane; pass `boundaries` to constrain.
+                "fit" uses vtkDelaunay2D projected onto the best-fitting plane.
+            boundaries (list):
+                list of point-index sequences that define boundary polygons.
+                Only used when `mode="xy"`.
             tol (float):
                 specify a tolerance to control discarding of closely spaced points.
                 This tolerance is specified as a fraction of the diagonal length of the bounding box of the points.
@@ -555,7 +567,7 @@ class PointReconstructMixin:
         an initial Voronoi tile, which is simply the bounding box of the point set.
         A locator is then used to identify nearby points: each neighbor in turn generates a
         clipping line positioned halfway between the generating point and the neighboring point,
-        and orthogonal to the line connecting them. Clips are readily performed by evaluationg the
+        and orthogonal to the line connecting them. Clips are readily performed by evaluating the
         vertices of the convex Voronoi tile as being on either side (inside,outside) of the clip line.
         If two intersections of the Voronoi tile are found, the portion of the tile "outside" the clip
         line is discarded, resulting in a new convex, Voronoi tile. As each clip occurs,
@@ -568,12 +580,12 @@ class PointReconstructMixin:
         (e.g., merging points and validating topology).
 
         Args:
-            pts (list):
-                list of input points.
             padding (float):
                 padding distance. The default is 0.
             fit (bool):
                 detect automatically the best fitting plane. The default is False.
+            method (str):
+                either "vtk" or "scipy". The default is "vtk".
 
         Examples:
             - [voronoi1.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/voronoi1.py)
@@ -606,17 +618,7 @@ class PointReconstructMixin:
 
         elif method == "vtk":
             vor = vtki.new("Voronoi2D")
-            if isinstance(pts, vedo.pointcloud.Points):
-                vor.SetInputData(pts.dataset)
-            else:
-                pts = np.asarray(pts)
-                if pts.shape[1] == 2:
-                    pts = np.c_[pts, np.zeros(len(pts))]
-                pd = vtki.vtkPolyData()
-                vpts = vtki.vtkPoints()
-                vpts.SetData(utils.numpy2vtk(pts, dtype=np.float32))
-                pd.SetPoints(vpts)
-                vor.SetInputData(pd)
+            vor.SetInputData(self.dataset)
             vor.SetPadding(padding)
             vor.SetGenerateScalarsToPointIds()
             if fit:
