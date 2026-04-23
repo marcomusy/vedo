@@ -16,16 +16,16 @@ def onclick(event):
     bpts = msh.points[ids]
     _, poly, grid = project_point_on_variety(
         msh.points[pid], bpts,
-        degree=DEGREE, return_grid=True,
+        degree=DEGREE,
+        return_grid=True,
         normal=msh.vertex_normals[pid],
     )
-    gauss, mean = poly[3], poly[4]
-    grid.color("green7").alpha(0.9).rename("pick")
     plt.remove("pick").add(
-        Points(bpts, r=3, c="yellow5").rename("pick"),
         Point(msh.points[pid], c="green4").rename("pick"),
-        grid,
+        Points(bpts, r=3, c="yellow5").rename("pick"),
+        grid.color("green7").alpha(0.9).rename("pick"),
     ).render()
+    gauss, mean = poly[3], poly[4]
     print(f"vertex {pid:5d}  neighbours={len(ids):3d}  K={gauss:.3f}  H={mean:.3f}")
 
 
@@ -50,9 +50,9 @@ for i in progressbar(range(msh.npoints)):
 gauss_vals = np.array(gauss_vals)
 mean_vals  = np.array(mean_vals)
 
-vmax_g = np.max(np.abs(gauss_vals))
-vmax_m = np.max(np.abs(mean_vals))
-vmax_g = 12
+# vmax_g = np.max(np.abs(gauss_vals))
+# vmax_m = np.max(np.abs(mean_vals))
+vmax_g = 12 # set a fixed range for better visualization
 vmax_m = 4
 
 msh_m = msh.clone()
