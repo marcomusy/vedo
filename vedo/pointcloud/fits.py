@@ -351,7 +351,7 @@ def project_point_on_variety(
         f_xy = a_11
         # Gaussian and mean curvature
         gaussian = f_xx * f_yy - f_xy**2
-        mean = (f_xx**2 + f_yy**2) / 2
+        mean = (f_xx + f_yy) / 2
         return float(gaussian), float(mean)
 
     # Fit the plane: compute centroid and normal
