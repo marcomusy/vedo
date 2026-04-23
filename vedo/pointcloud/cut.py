@@ -17,12 +17,12 @@ from vedo.core.transformations import LinearTransform, NonLinearTransform
 
 
 class PointCutMixin:
+
     def cut_with_plane(
         self,
         origin=(0, 0, 0),
         normal=(1, 0, 0),
         invert=False,
-        # generate_ids=False,
     ) -> Self:
         """
         Cut the mesh with the plane defined by a point and a normal.
@@ -43,7 +43,6 @@ class PointCutMixin:
             ```
             ![](https://vedo.embl.es/images/feats/cut_with_plane_cube.png)
 
-        Examples:
             - [trail.py](https://github.com/marcomusy/vedo/blob/master/examples/animation/trail.py)
 
                 ![](https://vedo.embl.es/images/animation/trail.gif)
@@ -76,23 +75,6 @@ class PointCutMixin:
         clipper.SetInsideOut(invert)
         clipper.SetValue(0)
         clipper.Update()
-
-        # if generate_ids:
-        #     saved_scalars = None # otherwise the scalars are lost
-        #     if self.dataset.GetPointData().GetScalars():
-        #         saved_scalars = self.dataset.GetPointData().GetScalars()
-        #     varr = clipper.GetOutput().GetPointData().GetScalars()
-        #     if varr.GetName() is None:
-        #         varr.SetName("DistanceToCut")
-        #     arr = utils.vtk2numpy(varr)
-        #     # array of original ids
-        #     ids = np.arange(arr.shape[0]).astype(int)
-        #     ids[arr == 0] = -1
-        #     ids_arr = utils.numpy2vtk(ids, dtype=int)
-        #     ids_arr.SetName("OriginalIds")
-        #     clipper.GetOutput().GetPointData().AddArray(ids_arr)
-        #     if saved_scalars:
-        #         clipper.GetOutput().GetPointData().AddArray(saved_scalars)
 
         self._update(clipper.GetOutput())
         self.pipeline = utils.OperationNode("cut_with_plane", parents=[self])
@@ -146,6 +128,7 @@ class PointCutMixin:
         - a Mesh or Points object
         - a list of 6 number representing a bounding box `[xmin,xmax, ymin,ymax, zmin,zmax]`
         - a list of bounding boxes like the above: `[[xmin1,...], [xmin2,...], ...]`
+          (clipped sequentially by each box; result is the intersection of all boxes)
 
         Examples:
             ```python
@@ -163,22 +146,33 @@ class PointCutMixin:
         if isinstance(bounds, vedo.pointcloud.Points):
             bounds = bounds.bounds()
 
-        box = vtki.new("Box")
         if utils.is_sequence(bounds[0]):
+            data = self.dataset
             for bs in bounds:
-                box.AddBounds(bs)
+                box = vtki.new("Box")
+                box.SetBounds(bs)
+                clipper = vtki.new("ClipPolyData")
+                clipper.SetInputData(data)
+                clipper.SetClipFunction(box)
+                clipper.SetInsideOut(not invert)
+                clipper.GenerateClippedOutputOff()
+                clipper.GenerateClipScalarsOff()
+                clipper.SetValue(0)
+                clipper.Update()
+                data = clipper.GetOutput()
+            self._update(data)
         else:
+            box = vtki.new("Box")
             box.SetBounds(bounds)
-
-        clipper = vtki.new("ClipPolyData")
-        clipper.SetInputData(self.dataset)
-        clipper.SetClipFunction(box)
-        clipper.SetInsideOut(not invert)
-        clipper.GenerateClippedOutputOff()
-        clipper.GenerateClipScalarsOff()
-        clipper.SetValue(0)
-        clipper.Update()
-        self._update(clipper.GetOutput())
+            clipper = vtki.new("ClipPolyData")
+            clipper.SetInputData(self.dataset)
+            clipper.SetClipFunction(box)
+            clipper.SetInsideOut(not invert)
+            clipper.GenerateClippedOutputOff()
+            clipper.GenerateClipScalarsOff()
+            clipper.SetValue(0)
+            clipper.Update()
+            self._update(clipper.GetOutput())
 
         self.pipeline = utils.OperationNode("cut_with_box", parents=[self])
         return self
@@ -209,7 +203,6 @@ class PointCutMixin:
 
         n = len(points)
         polyline = vtki.new("PolyLine")
-        polyline.Initialize(n, vpoints)
         polyline.GetPointIds().SetNumberOfIds(n)
         for i in range(n):
             polyline.GetPointIds().SetId(i, i)
@@ -314,7 +307,7 @@ class PointCutMixin:
         Args:
             center (array):
                 the center of the cylinder
-            normal (array):
+            axis (array):
                 direction of the cylinder axis
             r (float):
                 radius of the cylinder
@@ -338,10 +331,16 @@ class PointCutMixin:
         s = str(axis)
         if "x" in s:
             axis = (1, 0, 0)
+            if "-" in s:
+                axis = (-1, 0, 0)
         elif "y" in s:
             axis = (0, 1, 0)
+            if "-" in s:
+                axis = (0, -1, 0)
         elif "z" in s:
             axis = (0, 0, 1)
+            if "-" in s:
+                axis = (0, 0, -1)
         cyl = vtki.new("Cylinder")
         cyl.SetCenter(center)
         cyl.SetAxis(axis[0], axis[1], axis[2])
@@ -362,7 +361,7 @@ class PointCutMixin:
 
     def cut_with_sphere(self, center=(0, 0, 0), r=1.0, invert=False) -> Self:
         """
-        Cut the current mesh with an sphere.
+        Cut the current mesh with a sphere.
         This is much faster than `cut_with_mesh()`.
 
         Args:
@@ -427,20 +426,14 @@ class PointCutMixin:
         polymesh = mesh.dataset
         poly = self.dataset
 
-        # Create an array to hold distance information
-        signed_distances = vtki.vtkFloatArray()
-        signed_distances.SetNumberOfComponents(1)
-        signed_distances.SetName("SignedDistances")
-
-        # implicit function that will be used to slice the mesh
         ippd = vtki.new("ImplicitPolyDataDistance")
         ippd.SetInput(polymesh)
 
-        # Evaluate the signed distance function at all of the grid points
-        for pointId in range(poly.GetNumberOfPoints()):
-            p = poly.GetPoint(pointId)
-            signed_distance = ippd.EvaluateFunction(p)
-            signed_distances.InsertNextValue(signed_distance)
+        signed_distances = vtki.vtkFloatArray()
+        signed_distances.SetNumberOfComponents(1)
+        signed_distances.SetNumberOfTuples(poly.GetNumberOfPoints())
+        signed_distances.SetName("SignedDistances")
+        ippd.EvaluateFunctionArray(poly.GetPoints().GetData(), signed_distances)
 
         currentscals = poly.GetPointData().GetScalars()
         if currentscals:
@@ -469,6 +462,7 @@ class PointCutMixin:
 
         self.pointdata.remove("SignedDistances")
         self.mapper.SetScalarVisibility(vis)
+        self.pipeline = utils.OperationNode("cut_with_mesh", parents=[self, mesh])
         if keep:
             if isinstance(self, vedo.Mesh):
                 cutoff = vedo.Mesh(kpoly)
@@ -481,7 +475,6 @@ class PointCutMixin:
             cutoff.c("k5").alpha(0.2)
             return vedo.Assembly([self, cutoff])
 
-        self.pipeline = utils.OperationNode("cut_with_mesh", parents=[self, mesh])
         return self
 
     def cut_with_point_loop(
@@ -554,7 +547,8 @@ class PointCutMixin:
             name (str):
                 array name of the scalars to be used
             invert (bool):
-                flip selection
+                if False (default), points with scalar < value are kept;
+                if True, points with scalar >= value are kept
 
         Examples:
             ```python
@@ -637,6 +631,14 @@ class PointCutMixin:
             if left:
                 x0 = x0 + left * dx
             bounds = (x0, x1, y0, y1, z0, z1)
+        else:
+            pos = np.array(self.pos())
+            b = bounds
+            bounds = (
+                b[0] - pos[0], b[1] - pos[0],
+                b[2] - pos[1], b[3] - pos[1],
+                b[4] - pos[2], b[5] - pos[2],
+            )
 
         cu = vtki.new("Box")
         cu.SetBounds(bounds)
