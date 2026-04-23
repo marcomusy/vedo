@@ -516,6 +516,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             ```
             ![](https://vedo.embl.es/images/feats/join_segments.jpg)
         """
+        tol0 = tol
         vlines = []
         for _ipiece, outline in enumerate(self.split(must_share_edge=False)):
             outline.clean()
@@ -525,11 +526,13 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             avesize = outline.average_size()
             lines = outline.lines
             # print("---lines", lines, "in piece", _ipiece)
-            tol = avesize / pts.shape[0] * tol
+            tol = avesize / pts.shape[0] * tol0
 
             k = 0
             joinedpts = [pts[k]]
             for _ in range(len(pts)):
+                if not lines:
+                    break
                 pk = pts[k]
                 for j, line in enumerate(lines):
                     id0, id1 = line[0], line[-1]
@@ -552,6 +555,13 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
                         k = id0
                         lines.pop(j)
                         break
+                else:
+                    if lines:
+                        vedo.logger.warning(
+                            f"join_segments: piece {_ipiece} has {len(lines)} "
+                            "unjoined segment(s) — possible gap or topology issue"
+                        )
+                    break
 
             if len(joinedpts) > 1:
                 newline = vedo.shapes.Line(joinedpts, closed=closed)
