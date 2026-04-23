@@ -20,6 +20,7 @@ _LAZY_EXPORT_MAP, __all__ = build_attr_map(
             "loadGeoJSON",
             "loadGmesh",
             "loadImageData",
+            "loadOpenDX",
             "loadNeutral",
             "loadOFF",
             "loadPCD",

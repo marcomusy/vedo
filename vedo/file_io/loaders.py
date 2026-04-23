@@ -25,6 +25,7 @@ __all__ = [
     "load",
     "_load_file",
     "loadGaussianCube",
+    "loadOpenDX",
     "loadStructuredPoints",
     "loadStructuredGrid",
     "load3DS",
@@ -201,7 +202,7 @@ def _load_file(filename, unpack):
 
     ######################################################## volumetric:
     elif fl.endswith(
-        (".tif", ".tiff", ".slc", ".vti", ".mhd", ".nrrd", ".nii", ".dem", ".cube")
+        (".tif", ".tiff", ".slc", ".vti", ".mhd", ".nrrd", ".nii", ".dem", ".cube", ".dx")
     ):
         if fl.endswith(".cube"):
             _, objt = loadGaussianCube(filename)
@@ -956,12 +957,50 @@ def loadGaussianCube(
 
 
 ###########################################################
+def loadOpenDX(filename: str | os.PathLike) -> vtki.vtkImageData | None:
+    """Read and return a `vtkImageData` object from an OpenDX file."""
+    try:
+        from gridData import Grid  # type: ignore
+    except ImportError as exc:
+        raise ImportError(
+            "OpenDX support requires GridDataFormats.\n\n"
+            "Please install it with:\n"
+            "\tpip install gridDataFormats"
+        ) from exc
+
+    dx = Grid(str(filename), file_format="dx")
+    grid = np.asarray(dx.grid)
+
+    if grid.ndim != 3:
+        vedo.logger.error(
+            f"OpenDX file {filename!r} contains a {grid.ndim}D grid; "
+            "only 3D volumetric data are supported"
+        )
+        return None
+
+    image = utils.numpy2vtk(grid.ravel(order="F"), as_image=True, dims=grid.shape)
+
+    if getattr(dx, "origin", None) is not None:
+        image.SetOrigin(*np.asarray(dx.origin, dtype=float).ravel()[:3])
+
+    if getattr(dx, "delta", None) is not None:
+        spacing = np.asarray(dx.delta, dtype=float)
+        if spacing.ndim == 2:
+            spacing = np.diag(spacing)
+        image.SetSpacing(*spacing.ravel()[:3])
+
+    return image
+
+
+###########################################################
 def loadImageData(filename: str | os.PathLike) -> vtki.vtkImageData | None:
     """Read and return a `vtkImageData` object from file."""
     filename = str(filename)
     if ".cube" in filename.lower():
         _, volume = loadGaussianCube(filename)
         return volume.dataset
+    elif filename.lower().endswith(".dx"):
+        return loadOpenDX(filename)
 
     if ".ome.tif" in filename.lower():
         reader = vtki.new("OMETIFFReader")

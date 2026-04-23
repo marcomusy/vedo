@@ -1349,7 +1349,7 @@ def draw_scene(args) -> None:
     ########################################################################
     # normal mode for single VOXEL file with Isosurface Slider mode
     elif nfiles == 1 and (
-        first_file_lower.endswith((".slc", ".vti", ".tif", ".mhd", ".nrrd", ".dem"))
+        first_file_lower.endswith((".slc", ".vti", ".tif", ".mhd", ".nrrd", ".dem", ".dx"))
     ):
         # print('DEBUG normal mode for single VOXEL file with Isosurface Slider mode')
         vol = vedo.file_io.load(args.files[0], force=args.reload)
