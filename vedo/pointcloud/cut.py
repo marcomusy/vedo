@@ -429,11 +429,10 @@ class PointCutMixin:
         ippd = vtki.new("ImplicitPolyDataDistance")
         ippd.SetInput(polymesh)
 
-        signed_distances = vtki.vtkFloatArray()
-        signed_distances.SetNumberOfComponents(1)
-        signed_distances.SetNumberOfTuples(poly.GetNumberOfPoints())
+        pts_np = utils.vtk2numpy(poly.GetPoints().GetData())
+        dists = np.array([ippd.EvaluateFunction(p) for p in pts_np], dtype=np.float32)
+        signed_distances = utils.numpy2vtk(dists)
         signed_distances.SetName("SignedDistances")
-        ippd.EvaluateFunctionArray(poly.GetPoints().GetData(), signed_distances)
 
         currentscals = poly.GetPointData().GetScalars()
         if currentscals:
