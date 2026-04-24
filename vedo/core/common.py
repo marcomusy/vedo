@@ -1264,6 +1264,8 @@ class CommonAlgorithms:
 
             exclude (list):
                 list of arrays to be excluded from smoothing
+
+        See also: `laplacian_diffusion()`, [diffuse_data.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/diffuse_data.py)
         """
         saf = vtki.new("AttributeSmoothingFilter")
         saf.SetInputData(self.dataset)

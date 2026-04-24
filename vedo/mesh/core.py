@@ -762,72 +762,77 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
 
     def laplacian_diffusion(self, array_name, dt, num_steps) -> Self:
         """
-        Apply a diffusion process to a scalar array defined on the points of a mesh.
+        Diffuse a scalar point array on the mesh surface using the
+        cotangent-weighted Laplacian with lumped-mass-matrix normalization
+        and unconditionally-stable implicit Euler time integration.
+
+        The scheme solves M du/dt = -L u, where L is the cotangent Laplacian
+        and M is the diagonal lumped mass matrix (M_ii = 1/3 * sum of adjacent
+        triangle areas). This makes `dt` mesh-independent: the same `dt` produces
+        the same amount of diffusion regardless of mesh resolution.
 
         Args:
-            array_name (str):
-                name of the array to diffuse.
-            dt (float):
-                time step.
-            num_steps (int):
-                number of iterations.
+            array_name (str): name of the point array to diffuse.
+            dt (float): time step per iteration (any positive value is stable).
+            num_steps (int): number of iterations.
+
+        See also: `smooth_data()`
+        [diffuse_data.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/diffuse_data.py)
         """
         try:
-            import scipy.sparse
-            import scipy.sparse.linalg
+            from scipy.sparse import coo_matrix, diags
+            from scipy.sparse.linalg import factorized
         except ImportError:
             vedo.logger.error("scipy not found. Cannot run laplacian_diffusion()")
             return self
 
-        def build_laplacian():
-            rows = []
-            cols = []
-            data = []
-            n_points = points.shape[0]
-            avg_area = np.mean(areas) * 10000
-            # print("avg_area", avg_area)
-
-            for triangle in cells:
-                for i in range(3):
-                    for j in range(i + 1, 3):
-                        u = triangle[i]
-                        v = triangle[j]
-                        rows.append(u)
-                        cols.append(v)
-                        rows.append(v)
-                        cols.append(u)
-                        data.append(-1 / avg_area)
-                        data.append(-1 / avg_area)
-
-            L = scipy.sparse.coo_matrix(
-                (data, (rows, cols)), shape=(n_points, n_points)
-            ).tocsc()
-
-            degree = -np.array(L.sum(axis=1)).flatten()  # adjust the diagonal
-            # print("degree", degree)
-            L.setdiag(degree)
-            return L
-
-        def _diffuse(u0, L, dt, num_steps):
-            # mean_area = np.mean(areas) * 10000
-            # print("mean_area", mean_area)
-            mean_area = 1
-            I = scipy.sparse.eye(L.shape[0], format="csc")
-            A = I - (dt / mean_area) * L
-            u = u0
-            for _ in range(int(num_steps)):
-                u = A.dot(u)
-            return u
-
-        self.compute_cell_size()
-        areas = self.celldata["Area"]
         points = self.coordinates
-        cells = self.cells
-        u0 = self.pointdata[array_name]
+        try:
+            cells = np.asarray(self.cells, dtype=np.intp)
+            if cells.ndim != 2 or cells.shape[1] != 3:
+                raise ValueError
+        except (ValueError, TypeError):
+            vedo.logger.warning("laplacian_diffusion: non-triangular mesh, triangulating internally.")
+            cells = np.asarray(self.clone().triangulate().cells, dtype=np.intp)
 
-        # Simulate diffusion
-        L = build_laplacian()
-        u = _diffuse(u0, L, dt, num_steps)
+        # Cotangent-weighted Laplacian (vectorized over all triangles)
+        p0, p1, p2 = points[cells[:, 0]], points[cells[:, 1]], points[cells[:, 2]]
+        e01, e02, e12 = p1 - p0, p2 - p0, p2 - p1
+
+        cross = np.cross(e01, e02)
+        area2 = np.maximum(np.linalg.norm(cross, axis=1), 1e-12)
+        cot0 = np.einsum("ij,ij->i", e01,  e02)  / area2  # angle at vertex 0, opposite edge 12
+        cot1 = np.einsum("ij,ij->i", -e01, e12)  / area2  # angle at vertex 1, opposite edge 02
+        cot2 = np.einsum("ij,ij->i", -e02, -e12) / area2  # angle at vertex 2, opposite edge 01
+
+        n = points.shape[0]
+        rows = np.concatenate([cells[:, 0], cells[:, 1],   # edge 01, weight cot2
+                               cells[:, 1], cells[:, 2],   # edge 12, weight cot0
+                               cells[:, 0], cells[:, 2]])  # edge 02, weight cot1
+        cols = np.concatenate([cells[:, 1], cells[:, 0],
+                               cells[:, 2], cells[:, 1],
+                               cells[:, 2], cells[:, 0]])
+        weights = 0.5 * np.concatenate([cot2, cot2, cot0, cot0, cot1, cot1])
+
+        # Off-diagonal entries are negative; diagonal set so each row sums to zero
+        L = coo_matrix((-weights, (rows, cols)), shape=(n, n)).tocsc()
+        L.setdiag(-np.asarray(L.sum(axis=1)).ravel())
+
+        # Lumped mass matrix: M_ii = 1/3 * sum of areas of adjacent triangles.
+        # Normalising by M makes dt mesh-independent (proper heat-equation scaling).
+        areas = area2 / 2
+        mass = np.zeros(n)
+        np.add.at(mass, cells[:, 0], areas / 3)
+        np.add.at(mass, cells[:, 1], areas / 3)
+        np.add.at(mass, cells[:, 2], areas / 3)
+        M = diags(mass, format="csc")
+
+        # Implicit Euler: (M + dt*L) u_{k+1} = M u_k — stable for any dt > 0
+        A = M + dt * L
+        solve = factorized(A)
+        u = self.pointdata[array_name].astype(float)
+        for _ in range(int(num_steps)):
+            u = solve(M @ u)
         self.pointdata[array_name] = u
         return self
 

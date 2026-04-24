@@ -1,11 +1,17 @@
-"""Diffuse sparse point values over a grid and inspect the result distribution."""
+"""
+Diffuse sparse point values over a grid and inspect the result distribution.
+Then demonstrate Laplacian diffusion of a scalar field on a surface mesh.
+"""
 
 import numpy as np
-from vedo import Grid, settings, show
+from vedo import Grid, Sphere, settings, show
 from vedo.pyplot import histogram
 
 settings.default_font = "FiraMonoMedium"
 
+########################################
+# Section 1: smooth_data on a flat Grid
+########################################
 grid = Grid(res=[50, 50])
 grid.wireframe(False).lw(0)
 
@@ -38,3 +44,24 @@ show(
     N=2,
     axes=1,
 ).close()
+
+
+########################################
+# Section 2: laplacian_diffusion on a Mesh
+########################################
+sph = Sphere(res=100).rotate_x(30)
+sph.cut_with_plane(normal=[0, 0, 1], origin=[0, 0, 0.5])
+
+# Sharp Gaussian spike at the apex of the cut mesh.
+u = np.exp(-500 * (sph.coordinates[:, 2] - 1.0) ** 2)
+sph.pointdata["u"] = u
+
+before = sph.clone().cmap("rainbow", "u", vmin=0, vmax=1)
+sph.laplacian_diffusion("u", dt=0.0001, num_steps=100)
+after = sph.cmap("rainbow", "u", vmin=0, vmax=1).add_scalarbar()
+
+intg1 = before.integrate_data()["pointdata"]["u"][0]
+intg2 = after.integrate_data()["pointdata"]["u"][0]
+txt1 = "Before Laplacian diffusion\n∫u dA = {:.6f}".format(intg1)
+txt2 = "After 100 steps (dt=0.0001)\n∫u dA = {:.6f}".format(intg2)
+show([[txt1, before], [txt2, after]], N=2, axes=1).close()
