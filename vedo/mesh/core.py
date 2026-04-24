@@ -2122,21 +2122,25 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         return m
 
     def split(
-        self, maxdepth=1000, flag=False, must_share_edge=False, sort_by_area=True
+        self, max_regions=1000, flag=False, must_share_edge=False, sort_by_area=True
     ) -> list[Self]:
         """
-        Split a mesh by connectivity and order the pieces by increasing area.
+        Split a mesh by connectivity and return the pieces as a list.
 
         Args:
-            maxdepth (int):
-                only consider this maximum number of mesh parts.
+            max_regions (int):
+                maximum number of mesh parts to return.
             flag (bool):
-                if set to True return the same single object,
-                but add a "RegionId" array to flag the mesh subparts
+                if True, return a list containing only `self` updated in-place
+                with a "RegionId" array added (on point data normally, on cell
+                data when `must_share_edge=True`) instead of splitting into
+                separate meshes.
             must_share_edge (bool):
-                if True, mesh regions that only share single points will be split.
+                if True, regions that share only a single point (not a full
+                edge) are treated as separate.
             sort_by_area (bool):
-                if True, sort the mesh parts by decreasing area.
+                if True, sort the returned pieces by decreasing area.
+                Pipeline nodes are only recorded for the first 10 pieces.
 
         Examples:
             - [splitmesh.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/splitmesh.py)
@@ -2163,46 +2167,44 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             return [self]
 
         if flag:
-            self.pipeline = OperationNode("split mesh", parents=[self])
             self._update(out)
+            self.pipeline = OperationNode("split mesh", parents=[self])
             return [self]
 
-        msh = Mesh(out)
+        tagged = Mesh(out)
         if must_share_edge:
-            arr = msh.celldata["RegionId"]
+            arr = tagged.celldata["RegionId"]
             on = "cells"
         else:
-            arr = msh.pointdata["RegionId"]
+            arr = tagged.pointdata["RegionId"]
             on = "points"
 
-        alist = []
-        for t in range(max(arr) + 1):
-            if t == maxdepth:
-                break
-            suba = msh.clone().threshold("RegionId", t, t, on=on)
-            if sort_by_area:
-                area = suba.area()
-            else:
-                area = 0  # dummy
-            suba.name = "MeshRegion" + str(t)
-            alist.append([suba, area])
+        if len(arr) == 0:
+            return [self]
+
+        n_regions = min(int(arr.max()) + 1, max_regions)
+
+        pieces = []
+        for t in range(n_regions):
+            piece = Mesh(out).threshold("RegionId", t, t, on=on)
+            piece.name = f"MeshRegion{t}"
+            pieces.append((piece, piece.area() if sort_by_area else 0))
 
         if sort_by_area:
-            alist.sort(key=lambda x: x[1])
-            alist.reverse()
+            pieces.sort(key=lambda x: x[1], reverse=True)
 
-        blist = []
-        for i, l in enumerate(alist):
-            l[0].color(i + 1).phong()
-            l[0].mapper.ScalarVisibilityOff()
-            blist.append(l[0])
+        result = []
+        for i, (piece, _) in enumerate(pieces):
+            piece.color(i + 1)
+            piece.mapper.ScalarVisibilityOff()
             if i < 10:
-                l[0].pipeline = OperationNode(
+                piece.pipeline = OperationNode(
                     f"split mesh {i}",
                     parents=[self],
-                    comment=f"#pts {l[0].dataset.GetNumberOfPoints()}",
+                    comment=f"#pts {piece.dataset.GetNumberOfPoints()}",
                 )
-        return blist
+            result.append(piece)
+        return result
 
     def extract_largest_region(self) -> Self:
         """
