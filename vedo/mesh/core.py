@@ -511,8 +511,8 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             from vedo import *
             msh = Torus().alpha(0.1).wireframe()
             intersection = msh.intersect_with_plane(normal=[1,1,1]).c('purple5')
-            slices = [s.triangulate() for s in intersection.join_segments()]
-            show(msh, intersection, merge(slices), axes=1, viewup='z')
+            slices = [s.clone().triangulate() for s in intersection.join_segments()]
+            show(msh, intersection, slices, axes=1, viewup='z')
             ```
             ![](https://vedo.embl.es/images/feats/join_segments.jpg)
         """
@@ -525,40 +525,72 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
                 continue
             avesize = outline.average_size()
             lines = outline.lines
-            # print("---lines", lines, "in piece", _ipiece)
+            if not lines:
+                continue
             tol = avesize / pts.shape[0] * tol0
 
+            # Precompute integer grid keys (points within tol share the same key).
+            pt_keys = list(map(tuple, np.round(pts / tol).astype(int)))
+
+            # Build lookup lists keyed by grid cell. Lists (not plain dicts) are required
+            # because T-junctions produce multiple segments at the same key; plain-dict
+            # assignment silently drops all but the last one.
+            # Store (original_index, line) so "first unconsumed" matches the original's
+            # linear-scan order, reproducing identical traversal at branch points.
+            fwd: dict = {}
+            rev: dict = {}
+            for i, line in enumerate(lines):
+                k0, k1 = pt_keys[line[0]], pt_keys[line[-1]]
+                if k0 not in fwd:
+                    fwd[k0] = []
+                fwd[k0].append((i, line))
+                if k1 not in rev:
+                    rev[k1] = []
+                rev[k1].append((i, line))
+
+            consumed: set = set()
             k = 0
             joinedpts = [pts[k]]
-            for _ in range(len(pts)):
-                if not lines:
-                    break
+
+            for _ in range(len(lines)):
                 pk = pts[k]
-                for j, line in enumerate(lines):
-                    id0, id1 = line[0], line[-1]
-                    p0, p1 = pts[id0], pts[id1]
+                cur_key = pt_keys[k]
 
-                    if np.linalg.norm(p0 - pk) < tol:
-                        n = len(line)
-                        for m in range(1, n):
+                # Merge fwd and rev candidates for this key, deduplicate, then sort by
+                # original segment index.  This reproduces the original's linear-scan
+                # order: for each segment (lowest index first) try the forward direction
+                # first, then reverse — matching the original's exact traversal at
+                # T-junctions and near-duplicate junction points.
+                seen_cands: set = set()
+                candidates = []
+                for orig_i, line in fwd.get(cur_key, []) + rev.get(cur_key, []):
+                    if orig_i not in consumed and orig_i not in seen_cands:
+                        seen_cands.add(orig_i)
+                        candidates.append((orig_i, line))
+                candidates.sort(key=lambda x: x[0])
+
+                found = False
+                for orig_i, line in candidates:
+                    if np.linalg.norm(pts[line[0]] - pk) < tol:
+                        consumed.add(orig_i)
+                        for m in range(1, len(line)):
                             joinedpts.append(pts[line[m]])
-                        # joinedpts.append(p1)
-                        k = id1
-                        lines.pop(j)
+                        k = line[-1]
+                        found = True
+                        break
+                    if np.linalg.norm(pts[line[-1]] - pk) < tol:
+                        consumed.add(orig_i)
+                        for m in reversed(range(0, len(line) - 1)):
+                            joinedpts.append(pts[line[m]])
+                        k = line[0]
+                        found = True
                         break
 
-                    if np.linalg.norm(p1 - pk) < tol:
-                        n = len(line)
-                        for m in reversed(range(0, n - 1)):
-                            joinedpts.append(pts[line[m]])
-                        # joinedpts.append(p0)
-                        k = id0
-                        lines.pop(j)
-                        break
-                else:
-                    if lines:
+                if not found:
+                    remaining = len(lines) - len(consumed)
+                    if remaining > 0:
                         vedo.logger.warning(
-                            f"join_segments: piece {_ipiece} has {len(lines)} "
+                            f"join_segments: piece {_ipiece} has {remaining} "
                             "unjoined segment(s) — possible gap or topology issue"
                         )
                     break
