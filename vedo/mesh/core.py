@@ -1272,14 +1272,15 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             of indices of vertices connected by an edge to i-th vertex
         """
         inc = [set() for _ in range(self.npoints)]
-        for cell in self.cells:
-            nc = len(cell)
-            if nc < 2:
-                continue
-            for i in range(nc):
-                prev = cell[(i - 1) % nc]
-                next_ = cell[(i + 1) % nc]
-                inc[cell[i]].update({prev, next_})
+        arr = self.cells_as_flat_array
+        i = 0
+        n = len(arr)
+        while i < n:
+            nc = int(arr[i]); i += 1
+            if nc >= 2:
+                for j in range(nc):
+                    inc[arr[i + j]].update((arr[i + (j - 1) % nc], arr[i + (j + 1) % nc]))
+            i += nc
         return inc
 
     def find_adjacent_vertices(self, index, depth=1, adjacency_list=None) -> set:
@@ -1308,8 +1309,10 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         ball = {index}
         i = 0
         while i < depth and len(ball) < k:
+            frontier = set()
             for v in ball:
-                ball = ball.union(adjacency_list[v])
+                frontier |= adjacency_list[v]
+            ball |= frontier
             i += 1
         return np.array(list(ball), dtype=int)
 
