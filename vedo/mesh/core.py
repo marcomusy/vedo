@@ -1632,23 +1632,21 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             ![](https://vedo.embl.es/images/basic/connVtx.png)
         """
         poly = self.dataset
+        poly.BuildLinks()
 
         cell_idlist = vtki.vtkIdList()
         poly.GetPointCells(index, cell_idlist)
 
-        idxs = []
+        seen = set()
         for i in range(cell_idlist.GetNumberOfIds()):
             point_idlist = vtki.vtkIdList()
             poly.GetCellPoints(cell_idlist.GetId(i), point_idlist)
             for j in range(point_idlist.GetNumberOfIds()):
                 idj = point_idlist.GetId(j)
-                if idj == index:
-                    continue
-                if idj in idxs:
-                    continue
-                idxs.append(idj)
+                if idj != index:
+                    seen.add(idj)
 
-        return idxs
+        return list(seen)
 
     def extract_cells(self, ids: list[int]) -> Self:
         """
@@ -1680,22 +1678,21 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         return msh
 
     def connected_cells(self, index: int, return_ids=False) -> Self | list[int]:
-        """Find all cellls connected to an input vertex specified by its index."""
-
-        # Find all cells connected to point index
+        """Find all cells connected to an input vertex specified by its index."""
         dpoly = self.dataset
+        dpoly.BuildLinks()
+
         idlist = vtki.vtkIdList()
         dpoly.GetPointCells(index, idlist)
 
-        ids = vtki.vtkIdTypeArray()
-        ids.SetNumberOfComponents(1)
-        rids = []
-        for k in range(idlist.GetNumberOfIds()):
-            cid = idlist.GetId(k)
-            ids.InsertNextValue(cid)
-            rids.append(int(cid))
+        rids = [int(idlist.GetId(k)) for k in range(idlist.GetNumberOfIds())]
         if return_ids:
             return rids
+
+        ids = vtki.vtkIdTypeArray()
+        ids.SetNumberOfComponents(1)
+        for cid in rids:
+            ids.InsertNextValue(cid)
 
         selection_node = vtki.new("SelectionNode")
         selection_node.SetFieldType(vtki.get_class("SelectionNode").CELL)
