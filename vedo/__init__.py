@@ -13,9 +13,11 @@ from numpy import sin, cos, sqrt, exp, log, dot, cross  # just because handy
 try:
     from rich.console import Console
     from rich.logging import RichHandler
+    from rich.highlighter import NullHighlighter
 except ModuleNotFoundError:
     Console = None
     RichHandler = None
+    NullHighlighter = None
 
 from vedo.lazy_imports import build_attr_map, dir_lazy, getattr_lazy
 
@@ -419,7 +421,7 @@ def _build_default_log_handler(stream=None):
             show_path=False,
             markup=False,
             rich_tracebacks=True,
-            highlighter=None,
+            highlighter=NullHighlighter(),
             keywords=[],
         )
 
