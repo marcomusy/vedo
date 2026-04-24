@@ -2424,13 +2424,17 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
 
         Non-manifold surfaces should not be used with this method.
 
+        By default the part of the surface on the back side (negative normal side)
+        of each plane is kept. Pass `invert=True` to keep the front side instead.
+        Note this convention is opposite to `cut_with_planes()`.
+
         Args:
             origins (list):
                 list of plane origins
             normals (list):
-                list of plane normals
+                list of plane normals, pointing toward the region to be removed
             invert (bool):
-                invert the clipping.
+                if True, keep the front (positive normal) side instead.
             return_assembly (bool):
                 return the cap and the clipped surfaces as a `vedo.Assembly`.
 
@@ -2444,19 +2448,22 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             show(s, axes=1).close()
             ```
         """
+        if len(origins) != len(normals):
+            vedo.logger.error("cut_closed_surface: origins and normals must have the same length")
+            return self
+
         planes = vtki.new("PlaneCollection")
-        for p, s in zip(origins, normals):
+        for p, n in zip(origins, normals):
             plane = vtki.vtkPlane()
             plane.SetOrigin(vedo.utils.make3d(p))
-            plane.SetNormal(vedo.utils.make3d(s))
+            plane.SetNormal(vedo.utils.make3d(n))
             planes.AddItem(plane)
         clipper = vtki.new("ClipClosedSurface")
         clipper.SetInputData(self.dataset)
         clipper.SetClippingPlanes(planes)
         clipper.PassPointDataOn()
         clipper.GenerateFacesOn()
-        clipper.SetScalarModeToLabels()
-        clipper.TriangulationErrorDisplayOn()
+        clipper.SetScalarModeToNone()
         clipper.SetInsideOut(not invert)
 
         if return_assembly:
@@ -2481,7 +2488,6 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             clipper.GenerateClipFaceOutputOff()
             clipper.Update()
             self._update(clipper.GetOutput())
-            self.flat()
             self.name = "CutClosedSurface"
             self.pipeline = OperationNode(
                 "cut_closed_surface",
