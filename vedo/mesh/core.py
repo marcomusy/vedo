@@ -2314,7 +2314,12 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         Return the list of points intersecting the mesh
         along the segment defined by two points `p0` and `p1`.
 
-        Use `return_ids` to return the cell ids along with point coords
+        `p0` can also be a `Points` object with exactly 2 points,
+        in which case `p1` is ignored.
+
+        Use `return_ids` to return the cell ids along with point coords.
+        Pass `tol` to set the intersection tolerance; rebuilds the locator
+        if the tolerance changes.
 
         Examples:
             ```python
@@ -2328,32 +2333,40 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             ![](https://user-images.githubusercontent.com/32848391/55967065-eee08300-5c79-11e9-8933-265e1bab9f7e.png)
         """
         if isinstance(p0, Points):
-            p0, p1 = p0.coordinates
+            coords = p0.coordinates
+            if len(coords) != 2:
+                raise ValueError(
+                    f"intersect_with_line: Points object must have exactly 2 points, got {len(coords)}"
+                )
+            p0, p1 = coords[0], coords[1]
 
-        if not self.line_locator:
+        p0 = np.asarray(p0, dtype=float)
+        p1 = np.asarray(p1, dtype=float)
+
+        if not tol:
+            tol = mag(p1 - p0) / 10000
+
+        if not self.line_locator or self.line_locator.GetTolerance() != tol:
             self.line_locator = vtki.new("OBBTree")
             self.line_locator.SetDataSet(self.dataset)
-            if not tol:
-                tol = mag(np.asarray(p1) - np.asarray(p0)) / 10000
             self.line_locator.SetTolerance(tol)
             self.line_locator.BuildLocator()
 
         vpts = vtki.vtkPoints()
         idlist = vtki.vtkIdList()
         self.line_locator.IntersectWithLine(p0, p1, vpts, idlist)
-        pts = []
-        for i in range(vpts.GetNumberOfPoints()):
-            intersection: MutableSequence[float] = [0, 0, 0]
-            vpts.GetPoint(i, intersection)
-            pts.append(intersection)
-        pts2 = np.array(pts)
+
+        n = vpts.GetNumberOfPoints()
+        pts2 = np.zeros((n, 3))
+        for i in range(n):
+            vpts.GetPoint(i, pts2[i])
 
         if return_ids:
-            pts_ids = []
-            for i in range(idlist.GetNumberOfIds()):
-                cid = idlist.GetId(i)
-                pts_ids.append(cid)
-            return (pts2, np.array(pts_ids).astype(np.uint32))
+            pts_ids = np.array(
+                [idlist.GetId(i) for i in range(idlist.GetNumberOfIds())],
+                dtype=np.uint32,
+            )
+            return (pts2, pts_ids)
 
         return pts2
 
