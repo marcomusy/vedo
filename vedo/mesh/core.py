@@ -53,13 +53,11 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
 
             ![](https://vedo.embl.es/images/basic/buildmesh.png)
         """
-        # print("INIT MESH", super())
         super().__init__()
 
         self.name = "Mesh"
 
         if inputobj is None:
-            # self.dataset = vtki.vtkPolyData()
             pass
 
         elif isinstance(inputobj, vtki.vtkPolyData):
@@ -125,7 +123,6 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             self.dataset = vedo.external.trimesh2vedo(inputobj).dataset
 
         elif "meshio" in str(type(inputobj)):
-            # self.dataset = vedo.utils.meshio2vedo(inputobj) ##TODO
             if len(inputobj.cells) > 0:
                 mcells = []
                 for cellblock in inputobj.cells:
@@ -301,7 +298,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             for cell in cells:
                 poly.ReverseCell(cell)
             poly.GetCellData().Modified()
-            return self  ##############
+            return self
 
         rev = vtki.new("ReverseSense")
         if cells:
@@ -365,7 +362,6 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
 
             ![](https://vedo.embl.es/images/basic/shrink.png)
         """
-        # Overriding base class method core.shrink()
         shrink = vtki.new("ShrinkPolyData")
         shrink.SetInputData(self.dataset)
         shrink.SetShrinkFactor(fraction)
@@ -611,7 +607,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
 
     def join_with_strips(self, b1, closed=True) -> Self:
         """
-        Join booundary lines by creating a triangle strip between them.
+        Join boundary lines by creating a triangle strip between them.
 
         Examples:
         ```python
@@ -1016,7 +1012,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
 
         decimate = vtki.new("DecimatePro")
         decimate.SetPreserveTopology(preserve_topology)
-        decimate.SetBoundaryVertexDeletion(preserve_boundaries)
+        decimate.SetBoundaryVertexDeletion(not preserve_boundaries)
         if feature_angle:
             decimate.SetFeatureAngle(feature_angle)
         decimate.SetSplitting(splitting)
@@ -1190,12 +1186,10 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         """
         cell_ids = vtki.vtkIdList()
         self.dataset.BuildLinks()
-        n = 0
         for i in np.unique(indices):
             self.dataset.GetPointCells(i, cell_ids)
             for j in range(cell_ids.GetNumberOfIds()):
-                self.dataset.DeleteCell(cell_ids.GetId(j))  # flag cell
-                n += 1
+                self.dataset.DeleteCell(cell_ids.GetId(j))
 
         self.dataset.RemoveDeletedCells()
         self.dataset.Modified()
@@ -1468,9 +1462,10 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         pcl = Points(ptsa[ids])
         pcl.name = "InsidePoints"
 
+        parents = [self, pts] if isinstance(pts, Points) else [self]
         pcl.pipeline = OperationNode(
             "inside_points",
-            parents=[self, ptsa],
+            parents=parents,
             comment=f"#pts {pcl.dataset.GetNumberOfPoints()}",
         )
         return pcl
@@ -2398,7 +2393,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         msh = Mesh(cutter.GetOutput())
         msh.c("k").lw(3).lighting("off")
         msh.pipeline = OperationNode(
-            "intersect_with_plan",
+            "intersect_with_plane",
             parents=[self],
             comment=f"#pts {msh.dataset.GetNumberOfPoints()}",
         )
@@ -2502,12 +2497,10 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         Information is stored in `ContactCells1` and `ContactCells2`.
         """
         ipdf = vtki.new("CollisionDetectionFilter")
-        # ipdf.SetGlobalWarningDisplay(0)
 
         transform0 = vtki.vtkTransform()
         transform1 = vtki.vtkTransform()
 
-        # ipdf.SetBoxTolerance(tol)
         ipdf.SetCellTolerance(tol)
         ipdf.SetInputData(0, self.dataset)
         ipdf.SetInputData(1, mesh2.dataset)
