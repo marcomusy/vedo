@@ -1802,41 +1802,33 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         if vmax is None:
             vmax = r1
 
-        # --------------------------------
-        bands = []
+        if vmin >= vmax:
+            vedo.logger.warning("isobands(): vmin >= vmax, returning empty mesh")
+            return Mesh()
+
         dx = (vmax - vmin) / float(n)
+        bands = []
         b = [vmin, vmin + dx / 2.0, vmin + dx]
-        i = 0
-        while i < n:
+        for _ in range(n):
             bands.append(b)
             b = [b[0] + dx, b[1] + dx, b[2] + dx]
-            i += 1
-
-        # annotate, use the midpoint of the band as the label
-        lut = self.mapper.GetLookupTable()
-        labels = []
-        for b in bands:
-            labels.append("{:4.2f}".format(b[1]))
-        values = vtki.vtkVariantArray()
-        for la in labels:
-            values.InsertNextValue(vtki.vtkVariant(la))
-        for i in range(values.GetNumberOfTuples()):
-            lut.SetAnnotation(i, values.GetValue(i).ToString())
 
         bcf = vtki.new("BandedPolyDataContourFilter")
         bcf.SetInputData(self.dataset)
-        # Use either the minimum or maximum value for each band.
         for i, band in enumerate(bands):
             bcf.SetValue(i, band[2])
-        # We will use an indexed lookup table.
-        bcf.SetScalarModeToIndex()
+        # Value mode: output cell scalars are actual data values, matching the
+        # existing lut range [vmin, vmax] so coloring is correct.
+        bcf.SetScalarModeToValue()
         bcf.GenerateContourEdgesOff()
         bcf.Update()
         bcf.GetOutput().GetCellData().GetScalars().SetName("IsoBands")
 
         m1 = Mesh(bcf.GetOutput()).compute_normals(cells=True)
+        lut = self.mapper.GetLookupTable()
         m1.mapper.SetLookupTable(lut)
         m1.mapper.SetScalarRange(lut.GetRange())
+        m1.mapper.SetScalarModeToUseCellData()
         m1.pipeline = OperationNode("isobands", parents=[self])
         m1.name = "IsoBands"
         return m1
@@ -1869,7 +1861,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             i = 0
             for j in range(len(n)):
                 if vmin <= n[j] <= vmax:
-                    bcf.SetValue(i, n[i])
+                    bcf.SetValue(i, n[j])
                     i += 1
                 else:
                     # print("value out of range")
