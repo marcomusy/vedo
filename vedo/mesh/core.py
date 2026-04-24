@@ -1857,15 +1857,15 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             vmin = r0
         if vmax is None:
             vmax = r1
+        if vmin > vmax:
+            vedo.logger.warning("isolines(): vmin > vmax, returning empty mesh")
+            return Mesh()
         if is_sequence(n):
             i = 0
-            for j in range(len(n)):
-                if vmin <= n[j] <= vmax:
-                    bcf.SetValue(i, n[j])
+            for val in n:
+                if vmin <= val <= vmax:
+                    bcf.SetValue(i, val)
                     i += 1
-                else:
-                    # print("value out of range")
-                    continue
         else:
             bcf.GenerateValues(n, vmin, vmax)
         bcf.Update()
