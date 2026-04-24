@@ -43,13 +43,13 @@ vol.scalarbar = vol.scalarbar.clone2d("center-right", 0.15)
 vgrad = vol.operation("gradient")
 printc(vgrad.pointdata, c="g")
 
-grd = vgrad.pointdata["ImageScalarsGradient"]
+grd = vgrad.pointdata["ScalarsGradient"]
 pts = vol.points  # coords as numpy array
 arrs = Arrows(pts, pts + grd * 0.1, c="jet")
 
 pts_probes = [[0.2, 0.5, 0.5], [0.2, 0.3, 0.4]]
 vpts_probes = Points(pts_probes).probe(vgrad)
-vects = vpts_probes.pointdata["ImageScalarsGradient"]
+vects = vpts_probes.pointdata["ScalarsGradient"]
 
 arrs_pts_probe = Arrows(pts_probes, pts_probes + vects, c="black")
 

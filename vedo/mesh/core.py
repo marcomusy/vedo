@@ -2722,35 +2722,30 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         """
         if max_radius is not None:
             vedo.logger.warning(
-                "in signed_distance(max_radius=...) is ignored for meshes (only valid for point clouds)."
+                "signed_distance(): max_radius is ignored for meshes (only valid for point clouds)."
             )
         if bounds is None:
             bounds = self.bounds()
-        sx = (bounds[1] - bounds[0]) / dims[0]
-        sy = (bounds[3] - bounds[2]) / dims[1]
-        sz = (bounds[5] - bounds[4]) / dims[2]
-
-        img = vtki.vtkImageData()
-        img.SetDimensions(dims)
-        img.SetSpacing(sx, sy, sz)
-        img.SetOrigin(bounds[0], bounds[2], bounds[4])
-        img.AllocateScalars(vtki.VTK_FLOAT, 1)
 
         imp = vtki.new("ImplicitPolyDataDistance")
         imp.SetInput(self.dataset)
-        b2 = bounds[2]
-        b4 = bounds[4]
-        d0, d1, d2 = dims
 
-        for i in range(d0):
-            x = i * sx + bounds[0]
-            for j in range(d1):
-                y = j * sy + b2
-                for k in range(d2):
-                    v = imp.EvaluateFunction((x, y, k * sz + b4))
-                    if invert:
-                        v = -v
-                    img.SetScalarComponentFromFloat(i, j, k, 0, v)
+        sample = vtki.new("SampleFunction")
+        sample.SetImplicitFunction(imp)
+        sample.SetModelBounds(bounds)
+        sample.SetSampleDimensions(dims)
+        sample.SetOutputScalarTypeToFloat()
+        sample.SetScalarArrayName("Scalars")
+        sample.Update()
+        img = sample.GetOutput()
+
+        if invert:
+            mat = vtki.new("ImageMathematics")
+            mat.SetInput1Data(img)
+            mat.SetOperationToMultiplyByK()
+            mat.SetConstantK(-1)
+            mat.Update()
+            img = mat.GetOutput()
 
         vol = vedo.Volume(img)
         vol.name = "SignedVolume"
