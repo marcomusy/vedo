@@ -1204,7 +1204,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
 
     def collapse_edges(self, distance: float, iterations=1) -> Self:
         """
-        Collapse mesh edges so that are all above `distance`.
+        Collapse mesh edges that are shorter than `distance`.
 
         Examples:
             ```python
@@ -1218,23 +1218,36 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         """
         for _ in range(iterations):
             medges = self.edges
-            pts = self.vertices
-            newpts = np.array(pts)
-            moved = []
-            for e in medges:
-                if len(e) == 2:
-                    id0, id1 = e
-                    p0, p1 = pts[id0], pts[id1]
-                    if (
-                        np.linalg.norm(p1 - p0) < distance
-                        and id0 not in moved
-                        and id1 not in moved
-                    ):
-                        p = (p0 + p1) / 2
-                        newpts[id0] = p
-                        newpts[id1] = p
-                        moved += [id0, id1]
+            newpts = self.vertices
+            moved = set()
+            collapse_pairs = []
+            for id0, id1 in medges:
+                p0, p1 = newpts[id0], newpts[id1]
+                if (
+                    np.linalg.norm(p1 - p0) < distance
+                    and id0 not in moved
+                    and id1 not in moved
+                ):
+                    midpoint = (p0 + p1) / 2
+                    newpts[id0] = midpoint
+                    newpts[id1] = midpoint
+                    moved.add(id0)
+                    moved.add(id1)
+                    collapse_pairs.append((id0, id1))
             self.vertices = newpts
+
+            # interpolate point data arrays at each collapsed midpoint
+            pd = self.dataset.GetPointData()
+            for arr_i in range(pd.GetNumberOfArrays()):
+                arr = pd.GetArray(arr_i)
+                if arr is None:
+                    continue
+                data = vtk2numpy(arr)  # writable view into VTK buffer
+                for id0, id1 in collapse_pairs:
+                    data[id0] = (data[id0] + data[id1]) / 2
+                arr.Modified()
+            pd.Modified()
+
             cpd = vtki.new("CleanPolyData")
             cpd.ConvertLinesToPointsOff()
             cpd.ConvertPolysToLinesOff()
