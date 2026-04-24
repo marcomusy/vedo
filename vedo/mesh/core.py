@@ -2782,7 +2782,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
                 if None an automatic choice is made.
             subsample (bool):
                 subsample input surface, the geometry might be affected
-                (the number of original faces reduceed), but higher tet quality might be obtained.
+                (the number of original faces reduced), but higher tet quality might be obtained.
             uniform (bool):
                 generate tets more uniformly packed in the interior of the mesh
             seed (int):
@@ -2807,6 +2807,9 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
 
         if uniform:
             pts = vedo.utils.pack_spheres([x0, x1, y0, y1, z0, z1], side * d * 1.42)
+            if len(pts) > nmax:
+                rng.shuffle(pts)
+                pts = pts[:nmax]
             pts += (
                 rng.normal(size=(len(pts), 3)) * side * d * 1.42 / 100
             )  # some small jitter
@@ -2827,10 +2830,11 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         fillpts = surf.inside_points(pts)
         fillpts.subsample(side)
 
-        if gap:
+        if gap > 0:
             fillpts.distance_to(surf)
             fillpts.threshold("Distance", above=gap)
 
+        surf_closed = surf.clone() if subsample else surf
         if subsample:
             surf.subsample(side)
 
@@ -2838,12 +2842,11 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         tmesh = merged_fs.generate_delaunay3d()
         tcenters = tmesh.cell_centers().coordinates
 
-        ids = surf.inside_points(tcenters, return_ids=True)
+        ids = surf_closed.inside_points(tcenters, return_ids=True)
         ins = np.zeros(tmesh.ncells)
         ins[ids] = 1
 
         if debug:
-            # vedo.pyplot.histogram(fillpts.pointdata["Distance"], xtitle=f"gap={gap}").show().close()
             edges = self.edges
             points = self.coordinates
             elen = mag(points[edges][:, 0, :] - points[edges][:, 1, :])
