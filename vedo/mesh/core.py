@@ -1905,11 +1905,11 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
 
         Args:
             zshift (float):
-                shift along z axis.
+                translation along the z-axis applied during the sweep (independent of `direction`).
             direction (list):
-                extrusion direction in the xy plane.
-                note that zshift is forced to be the 3rd component of direction,
-                which is therefore ignored.
+                two-component ``(dx, dy)`` shear coefficients applied to the output after rotation.
+                Each unit of z in the result is sheared by ``dx`` in x and ``dy`` in y.
+                Only the first two elements are used; `zshift` is unaffected by this parameter.
             rotation (float):
                 set the angle of rotation.
             dr (float):
@@ -1929,7 +1929,6 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             ![](https://vedo.embl.es/images/basic/extrude.png)
         """
         rf = vtki.new("RotationalExtrusionFilter")
-        # rf = vtki.new("LinearExtrusionFilter")
         rf.SetInputData(self.dataset)  # must not be transformed
         rf.SetResolution(res)
         rf.SetCapping(cap)
@@ -1938,14 +1937,11 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         rf.SetDeltaRadius(dr)
         rf.Update()
 
-        # convert triangle strips to polygonal data
-        # tris = vtki.new("TriangleFilter")
-        # tris.SetInputData(rf.GetOutput())
-        # tris.Update()
-
         m = Mesh(rf.GetOutput())
 
-        if len(direction) > 1:
+        if len(direction) >= 2:
+            if len(direction) > 2:
+                vedo.logger.warning("extrude(): direction uses only the first 2 components (dx, dy)")
             p = self.pos()
             LT = vedo.LinearTransform()
             LT.translate(-p)
@@ -1963,7 +1959,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
     def extrude_linear(
         self,
         shift: float = 1.0,
-        direction: MutableSequence[float] = (0, 0, 1),
+        direction: Sequence[float] = (0, 0, 1),
         cap: bool = True,
         use_normal: bool = False,
     ) -> Self:
@@ -1972,10 +1968,12 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
 
         Args:
             shift (float):
-                Extrusion scale factor. With vector extrusion, the final displacement is
-                ``shift * direction``.
+                Extrusion scale factor. The total displacement of each point is
+                ``shift * direction``, so pass a unit vector in `direction` unless
+                intentional scaling via its magnitude is desired.
             direction (list):
                 Extrusion vector. Ignored when ``use_normal=True``.
+                Should normally be a unit vector; non-unit vectors scale the extrusion distance.
             cap (bool):
                 Enable or disable capping.
             use_normal (bool):
@@ -2015,7 +2013,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
     def extrude_and_trim_with(
         self,
         surface: "Mesh",
-        direction=(),
+        direction=(0, 0, 1),
         strategy="all",
         cap=True,
         cap_strategy="max",
@@ -2027,13 +2025,14 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             surface (Mesh):
                 the surface mesh to trim with.
             direction (list):
-                extrusion direction in the xy plane.
+                3D extrusion direction vector.
             strategy (str):
-                either "boundary_edges" or "all_edges".
+                either ``"bound"`` (boundary edges only) or ``"all"`` (all edges).
             cap (bool):
                 enable or disable capping.
             cap_strategy (str):
-                either "intersection", "minimum_distance", "maximum_distance", "average_distance".
+                either ``"intersect"``, ``"min"``, ``"max"``, or ``"ave"``
+                (intersection, minimum, maximum, or average distance).
 
         The input Mesh is swept along a specified direction forming a "skirt"
         from the boundary edges 2D primitives (i.e., edges used by only one polygon);
@@ -2075,12 +2074,16 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
                 direction=[0,-0.2,1],
                 strategy="bound",
                 cap=True,
-                cap_strategy="intersection",
+                cap_strategy="intersect",
             )
             circle.lw(3).color("tomato").shift(dz=-0.1)
             show(circle, sphere, extruded_circle, axes=1).close()
             ```
         """
+        if len(direction) != 3:
+            vedo.logger.error("extrude_and_trim_with(): direction must have 3 components")
+            raise ValueError("direction must have 3 components")
+
         trimmer = vtki.new("TrimmedExtrusionFilter")
         trimmer.SetInputData(self.dataset)
         trimmer.SetCapping(cap)
@@ -2091,8 +2094,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         elif "all" in strategy:
             trimmer.SetExtrusionStrategyToAllEdges()
         else:
-            vedo.logger.warning(f"extrude_and_trim(): unknown strategy {strategy}")
-        # print (trimmer.GetExtrusionStrategy())
+            vedo.logger.warning(f"extrude_and_trim_with(): unknown strategy {strategy!r}")
 
         if "intersect" in cap_strategy:
             trimmer.SetCappingStrategyToIntersection()
@@ -2104,9 +2106,8 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
             trimmer.SetCappingStrategyToAverageDistance()
         else:
             vedo.logger.warning(
-                f"extrude_and_trim(): unknown cap_strategy {cap_strategy}"
+                f"extrude_and_trim_with(): unknown cap_strategy {cap_strategy!r}"
             )
-        # print (trimmer.GetCappingStrategy())
 
         trimmer.Update()
 
