@@ -17,13 +17,13 @@ vpts2 = Points(pts2).ps(10).c("red5")
 
 # Estimate the transform that maps vpts1 as close as possible to vpts2.
 aligned_pts1 = vpts1.clone().align_to(vpts2, invert=False)
-txt = aligned_pts1.transform.__str__()
+print(aligned_pts1.transform)
 
 # Arrows show how points moved after alignment.
 arrows = Arrows(pts1, aligned_pts1, s=0.7).c("black")
 
 plt = Plotter(N=2, axes=1)
 plt.at(0).show(__doc__, vpts1, vpts2)
-plt.at(1).show(txt, aligned_pts1, arrows, vpts2, viewup="z")
+plt.at(1).show(vpts1, arrows, aligned_pts1, vpts2, viewup="z")
 plt.interactive()
 plt.close()

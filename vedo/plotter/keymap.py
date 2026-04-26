@@ -172,7 +172,7 @@ def _key_help(_plotter, _iren, _renderer) -> bool:
         ("i", "print info about the last clicked object"),
         ("I", "print color of the pixel under the mouse"),
         ("Y", "show the pipeline for this object as a graph"),
-        ("<- ->", "use arrows to reduce/increase opacity"),
+        ("<->", "use arrows to reduce/increase opacity"),
         ("x", "toggle mesh visibility"),
         ("w", "toggle wireframe/surface style"),
         ("l", "toggle surface edges visibility"),
@@ -210,7 +210,7 @@ def _key_help(_plotter, _iren, _renderer) -> bool:
         from rich.panel import Panel
         from rich.table import Table
 
-        table = Table(box=box.SIMPLE_HEAVY, expand=False, pad_edge=False)
+        table = Table(box=box.SIMPLE, expand=False, pad_edge=False)
         table.add_column("Key", style="bold cyan", no_wrap=True)
         table.add_column("Action", style="white")
         for key, action in help_rows:

@@ -81,7 +81,6 @@ class PointAnalyzeMixin:
         if not n and radius is None:
             raise ValueError("compute_acoplanarity(): set either n or radius")
 
-        acoplanarities = []
         if "point" in on:
             pts = self.coordinates
             search_obj = self
@@ -93,26 +92,32 @@ class PointAnalyzeMixin:
                 f"In compute_acoplanarity() set on to either 'cells' or 'points', not {on}"
             )
 
-        for p in utils.progressbar(pts, delay=5, width=15, title=f"{on} acoplanarity"):
-            if n:
-                data = search_obj.closest_point(p, n=n)
-                npts = len(data)
-            elif radius is not None:
-                data = search_obj.closest_point(p, radius=radius)
-                npts = len(data)
+        acoplanarities = np.full(len(pts), -1.0)
 
-            try:
-                data = np.asarray(data)
-                center = data.mean(axis=0)
-                res = np.linalg.svd(data - center)
-                acoplanarities.append(res[1][2] / npts)
-            except (np.linalg.LinAlgError, ValueError, TypeError, IndexError):
-                acoplanarities.append(-1.0)
+        if n:
+            for i, p in enumerate(utils.progressbar(pts, delay=5, width=15, title=f"{on} acoplanarity")):
+                try:
+                    data = np.asarray(search_obj.closest_point(p, n=n))
+                    center = data.mean(axis=0)
+                    cov = (data - center).T @ (data - center)
+                    acoplanarities[i] = np.sqrt(np.linalg.eigvalsh(cov)[0]) / n
+                except (np.linalg.LinAlgError, ValueError, TypeError, IndexError):
+                    pass
+        else:
+            for i, p in enumerate(utils.progressbar(pts, delay=5, width=15, title=f"{on} acoplanarity")):
+                try:
+                    data = np.asarray(search_obj.closest_point(p, radius=radius))
+                    npts = len(data)
+                    center = data.mean(axis=0)
+                    cov = (data - center).T @ (data - center)
+                    acoplanarities[i] = np.sqrt(np.linalg.eigvalsh(cov)[0]) / npts
+                except (np.linalg.LinAlgError, ValueError, TypeError, IndexError):
+                    pass
 
         if "point" in on:
-            self.pointdata["Acoplanarity"] = np.array(acoplanarities, dtype=float)
+            self.pointdata["Acoplanarity"] = acoplanarities
         else:
-            self.celldata["Acoplanarity"] = np.array(acoplanarities, dtype=float)
+            self.celldata["Acoplanarity"] = acoplanarities
         return self
 
     def distance_to(
@@ -471,7 +476,7 @@ class PointAnalyzeMixin:
             pid = vtklist.GetId(1)
             vtkpoints.GetPoint(pid, q)
             qs.append(q)
-        dists = np.linalg.norm(points - np.array(qs), axis=1)
+        dists = np.linalg.norm(points - np.array(qs), axis=1).astype(np.float32)
         self.pointdata["AutoDistance"] = dists
         return dists
 
@@ -721,26 +726,25 @@ class PointAnalyzeMixin:
                 vedo.logger.warning(f"Please choose a fraction higher than {f}")
                 Ncp = 5
 
-        variances, newline = [], []
-        for p in coords:
+        newline = coords.copy()
+        variances = np.zeros(ncoords, dtype=np.float32)
+
+        for i, p in enumerate(coords):
             points = self.closest_point(p, n=Ncp, radius=radius)
             if len(points) < 4:
-                variances.append(0.0)
-                newline.append(p)
                 continue
 
             try:
                 points = np.asarray(points)
-                pointsmean = points.mean(axis=0)  # plane center
-                _, dd, vv = np.linalg.svd(points - pointsmean)
-                newp = np.dot(p - pointsmean, vv[0]) * vv[0] + pointsmean
-                variances.append(dd[1] + dd[2])
-                newline.append(newp)
+                pointsmean = points.mean(axis=0)
+                cov = (points - pointsmean).T @ (points - pointsmean)
+                eigenvalues, eigenvectors = np.linalg.eigh(cov)
+                newline[i] = np.dot(p - pointsmean, eigenvectors[:, 2]) * eigenvectors[:, 2] + pointsmean
+                variances[i] = np.sqrt(eigenvalues[0]) + np.sqrt(eigenvalues[1])
             except np.linalg.LinAlgError:
-                variances.append(0.0)
-                newline.append(p)
+                pass
 
-        self.pointdata["Variances"] = np.array(variances).astype(np.float32)
+        self.pointdata["Variances"] = variances
         self.coordinates = newline
         self.pipeline = utils.OperationNode("smooth_mls_1d", parents=[self])
         return self
@@ -780,7 +784,7 @@ class PointAnalyzeMixin:
         else:
             Ncp = int(ncoords * f / 100)
             if Ncp < 4:
-                vedo.logger.error(f"please choose a f-value higher than {f}")
+                vedo.logger.warning(f"please choose a f-value higher than {f}")
                 Ncp = 4
 
         variances, newpts, valid = [], [], []
@@ -806,14 +810,12 @@ class PointAnalyzeMixin:
                 try:
                     pts = np.asarray(pts)
                     ptsmean = pts.mean(axis=0)  # plane center
-                    _, dd, vv = np.linalg.svd(pts - ptsmean)
-                    cv = np.cross(vv[0], vv[1])
-                    cv2 = np.dot(cv, cv)
-                    if cv2 == 0:
-                        raise np.linalg.LinAlgError
-                    t = (np.dot(cv, ptsmean) - np.dot(cv, p)) / cv2
+                    cov = (pts - ptsmean).T @ (pts - ptsmean)
+                    eigenvalues, eigenvectors = np.linalg.eigh(cov)
+                    cv = eigenvectors[:, 0]
+                    t = np.dot(cv, ptsmean - p)
                     newpts.append(p + cv * t)
-                    variances.append(dd[2])
+                    variances.append(np.sqrt(eigenvalues[0]))
                     if radius is not None:
                         valid.append(1)
                 except np.linalg.LinAlgError:
@@ -848,76 +850,45 @@ class PointAnalyzeMixin:
             options (str):
                 options for the Qhull algorithm.
         """
-        # Credits: https://hatarilabs.com/ih-en/
-        # tutorial-to-create-a-geospatial-voronoi-sh-mesh-with-python-scipy-and-geopandas
         from scipy.spatial import QhullError
         from scipy.spatial import Voronoi as scipy_voronoi
 
-        def _constrain_points(points):
-            # Update any points that have drifted beyond the boundaries of this space
-            if bounds is not None:
-                for point in points:
-                    if point[0] < bounds[0]:
-                        point[0] = bounds[0]
-                    if point[0] > bounds[1]:
-                        point[0] = bounds[1]
-                    if point[1] < bounds[2]:
-                        point[1] = bounds[2]
-                    if point[1] > bounds[3]:
-                        point[1] = bounds[3]
-            return points
-
         def _find_centroid(vertices):
-            # The equation for the method used here to find the centroid of a
-            # 2D polygon is given here: https://en.wikipedia.org/wiki/Centroid#Of_a_polygon
-            area = 0
-            centroid_x = 0
-            centroid_y = 0
-            for i in range(len(vertices) - 1):
-                step = (vertices[i, 0] * vertices[i + 1, 1]) - (
-                    vertices[i + 1, 0] * vertices[i, 1]
-                )
-                centroid_x += (vertices[i, 0] + vertices[i + 1, 0]) * step
-                centroid_y += (vertices[i, 1] + vertices[i + 1, 1]) * step
-                area += step
+            # Vectorised shoelace formula: https://en.wikipedia.org/wiki/Centroid#Of_a_polygon
+            x,  y  = vertices[:-1, 0], vertices[:-1, 1]
+            xn, yn = vertices[1:,  0], vertices[1:,  1]
+            step = x * yn - xn * y
+            area = step.sum()
             if area:
-                centroid_x = (1.0 / (3.0 * area)) * centroid_x
-                centroid_y = (1.0 / (3.0 * area)) * centroid_y
-            else:
-                centroid_x, centroid_y = np.mean(vertices[:-1], axis=0)
-            # prevent centroids from escaping bounding box
-            return _constrain_points([[centroid_x, centroid_y]])[0]
+                return np.array([np.dot(x + xn, step), np.dot(y + yn, step)]) / (3.0 * area)
+            return np.mean(vertices[:-1], axis=0)
 
         def _relax(voron):
-            # Moves each point to the centroid of its cell in the voronoi
-            # map to "relax" the points (i.e. jitter the points so as
-            # to spread them out within the space).
             centroids = []
-            for i, idx in enumerate(voron.point_region):
-                # the region is a series of indices into voronoi.vertices
-                # remove point at infinity, designated by index -1
-                region = [i for i in voron.regions[idx] if i != -1]
+            for pt_i, region_idx in enumerate(voron.point_region):
+                region = [v for v in voron.regions[region_idx] if v != -1]
                 if len(region) < 3:
-                    centroids.append(voron.points[i])
+                    centroids.append(voron.points[pt_i])
                     continue
-                # enclose the polygon
-                region = region + [region[0]]
-                verts = voron.vertices[region]
-                # find the centroid of those vertices
-                centroids.append(_find_centroid(verts))
-            return _constrain_points(centroids)
+                region.append(region[0])
+                centroids.append(_find_centroid(voron.vertices[region]))
+            pts_out = np.array(centroids)
+            np.clip(pts_out[:, 0], bounds[0], bounds[1], out=pts_out[:, 0])
+            np.clip(pts_out[:, 1], bounds[2], bounds[3], out=pts_out[:, 1])
+            return pts_out
 
         if bounds is None:
             bounds = self.bounds()
 
-        pts = self.vertices[:, (0, 1)]
-        for i in range(iterations):
+        pts = self.vertices[:, :2].copy()
+        for _ in range(iterations):
             try:
                 vor = scipy_voronoi(pts, qhull_options=options)
             except QhullError:
                 vedo.logger.warning("smooth_lloyd_2d(): Voronoi construction failed")
                 break
-            _constrain_points(vor.vertices)
+            np.clip(vor.vertices[:, 0], bounds[0], bounds[1], out=vor.vertices[:, 0])
+            np.clip(vor.vertices[:, 1], bounds[2], bounds[3], out=vor.vertices[:, 1])
             pts = _relax(vor)
         out = vedo.Points(pts)
         out.name = "MeshSmoothLloyd2D"
@@ -1157,6 +1128,14 @@ class PointAnalyzeMixin:
         Args:
             dims (int, list):
                 number of voxels in x, y and z of the output Volume.
+                Pass a 2-element list to force 2D output.
+            bounds (list):
+                bounding box of the output Volume as `[xmin,xmax, ymin,ymax, zmin,zmax]`.
+                A 4-element list `[xmin,xmax, ymin,ymax]` is also accepted and implies 2D output.
+                Defaults to the bounding box of the input point cloud.
+            radius (float):
+                neighborhood radius for counting points around each voxel.
+                Defaults to `diagonal_size / 20`.
             compute_gradient (bool):
                 Turn on/off the generation of the gradient vector,
                 gradient magnitude scalar, and function classification scalar.
@@ -1186,10 +1165,9 @@ class PointAnalyzeMixin:
         elif len(bounds) != 6:
             raise ValueError("density(): bounds must have length 4 or 6")
 
-        if bounds[5] - bounds[4] == 0 or len(dims) == 2:  # its 2D
-            dims = list(dims)
+        diag = self.diagonal_size()
+        if abs(bounds[5] - bounds[4]) < 1e-10 * diag or len(dims) == 2:  # its 2D
             dims = [dims[0], dims[1], 2]
-            diag = self.diagonal_size()
             bounds[5] = bounds[4] + diag / 1000
         pdf.SetModelBounds(bounds)
 
@@ -1200,7 +1178,7 @@ class PointAnalyzeMixin:
 
         pdf.SetDensityEstimateToFixedRadius()
         if radius is None:
-            radius = self.diagonal_size() / 20
+            radius = diag / 20
         pdf.SetRadius(radius)
         pdf.SetComputeGradient(compute_gradient)
         pdf.Update()
