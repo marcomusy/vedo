@@ -1009,13 +1009,18 @@ def handle_default_keypress(plotter, iren, event) -> None:
                 else:
                     ia.properties.SetInterpolation(2)  # phong
 
-    elif key == "n":  # show normals to an actor
+    elif key == "n":  # toggle normals on an actor
+        already_shown = any(
+            getattr(ob, "name", "") == "added_auto_normals"
+            for ob in plotter.objects
+        )
         plotter.remove("added_auto_normals")
-        if plotter.clicked_object in plotter.get_meshes():
-            if plotter.clicked_actor.GetPickable():
-                norml = vedo.shapes.NormalLines(plotter.clicked_object)
-                norml.name = "added_auto_normals"
-                plotter.add(norml)
+        if not already_shown:
+            if plotter.clicked_object in plotter.get_meshes():
+                if plotter.clicked_actor.GetPickable():
+                    norml = vedo.shapes.NormalLines(plotter.clicked_object)
+                    norml.name = "added_auto_normals"
+                    plotter.add(norml)
 
     elif key == "x":
         if plotter.justremoved is None:

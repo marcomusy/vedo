@@ -42,17 +42,23 @@ class Line(Mesh):
 
         if isinstance(p1, Points):
             p1 = p1.pos()
-            if isinstance(p0, Points):
-                p0 = p0.pos()
-        try:
-            p0 = p0.dataset
-        except AttributeError:
-            pass
+        if isinstance(p0, Points):
+            p0 = p0.pos()
+        else:
+            try:
+                p0 = p0.dataset
+            except AttributeError:
+                pass
 
         if isinstance(p0, vtki.vtkPolyData):
             poly = p0
-            top = np.array([0, 0, 1])
-            base = np.array([0, 0, 0])
+            n = poly.GetNumberOfPoints()
+            if n > 0:
+                base = np.array(poly.GetPoint(0))
+                top = np.array(poly.GetPoint(n - 1))
+            else:
+                base = np.array([0.0, 0.0, 0.0])
+                top = np.array([0.0, 0.0, 1.0])
 
         elif utils.is_sequence(p0[0]):  # detect if user is passing a list of points
             p0 = utils.make3d(p0)
@@ -139,6 +145,20 @@ class Line(Mesh):
         ln.name = self.name
         ln.base = self.base
         ln.top = self.top
+        ln.res = self.res
+        ln.is_closed = self.is_closed
+        ln.slope = list(self.slope)
+        ln.center = list(self.center)
+        ln.variances = list(self.variances)
+        ln.coefficients = list(self.coefficients)
+        ln.covariance_matrix = list(self.covariance_matrix)
+        ln.coefficient_errors = list(self.coefficient_errors)
+        ln.monte_carlo_coefficients = list(self.monte_carlo_coefficients)
+        ln.reduced_chi2 = self.reduced_chi2
+        ln.ndof = self.ndof
+        ln.data_sigma = self.data_sigma
+        ln.error_lines = list(self.error_lines)
+        ln.error_band = self.error_band
         ln.pipeline = utils.OperationNode(
             "clone", parents=[self], shape="diamond", c="#edede9"
         )
@@ -166,6 +186,9 @@ class Line(Mesh):
         if self.is_closed:
             pts = np.append(pts, [pts[0]], axis=0)
 
+        if len(pts) < 2 or length == 0:
+            return pts[0].copy() if len(pts) > 0 else np.zeros(3)
+
         for i in range(1, len(pts)):
             p0 = pts[i - 1]
             p1 = pts[i]
@@ -176,7 +199,10 @@ class Line(Mesh):
             if w1 >= x:
                 break
         w0 = distance0 / length
-        v = p0 + seg * (x - w0) / (w1 - w0)
+        dw = w1 - w0
+        if dw == 0:
+            return p0.copy()
+        v = p0 + seg * (x - w0) / dw
         return v
 
     def eval2d(self, x: float) -> np.ndarray:
@@ -254,17 +280,14 @@ class Line(Mesh):
         image.SetDimensions(dimension, 1, 1)
         image.AllocateScalars(vtki.VTK_UNSIGNED_CHAR, 4)
         image.SetExtent(0, dimension - 1, 0, 0, 0, 0)
-        i_dim = 0
-        while i_dim < dimension:
-            for i in range(dimension):
-                image.SetScalarComponentFromFloat(i_dim, 0, 0, 0, 255)
-                image.SetScalarComponentFromFloat(i_dim, 0, 0, 1, 255)
-                image.SetScalarComponentFromFloat(i_dim, 0, 0, 2, 255)
-                if stipple[i] == " ":
-                    image.SetScalarComponentFromFloat(i_dim, 0, 0, 3, 0)
-                else:
-                    image.SetScalarComponentFromFloat(i_dim, 0, 0, 3, 255)
-                i_dim += 1
+        for i_dim in range(dimension):
+            image.SetScalarComponentFromFloat(i_dim, 0, 0, 0, 255)
+            image.SetScalarComponentFromFloat(i_dim, 0, 0, 1, 255)
+            image.SetScalarComponentFromFloat(i_dim, 0, 0, 2, 255)
+            if stipple[i_dim] == " ":
+                image.SetScalarComponentFromFloat(i_dim, 0, 0, 3, 0)
+            else:
+                image.SetScalarComponentFromFloat(i_dim, 0, 0, 3, 255)
 
         poly = self.dataset
 
@@ -289,10 +312,7 @@ class Line(Mesh):
         pts = self.coordinates
         if self.is_closed:
             pts = np.append(pts, [pts[0]], axis=0)
-        distance = 0.0
-        for i in range(1, len(pts)):
-            distance += np.linalg.norm(pts[i] - pts[i - 1])
-        return distance
+        return float(np.linalg.norm(np.diff(pts, axis=0), axis=1).sum())
 
     def tangents(self) -> np.ndarray:
         """
@@ -394,7 +414,8 @@ class Line(Mesh):
         """
         ap = vtki.new("ArcPlotter")
         ap.SetInputData(self.dataset)
-        ap.SetCamera(camera)
+        if camera is not None:
+            ap.SetCamera(camera)
         ap.SetRadius(radius)
         ap.SetHeight(height)
         if len(normal) > 0:
@@ -469,18 +490,19 @@ class Line(Mesh):
 
     def reverse(self):
         """Reverse the points sequence order."""
-        pts = np.flip(self.coordinates, axis=0)
-        self.coordinates = pts
+        self.coordinates = np.flip(self.coordinates, axis=0)
+        self.base, self.top = self.top, self.base
         return self
 
 
 class DashedLine(Mesh):
     """
-    Consider using `Line.pattern()` instead.
-
     Build a dashed line segment between points `p0` and `p1`.
     If `p0` is a list of points returns the line connecting them.
     A 2D set of coords can also be passed as `p0=[x..], p1=[y..]`.
+
+    Note: `closed` only applies when `p0` is a polyline (list of points);
+    it is ignored when exactly two points are given.
     """
 
     def __init__(
@@ -489,9 +511,10 @@ class DashedLine(Mesh):
         """
         Args:
             closed (bool):
-                join last to first point
+                join last to first point (polyline input only)
             spacing (float):
-                relative size of the dash
+                dash length relative to the bounding-box diagonal, clamped to [0.01, 1.0],
+                then divided by 10; default 0.1 gives ~1% of the diagonal per dash
             lw (int):
                 line width in pixels
         """
@@ -505,7 +528,8 @@ class DashedLine(Mesh):
         # detect if user is passing a 2D list of points as p0=xlist, p1=ylist:
         if len(p0) > 3:
             if (
-                not utils.is_sequence(p0[0])
+                p1 is not None
+                and not utils.is_sequence(p0[0])
                 and not utils.is_sequence(p1[0])
                 and len(p0) == len(p1)
             ):
@@ -529,7 +553,7 @@ class DashedLine(Mesh):
             listp = [p0, p1]
 
         listp = np.array(listp)
-        if listp.shape[1] == 2:
+        if listp.ndim == 2 and listp.shape[1] == 2:
             listp = np.c_[listp, np.zeros(listp.shape[0])]
 
         xmn = np.min(listp, axis=0)
@@ -550,17 +574,13 @@ class DashedLine(Mesh):
             if not n1:
                 continue
 
-            res = 0.0
             for i in range(n1 + 2):
                 ist = (i - 0.5) / n1
                 ist = max(ist, 0)
-                qi = p0 + v * (ist - res / vdist)
                 if ist > 1:
-                    qi = p1
-                    res = np.linalg.norm(qi - p1)
-                    qs.append(qi)
+                    qs.append(p1)
                     break
-                qs.append(qi)
+                qs.append(p0 + v * ist)
 
         polylns = vtki.new("AppendPolyData")
         for i, q1 in enumerate(qs):
@@ -612,16 +632,22 @@ class RoundedLine(Mesh):
             ![](https://vedo.embl.es/images/feats/rounded_line.png)
         """
         pts = utils.make3d(pts)
+        pts[:, 2] = 0  # project to XY plane; z-coords are not supported
+
+        # Remove duplicate consecutive points to avoid division by zero
+        deduped = [pts[0]]
+        for i in range(1, len(pts)):
+            if np.linalg.norm(pts[i] - deduped[-1]) > 1e-10:
+                deduped.append(pts[i])
+        pts = np.array(deduped)
 
         def _getpts(pts, revd=False):
-
             if revd:
                 pts = list(reversed(pts))
 
             if len(pts) == 2:
                 p0, p1 = pts
                 v = p1 - p0
-                dv = np.linalg.norm(v)
                 nv = np.cross(v, (0, 0, -1))
                 nv = nv / np.linalg.norm(nv) * lw
                 return [p0 + nv, p1 + nv]
@@ -643,19 +669,12 @@ class RoundedLine(Mesh):
                 if k == 0:
                     ptsnew.append(p0 + nv)
                 if uv[2] <= 0:
-                    # the following computation can return a value
-                    # ever so slightly > 1.0 causing arccos to fail.
+                    # dot/norms can exceed 1.0 slightly due to floating point
                     uv_arg = np.dot(u, v) / du / dv
-                    if uv_arg > 1.0:
-                        # since the argument to arcos is 1, simply
-                        # assign alpha to 0.0 without calculating the
-                        # arccos
-                        alpha = 0.0
-                    else:
-                        alpha = np.arccos(uv_arg)
-                    db = lw * np.tan(alpha / 2)
-                    p1new = p1 + nv - v / dv * db
-                    ptsnew.append(p1new)
+                    angle = np.arccos(np.clip(uv_arg, -1.0, 1.0))
+                    # cap miter extension to 4× lw to avoid spikes on sharp angles
+                    db = min(lw * np.tan(angle / 2), lw * 4)
+                    ptsnew.append(p1 + nv - v / dv * db)
                 else:
                     p1a = p1 + nv
                     p1b = p1 + nu
@@ -666,19 +685,39 @@ class RoundedLine(Mesh):
                         ptsnew.append(p1 + vpab)
                 if k == len(pts) - 3:
                     ptsnew.append(p2 + nu)
-                    if revd:
-                        ptsnew.append(p2 - nu)
             return ptsnew
 
-        ptsnew = _getpts(pts) + _getpts(pts, revd=True)
+        side1 = _getpts(pts)
+        side2 = _getpts(pts, revd=True)
+
+        # Rounded end cap at pts[-1]: semicircle from side1[-1] to side2[0]
+        v_last = pts[-1] - pts[-2]
+        v_last_hat = v_last / np.linalg.norm(v_last)
+        nv_last_hat = np.cross(v_last_hat, (0, 0, -1))
+        cap_end = [
+            pts[-1] + lw * (np.cos(t) * nv_last_hat + np.sin(t) * v_last_hat)
+            for t in np.linspace(0, np.pi, res + 2)
+        ]
+
+        # Rounded start cap at pts[0]: semicircle from side2[-1] to side1[0]
+        v_first = pts[1] - pts[0]
+        v_first_hat = v_first / np.linalg.norm(v_first)
+        nv_first_hat = np.cross(v_first_hat, (0, 0, -1))
+        cap_start = [
+            pts[0] + lw * (-np.cos(t) * nv_first_hat - np.sin(t) * v_first_hat)
+            for t in np.linspace(0, np.pi, res + 2)
+        ]
+
+        ptsnew = side1 + cap_end + side2 + cap_start
 
         ppoints = vtki.vtkPoints()  # Generate the polyline
         ppoints.SetData(utils.numpy2vtk(np.asarray(ptsnew), dtype=np.float32))
         lines = vtki.vtkCellArray()
         npt = len(ptsnew)
-        lines.InsertNextCell(npt)
+        lines.InsertNextCell(npt + 1)  # +1 to explicitly close the contour
         for i in range(npt):
             lines.InsertCellPoint(i)
+        lines.InsertCellPoint(0)
         poly = vtki.vtkPolyData()
         poly.SetPoints(ppoints)
         poly.SetLines(lines)
@@ -715,6 +754,9 @@ class Lines(Mesh):
         Args:
             scale (float):
                 apply a rescaling factor to the lengths.
+                Applied per segment in the uniform (2-point) path and per polyline
+                (from its first point) in the ragged path.
+                Ignored when `start_pts` is a `vtkPolyData` or a list of `Line` objects.
             c (color, int, str, list):
                 color name, number, or list of [R,G,B] colors
             alpha (float):
@@ -724,8 +766,8 @@ class Lines(Mesh):
             dotted (bool):
                 draw a dotted line
             res (int):
-                resolution, number of points along the line
-                (only relevant if only 2 points are specified)
+                resolution, number of points along each segment
+                (only relevant when exactly 2 points per segment are given)
 
         Examples:
             - [fitspheres2.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/fitspheres2.py)
@@ -736,6 +778,9 @@ class Lines(Mesh):
         if isinstance(start_pts, vtki.vtkPolyData):  ########
             super().__init__(start_pts, c, alpha)
             self.lw(lw).lighting("off")
+            if dotted:
+                self.properties.SetLineStipplePattern(0xF0F0)
+                self.properties.SetLineStippleRepeatFactor(1)
             self.name = "Lines"
             return  ########################################
 
@@ -769,6 +814,12 @@ class Lines(Mesh):
         polylns = vtki.new("AppendPolyData")
 
         if not utils.is_ragged(start_pts):
+            start_pts = np.asarray(start_pts)
+            if start_pts.ndim == 3 and start_pts.shape[1] > 2:
+                vedo.logger.warning(
+                    f"Lines: each segment should have exactly 2 points; "
+                    f"shape[1]={start_pts.shape[1]}, extra points are ignored."
+                )
             for twopts in start_pts:
                 line_source = vtki.new("LineSource")
                 line_source.SetResolution(res)
@@ -777,7 +828,7 @@ class Lines(Mesh):
                 else:
                     line_source.SetPoint1(twopts[0])
 
-                if scale == 1:
+                if scale == 1.0:
                     pt2 = twopts[1]
                 else:
                     vers = (np.array(twopts[1]) - twopts[0]) * scale
@@ -790,10 +841,11 @@ class Lines(Mesh):
                 polylns.AddInputConnection(line_source.GetOutputPort())
 
         else:
-            polylns = vtki.new("AppendPolyData")
             for t in start_pts:
                 t = utils.make3d(t)
-                ppoints = vtki.vtkPoints()  # Generate the polyline
+                if scale != 1.0:
+                    t = t[0] + (t - t[0]) * scale
+                ppoints = vtki.vtkPoints()
                 ppoints.SetData(utils.numpy2vtk(t, dtype=np.float32))
                 lines = vtki.vtkCellArray()
                 npt = len(t)
@@ -814,6 +866,22 @@ class Lines(Mesh):
             self.properties.SetLineStippleRepeatFactor(1)
 
         self.name = "Lines"
+
+    def clone(self, deep=True) -> "Lines":
+        """Return a copy of this Lines object."""
+        poly = vtki.vtkPolyData()
+        if deep:
+            poly.DeepCopy(self.dataset)
+        else:
+            poly.ShallowCopy(self.dataset)
+        ln = Lines(poly)
+        ln.copy_properties_from(self)
+        ln.transform = self.transform.clone()
+        ln.name = self.name
+        ln.pipeline = utils.OperationNode(
+            "clone", parents=[self], shape="diamond", c="#edede9"
+        )
+        return ln
 
 
 class Arc(Line):
@@ -1014,7 +1082,7 @@ class KSpline(Line):
 
         Warning:
             This class is not necessarily generating the exact number of points
-            as requested by `res`. Some points may be concident and removed.
+            as requested by `res`. Some points may be coincident and removed.
 
         See also: `Spline` and `CSpline`.
         """
@@ -1039,21 +1107,16 @@ class KSpline(Line):
                 s.SetDefaultContinuity(continuity)
             s.SetClosed(closed)
 
-        lenp = len(points[0]) > 2
-
         for i, p in enumerate(points):
             xspline.AddPoint(i, p[0])
             yspline.AddPoint(i, p[1])
-            if lenp:
-                zspline.AddPoint(i, p[2])
+            zspline.AddPoint(i, p[2])
 
         ln = []
-        for pos in np.linspace(0, len(points), res):
+        for pos in np.linspace(0, len(points) - 1, res):
             x = xspline.Evaluate(pos)
             y = yspline.Evaluate(pos)
-            z = 0
-            if lenp:
-                z = zspline.Evaluate(pos)
+            z = zspline.Evaluate(pos)
             ln.append((x, y, z))
 
         super().__init__(ln, lw=2)
@@ -1080,7 +1143,7 @@ class CSpline(Line):
 
         Warning:
             This class is not necessarily generating the exact number of points
-            as requested by `res`. Some points may be concident and removed.
+            as requested by `res`. Some points may be coincident and removed.
 
         See also: `Spline` and `KSpline`.
         """
@@ -1100,28 +1163,23 @@ class CSpline(Line):
         for s in [xspline, yspline, zspline]:
             s.SetClosed(closed)
 
-        lenp = len(points[0]) > 2
-
         for i, p in enumerate(points):
             xspline.AddPoint(i, p[0])
             yspline.AddPoint(i, p[1])
-            if lenp:
-                zspline.AddPoint(i, p[2])
+            zspline.AddPoint(i, p[2])
 
         ln = []
-        for pos in np.linspace(0, len(points), res):
+        for pos in np.linspace(0, len(points) - 1, res):
             x = xspline.Evaluate(pos)
             y = yspline.Evaluate(pos)
-            z = 0
-            if lenp:
-                z = zspline.Evaluate(pos)
+            z = zspline.Evaluate(pos)
             ln.append((x, y, z))
 
         super().__init__(ln, lw=2)
         self.clean()
         self.lighting("off")
         self.name = "CSpline"
-        self.base = points[0]
+        self.base = np.array(points[0], dtype=float)
         self.top = points[-1]
 
 
@@ -1171,9 +1229,9 @@ class Bezier(Line):
         self.name = "BezierLine"
 
 
-class NormalLines(Mesh):
+class NormalLines(Lines):
     """
-    Build an `Glyph` to show the normals at cell centers or at mesh vertices.
+    Build a `Glyph` to show the normals at cell centers or at mesh vertices.
 
     Args:
         ratio (int):
@@ -1187,6 +1245,14 @@ class NormalLines(Mesh):
     def __init__(self, msh, ratio=1, on="cells", scale=1.0) -> None:
 
         poly = msh.clone().dataset
+
+        nf = vtki.new("PolyDataNormals")
+        nf.SetInputData(poly)
+        nf.ComputeCellNormalsOn()
+        nf.ComputePointNormalsOn()
+        nf.SplittingOff()
+        nf.Update()
+        poly = nf.GetOutput()
 
         if "cell" in on:
             centers = vtki.new("CellCenters")
@@ -1217,12 +1283,9 @@ class NormalLines(Mesh):
 
         super().__init__(glyph.GetOutput())
 
+        self.copy_properties_from(msh)
         self.actor.PickableOff()
-        prop = vtki.vtkProperty()
-        prop.DeepCopy(msh.properties)
-        self.actor.SetProperty(prop)
-        self.properties = prop
-        self.properties.LightingOff()
+        self.lighting("off")
         self.mapper.ScalarVisibilityOff()
         self.name = "NormalLines"
 
@@ -1255,20 +1318,23 @@ class Tube(Mesh):
             show(line, tube, axes=1).close()
             ```
 
-        Examples:
             - [ribbon.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/ribbon.py)
             - [tube_radii.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/tube_radii.py)
 
                 ![](https://vedo.embl.es/images/basic/tube.png)
         """
         if utils.is_sequence(points):
+            npts = len(points)
+            if utils.is_sequence(r) and len(r) != npts:
+                vedo.logger.warning(f"Tube: len(r)={len(r)} != len(points)={npts}")
+            if utils.is_sequence(c) and len(c) != npts:
+                vedo.logger.warning(f"Tube: len(c)={len(c)} != len(points)={npts}")
             vpoints = vtki.vtkPoints()
-            idx = len(points)
             for p in points:
                 vpoints.InsertNextPoint(p)
             line = vtki.new("PolyLine")
-            line.GetPointIds().SetNumberOfIds(idx)
-            for i in range(idx):
+            line.GetPointIds().SetNumberOfIds(npts)
+            for i in range(npts):
                 line.GetPointIds().SetId(i, i)
             lines = vtki.vtkCellArray()
             lines.InsertNextCell(line)
@@ -1280,20 +1346,20 @@ class Tube(Mesh):
 
         elif isinstance(points, Mesh):
             polyln = points.dataset
+            if polyln.GetNumberOfLines() == 0:
+                vedo.logger.warning("Tube: input Mesh contains no lines — result may be empty.")
             n = polyln.GetNumberOfPoints()
             self.base = np.array(polyln.GetPoint(0))
             self.top = np.array(polyln.GetPoint(n - 1))
 
-        # from vtkmodules.vtkFiltersCore import vtkTubeBender
-        # bender = vtkTubeBender()
-        # bender.SetInputData(polyln)
-        # bender.SetRadius(r)
-        # bender.Update()
-        # polyln = bender.GetOutput()
+        else:
+            raise TypeError(f"Tube: unsupported input type {type(points)}")
 
         tuf = vtki.new("TubeFilter")
         tuf.SetCapping(cap)
         tuf.SetNumberOfSides(res)
+        tuf.SetSidesShareVertices(True)
+        tuf.SetGenerateTCoords(0)
         tuf.SetInputData(polyln)
         if utils.is_sequence(r):
             arr = utils.numpy2vtk(r, dtype=float)
@@ -1312,8 +1378,8 @@ class Tube(Mesh):
             cc.SetNumberOfComponents(3)
             cc.SetNumberOfTuples(len(c))
             for i, ic in enumerate(c):
-                r, g, b = get_color(ic)
-                cc.InsertTuple3(i, int(255 * r), int(255 * g), int(255 * b))
+                rc, gc, bc = get_color(ic)
+                cc.InsertTuple3(i, int(255 * rc), int(255 * gc), int(255 * bc))
             polyln.GetPointData().AddArray(cc)
             c = None
         tuf.Update()
@@ -1328,7 +1394,7 @@ class Tube(Mesh):
         self.name = "Tube"
 
 
-def ThickTube(pts, r1, r2, res=12, c=None, alpha=1.0) -> Mesh | None:
+def ThickTube(pts, r1, r2, res=12, c=None, alpha=1.0) -> Mesh:
     """
     Create a tube with a thickness along a line of points.
 
@@ -1343,25 +1409,31 @@ def ThickTube(pts, r1, r2, res=12, c=None, alpha=1.0) -> Mesh | None:
     ![](https://vedo.embl.es/images/feats/thick_tube.png)
     """
 
-    def make_cap(t1, t2):
-        newpoints = t1.coordinates.tolist() + t2.coordinates.tolist()
+    def make_cap(ring1, ring2):
+        n = len(ring1.coordinates)
+        newpoints = ring1.coordinates.tolist() + ring2.coordinates.tolist()
         newfaces = []
         for i in range(n - 1):
             newfaces.append([i, i + 1, i + n])
             newfaces.append([i + n, i + 1, i + n + 1])
         newfaces.append([2 * n - 1, 0, n])
-        newfaces.append([2 * n - 1, n - 1, 0])
-        capm = utils.buildPolyData(newpoints, newfaces)
-        return capm
+        newfaces.append([n - 1, 0, 2 * n - 1])  # was reversed; fix winding
+        return utils.buildPolyData(newpoints, newfaces)
 
-    assert r1 < r2
+    if r1 >= r2:
+        raise ValueError(f"ThickTube: r1={r1} must be less than r2={r2}")
 
     t1 = Tube(pts, r=r1, cap=False, res=res)
     t2 = Tube(pts, r=r2, cap=False, res=res)
 
-    tc1a, tc1b = t1.boundaries().split()
-    tc2a, tc2b = t2.boundaries().split()
-    n = tc1b.npoints
+    rings1 = t1.boundaries().split(sort_by_area=False)
+    rings2 = t2.boundaries().split(sort_by_area=False)
+    if len(rings1) != 2 or len(rings2) != 2:
+        raise RuntimeError(
+            f"ThickTube: expected 2 boundary rings per tube, got {len(rings1)} and {len(rings2)}"
+        )
+    tc1a, tc1b = rings1
+    tc2a, tc2b = rings2
 
     tc1b.join(reset=True).clean()  # needed because indices are flipped
     tc2b.join(reset=True).clean()
@@ -1370,13 +1442,14 @@ def ThickTube(pts, r1, r2, res=12, c=None, alpha=1.0) -> Mesh | None:
     capb = make_cap(tc1b, tc2b)
 
     thick_tube = merge(t1, t2, capa, capb)
-    if thick_tube:
-        thick_tube.c(c).alpha(alpha)
-        thick_tube.base = t1.base
-        thick_tube.top = t1.top
-        thick_tube.name = "ThickTube"
-        return thick_tube
-    return None
+    if thick_tube is None:
+        raise RuntimeError("ThickTube: merge produced no output")
+    thick_tube.compute_normals()
+    thick_tube.c(c).alpha(alpha)
+    thick_tube.base = t1.base
+    thick_tube.top = t1.top
+    thick_tube.name = "ThickTube"
+    return thick_tube
 
 
 class Tubes(Mesh):
