@@ -289,6 +289,11 @@ class Slicer3DPlotter(Plotter):
     def scalar_range(self, value):
         self._scalar_range = tuple(value)
         self._vmin, self._vmax = self._scalar_range
+        rmin, rmax = self._scalar_range
+        for axis in "xyz":
+            msh = getattr(self, f"{axis}slice")
+            if msh is not None:
+                msh.cmap(self.cmap_slicer, vmin=rmin, vmax=rmax)
 
     def _compute_scalar_range(self, volume):
         data = volume.pointdata[0]
@@ -335,7 +340,7 @@ class Slicer3DPlotter(Plotter):
         slicer.cmap(self.cmap_slicer, vmin=rmin, vmax=rmax)
         return slicer
 
-    def _update_slice(self, axis, index, render=True):
+    def _update_slice(self, axis, index):
         dims = self._dims
         dim = {"x": dims[0], "y": dims[1], "z": dims[2]}[axis]
         name = f"{axis.upper()}Slice"
@@ -348,8 +353,6 @@ class Slicer3DPlotter(Plotter):
             new_slice = self._make_slice(axis, index)
             self.add(new_slice, at=self._at)
         setattr(self, f"{axis}slice", new_slice)
-        if render:
-            self.render()
 
     def _slider_function_x(self, _widget, _event):
         i = int(self.xslider.value)
@@ -357,6 +360,7 @@ class Slicer3DPlotter(Plotter):
             return
         self.current_i = i
         self._update_slice("x", i)
+        # self.render()
 
     def _slider_function_y(self, _widget, _event):
         j = int(self.yslider.value)
@@ -364,6 +368,7 @@ class Slicer3DPlotter(Plotter):
             return
         self.current_j = j
         self._update_slice("y", j)
+        # self.render()
 
     def _slider_function_z(self, _widget, _event):
         k = int(self.zslider.value)
@@ -371,6 +376,7 @@ class Slicer3DPlotter(Plotter):
             return
         self.current_k = k
         self._update_slice("z", k)
+        # self.render()
 
     def _button_func(self, _obj, _evtname):
         self._cmap_button.switch()
@@ -503,11 +509,11 @@ class Slicer3DPlotter(Plotter):
         self.yslice = None
         self.zslice = None
         if self.current_i is not None:
-            self._update_slice("x", self.current_i, render=False)
+            self._update_slice("x", self.current_i)
         if self.current_j is not None:
-            self._update_slice("y", self.current_j, render=False)
+            self._update_slice("y", self.current_j)
         if self.current_k is not None:
-            self._update_slice("z", self.current_k, render=False)
+            self._update_slice("z", self.current_k)
 
         return self
 

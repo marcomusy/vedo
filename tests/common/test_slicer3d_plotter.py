@@ -46,14 +46,14 @@ def test_slicer3d_plotter_replaces_previous_slice_actor() -> None:
     first = plt.zslice
     assert first is not None
 
-    plt._update_slice("z", 2, render=False)
+    plt._update_slice("z", 2)
     second = plt.zslice
     assert second is not None
     assert second is not first
     assert ren0.HasViewProp(first.actor) == 0
     assert ren0.HasViewProp(second.actor) == 1
 
-    plt._update_slice("z", 1, render=False)
+    plt._update_slice("z", 1)
     third = plt.zslice
     assert third is not None
     assert third is not second
