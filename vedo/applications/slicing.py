@@ -53,6 +53,8 @@ class Slicer3DPlotter(Plotter):
         cmap_button_position=(0.04, 0.01),
         cmap_button_size=16,
         box_alpha=0.2,
+        vmin=None,
+        vmax=None,
         at=0,
         **kwargs,
     ):
@@ -98,6 +100,10 @@ class Slicer3DPlotter(Plotter):
                 colormap button text size
             box_alpha (float):
                 opacity of the volume bounding box
+            vmin (float):
+                minimum scalar value for the colormap range; if None it is computed automatically
+            vmax (float):
+                maximum scalar value for the colormap range; if None it is computed automatically
             at (int):
                 subwindow number to plot to
             **kwargs (dict):
@@ -148,6 +154,8 @@ class Slicer3DPlotter(Plotter):
         self._box = None
         self._box_alpha = box_alpha
         self._dims = (0, 0, 0)
+        self._vmin = vmin
+        self._vmax = vmax
         self._scalar_range = (0, 1)
         self._histogram_data = None
         self.cmap_slicer = cmaps[0]
@@ -243,7 +251,7 @@ class Slicer3DPlotter(Plotter):
         else:
             self._cmap_button = None
 
-        self.set_volume(volume, reset_slices=True, reset_camera=False, render=False)
+        self.set_volume(volume, reset_slices=True)
         self.reset_camera()
 
     def _make_box(self, volume):
@@ -272,6 +280,16 @@ class Slicer3DPlotter(Plotter):
             **options,
         )
 
+    @property
+    def scalar_range(self):
+        """The current colormap scalar range as a `(vmin, vmax)` tuple."""
+        return self._scalar_range
+
+    @scalar_range.setter
+    def scalar_range(self, value):
+        self._scalar_range = tuple(value)
+        self._vmin, self._vmax = self._scalar_range
+
     def _compute_scalar_range(self, volume):
         data = volume.pointdata[0]
         rmin, rmax = volume.scalar_range()
@@ -281,6 +299,10 @@ class Slicer3DPlotter(Plotter):
             meanlog = np.sum(np.multiply(edg[:-1], logdata)) / np.sum(logdata)
             rmax = min(rmax, meanlog + (meanlog - rmin) * 0.9)
             rmin = max(rmin, meanlog - (rmax - meanlog) * 0.9)
+        if self._vmin is not None:
+            rmin = self._vmin
+        if self._vmax is not None:
+            rmax = self._vmax
         return data, (rmin, rmax)
 
     def _make_histogram(self):
@@ -422,8 +444,8 @@ class Slicer3DPlotter(Plotter):
         self,
         volume: vedo.Volume,
         reset_slices=True,
-        reset_camera=False,
-        render=True,
+        vmin=None,
+        vmax=None,
     ) -> Slicer3DPlotter:
         """
         Replace the input volume while preserving the existing plotter window.
@@ -433,11 +455,16 @@ class Slicer3DPlotter(Plotter):
                 the new input volume to visualize.
             reset_slices (bool):
                 if True reset slices to their default positions, otherwise preserve them when possible.
-            reset_camera (bool):
-                if True reset the camera after swapping the volume.
-            render (bool):
-                if True render the scene after the update.
+            vmin (float):
+                override the minimum of the colormap range for this call; also updates `_vmin`.
+            vmax (float):
+                override the maximum of the colormap range for this call; also updates `_vmax`.
         """
+        if vmin is not None:
+            self._vmin = vmin
+        if vmax is not None:
+            self._vmax = vmax
+
         if self._box is not None:
             self.remove(self._box, at=self._at)
         self.remove(*self._slice_names, at=self._at)
@@ -482,10 +509,6 @@ class Slicer3DPlotter(Plotter):
         if self.current_k is not None:
             self._update_slice("z", self.current_k, render=False)
 
-        if reset_camera:
-            self.reset_camera()
-        if render:
-            self.render()
         return self
 
 
