@@ -1409,7 +1409,7 @@ def ThickTube(pts, r1, r2, res=12, c=None, alpha=1.0) -> Mesh:
     ![](https://vedo.embl.es/images/feats/thick_tube.png)
     """
 
-    def make_cap(ring1, ring2):
+    def make_cap(ring1, ring2, flip=False):
         n = len(ring1.coordinates)
         newpoints = ring1.coordinates.tolist() + ring2.coordinates.tolist()
         newfaces = []
@@ -1417,7 +1417,9 @@ def ThickTube(pts, r1, r2, res=12, c=None, alpha=1.0) -> Mesh:
             newfaces.append([i, i + 1, i + n])
             newfaces.append([i + n, i + 1, i + n + 1])
         newfaces.append([2 * n - 1, 0, n])
-        newfaces.append([n - 1, 0, 2 * n - 1])  # was reversed; fix winding
+        newfaces.append([n - 1, 0, 2 * n - 1])
+        if flip:
+            newfaces = [f[::-1] for f in newfaces]
         return utils.buildPolyData(newpoints, newfaces)
 
     if r1 >= r2:
@@ -1435,11 +1437,16 @@ def ThickTube(pts, r1, r2, res=12, c=None, alpha=1.0) -> Mesh:
     tc1a, tc1b = rings1
     tc2a, tc2b = rings2
 
-    tc1b.join(reset=True).clean()  # needed because indices are flipped
+    # join orders ring points in traversal order; b-rings need it because
+    # the tube's consistent winding means the boundary at the far end goes in
+    # the opposite direction — flip=True on capb corrects the resulting winding
+    tc1a.join(reset=True).clean()
+    tc2a.join(reset=True).clean()
+    tc1b.join(reset=True).clean()
     tc2b.join(reset=True).clean()
 
     capa = make_cap(tc1a, tc2a)
-    capb = make_cap(tc1b, tc2b)
+    capb = make_cap(tc1b, tc2b, flip=True)
 
     thick_tube = merge(t1, t2, capa, capb)
     if thick_tube is None:
