@@ -4,8 +4,7 @@ from __future__ import annotations
 
 """LaTeX rendering helper class."""
 
-import vedo
-import vedo.vtkclasses as vtki
+import os
 
 from vedo import settings
 from vedo.colors import get_color
@@ -36,12 +35,18 @@ class Latex(Image):
                 latex text string
             pos (list):
                 position coordinates in space
+            s (float):
+                scale factor
             bg (color):
                 background color box
             res (int):
                 dpi resolution
             usetex (bool):
                 use latex compiler of matplotlib if available
+            c (color):
+                text color
+            alpha (float):
+                opacity of the image
 
         You can access the latex formula in `Latex.formula`.
 
@@ -51,20 +56,19 @@ class Latex(Image):
             ![](https://vedo.embl.es/images/pyplot/latex.png)
         """
         from tempfile import NamedTemporaryFile
-        import matplotlib.pyplot as mpltib
+        import matplotlib.pyplot as plt_matplib
 
         def build_img_plt(formula, tfile):
-
-            mpltib.rc("text", usetex=usetex)
-
+            plt_matplib.rc("text", usetex=usetex)
             formula1 = "$" + formula + "$"
-            mpltib.axis("off")
+            fig = plt_matplib.figure()
+            plt_matplib.axis("off")
             col = get_color(c)
             if bg:
                 bx = dict(boxstyle="square", ec=col, fc=get_color(bg))
             else:
                 bx = None
-            mpltib.text(
+            plt_matplib.text(
                 0.5,
                 0.5,
                 formula1,
@@ -75,28 +79,25 @@ class Latex(Image):
                 va="center",
                 bbox=bx,
             )
-            mpltib.savefig(
+            plt_matplib.savefig(
                 tfile, format="png", transparent=True, bbox_inches="tight", pad_inches=0
             )
-            mpltib.close()
+            plt_matplib.close(fig)
 
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
 
-        tmp_file = NamedTemporaryFile(delete=True)
-        tmp_file.name = tmp_file.name + ".png"
+        tmp_file = NamedTemporaryFile(suffix=".png", delete=False)
+        tmp_name = tmp_file.name
+        tmp_file.close()
 
-        build_img_plt(formula, tmp_file.name)
+        build_img_plt(formula, tmp_name)
 
-        super().__init__(tmp_file.name, channels=4)
+        super().__init__(tmp_name, channels=4)
+        os.unlink(tmp_name)
+
         self.alpha(alpha)
         self.scale([0.25 / res * s, 0.25 / res * s, 0.25 / res * s])
         self.pos(pos)
         self.name = "Latex"
         self.formula = formula
-
-        # except:
-        #     printc("Error in Latex()\n", formula, c="r")
-        #     printc(" latex or dvipng not installed?", c="r")
-        #     printc(" Try: usetex=False", c="r")
-        #     printc(" Try: sudo apt install dvipng", c="r")
