@@ -4,7 +4,6 @@ from __future__ import annotations
 
 """2D text overlay class."""
 
-import os
 from weakref import ref as weak_ref_to
 import numpy as np
 
@@ -103,8 +102,10 @@ class Text2D:
 
         if isinstance(settings.default_font, int):
             lfonts = list(settings.font_parameters.keys())
-            font = settings.default_font % len(lfonts)
-            self.fontname = lfonts[font]
+            idx = settings.default_font % len(lfonts)
+            self.fontname = lfonts[idx]
+            if not font:
+                font = idx
         else:
             self.fontname = settings.default_font
 
@@ -181,14 +182,16 @@ class Text2D:
         self.properties.SetJustificationToLeft()
         if "top" in justify:
             self.properties.SetVerticalJustificationToTop()
-        if "bottom" in justify:
+        elif "bottom" in justify:
             self.properties.SetVerticalJustificationToBottom()
-        if "cent" in justify or "mid" in justify:
-            self.properties.SetJustificationToCentered()
-        if "left" in justify:
-            self.properties.SetJustificationToLeft()
+        elif "mid" in justify or "cent" in justify:
+            self.properties.SetVerticalJustificationToCentered()
         if "right" in justify:
             self.properties.SetJustificationToRight()
+        elif "left" in justify:
+            self.properties.SetJustificationToLeft()
+        elif "mid" in justify or "cent" in justify:
+            self.properties.SetJustificationToCentered()
 
         self.actor.SetPosition(pos)
         return self
@@ -198,11 +201,10 @@ class Text2D:
         if txt is None:
             return self.mapper.GetInput()
 
+        txt = str(txt)
         if ":" in txt:
             for r in _reps:
                 txt = txt.replace(r[0], r[1])
-        else:
-            txt = str(txt)
 
         self.mapper.SetInput(txt)
         return self
@@ -260,8 +262,10 @@ class Text2D:
             return get_color(self.properties.GetColor())
         return self.color(color)
 
-    def alpha(self, value: float):
-        """Set the text opacity"""
+    def alpha(self, value=None):
+        """Set/get the text opacity"""
+        if value is None:
+            return self.properties.GetOpacity()
         self.properties.SetOpacity(value)
         return self
 
@@ -297,15 +301,8 @@ class Text2D:
             font = lfonts[n]
             self.fontname = font
 
-        if not font:  # use default font
+        if not font:
             font = self.fontname
-            fpath = os.path.join(vedo.fonts_path, font + ".ttf")
-        elif font.startswith("https"):  # user passed URL link, make it a path
-            fpath = vedo.file_io.download(font, verbose=False, force=False)
-        elif font.endswith(".ttf"):  # user passing a local path to font file
-            fpath = font
-        else:  # user passing name of preset font
-            fpath = os.path.join(vedo.fonts_path, font + ".ttf")
 
         if font == "Courier":
             self.properties.SetFontFamilyToCourier()
