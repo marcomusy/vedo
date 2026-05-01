@@ -337,7 +337,7 @@ class Assembly(CommonVisual, Actor3DHelper):
         from PIL import Image
 
         library_name = "vedo.assembly.Assembly"
-        help_url = "https://vedo.embl.es/docs/vedo/assembly.html"
+        help_url = "https://vedo.embl.es/site/api/assembly/#vedo.assembly.Assembly"
 
         arr = self.thumbnail(zoom=1.1, elevation=-60)
 

@@ -309,7 +309,7 @@ class Image(vedo.visual.ImageVisual):
         from PIL import Image as PILImage
 
         library_name = "vedo.grids.image.Image"
-        help_url = "https://vedo.embl.es/docs/vedo/image.html"
+        help_url = "https://vedo.embl.es/site/api/grids/#vedo.grids.image.Image"
 
         arr = self.thumbnail(zoom=1.1)
 

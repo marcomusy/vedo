@@ -216,7 +216,7 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         from PIL import Image
 
         library_name = "vedo.grids.RectilinearGrid"
-        help_url = "https://vedo.embl.es/docs/vedo/grids.html#RectilinearGrid"
+        help_url = "https://vedo.embl.es/site/api/grids/#vedo.grids.rectilinear.RectilinearGrid"
 
         m = self.tomesh().linewidth(1).lighting("off")
         arr = m.thumbnail(zoom=1, elevation=-30, azimuth=-30)

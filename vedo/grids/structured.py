@@ -230,7 +230,7 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
         from PIL import Image
 
         library_name = "vedo.grids.StructuredGrid"
-        help_url = "https://vedo.embl.es/docs/vedo/grids.html#StructuredGrid"
+        help_url = "https://vedo.embl.es/site/api/grids/#vedo.grids.structured.StructuredGrid"
 
         m = self.tomesh().linewidth(1).lighting("off")
         arr = m.thumbnail(zoom=1, elevation=-30, azimuth=-30)

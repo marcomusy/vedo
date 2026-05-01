@@ -302,7 +302,7 @@ class Volume(VolumeAlgorithms, VolumeVisual, VolumeSlicingMixin):
         from PIL import Image
 
         library_name = "vedo.volume.Volume"
-        help_url = "https://vedo.embl.es/docs/vedo/volume.html"
+        help_url = "https://vedo.embl.es/site/api/volume/#vedo.volume.core.Volume"
 
         arr = self.thumbnail(azimuth=0, elevation=-60, zoom=1.4, axes=True)
 

@@ -211,7 +211,7 @@ class Figure(Assembly):
         from PIL import Image
 
         library_name = "vedo.pyplot.Figure"
-        help_url = "https://vedo.embl.es/docs/vedo/pyplot.html#Figure"
+        help_url = "https://vedo.embl.es/site/api/pyplot/#vedo.pyplot.figure.Figure"
 
         arr = self.thumbnail(zoom=1.1)
 

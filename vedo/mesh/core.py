@@ -184,7 +184,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         from PIL import Image
 
         library_name = "vedo.mesh.Mesh"
-        help_url = "https://vedo.embl.es/docs/vedo/mesh.html#Mesh"
+        help_url = "https://vedo.embl.es/site/api/mesh/#vedo.mesh.core.Mesh"
 
         arr = self.thumbnail()
         im = Image.fromarray(arr)

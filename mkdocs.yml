@@ -10,6 +10,9 @@ markdown_extensions:
 extra_css:
   - assets/docs-overrides.css
 
+extra_javascript:
+  - assets/search-expand.js
+
 exclude_docs: |
   logos/*.py
 
@@ -24,6 +27,7 @@ plugins:
           paths: [.]
           options:
             docstring_style: google
+            show_source: false
             filters:
               - "!^_.*$"
             docstring_options:

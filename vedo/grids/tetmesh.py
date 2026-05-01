@@ -223,7 +223,7 @@ class TetMesh(UnstructuredGrid):
         from PIL import Image
 
         library_name = "vedo.grids.TetMesh"
-        help_url = "https://vedo.embl.es/docs/vedo/grids.html#TetMesh"
+        help_url = "https://vedo.embl.es/site/api/grids/#vedo.grids.tetmesh.TetMesh"
 
         arr = self.thumbnail()
         im = Image.fromarray(arr)

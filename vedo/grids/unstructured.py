@@ -371,7 +371,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         from PIL import Image
 
         library_name = "vedo.grids.UnstructuredGrid"
-        help_url = "https://vedo.embl.es/docs/vedo/grids.html#UnstructuredGrid"
+        help_url = "https://vedo.embl.es/site/api/grids/#vedo.grids.unstructured.UnstructuredGrid"
 
         arr = self.thumbnail()
         im = Image.fromarray(arr)
