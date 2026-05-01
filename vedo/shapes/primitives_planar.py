@@ -159,6 +159,7 @@ class Star(Mesh):
 
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
+        self.pos(pos)
 
         self.properties.LightingOff()
         self.name = "Star"
@@ -403,8 +404,8 @@ class Grid(Mesh):
             pos = [(bb[0] + bb[1]) / 2, (bb[2] + bb[3]) / 2, 0]
             sx = bb[1] - bb[0]
             sy = bb[3] - bb[2]
-            if len(pos) == 6:
-                pos[2] = bb[4] - bb[5]
+            if len(bb) == 6:
+                pos[2] = (bb[4] + bb[5]) / 2
 
         if utils.is_sequence(sx) and utils.is_sequence(sy):
             verts = []
@@ -568,17 +569,31 @@ class Plane(Mesh):
         `points` is an array of shape (n, 3).
         """
         points = np.array(points, dtype=float)
-        bounds = self.coordinates
+        center = self.center
+        n = self.normal
+        coords = self.coordinates
 
-        mask = np.isclose(np.dot(points - self.center, self.normal), 0, atol=tol)
+        mask = np.isclose(np.dot(points - center, n), 0, atol=tol)
 
-        for i in [1, 3]:
-            AB = bounds[i] - bounds[0]
-            AP = points - bounds[0]
-            mask_l = np.less_equal(np.dot(AP, AB), np.linalg.norm(AB))
-            mask_g = np.greater_equal(np.dot(AP, AB), 0)
-            mask = np.logical_and(mask, mask_l)
-            mask = np.logical_and(mask, mask_g)
+        # Build two orthogonal in-plane axes from the normal
+        helper = np.array([1.0, 0, 0]) if abs(n[0]) < 0.9 else np.array([0.0, 1, 0])
+        u = np.cross(n, helper)
+        u /= np.linalg.norm(u)
+        v = np.cross(n, u)
+
+        # Project all plane vertices and test points onto the local 2D frame.
+        # Works correctly for any plane resolution.
+        rel_coords = coords - center
+        rel_pts = points - center
+        pu = rel_coords @ u
+        pv = rel_coords @ v
+        qu = rel_pts @ u
+        qv = rel_pts @ v
+
+        mask = np.logical_and(mask, qu >= pu.min() - tol)
+        mask = np.logical_and(mask, qu <= pu.max() + tol)
+        mask = np.logical_and(mask, qv >= pv.min() - tol)
+        mask = np.logical_and(mask, qv <= pv.max() + tol)
         return mask
 
 
