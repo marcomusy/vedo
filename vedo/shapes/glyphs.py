@@ -70,12 +70,8 @@ class Glyph(Mesh):
             cmap = c
             c = None
         elif utils.is_sequence(c):  # user passing an array of point colors
-            ucols = vtki.vtkUnsignedCharArray()
-            ucols.SetNumberOfComponents(3)
-            ucols.SetName("GlyphRGB")
-            for col in c:
-                cl = get_color(col)
-                ucols.InsertNextTuple3(cl[0] * 255, cl[1] * 255, cl[2] * 255)
+            rgb = np.array([get_color(col) for col in c])
+            ucols = utils.numpy2vtk((rgb * 255).astype(np.uint8), name="GlyphRGB")
             poly.GetPointData().AddArray(ucols)
             poly.GetPointData().SetActiveScalars("GlyphRGB")
             c = None
@@ -83,10 +79,10 @@ class Glyph(Mesh):
         gly = vtki.vtkGlyph3D()
         gly.GeneratePointIdsOn()
         gly.SetInputData(poly)
-        try:
-            gly.SetSourceData(glyph)
-        except TypeError:
+        if hasattr(glyph, "dataset"):
             gly.SetSourceData(glyph.dataset)
+        else:
+            gly.SetSourceData(glyph)
 
         if scale_by_scalar:
             gly.SetScaleModeToScaleByScalar()
@@ -110,16 +106,15 @@ class Glyph(Mesh):
             if isinstance(orientation_array, str):
                 if orientation_array.lower() == "normals":
                     gly.SetVectorModeToUseNormal()
-                else:  # passing a name
+                else:
                     poly.GetPointData().SetActiveVectors(orientation_array)
                     gly.SetInputArrayToProcess(0, 0, 0, 0, orientation_array)
                     gly.SetVectorModeToUseVector()
-            elif utils.is_sequence(orientation_array):  # passing a list
-                varr = vtki.vtkFloatArray()
-                varr.SetNumberOfComponents(3)
-                varr.SetName("glyph_vectors")
-                for v in orientation_array:
-                    varr.InsertNextTuple(v)
+            elif utils.is_sequence(orientation_array):
+                varr = utils.numpy2vtk(
+                    np.asarray(orientation_array, dtype=np.float32),
+                    name="glyph_vectors",
+                )
                 poly.GetPointData().AddArray(varr)
                 poly.GetPointData().SetActiveVectors("glyph_vectors")
                 gly.SetInputArrayToProcess(0, 0, 0, 0, "glyph_vectors")
@@ -199,7 +194,7 @@ class Tensors(Mesh):
         """
         if isinstance(source, Points):
             src = source.dataset
-        else:  # is string
+        else:
             if "ellip" in source:
                 src = vtki.new("SphereSource")
                 src.SetPhiResolution(res)
@@ -211,8 +206,10 @@ class Tensors(Mesh):
             elif source == "cube":
                 src = vtki.new("CubeSource")
             else:
-                vedo.logger.error(f"Unknown source type {source}")
-                raise ValueError()
+                vedo.logger.error(
+                    f"Unknown source type '{source}'. Use 'ellipsoid', 'cylinder', or 'cube'."
+                )
+                raise ValueError(source)
             src.Update()
             src = src.GetOutput()
 
