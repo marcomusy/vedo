@@ -201,11 +201,13 @@ class Spring(Mesh):
         diff = end_pt - start_pt
         length = np.linalg.norm(diff)
         if not length:
+            super().__init__(vtki.vtkPolyData(), c, alpha)
+            self.name = "Spring"
             return
         if not r1:
             r1 = length / 20
         trange = np.linspace(0, length, num=50 * coils)
-        om = 6.283 * (coils - 0.5) / length
+        om = 2 * np.pi * (coils - 0.5) / length
         if not r2:
             r2 = r1
         pts = []
@@ -346,7 +348,7 @@ class Sphere(Mesh):
             pos = np.asarray([pos[0], pos[1], 0])
 
         self.radius = r  # used by fitSphere
-        self.center = pos
+        self.center = utils.make3d(pos)
         self.residue = 0
 
         if quads:
@@ -618,7 +620,7 @@ class Pyramid(Cone):
     """Build a pyramidal shape."""
 
     def __init__(
-        self, pos=(0, 0, 0), s=1.0, height=1.0, axis=(0, 0, 1), c="green3", alpha=1
+        self, pos=(0, 0, 0), s=1.0, height=1.0, axis=(0, 0, 1), c="green3", alpha=1.0
     ) -> None:
         """Build a pyramid of specified base size `s` and `height`, centered at `pos`."""
         super().__init__(pos, s, height, axis, 4, c, alpha)
@@ -648,8 +650,8 @@ class Torus(Mesh):
             n = res_v
             m = res_u
 
-            theta = np.linspace(0, 2.0 * np.pi, n)
-            phi = np.linspace(0, 2.0 * np.pi, m)
+            theta = np.linspace(0, 2.0 * np.pi, n, endpoint=False)
+            phi = np.linspace(0, 2.0 * np.pi, m, endpoint=False)
             theta, phi = np.meshgrid(theta, phi)
             t = r1 + r2 * np.cos(theta)
             x = t * np.cos(phi)
@@ -658,10 +660,10 @@ class Torus(Mesh):
             pts = np.column_stack((x.ravel(), y.ravel(), z.ravel()))
 
             faces = []
-            for j in range(m - 1):
-                j1n = (j + 1) * n
-                for i in range(n - 1):
-                    faces.append([i + j * n, i + 1 + j * n, i + 1 + j1n, i + j1n])
+            for j in range(m):
+                j1n = ((j + 1) % m) * n
+                for i in range(n):
+                    faces.append([i + j * n, (i + 1) % n + j * n, (i + 1) % n + j1n, i + j1n])
 
             super().__init__([pts, faces], c, alpha)
 
@@ -691,7 +693,7 @@ class Paraboloid(Mesh):
 
     def __init__(self, pos=(0, 0, 0), height=1.0, res=50, c="cyan5", alpha=1.0) -> None:
         """
-        Build a paraboloid of specified height and radius `r`, centered at `pos`.
+        Build a paraboloid of specified `height`, centered at `pos`.
 
         Full volumetric expression is:
             `F(x,y,z)=a_0x^2+a_1y^2+a_2z^2+a_3xy+a_4yz+a_5xz+ a_6x+a_7y+a_8z+a_9`
