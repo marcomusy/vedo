@@ -398,6 +398,22 @@ __all__ = [
 
 ######################################################################### LOGGING
 _VEDO_LOG_FORMAT = "[vedo.%(module)s:%(lineno)d] %(message)s"
+_VEDO_LOG_FORMAT_INFO = " [vedo.%(module)s] %(message)s"
+
+
+class _VedoFormatter(logging.Formatter):
+    def format(self, record):
+        fmt = _VEDO_LOG_FORMAT_INFO if record.levelno == logging.INFO else _VEDO_LOG_FORMAT
+        return logging.Formatter(fmt).format(record)
+
+
+if RichHandler is not None:
+    from rich.text import Text
+
+    class _VedoRichHandler(RichHandler):
+        def get_level_text(self, record):
+            level_name = record.levelname
+            return Text(level_name, style=f"logging.level.{level_name.lower()}")
 
 
 def _build_default_log_handler(stream=None):
@@ -415,7 +431,7 @@ def _build_default_log_handler(stream=None):
     if RichHandler is None or Console is None:
         handler = logging.StreamHandler(log_stream)
     else:
-        handler = RichHandler(
+        handler = _VedoRichHandler(
             console=Console(file=log_stream),
             show_time=False,
             show_path=False,
@@ -426,7 +442,7 @@ def _build_default_log_handler(stream=None):
         )
 
     handler.setLevel(logging.DEBUG)
-    handler.setFormatter(logging.Formatter(_VEDO_LOG_FORMAT))
+    handler.setFormatter(_VedoFormatter())
     return handler
 
 

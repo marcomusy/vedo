@@ -265,11 +265,11 @@ def main():
 
     elif not args.files:
         system_info()
-        message = "No input files provided. Try one of these:"
+        message = "No input files provided. Try:"
         example = (
             "vedo https://vedo.embl.es/examples/data/panther.stl\n"
             "or explore a built-in example with:\n"
-            "vedo -r warp1"
+            "vedo -r warp2"
         )
         try:
             from rich import box
@@ -281,7 +281,7 @@ def main():
             body.append(f"{message}\n", style="bold yellow")
             body.append("vedo https://vedo.embl.es/examples/data/panther.stl\n", style="bold white")
             body.append("or explore a built-in example with:\n", style="bold yellow")
-            body.append("vedo -r warp1", style="bold white")
+            body.append("vedo -r warp2", style="bold white")
             Console().print(
                 Panel(
                     body,
@@ -1075,7 +1075,6 @@ def exe_eog(args) -> None:
                 ahl = plt.hover_legends[-1]
                 plt.remove(ahl)
                 plt.screenshot()  # writer
-                vedo.logger.info("Image saved as screenshot.png")
                 plt.add(ahl)
                 return
             elif event.keypress == "h":
