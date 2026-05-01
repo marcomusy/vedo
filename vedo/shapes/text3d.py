@@ -4,8 +4,7 @@ from __future__ import annotations
 
 """3D text mesh class."""
 
-from typing import Any
-from weakref import ref as weak_ref_to
+from typing import Union
 import numpy as np
 
 import vedo
@@ -61,7 +60,7 @@ class Text3D(Mesh):
                 italic font type (can be a signed float too)
             justify (str):
                 text justification as centering of the bounding box
-                (bottom-left, bottom-right, top-left, top-right, centered)
+                (bottom-left, bottom-right, top-left, top-right, center)
             font (str, int):
                 some of the available 3D-polygonized fonts are:
                 Bongas, Calco, Comae, ComicMono, Kanopus, Glasgo, Ubuntu,
@@ -125,17 +124,20 @@ class Text3D(Mesh):
     def text(
         self,
         txt=None,
-        s=1,
+        s=1.0,
         font="",
         hspacing=1.15,
         vspacing=2.15,
-        depth=0,
+        depth=0.0,
         italic=False,
         justify="",
         literal=False,
-    ) -> Text3D:
+    ) -> "Union[Text3D, str]":
         """
         Update the text and some of its properties.
+        When called with no arguments, returns the current text string.
+
+        `s` is a multiplier on the original size set at construction time.
 
         Check [available fonts here](https://vedo.embl.es/fonts).
         """
@@ -184,13 +186,13 @@ class Text3D(Mesh):
 
         txt = str(txt)
 
-        if font == "VTK":  #######################################
+        if font == "VTK":
             vtt = vtki.new("VectorText")
             vtt.SetText(txt)
             vtt.Update()
             tpoly = vtt.GetOutput()
 
-        else:  ###################################################
+        else:
             stxt = set(txt)  # check here if null or only spaces
             if not txt or (len(stxt) == 1 and " " in stxt):
                 return vtki.vtkPolyData()
@@ -245,7 +247,6 @@ class Text3D(Mesh):
             polyletters = []
             ntxt = len(txt)
             for i, t in enumerate(txt):
-                ##########
                 if t == "┭":
                     t = "_"
                 elif t == "┮":
@@ -264,6 +265,7 @@ class Text3D(Mesh):
                     yshift = -0.3 * fscale
                     scale = 0.5
                     continue
+                # "\\n" catches literal two-char \n sequences (e.g. from raw strings)
                 elif (t in (" ", "\\n")) and yshift:
                     yshift = 0.0
                     scale = 1.0
@@ -276,7 +278,6 @@ class Text3D(Mesh):
                     xmax += hspacing * scale * fscale / 4
                     continue
 
-                ############
                 if t == " ":
                     xmax += hspacing * scale * fscale
 
@@ -318,7 +319,9 @@ class Text3D(Mesh):
                     if yshift == 0:
                         save_xmax = xmax
 
-            if len(polyletters) == 1:
+            if len(polyletters) == 0:
+                return vtki.vtkPolyData()
+            elif len(polyletters) == 1:
                 tpoly = polyletters[0]
             else:
                 polyapp = vtki.new("AppendPolyData")
