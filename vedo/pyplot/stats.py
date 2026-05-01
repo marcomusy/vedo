@@ -77,8 +77,11 @@ def pie_chart(
     angles = np.add.accumulate(2 * np.pi * fractions)
     angles[-1] = 2 * np.pi
     if angles[-2] > 2 * np.pi:
-        print("Error in donut(): fractions must sum to 1.")
-        raise RuntimeError
+        raise RuntimeError("pie_chart: fractions must sum to 1.")
+
+    if c is None:
+        nc = len(fractions)
+        c = [colors.color_map(i, "rainbow", 0, nc) for i in range(nc)]
 
     cols = []
     for i, th in enumerate(np.linspace(0, 2 * np.pi, 360, endpoint=False)):
@@ -211,7 +214,7 @@ def violin(
             for i in range(bins):
                 p0 = (-fs[i], edges[i], 0)
                 p1 = (fs[i], edges[i + 1], 0)
-                r = shapes.Rectangle(p0, p1).x(p0[0] + x)
+                r = shapes.Rectangle(p0, p1).x(x)
                 r.color(c).alpha(alpha).lighting("off")
                 rs.append(r)
 
@@ -276,7 +279,7 @@ def whisker(
     )
     l1 = shapes.Line([0, dq05, 0], [0, dq25, 0], c=c, lw=lw)
     l2 = shapes.Line([0, dq75, 0], [0, dq95, 0], c=c, lw=lw)
-    lm = shapes.Line([-s / 2, dmean], [s / 2, dmean])
+    lm = shapes.Line([-s / 2, dmean], [s / 2, dmean], c=c, lw=lw)
     lns = merge(l1, l2, lm, rl)
     asse = Assembly([lns, rec, pts])
     if horizontal:
@@ -364,7 +367,7 @@ def matrix(
     gr = shapes.Grid(res=(m, n), s=(m / (m + n) * 2, n / (m + n) * 2), c=c, alpha=alpha)
     gr.wireframe(False).lc(lc).lw(lw)
 
-    matr = np.flip(np.flip(M), axis=1).ravel(order="C")
+    matr = np.flip(M, axis=0).ravel(order="C")
     gr.cmap(cmap, matr, on="cells", vmin=vmin, vmax=vmax)
     sbar = None
     if scalarbar:
@@ -547,6 +550,7 @@ def CornerHistogram(
     if hasattr(values, "dataset"):
         values = utils.vtk2numpy(values.dataset.GetPointData().GetScalars())
 
+    values = np.asarray(values)
     n = values.shape[0]
     if nmax and nmax < n:
         # subsample:
