@@ -4,33 +4,18 @@ from __future__ import annotations
 
 """Marker and special symbol shapes extracted from vedo.shapes."""
 
-from typing import Any
 import numpy as np
 
 import vedo
 import vedo.vtkclasses as vtki
 
-from vedo import settings, utils
-from vedo.core.transformations import LinearTransform
-from vedo.colors import get_color
 from vedo.mesh import Mesh
-from vedo.pointcloud import Points, merge
-from vedo.shapes.curves import Line, Arc, Arrow, Arrow2D, Ribbon
-from vedo.shapes.primitives import (
-    Polygon,
-    Star,
-    Circle,
-    Disc,
-    Sphere,
-    Cylinder,
-    Cone,
-    Rectangle,
-    Grid,
-)
+from vedo.pointcloud import merge
+from vedo.shapes.primitives import Polygon, Star, Circle, Disc, Cylinder
 from vedo.shapes.text3d import Text3D
 
 
-def Marker(symbol, pos=(0, 0, 0), c="k", alpha=1.0, s=0.1, filled=True) -> Any:
+def Marker(symbol, pos=(0, 0, 0), c="k", alpha=1.0, s=0.1, filled=True) -> Mesh:
     """
     Generate a marker shape. Typically used in association with `Glyph`.
     """
@@ -93,7 +78,7 @@ def Marker(symbol, pos=(0, 0, 0), c="k", alpha=1.0, s=0.1, filled=True) -> Any:
         ).scale(s / 1.4)
     elif symbol == "x":
         mesh = Text3D("+", pos=(0, 0, 0), s=s * 2.6, justify="center", depth=0)
-        # mesh.rotate_z(45)
+        mesh.rotate_z(45)
     elif symbol == "a":
         mesh = Text3D("*", pos=(0, 0, 0), s=s * 2.6, justify="center", depth=0)
     else:
@@ -140,7 +125,7 @@ class Brace(Mesh):
             padding1 (float):
                 padding space in percent form the input points.
             font (str):
-                font type
+                font type of comment text.
             comment (str):
                 additional text to appear next to the brace symbol.
             justify (str):
@@ -176,7 +161,7 @@ class Brace(Mesh):
         q2[2] = q1[2]
 
         if style not in "{}[]()<>|I":
-            vedo.logger.error(f"unknown style {style}." + "Use {}[]()<>|I")
+            vedo.logger.error(f"unknown style {style}. Use {{}}[]()<>|I")
             style = "}"
 
         flip = False
@@ -415,8 +400,7 @@ class ParametricShape(Mesh):
         elif name == "Pseudosphere":
             ps = vtki.new("ParametricPseudosphere")
         else:
-            vedo.logger.error(f"unknown ParametricShape {name}")
-            return
+            raise ValueError(f"unknown ParametricShape {name}")
 
         pfs = vtki.new("ParametricFunctionSource")
         pfs.SetParametricFunction(ps)
