@@ -1113,7 +1113,8 @@ class KSpline(Line):
             zspline.AddPoint(i, p[2])
 
         ln = []
-        for pos in np.linspace(0, len(points) - 1, res):
+        last = len(points) if closed else len(points) - 1
+        for pos in np.linspace(0, last, res):
             x = xspline.Evaluate(pos)
             y = yspline.Evaluate(pos)
             z = zspline.Evaluate(pos)
@@ -1169,7 +1170,8 @@ class CSpline(Line):
             zspline.AddPoint(i, p[2])
 
         ln = []
-        for pos in np.linspace(0, len(points) - 1, res):
+        last = len(points) if closed else len(points) - 1
+        for pos in np.linspace(0, last, res):
             x = xspline.Evaluate(pos)
             y = yspline.Evaluate(pos)
             z = zspline.Evaluate(pos)

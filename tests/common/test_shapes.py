@@ -11,6 +11,8 @@ from vedo.shapes import (
     Cone,
     Cube,
     Cylinder,
+    CSpline,
+    KSpline,
     Line,
     Sphere,
     Spline,
@@ -109,6 +111,19 @@ def test_spline() -> None:
     pts = [[0, 0, 0], [1, 1, 0], [2, 0, 0], [3, 1, 0]]
     sp = Spline(pts, res=20)
     assert sp.npoints >= 20
+
+
+@pytest.mark.parametrize("spline_class", [Spline, KSpline, CSpline])
+def test_closed_splines_duplicate_the_first_point(spline_class) -> None:
+    pts = [[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]]
+    spline = spline_class(pts, closed=True)
+    lines = spline.dataset.GetLines()
+    lines.InitTraversal()
+    ids = vedo.vtkclasses.new("IdList")
+    assert lines.GetNextCell(ids)
+    first = spline.dataset.GetPoint(ids.GetId(0))
+    last = spline.dataset.GetPoint(ids.GetId(ids.GetNumberOfIds() - 1))
+    assert np.allclose(first, last)
 
 
 def test_arrow() -> None:
