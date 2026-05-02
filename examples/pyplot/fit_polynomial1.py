@@ -41,4 +41,4 @@ fig.add_label("ground truth", c="k", marker="--", mc="red5")
 fig.add_label("1:sigma error band", c="k", marker="s", mc="grey")
 fig.add_legend(pos=[1.07, 1], vspace=2)
 
-show(fig, msg, zoom=1.1).close()
+show(fig, msg, zoom=1.5, size=(1200, 800)).close()

@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
@@ -37,9 +38,9 @@ def plot(*args, **kwargs):
     you will receive an error message.
 
     Args:
-        xerrors (bool):
+        xerrors (list):
             show error bars associated to each point in x
-        yerrors (bool):
+        yerrors (list):
             show error bars associated to each point in y
         lw (int):
             width of the line connecting points in pixel units.
@@ -51,7 +52,7 @@ def plot(*args, **kwargs):
         dashed (bool):
             draw a dashed line instead of a continuous line
         splined (bool):
-            spline the line joining the point as a countinous curve
+            spline the line joining the point as a continuous curve
         elw (int):
             width of error bar lines in units of pixels
         ec (color):
@@ -169,12 +170,12 @@ def plot(*args, **kwargs):
     representing the function `f(x,y)`.
 
     Args:
-        x (float):
-            x range of values
-        y (float):
-            y range of values
-        zlimits (float):
-            limit the z range of the independent variable
+        xlim (list):
+            x range as [xmin, xmax]
+        ylim (list):
+            y range as [ymin, ymax]
+        zlim (tuple):
+            limit the z range as (zmin, zmax)
         zlevels (int):
             will draw the specified number of z-levels contour lines
         show_nan (bool):
@@ -199,7 +200,7 @@ def plot(*args, **kwargs):
         cmap (str):
             diverging color map (white means `imag(z)=0`)
         lw (float):
-            line with of the binning
+            line width of the binning
         bins (list):
             binning in x and y
 
@@ -220,8 +221,6 @@ def plot(*args, **kwargs):
             plot title
         tsize (float):
             title size
-        bins (int):
-            number of bins in phi
         r1 (float):
             inner radius
         r2 (float):
@@ -230,7 +229,7 @@ def plot(*args, **kwargs):
             label size
         c (color):
             color of the line
-        ac (color):
+        bc (color):
             color of the frame and labels
         alpha (float):
             opacity of the frame
@@ -267,12 +266,12 @@ def plot(*args, **kwargs):
     If `mode='spheric'` input must be an external function rho(theta, phi).
     A surface is created in spherical coordinates.
 
-    Return an `Figure(Assembly)` of 2 objects: the unit
-    sphere (in wireframe representation) and the surface `rho(theta, phi)`.
+    Returns an `Assembly` of 2 objects: the unit sphere (in wireframe
+    representation) and the surface `rho(theta, phi)`.
 
     Args:
-        rfunc : function
-            handle to a user defined function `rho(theta, phi)`.
+        rfunc (callable):
+            a user defined function `rho(theta, phi)`.
         normalize (bool):
             scale surface to fit inside the unit sphere
         res (int):
@@ -354,7 +353,7 @@ def plot(*args, **kwargs):
                 kwargs["marker"] = ss
                 break
 
-        opts.replace(" ", "")
+        opts = opts.replace(" ", "")
         if opts:
             vedo.logger.error(f"in plot(), could not understand option(s): {opts}")
 
@@ -673,13 +672,17 @@ def histogram(*args, **kwargs):
             if pd0 is not None:
                 data = pd0.ravel()
             else:
-                data = args[0].celldata[0].ravel()
+                cd0 = args[0].celldata[0]
+                if cd0 is None:
+                    vedo.logger.error("histogram(): object has no point or cell data")
+                    return None
+                data = cd0.ravel()
         else:
             try:
                 if "pandas" in str(type(args[0])):
                     if "xtitle" not in kwargs:
                         kwargs.update({"xtitle": args[0].name.replace("_", "_ ")})
-            except:
+            except Exception:
                 pass
             data = np.asarray(args[0])
 
@@ -774,6 +777,9 @@ def fit(
 
     n = len(x)
     ndof = n - deg - 1
+    if ndof <= 0:
+        vedo.logger.error(f"fit(): not enough points ({n}) for degree {deg} polynomial")
+        return None
     if vrange is not None:
         x0, x1 = vrange
     else:
@@ -797,7 +803,8 @@ def fit(
         # update yerrors, 1 bootstrap iteration is enough
         p1d = np.poly1d(coeffs)
         der = (p1d(x + tol) - p1d(x)) / tol
-        yerrors = np.sqrt(yerrors * yerrors + np.power(der * xerrors, 2))
+        ye2 = yerrors ** 2 if yerrors is not None else 0
+        yerrors = np.sqrt(ye2 + np.power(der * xerrors, 2))
 
     if yerrors is not None:
         yerrors = np.asarray(yerrors)
@@ -908,7 +915,7 @@ def _plot_fxy(
                     zv = 0
                     todel.append(i)
                     nans.append([xv, yv, 0])
-        except:
+        except Exception:
             zv = 0
             todel.append(i)
             nans.append([xv, yv, 0])
@@ -931,9 +938,9 @@ def _plot_fxy(
         vedo.logger.error("function is not real in the domain")
         return None
 
-    if zlim[0]:
+    if zlim[0] is not None:
         poly = Mesh(poly).cut_with_plane((0, 0, zlim[0]), (0, 0, 1)).dataset
-    if zlim[1]:
+    if zlim[1] is not None:
         poly = Mesh(poly).cut_with_plane((0, 0, zlim[1]), (0, 0, -1)).dataset
 
     cmap = ""
@@ -1019,19 +1026,21 @@ def _plot_fz(
         yv = (py + 0.5) * dy + y[0]
         try:
             zv = z(complex(xv), complex(yv))
-        except:
+        except Exception:
             zv = 0
         poly.GetPoints().SetPoint(i, [xv, yv, np.real(zv)])
         arrImg.append(np.imag(zv))
 
     mesh = Mesh(poly, alpha).lighting("plastic")
     v = max(abs(np.min(arrImg)), abs(np.max(arrImg)))
+    if v == 0:
+        v = 1
     mesh.cmap(cmap, arrImg, vmin=-v, vmax=v)
     mesh.compute_normals().lw(lw)
 
-    if zlimits[0]:
+    if zlimits[0] is not None:
         mesh.cut_with_plane((0, 0, zlimits[0]), (0, 0, 1))
-    if zlimits[1]:
+    if zlimits[1] is not None:
         mesh.cut_with_plane((0, 0, zlimits[1]), (0, 0, -1))
 
     acts = [mesh]
@@ -1066,10 +1075,9 @@ def _plot_polar(
     show_lines=True,
     show_angles=True,
 ):
-    if len(rphi) == 2:
-        rphi = np.stack((rphi[0], rphi[1]), axis=1)
-
     rphi = np.array(rphi, dtype=float)
+    if rphi.ndim == 2 and rphi.shape[0] == 2 and rphi.shape[1] != 2:
+        rphi = np.stack((rphi[0], rphi[1]), axis=1)
     thetas = rphi[:, 0]
     radii = rphi[:, 1]
 
@@ -1240,12 +1248,11 @@ def _plot_spheric(
 
 def _histogram_quad_bin(x, y, **kwargs):
     # generate a histogram with 3D bars
-    #
-    histo = Histogram2D(x, y, **kwargs)
-
     gap = kwargs.pop("gap", 0)
     zscale = kwargs.pop("zscale", 1)
     cmap = kwargs.pop("cmap", "Blues_r")
+
+    histo = Histogram2D(x, y, **kwargs)
 
     gr = histo.objects[2]
     d = gr.diagonal_size()
@@ -1297,16 +1304,20 @@ def _histogram_hex_bin(
     xmin, xmax = np.min(xvalues), np.max(xvalues)
     ymin, ymax = np.min(yvalues), np.max(yvalues)
     dx, dy = xmax - xmin, ymax - ymin
+    if dx == 0:
+        dx = 1
+    if dy == 0:
+        dy = 1
 
     if utils.is_sequence(bins):
         n, m = bins
     else:
-        if xmax - xmin < ymax - ymin:
+        if dx < dy:
             n = bins
-            m = np.rint(dy / dx * n / 1.2 + 0.5).astype(int)
+            m = max(1, np.rint(dy / dx * n / 1.2 + 0.5).astype(int))
         else:
             m = bins
-            n = np.rint(dx / dy * m * 1.2 + 0.5).astype(int)
+            n = max(1, np.rint(dx / dy * m * 1.2 + 0.5).astype(int))
 
     values = np.stack((xvalues, yvalues), axis=1)
     zs = [[0.0]] * len(values)
@@ -1354,14 +1365,15 @@ def _histogram_hex_bin(
             if ne > binmax:
                 binmax = ne
 
-    if cmap is not None:
+    if cmap is not None and binmax > 0:
         for h in hexs:
             z = h.bounds()[5]
             col = colors.color_map(z, cmap, 0, binmax)
             h.color(col)
 
+    zscale = norm / binmax * (dx + dy) / 4 if binmax > 0 else 1
     asse = Assembly(hexs)
-    asse.scale([1.2 / n * dx, 1 / m * dy, norm / binmax * (dx + dy) / 4])
+    asse.scale([1.2 / n * dx, 1 / m * dy, zscale])
     asse.pos([xmin, ymin, 0])
     asse.name = "HistogramHexBin"
     return asse
@@ -1561,7 +1573,9 @@ def _histogram_spheric(
         cell = sg.closest_point(p, return_cell_id=True)
         counts[cell] += 1
     acounts = np.array(counts, dtype=float)
-    counts *= (rmax - 1) / np.max(counts)
+    maxcounts = np.max(counts)
+    if maxcounts > 0:
+        counts *= (rmax - 1) / maxcounts
 
     for cell, cn in enumerate(counts):
         if not cn:
@@ -1620,7 +1634,7 @@ def streamplot(
     n = len(X)
     m = len(Y[0])
     if n != m:
-        print("Limitation in streamplot(): only square grids are allowed.", n, m)
+        vedo.logger.error(f"streamplot(): only square grids are supported, got {n}x{m}")
         raise RuntimeError()
 
     xmin, xmax = X[0][0], X[-1][-1]
