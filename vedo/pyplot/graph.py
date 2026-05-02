@@ -4,19 +4,14 @@ from __future__ import annotations
 
 """Graph plotting utilities."""
 
-from typing_extensions import Self
 import numpy as np
 
 import vedo.vtkclasses as vtki
 
 import vedo
-from vedo import settings
-from vedo.core.transformations import cart2spher, spher2cart
-from vedo import addons
 from vedo import colors
 from vedo import utils
 from vedo import shapes
-from vedo.pointcloud import Points, merge
 from vedo.mesh import Mesh
 from vedo.assembly import Assembly
 
@@ -221,7 +216,7 @@ class DirectedGraph(Assembly):
             opt = kargs.pop("nmax", None)
             if opt is not None:
                 self.strategy.SetMaxNumberOfIterations(opt)  # int
-            opt = kargs.pop("three_dimensional", True)
+            opt = kargs.pop("three_dimensional", None)
             if opt is not None:
                 self.strategy.SetThreeDimensionalLayout(opt)  # bool
             opt = kargs.pop("random_initial_points", None)
@@ -237,7 +232,7 @@ class DirectedGraph(Assembly):
             vedo.logger.error(
                 "[2d,fast2d,clustering2d,circular,circular3d,cone,force,tree]"
             )
-            raise RuntimeError()
+            raise RuntimeError(f"Cannot understand layout '{s}'")
 
         self.gl.SetLayoutStrategy(self.strategy)
 
@@ -307,15 +302,48 @@ class DirectedGraph(Assembly):
 
         diagsz = self.diagonal_size() / 1.42
         if not diagsz:
-            return None
+            raise RuntimeError("DirectedGraph.build(): degenerate graph with zero diagonal size")
 
         dgraph.scale(1 / diagsz)
+
+        # Generate labels from the scaled but pre-rotation mesh so that the
+        # text geometry and positions are both rotated together below.
+        node_labels = None
+        if self._node_labels:
+            node_labels = dgraph.labels(
+                self._node_labels,
+                scale=self.node_label_scale,
+                precision=0,
+                font=self.font,
+                justify=self.node_label_justify,
+            )
+            node_labels.color(self._c).pickable(True)
+            node_labels.name = "DirectedGraphNodeLabels"
+
+        edge_labels = None
+        if any(self._edge_labels):
+            edge_labels = dgraph.labels(
+                self._edge_labels,
+                on="cells",
+                scale=self.edge_label_scale,
+                precision=0,
+                font=self.font,
+            )
+            edge_labels.color(self._c).pickable(True)
+            edge_labels.name = "DirectedGraphEdgeLabels"
+
         if self.rotX:
             dgraph.rotate_x(self.rotX)
+            if node_labels: node_labels.rotate_x(self.rotX)
+            if edge_labels: edge_labels.rotate_x(self.rotX)
         if self.rotY:
             dgraph.rotate_y(self.rotY)
+            if node_labels: node_labels.rotate_y(self.rotY)
+            if edge_labels: edge_labels.rotate_y(self.rotY)
         if self.rotZ:
             dgraph.rotate_z(self.rotZ)
+            if node_labels: node_labels.rotate_z(self.rotZ)
+            if edge_labels: edge_labels.rotate_z(self.rotZ)
 
         vecs = gr2poly.GetOutput(1).GetPointData().GetVectors()
         self.edge_orientations = utils.vtk2numpy(vecs)
@@ -341,30 +369,6 @@ class DirectedGraph(Assembly):
             if self.rotZ:
                 arrows.rotate_z(self.rotZ)
             arrows.name = "DirectedGraphArrows"
-
-        node_labels = None
-        if self._node_labels:
-            node_labels = dgraph.labels(
-                self._node_labels,
-                scale=self.node_label_scale,
-                precision=0,
-                font=self.font,
-                justify=self.node_label_justify,
-            )
-            node_labels.color(self._c).pickable(True)
-            node_labels.name = "DirectedGraphNodeLabels"
-
-        edge_labels = None
-        if self._edge_labels:
-            edge_labels = dgraph.labels(
-                self._edge_labels,
-                on="cells",
-                scale=self.edge_label_scale,
-                precision=0,
-                font=self.font,
-            )
-            edge_labels.color(self._c).pickable(True)
-            edge_labels.name = "DirectedGraphEdgeLabels"
 
         super().__init__([dgraph, node_labels, edge_labels, arrows])
         self.name = "DirectedGraphAssembly"
