@@ -6,6 +6,7 @@ import numpy as np
 
 from vedo import Image, Mesh, Point, Points, settings, shapes
 from vedo.pyplot import Figure, pie_chart
+from vedo.pyplot.figure import LabelData
 
 
 def test_pyplot_figure_composition() -> None:
@@ -75,3 +76,47 @@ def test_pyplot_figure_composition() -> None:
 
     assert len(fig.unpack()) > 20
     assert len(fig2.unpack()) >= 2
+
+
+def test_figure_copies_axes_options() -> None:
+    axes = {"number_of_divisions": 3}
+    Figure([0, 1], [0, 1], axes=axes)
+    assert axes == {"number_of_divisions": 3}
+
+
+def test_figure_aspect_none_uses_equal_data_units() -> None:
+    fig = Figure([0, 2], [0, 1], aspect=None)
+    assert fig.yscale == 1
+
+
+def test_figure_rejects_different_limits_with_same_yscale() -> None:
+    fig1 = Figure([0, 1], [0, 1])
+    fig2 = Figure([10, 11], [10, 11])
+    before = len(fig1.objects)
+    fig1 += fig2
+    assert len(fig1.objects) == before
+
+
+def test_figure_rejects_incompatible_label() -> None:
+    label = LabelData()
+    label.text = "incompatible"
+    fig1 = Figure([0, 1], [0, 1])
+    fig2 = Figure([10, 11], [10, 11], label=label)
+    fig1 += fig2
+    assert fig1.labels == []
+
+
+def test_figure_iadd_list_unpacks_figures() -> None:
+    fig1 = Figure([0, 1], [0, 1])
+    fig2 = Figure([0, 1], [0, 1])
+    fig2 += Point([0.5, 0.5])
+    fig1 += [fig2]
+    assert not any(isinstance(obj, Figure) for obj in fig1.objects)
+
+
+def test_figure_empty_legend_is_noop() -> None:
+    fig = Figure([0, 1], [0, 1])
+    before = len(fig.objects)
+    fig.add_legend()
+    assert fig.legend is None
+    assert len(fig.objects) == before

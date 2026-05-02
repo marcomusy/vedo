@@ -50,8 +50,8 @@ class Figure(Assembly):
             ylim (list):
                 range of the y-axis as [y0, y1]
             aspect (float, str):
-                the desired aspect ratio of the histogram. Default is 4/3.
-                Use `aspect="equal"` to force the same units in x and y.
+                the desired aspect ratio of the figure. Default is 4/3.
+                Use `aspect="equal"` or `aspect=None` to force the same units in x and y.
             padding (float, list):
                 keep a padding space from the axes (as a fraction of the axis size).
                 This can be a list of four numbers.
@@ -62,7 +62,8 @@ class Figure(Assembly):
             grid (bool):
                 show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
             axes (dict):
-                an extra dictionary of options for the `vedo.addons.Axes` object
+                an extra dictionary of options for the `vedo.addons.Axes` object.
+                The input dictionary is copied before default options are added.
         """
 
         self.verbose = True  # printing to stdout on every mouse click
@@ -102,7 +103,8 @@ class Figure(Assembly):
         if self.label:
             self.labels = [self.label]
 
-        self.axopts = options.pop("axes", {})
+        axopts = options.pop("axes", {})
+        self.axopts = dict(axopts) if isinstance(axopts, dict) else axopts
         if isinstance(self.axopts, (bool, int, float)):
             if self.axopts:
                 self.axopts = {}
@@ -149,7 +151,7 @@ class Figure(Assembly):
             self.yscale = 0
             return
 
-        if aspect == "equal":
+        if aspect == "equal" or aspect is None:
             self.aspect = dx / dy  # so that yscale becomes 1
 
         self.yscale = dx / dy / self.aspect
@@ -281,37 +283,56 @@ class Figure(Assembly):
             return self._check_unpack_and_insert(obj[0])
 
         obj = utils.flatten(obj)
-        return self.insert(*obj)
+        for a in obj:
+            if isinstance(a, Figure):
+                self._check_unpack_and_insert(a)
+            else:
+                self.insert(a)
+        return self
 
     def _check_unpack_and_insert(self, fig: Figure) -> Self:
 
-        if fig.label:
-            self.labels.append(fig.label)
+        xlim_match = np.allclose(self.xlim, fig.xlim)
+        ylim_match = np.allclose(self.ylim, fig.ylim)
+        padding_match = np.allclose(self.padding, fig.padding)
+        if isinstance(self.aspect, str) or isinstance(fig.aspect, str):
+            aspect_match = self.aspect == fig.aspect
+        else:
+            aspect_match = np.isclose(self.aspect, fig.aspect)
+        yscale_match = abs(self.yscale - fig.yscale) <= 0.0001
 
-        if abs(self.yscale - fig.yscale) > 0.0001:
-            vedo.logger.error(
-                "Adding incompatible Figure: Y-scales are different."
-            )
+        if not (
+            xlim_match
+            and ylim_match
+            and padding_match
+            and aspect_match
+            and yscale_match
+        ):
+            vedo.logger.error("Adding incompatible Figure.")
             vedo.logger.error(f"First figure yscale: {self.yscale}")
             vedo.logger.error(f"Second figure yscale: {fig.yscale}")
 
             vedo.logger.error("One or more of these parameters can be the cause:")
-            if list(self.xlim) != list(fig.xlim):
+            if not xlim_match:
                 vedo.logger.error(
                     f"xlim mismatch: first figure {self.xlim}, second figure {fig.xlim}"
                 )
-            if list(self.ylim) != list(fig.ylim):
+            if not ylim_match:
                 vedo.logger.error(
                     f"ylim mismatch: first figure {self.ylim}, second figure {fig.ylim}"
                 )
-            if list(self.padding) != list(fig.padding):
+            if not padding_match:
                 vedo.logger.error(
                     "padding mismatch: "
                     f"first figure {self.padding}, second figure {fig.padding}"
                 )
-            if self.aspect != fig.aspect:
+            if not aspect_match:
                 vedo.logger.error(
                     f"aspect mismatch: first figure {self.aspect}, second figure {fig.aspect}"
+                )
+            if not yscale_match:
+                vedo.logger.error(
+                    f"yscale mismatch: first figure {self.yscale}, second figure {fig.yscale}"
                 )
 
             vedo.logger.info(
@@ -319,6 +340,9 @@ class Figure(Assembly):
             )
             vedo.logger.info("Or fig += histogram(..., like=fig)")
             return self
+
+        if fig.label:
+            self.labels.append(fig.label)
 
         offset = self.zbounds()[1] + self.ztolerance
 
@@ -336,7 +360,8 @@ class Figure(Assembly):
 
         The recommended syntax is to use "+=", which calls `insert()` under the hood.
         If a whole Figure is added with "+=", it is unpacked and its objects are added
-        one by one.
+        one by one, provided the figures have compatible limits, padding, aspect and
+        y-scale. Use `insert()` directly to embed a Figure as a single object.
 
         Args:
             rescale (bool):
@@ -426,7 +451,7 @@ class Figure(Assembly):
 
     def add_label(self, text: str, c=None, marker="", mc="black") -> Self:
         """
-        Manually add en entry label to the legend.
+        Manually add an entry label to the legend.
 
         Args:
             text (str):
@@ -464,16 +489,17 @@ class Figure(Assembly):
     ) -> Self:
         """
         Add existing labels to form a legend box.
-        Labels have been previously filled with eg: `plot(..., label="text")`
+        Labels have been previously filled with e.g. `plot(..., label="text")`.
+        If no labels are available, this method leaves the Figure unchanged.
 
         Args:
             pos (str, list):
                 A string or 2D coordinates. The default is "top-right".
             relative (bool):
-                control whether `pos` is absolute or relative, e.i. normalized
+                control whether `pos` is absolute or relative, i.e. normalized
                 to the x and y ranges so that x and y in `pos=[x,y]` should be
                 both in the range [0,1].
-                This flag is ignored if a string despcriptor is passed.
+                This flag is ignored if a string descriptor is passed.
                 Default is True.
             font (str, int):
                 font name or number.
@@ -503,6 +529,9 @@ class Figure(Assembly):
         """
         sx = self.x1lim - self.x0lim
         s = s * sx / 55  # so that input can be about 1
+
+        if not self.labels:
+            return self
 
         ds = 0
         texts = []
