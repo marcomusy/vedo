@@ -214,7 +214,7 @@ def violin(
             for i in range(bins):
                 p0 = (-fs[i], edges[i], 0)
                 p1 = (fs[i], edges[i + 1], 0)
-                r = shapes.Rectangle(p0, p1).x(x)
+                r = shapes.Rectangle(p0, p1).shift(x, 0, 0)
                 r.color(c).alpha(alpha).lighting("off")
                 rs.append(r)
 
