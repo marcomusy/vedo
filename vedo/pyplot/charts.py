@@ -69,11 +69,15 @@ class Histogram1D(Figure):
         Creates a `Histogram1D(Figure)` object.
 
         Args:
+            data (list):
+                Array of data points to be histogrammed.
             weights (list):
                 An array of weights, of the same shape as `data`. Each value in `data`
                 only contributes its associated weight towards the bin count (instead of 1).
-            bins (int):
-                number of bins
+            bins (int, list):
+                Number of bins, or a list of bin edges.
+            errors (bool):
+                show error bars
             density (bool):
                 normalize the area to 1 by dividing by the nr of entries and bin size
             logscale (bool):
@@ -82,29 +86,55 @@ class Histogram1D(Figure):
                 if `data` is larger than `max_entries`, a random sample of `max_entries` is used
             fill (bool):
                 fill bars with solid color `c`
+            radius (float):
+                border radius of the top of the histogram bar. Default value is 0.075.
+            c (color):
+                Color of the histogram bars.
             gap (float):
                 leave a small space btw bars
-            radius (float):
-                border radius of the top of the histogram bar. Default value is 0.1.
-            texture (str):
-                url or path to an image to be used as texture for the bin
+            alpha (float):
+                Opacity of the histogram bars.
             outline (bool):
                 show outline of the bins
-            errors (bool):
-                show error bars
+            lw (float):
+                Line width of the outline and errors.
+            lc (color):
+                Color of the outline and errors.
+            texture (str):
+                url or path to an image to be used as texture for the bin
+            marker (str):
+                Marker style for the bin centers.
+            ms (float):
+                Marker size.
+            mc (color):
+                Marker color.
+            ma (float):
+                Marker opacity.
+            like (Figure):
+                Superimpose this histogram on a previously created `Figure`.
+            xlim (list):
+                Range of the x-axis.
+            ylim (list):
+                Range of the y-axis.
+            aspect (float):
+                the desired aspect ratio of the histogram. Default is 4/3.
+            padding : (float), list
+                keep a padding space from the axes (as a fraction of the axis size).
+                This can be a list of four numbers.
+            title (str):
+                Title of the figure.
             xtitle (str):
                 title for the x-axis, can also be set using `axes=dict(xtitle="my x axis")`
             ytitle (str):
                 title for the y-axis, can also be set using `axes=dict(ytitle="my y axis")`
-            padding : (float), list
-                keep a padding space from the axes (as a fraction of the axis size).
-                This can be a list of four numbers.
-            aspect (float):
-                the desired aspect ratio of the histogram. Default is 4/3.
+            ac (color):
+                Color of the axes.
             grid (bool):
                 show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
             ztolerance (float):
                 a tolerance factor to superimpose objects (along the z-axis).
+            label (str):
+                Add a label to the legend.
 
         Examples:
             - [histo_1d_a.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/histo_1d_a.py)
@@ -117,7 +147,18 @@ class Histogram1D(Figure):
 
         # purge NaN from data
         data = np.asarray(data).ravel()
-        data = data[np.logical_not(np.isnan(data.astype(float)))]
+        if np.issubdtype(data.dtype, np.floating):
+            data = data[~np.isnan(data)]
+        else:
+            try:
+                data = data[~np.isnan(data.astype(float))]
+            except ValueError:
+                pass
+
+        if len(data) == 0:
+            vedo.logger.error("Histogram1D: Input data is empty or contains only NaNs.")
+            super().__init__(xlim, ylim, aspect, padding, **fig_kwargs)
+            return
 
         if max_entries and data.shape[0] > max_entries:
             idx = np.random.choice(data.shape[0], int(max_entries), replace=False)
@@ -160,13 +201,6 @@ class Histogram1D(Figure):
         binsize = edges[1] - edges[0]
         ntot = data.shape[0]
 
-        fig_kwargs["title"] = title
-        fig_kwargs["xtitle"] = xtitle
-        fig_kwargs["ytitle"] = ytitle
-        fig_kwargs["ac"] = ac
-        fig_kwargs["ztolerance"] = ztolerance
-        fig_kwargs["grid"] = grid
-
         unscaled_errors = np.sqrt(fs)
         if density and logscale:
             vedo.logger.warning("Histogram1D: density and logscale are mutually exclusive; logscale ignored.")
@@ -175,15 +209,13 @@ class Histogram1D(Figure):
             fs = fs / (ntot * binsize)
             if ytitle == " ":
                 ytitle = f"counts / ({ntot} x {utils.precision(binsize, 3)})"
-                fig_kwargs["ytitle"] = ytitle
         elif logscale:
-            se_up = np.log10(fs + unscaled_errors / 2 + 1)
-            se_dw = np.log10(fs - unscaled_errors / 2 + 1)
+            se_up = np.log10(fs + unscaled_errors + 1)
+            se_dw = np.log10(np.clip(fs - unscaled_errors, 0, None) + 1)
             scaled_errors = np.c_[se_up, se_dw]
             fs = np.log10(fs + 1)
             if ytitle == " ":
                 ytitle = "log_10 (counts+1)"
-                fig_kwargs["ytitle"] = ytitle
 
         x0, x1 = np.min(edges), np.max(edges)
         y0, y1 = ylim[0], np.max(fs)
@@ -222,29 +254,29 @@ class Histogram1D(Figure):
         self.std = data.std()
         self.bins = edges  # internally used by "like"
 
+        kwargs_to_pass = dict(fig_kwargs)
+
         ############################### stats legend as htitle
         addstats = False
-        if not title:
-            if "axes" not in fig_kwargs:
+        axes_opts = kwargs_to_pass.get("axes", {})
+        if axes_opts is False:
+            addstats = False
+        else:
+            if not title and "htitle" not in axes_opts:
                 addstats = True
-                axes_opts = {}
-                fig_kwargs["axes"] = axes_opts
-            elif fig_kwargs["axes"] is False:
-                pass
-            else:
-                axes_opts = fig_kwargs["axes"]
-                if "htitle" not in axes_opts:
-                    addstats = True
 
         if addstats:
             htitle = f"Entries:~~{int(self.entries)}  "
             htitle += f"Mean:~~{utils.precision(self.mean, 4)}  "
             htitle += f"STD:~~{utils.precision(self.std, 4)}  "
 
+            axes_opts = dict(axes_opts)
             axes_opts["htitle"] = htitle
             axes_opts["htitle_justify"] = "bottom-left"
             axes_opts["htitle_size"] = 0.016
-            # axes_opts["htitle_offset"] = [-0.49, 0.01, 0]
+
+        if axes_opts is not False:
+            kwargs_to_pass["axes"] = axes_opts
 
         if mc is None:
             mc = lc
@@ -260,10 +292,15 @@ class Histogram1D(Figure):
             if not marker:
                 nlab.marker = "s"
                 nlab.mcolor = c
-            fig_kwargs["label"] = nlab
+            kwargs_to_pass["label"] = nlab
 
         ############################################### Figure init
-        super().__init__(xlim, ylim, aspect, padding, **fig_kwargs)
+        super().__init__(
+            xlim, ylim, aspect, padding,
+            title=title, xtitle=xtitle, ytitle=ytitle,
+            ac=ac, ztolerance=ztolerance, grid=grid,
+            **kwargs_to_pass
+        )
 
         if not self.yscale:
             return
