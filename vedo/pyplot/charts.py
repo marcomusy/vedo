@@ -481,8 +481,8 @@ class Histogram2D(Figure):
         you will receive an error message.
 
         Args:
-            bins (list):
-                binning as (nx, ny)
+            bins (int, list):
+                number of bins as an integer, or binning as (nx, ny), or a list of bin edges arrays.
             weights (list):
                 array of weights to assign to each entry
             cmap (str, lookuptable):
@@ -503,6 +503,8 @@ class Histogram2D(Figure):
                 [y0, y1] range of interest. If left to None will automatically
                 choose the minimum or the maximum of the data range.
                 Data outside the range are completely ignored.
+            zlim (list):
+                [vmin, vmax] range of interest for the frequency values colors.
             aspect (float):
                 the desired aspect ratio of the figure.
             title (str):
@@ -526,9 +528,14 @@ class Histogram2D(Figure):
         """
         xvalues = np.asarray(xvalues)
         if yvalues is None:
-            # assume [(x1,y1), (x2,y2) ...] format
-            yvalues = xvalues[:, 1]
-            xvalues = xvalues[:, 0]
+            if xvalues.ndim == 2 and xvalues.shape[0] == 2 and xvalues.shape[1] > 2:
+                # assume [(x1,x2,..), (y1,y2,..)] format
+                yvalues = xvalues[1, :]
+                xvalues = xvalues[0, :]
+            else:
+                # assume [(x1,y1), (x2,y2) ...] format
+                yvalues = xvalues[:, 1]
+                xvalues = xvalues[:, 0]
         else:
             yvalues = np.asarray(yvalues)
 
@@ -620,7 +627,7 @@ class Histogram2D(Figure):
             g = shapes.Grid(
                 pos=[(xlim[0] + xlim[1]) / 2, (ylim[0] + ylim[1]) / 2, 0],
                 s=(dx, dy),
-                res=bins[:2],
+                res=H.shape,
             )
             g.alpha(alpha).lw(0).wireframe(False).flat().lighting("off")
             g.cmap(cmap, np.ravel(H.T), on="cells", vmin=zlim[0], vmax=zlim[1])
