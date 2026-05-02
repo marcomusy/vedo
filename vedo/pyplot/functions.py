@@ -122,8 +122,8 @@ def plot(*args, **kwargs):
 
     Creates a `PlotBars(Figure)` object.
 
-    Input must be in format `[counts, labels, colors, edges]`.
-    Either or both `edges` and `colors` are optional and can be omitted.
+    Input must be in format `[counts, labels]`, `[counts, labels, colors]`,
+    or `[counts, labels, colors, edges]`.
 
     Args:
         errors (bool):
@@ -131,15 +131,31 @@ def plot(*args, **kwargs):
         logscale (bool):
             use logscale on y-axis
         fill (bool):
-            fill bars with solid color `c`
+            fill bars
         gap (float):
             leave a small space btw bars
         radius (float):
-            border radius of the top of the histogram bar. Default value is 0.1.
+            border radius of the top of each bar. Default value is 0.05.
+        c (color):
+            fallback color for the bars, or a colormap name to color bars by x position
+        alpha (float):
+            opacity of the bars
         texture (str):
-            url or path to an image to be used as texture for the bin
+            url or path to an image to be used as texture for the bars
         outline (bool):
-            show outline of the bins
+            show outline of the bars
+        lw (float):
+            line width of the outline and errors
+        lc (color):
+            color of the outline and errors
+        like (Figure):
+            superimpose this bar plot on a previously created `Figure`
+        xlim (list):
+            range of the x-axis
+        ylim (list):
+            range of the y-axis
+        title (str):
+            title of the figure
         xtitle (str):
             title for the x-axis, can also be set using `axes=dict(xtitle="my x axis")`
         ytitle (str):
@@ -153,14 +169,13 @@ def plot(*args, **kwargs):
             the desired aspect ratio of the figure. Default is 4/3.
         grid (bool):
             show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
+        ztolerance (float):
+            a tolerance factor to superimpose objects (along the z-axis)
 
     Examples:
-        - [histo_1d_a.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/histo_1d_a.py)
-        - [histo_1d_b.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/histo_1d_b.py)
-        - [histo_1d_c.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/histo_1d_c.py)
-        - [histo_1d_d.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/histo_1d_d.py)
+        - [plot_bars.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot_bars.py)
 
-        ![](https://vedo.embl.es/images/pyplot/histo_1D.png)
+        ![](https://vedo.embl.es/images/pyplot/plot_bars.png)
 
 
     ----------------------------------------------------------------------
@@ -437,7 +452,7 @@ def histogram(*args, **kwargs):
         gap (float):
             leave a small space btw bars
         radius (float):
-            border radius of the top of the histogram bar. Default value is 0.1.
+            border radius of the top of the histogram bar. Default value is 0.075.
         texture (str):
             url or path to an image to be used as texture for the bin
         outline (bool):

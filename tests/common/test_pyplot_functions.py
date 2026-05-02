@@ -71,6 +71,11 @@ def test_plot_mode_bar():
     assert fig is not None
 
 
+def test_plot_mode_bar_errors():
+    fig = plot([[3, 5, 2, 7], ["a", "b", "c", "d"]], mode="bar", errors=True)
+    assert fig is not None
+
+
 def test_plot_mode_polar_two_args():
     angles = np.linspace(0, 2 * np.pi, 30)
     radii = np.abs(np.sin(angles))

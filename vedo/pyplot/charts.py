@@ -688,8 +688,8 @@ class PlotBars(Figure):
         **fig_kwargs,
     ):
         """
-        Input must be in format `[counts, labels, colors, edges]`.
-        Either or both `edges` and `colors` are optional and can be omitted.
+        Input must be in format `[counts, labels]`, `[counts, labels, colors]`,
+        or `[counts, labels, colors, edges]`.
 
         Use keyword `like=...` if you want to use the same format of a previously
         created Figure (useful when superimposing Figures) to make sure
@@ -702,15 +702,31 @@ class PlotBars(Figure):
             logscale (bool):
                 use logscale on y-axis
             fill (bool):
-                fill bars with solid color `c`
+                fill bars
             gap (float):
                 leave a small space btw bars
             radius (float):
-                border radius of the top of the histogram bar. Default value is 0.1.
+                border radius of the top of each bar. Default value is 0.05.
+            c (color):
+                fallback color for the bars, or a colormap name to color bars by x position
+            alpha (float):
+                opacity of the bars
             texture (str):
-                url or path to an image to be used as texture for the bin
+                url or path to an image to be used as texture for the bars
             outline (bool):
-                show outline of the bins
+                show outline of the bars
+            lw (float):
+                line width of the outline and errors
+            lc (color):
+                color of the outline and errors
+            like (Figure):
+                superimpose this bar plot on a previously created `Figure`
+            xlim (list):
+                range of the x-axis
+            ylim (list):
+                range of the y-axis
+            title (str):
+                title of the figure
             xtitle (str):
                 title for the x-axis, can also be set using `axes=dict(xtitle="my x axis")`
             ytitle (str):
@@ -724,6 +740,8 @@ class PlotBars(Figure):
                 the desired aspect ratio of the figure. Default is 4/3.
             grid (bool):
                 show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
+            ztolerance (float):
+                a tolerance factor to superimpose objects (along the z-axis)
 
         Examples:
             - [plot_bars.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot_bars.py)
@@ -865,7 +883,7 @@ class PlotBars(Figure):
             rs.append(outl)
 
         if errors:  #####################
-            for x, f in centers:
+            for x, f in zip(centers, counts):
                 err = np.sqrt(f)
                 el = shapes.Line(
                     [x, f - err / 2, 0], [x, f + err / 2, 0], c=lc, alpha=alpha, lw=lw
