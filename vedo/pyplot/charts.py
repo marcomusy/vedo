@@ -115,17 +115,20 @@ class Histogram1D(Figure):
             ![](https://vedo.embl.es/images/pyplot/histo_1D.png)
         """
 
-        if max_entries and data.shape[0] > max_entries:
-            data = np.random.choice(data, int(max_entries))
-
         # purge NaN from data
         data = np.asarray(data).ravel()
-        data = data[np.logical_not(np.isnan(data))]
+        data = data[np.logical_not(np.isnan(data.astype(float)))]
+
+        if max_entries and data.shape[0] > max_entries:
+            idx = np.random.choice(data.shape[0], int(max_entries), replace=False)
+            data = data[idx]
+            if weights is not None:
+                weights = np.asarray(weights).ravel()[idx]
 
         # if data.dtype is integer try to center bins by default
         if like is None and bins is None and np.issubdtype(data.dtype, np.integer):
             if xlim is None and ylim == (0, None):
-                x1, x0 = data.max(), data.min()
+                x0, x1 = data.min(), data.max()
                 if 0 < x1 - x0 <= 100:
                     bins = x1 - x0 + 1
                     xlim = (x0 - 0.5, x1 + 0.5)
@@ -165,6 +168,8 @@ class Histogram1D(Figure):
         fig_kwargs["grid"] = grid
 
         unscaled_errors = np.sqrt(fs)
+        if density and logscale:
+            vedo.logger.warning("Histogram1D: density and logscale are mutually exclusive; logscale ignored.")
         if density:
             scaled_errors = unscaled_errors / (ntot * binsize)
             fs = fs / (ntot * binsize)
@@ -378,22 +383,9 @@ class Histogram1D(Figure):
                 else:
                     ms = (xlim[1] - xlim[0]) / 100.0 * ms
 
-                if utils.is_sequence(mc):
-                    mk = shapes.Marker(marker, s=ms)
-                    mk.scale([1, 1 / self.yscale, 1])
-                    msv = np.zeros_like(bin_centers)
-                    msv[:, 0] = 1
-                    marked = shapes.Glyph(
-                        bin_centers,
-                        mk,
-                        c=mc,
-                        orientation_array=msv,
-                        scale_by_vector_size=True,
-                    )
-                else:
-                    mk = shapes.Marker(marker, s=ms)
-                    mk.scale([1, 1 / self.yscale, 1])
-                    marked = shapes.Glyph(bin_centers, mk, c=mc)
+                mk = shapes.Marker(marker, s=ms)
+                mk.scale([1, 1 / self.yscale, 1])
+                marked = shapes.Glyph(bin_centers, mk, c=mc)
 
             marked.alpha(ma)
             marked.z(self.ztolerance * 4)
