@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 
 import vedo
+from vedo.pyplot.charts import PlotXY
 from vedo.pyplot.functions import fit, histogram, plot, streamplot
 
 
@@ -59,6 +60,34 @@ def test_plot_opts_space_stripped():
     x = np.linspace(0, 1, 20)
     fig = plot(x, x, "r -")
     assert fig is not None
+
+
+def test_plotxy_accepts_list_data():
+    fig = PlotXY([[0, 0], [1, 1]])
+    assert fig.entries == 2
+
+
+def test_plotxy_partial_xlim_uses_x_values():
+    fig = PlotXY([[10, 0], [11, 1000]], xlim=(None, 20))
+    assert tuple(fig.xlim) == (10, 20)
+
+
+def test_plotxy_filters_errors_with_nan_data():
+    data = np.array([[0, 0], [1, np.nan], [2, 2.0]])
+    fig = PlotXY(data, yerrors=np.array([0.1, 0.2, 0.3]))
+    assert fig.entries == 2
+    assert tuple(fig.ylim) == (-0.1, 2.3)
+
+
+def test_plotxy_scalar_errors_are_broadcast():
+    fig = PlotXY([[0, 0], [1, 1]], xerrors=0.2, yerrors=0.3)
+    assert tuple(fig.xlim) == (-0.2, 1.2)
+    assert tuple(fig.ylim) == (-0.3, 1.3)
+
+
+def test_plotxy_error_band_without_yerrors_does_not_crash():
+    fig = PlotXY([[0, 0], [1, 1]], error_band=True)
+    assert fig.entries == 2
 
 
 # ---------------------------------------------------------------------------

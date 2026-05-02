@@ -38,10 +38,14 @@ def plot(*args, **kwargs):
     you will receive an error message.
 
     Args:
-        xerrors (list):
-            show error bars associated to each point in x
-        yerrors (list):
-            show error bars associated to each point in y
+        xerrors (float, list):
+            show error bars associated to each point in x.
+            Values are positive half-widths around each point.
+            A scalar value is applied to all points.
+        yerrors (float, list):
+            show error bars associated to each point in y.
+            Values are positive half-heights around each point.
+            A scalar value is applied to all points.
         lw (int):
             width of the line connecting points in pixel units.
             Set it to 0 to remove the line.
@@ -59,6 +63,7 @@ def plot(*args, **kwargs):
             color of error bar, by default the same as marker color
         error_band (bool):
             represent errors on y as a filled error band.
+            Requires `yerrors`; errors in x are ignored.
             Use `ec` keyword to modify its color.
         marker (str, int):
             use a marker for the data points

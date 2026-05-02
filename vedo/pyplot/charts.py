@@ -938,10 +938,17 @@ class PlotXY(Figure):
     ):
         """
         Args:
-            xerrors (bool):
-                show error bars associated to each point in x
-            yerrors (bool):
-                show error bars associated to each point in y
+            data (array):
+                input points as a two-column array `[(x1, y1), (x2, y2), ...]`.
+                NaN rows are ignored.
+            xerrors (float, list):
+                show error bars associated to each point in x.
+                Values are positive half-widths around each point.
+                A scalar value is applied to all points.
+            yerrors (float, list):
+                show error bars associated to each point in y.
+                Values are positive half-heights around each point.
+                A scalar value is applied to all points.
             lw (int):
                 width of the line connecting points in pixel units.
                 Set it to 0 to remove the line.
@@ -952,13 +959,14 @@ class PlotXY(Figure):
             dashed (bool):
                 draw a dashed line instead of a continuous line
             splined (bool):
-                spline the line joining the point as a countinous curve
+                spline the line joining the points as a continuous curve
             elw (int):
                 width of error bar lines in units of pixels
             ec (color):
                 color of error bar, by default the same as marker color
             error_band (bool):
                 represent errors on y as a filled error band.
+                Requires `yerrors`; errors in x are ignored.
                 Use `ec` keyword to modify its color.
             marker (str, int):
                 use a marker for the data points
@@ -1025,6 +1033,41 @@ class PlotXY(Figure):
             if xlim is None and ylim == (None, None):
                 like = vedo.current_last_figure()
 
+        data = np.asarray(data)
+        if data.ndim != 2 or data.shape[1] < 2:
+            vedo.logger.error("PlotXY: input data must be a 2D array with x, y columns.")
+            super().__init__((0, 1), (0, 1), aspect, padding, **fig_kwargs)
+            return
+        data = data[:, :2]
+
+        finite_mask = ~np.isnan(data).any(axis=1)
+        data = data[finite_mask]
+
+        def _normalize_errors(errors, name):
+            if errors is None:
+                return None
+            errors = np.asarray(errors)
+            if errors.ndim == 0:
+                return np.full(len(data), errors.item())
+            errors = errors.ravel()
+            if len(errors) == len(finite_mask):
+                return errors[finite_mask]
+            if len(errors) == len(data):
+                return errors
+            vedo.logger.error(f"in PlotXY({name}=...): mismatch in array length")
+            return None
+
+        xerrors = _normalize_errors(xerrors, "xerrors")
+        yerrors = _normalize_errors(yerrors, "yerrors")
+        if error_band and yerrors is None:
+            vedo.logger.error("in PlotXY(error_band=True): yerrors must be provided")
+            error_band = False
+
+        if not len(data):
+            vedo.logger.error("PlotXY: Input data is empty or contains only NaNs.")
+            super().__init__((0, 1), (0, 1), aspect, padding, **fig_kwargs)
+            return
+
         if like is not None:
             xlim = like.xlim
             ylim = like.ylim
@@ -1035,13 +1078,10 @@ class PlotXY(Figure):
             # deal with user passing eg [x0, None]
             _x0, _x1 = xlim
             if _x0 is None:
-                _x0 = data.min()
+                _x0 = data[:, 0].min()
             if _x1 is None:
-                _x1 = data.max()
+                _x1 = data[:, 0].max()
             xlim = [_x0, _x1]
-
-        # purge NaN from data
-        data = data[~np.isnan(data).any(axis=1), :]
 
         fig_kwargs["title"] = title
         fig_kwargs["xtitle"] = xtitle
@@ -1193,41 +1233,31 @@ class PlotXY(Figure):
         else:
             ## xerrors
             if xerrors is not None:
-                if len(xerrors) == len(data):
-                    errs = []
-                    for i, val in enumerate(data):
-                        xval, yval = val
-                        xerr = xerrors[i] / 2
-                        el = shapes.Line(
-                            (xval - xerr, yval, ztol), (xval + xerr, yval, ztol)
-                        )
-                        el.lw(elw)
-                        errs.append(el)
-                    mxerrs = merge(errs).c(ec).lw(lw).alpha(ma).z(2 * ztol)
-                    acts.append(mxerrs)
-                else:
-                    vedo.logger.error(
-                        "in PlotXY(xerrors=...): mismatch in array length"
+                errs = []
+                for i, val in enumerate(data):
+                    xval, yval = val
+                    xerr = xerrors[i]
+                    el = shapes.Line(
+                        (xval - xerr, yval, ztol), (xval + xerr, yval, ztol)
                     )
+                    el.lw(elw)
+                    errs.append(el)
+                mxerrs = merge(errs).c(ec).lw(lw).alpha(ma).z(2 * ztol)
+                acts.append(mxerrs)
 
             ## yerrors
             if yerrors is not None:
-                if len(yerrors) == len(data):
-                    errs = []
-                    for i, val in enumerate(data):
-                        xval, yval = val
-                        yerr = yerrors[i]
-                        el = shapes.Line(
-                            (xval, yval - yerr, ztol), (xval, yval + yerr, ztol)
-                        )
-                        el.lw(elw)
-                        errs.append(el)
-                    myerrs = merge(errs).c(ec).lw(lw).alpha(ma).z(2 * ztol)
-                    acts.append(myerrs)
-                else:
-                    vedo.logger.error(
-                        "in PlotXY(yerrors=...): mismatch in array length"
+                errs = []
+                for i, val in enumerate(data):
+                    xval, yval = val
+                    yerr = yerrors[i]
+                    el = shapes.Line(
+                        (xval, yval - yerr, ztol), (xval, yval + yerr, ztol)
                     )
+                    el.lw(elw)
+                    errs.append(el)
+                myerrs = merge(errs).c(ec).lw(lw).alpha(ma).z(2 * ztol)
+                acts.append(myerrs)
 
         self.insert(*acts, as3d=False)
         self.name = "PlotXY"
