@@ -44,6 +44,63 @@ get_color = None
 printc = None
 
 
+def _use_rich_help(file) -> bool:
+    """Return True when CLI help should be colorized."""
+    if os.environ.get("NO_COLOR") is not None:
+        return False
+    if os.environ.get("TERM") == "dumb":
+        return False
+    stream = file or sys.stdout
+    return hasattr(stream, "isatty") and stream.isatty()
+
+
+def _print_rich_help(help_text: str, file) -> None:
+    """Print argparse help with light Rich highlighting."""
+    try:
+        from rich.console import Console
+        from rich.text import Text
+    except ModuleNotFoundError:
+        stream = file or sys.stdout
+        stream.write(help_text)
+        return
+
+    rendered = Text()
+    for raw_line in help_text.splitlines():
+        stripped = raw_line.strip()
+        if raw_line.startswith("usage:"):
+            line = Text(raw_line)
+            line.stylize("bold bright_cyan", 0, len("usage:"))
+        elif stripped.endswith(":") and raw_line == stripped:
+            line = Text(raw_line, style="bold bright_cyan")
+        elif stripped.startswith("version "):
+            line = Text(raw_line, style="bright_white")
+        else:
+            line = Text(raw_line)
+
+        line.highlight_regex(r"(?<!\S)-{1,2}[A-Za-z0-9][A-Za-z0-9_-]*", "bold green")
+        line.highlight_regex(r"\(default: [^)]+\)", "dim")
+        line.highlight_regex(r"https?://\S+", "underline bright_blue")
+        rendered.append_text(line)
+        rendered.append("\n")
+
+    Console(
+        file=file or sys.stdout,
+        force_terminal=True,
+        color_system="auto",
+        highlight=False,
+    ).print(rendered, end="")
+
+
+class RichHelpArgumentParser(argparse.ArgumentParser):
+    """ArgumentParser that colorizes help in interactive terminals."""
+
+    def print_help(self, file=None):
+        if _use_rich_help(file):
+            _print_rich_help(self.format_help(), file)
+        else:
+            super().print_help(file)
+
+
 def _get_pkg_version(dist_name: str, fallback: str = "unknown") -> str:
     """Return the installed distribution version or a fallback label."""
     try:
@@ -310,7 +367,7 @@ def get_parser() -> argparse.ArgumentParser:
     descr = f"version {_get_pkg_version('vedo')}"
     descr += " - check out home page at https://vedo.embl.es"
 
-    pr = argparse.ArgumentParser(
+    pr = RichHelpArgumentParser(
         description=descr,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )

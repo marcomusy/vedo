@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import io
 from types import SimpleNamespace
 
 import pytest
@@ -8,10 +9,40 @@ import pytest
 import vedo.cli as cli
 
 
+class TtyStringIO(io.StringIO):
+    def isatty(self) -> bool:
+        return True
+
+
 def test_classify_output_path() -> None:
     assert cli._classify_output_path("figure.png") == "image"
     assert cli._classify_output_path("scene.html") == "scene"
     assert cli._classify_output_path("scene.xyz") is None
+
+
+def test_cli_help_is_plain_for_non_tty() -> None:
+    parser = cli.get_parser()
+    stream = io.StringIO()
+    parser.print_help(stream)
+    assert "\x1b[" not in stream.getvalue()
+
+
+def test_cli_help_is_colored_for_tty(monkeypatch) -> None:
+    monkeypatch.delenv("NO_COLOR", raising=False)
+    monkeypatch.setenv("TERM", "xterm-256color")
+    parser = cli.get_parser()
+    stream = TtyStringIO()
+    parser.print_help(stream)
+    assert "\x1b[" in stream.getvalue()
+
+
+def test_cli_help_respects_no_color(monkeypatch) -> None:
+    monkeypatch.setenv("NO_COLOR", "1")
+    monkeypatch.setenv("TERM", "xterm-256color")
+    parser = cli.get_parser()
+    stream = TtyStringIO()
+    parser.print_help(stream)
+    assert "\x1b[" not in stream.getvalue()
 
 
 def test_main_rejects_unsupported_output(monkeypatch) -> None:
