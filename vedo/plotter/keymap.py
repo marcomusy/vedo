@@ -320,6 +320,38 @@ def _key_screenshot(plotter, _iren, _renderer) -> bool:
     return True
 
 
+def _key_save_cutter(plotter, _iren, _renderer) -> bool:
+    cutter = getattr(plotter, "cutter_widget", None)
+    if not cutter:
+        return False
+
+    source = getattr(cutter, "mesh", None)
+    if source:
+        try:
+            source.apply_transform_from_actor()
+        except AttributeError:
+            pass
+
+    mesh = cutter.get_cut_mesh(invert=False)
+    source_filename = getattr(source, "filename", "")
+
+    if source_filename:
+        fname = os.path.basename(source_filename)
+        fname, extension = os.path.splitext(fname)
+        fname = fname.replace("_cut", "")
+        fname = f"{fname}_cut{extension or '.vtk'}"
+    else:
+        fname = "mesh_cut.vtk"
+
+    mesh.write(fname)
+    _print_keymap_notice(
+        "Cut Mesh Saved",
+        rows=[("file", fname)],
+        color="blue",
+    )
+    return True
+
+
 def _key_print_camera(_plotter, _iren, renderer) -> bool:
     cam = renderer.GetActiveCamera()
     vedo.printc("\n###################################################", c="y")
@@ -409,6 +441,8 @@ _KEY_DISPATCH = {
     "D": _key_toggle_depth_peeling,
     "period": _key_fly_to,
     "S": _key_screenshot,
+    "Ctrl+s": _key_save_cutter,
+    "Ctrl+S": _key_save_cutter,
     "C": _key_print_camera,
     "E": _key_export_npz,
     "F": _key_export_x3d,

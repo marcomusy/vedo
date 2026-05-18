@@ -41,6 +41,7 @@ class MousePan(vtki.vtkInteractorStyleUser):
         self.left = False
         self.middle = False
         self.right = False
+        self.enable_pan = enable_pan
         self.speed = speed
 
         self.interactor = None
@@ -57,8 +58,9 @@ class MousePan(vtki.vtkInteractorStyleUser):
         self.motionD = np.array([0, 0], dtype=float)
         self.motionW = np.array([0, 0, 0], dtype=float)
 
-        self.AddObserver("LeftButtonPressEvent", self._left_down)
-        self.AddObserver("LeftButtonReleaseEvent", self._left_up)
+        if enable_pan:
+            self.AddObserver("LeftButtonPressEvent", self._left_down)
+            self.AddObserver("LeftButtonReleaseEvent", self._left_up)
 
         if enable_rotate:
             self.AddObserver("MiddleButtonPressEvent", self._middle_down)
@@ -74,8 +76,9 @@ class MousePan(vtki.vtkInteractorStyleUser):
             self.AddObserver("MouseMoveEvent", self._mouse_move)
 
     def _get_motion(self):
-        self.oldpickD = np.array(self.interactor.GetLastEventPosition())
-        self.newpickD = np.array(self.interactor.GetEventPosition())
+        interactor = self.GetInteractor()
+        self.oldpickD = np.array(interactor.GetLastEventPosition())
+        self.newpickD = np.array(interactor.GetEventPosition())
         self.motionD = (self.newpickD - self.oldpickD) / 4
         self.camera = self.renderer.GetActiveCamera()
         self.fpW = self.camera.GetFocalPoint()
@@ -96,7 +99,7 @@ class MousePan(vtki.vtkInteractorStyleUser):
         self._get_motion()
         self.camera.SetFocalPoint(self.fpW[:3] + self.motionW[:3])
         self.camera.SetPosition(self.posW[:3] + self.motionW[:3])
-        self.interactor.Render()
+        self.GetInteractor().Render()
 
     def _mouse_middle_move(self):
         self._get_motion()
@@ -104,7 +107,7 @@ class MousePan(vtki.vtkInteractorStyleUser):
             self.camera.Azimuth(-2 * self.speed * self.motionD[0])
         else:
             self.camera.Elevation(-self.speed * self.motionD[1])
-        self.interactor.Render()
+        self.GetInteractor().Render()
 
     def _mouse_right_move(self):
         self._get_motion()
@@ -113,17 +116,17 @@ class MousePan(vtki.vtkInteractorStyleUser):
         else:
             zoom_factor = max(0.01, 1 + self.motionD[1] / 100)
             self.camera.Zoom(zoom_factor)
-        self.interactor.Render()
+        self.GetInteractor().Render()
 
     def _mouse_wheel_forward(self):
         self.camera = self.renderer.GetActiveCamera()
         self.camera.Zoom(1.1 * self.speed)
-        self.interactor.Render()
+        self.GetInteractor().Render()
 
     def _mouse_wheel_backward(self):
         self.camera = self.renderer.GetActiveCamera()
         self.camera.Zoom(0.9 * self.speed)
-        self.interactor.Render()
+        self.GetInteractor().Render()
 
     def _left_down(self, _w, _e):
         self.left = True
@@ -150,7 +153,7 @@ class MousePan(vtki.vtkInteractorStyleUser):
         self._mouse_wheel_backward()
 
     def _mouse_move(self, _w, _e):
-        if self.left:
+        if self.left and self.enable_pan:
             self._mouse_left_move()
         if self.middle:
             self._mouse_middle_move()
@@ -257,10 +260,10 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
             display_point,
         )
         focalDepth = display_point[2]
-        x, y = obj.interactor.GetEventPosition()
+        x, y = self.GetInteractor().GetEventPosition()
         self.ComputeDisplayToWorld(self.renderer, x, y, focalDepth, newPickPoint)
         self.focal_point = np.array(newPickPoint)
-        self.interactor.Render()
+        self.GetInteractor().Render()
 
     def _mouse_wheel_backward(self, _obj, event):
         """Mouse wheel backward."""
@@ -290,7 +293,7 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
             self.bounds = self.renderer.ComputeVisiblePropBounds()
             x0, x1, y0, y1, z0, z1 = self.bounds
             dx = x1 - x0
-            z = max(z1 * 1, (y1 - y0) / 4, (x1 - x0) / 4)
+            z = max(z1 * 1, z0 + (y1 - y0) / 4, z0 + (x1 - x0) / 4)
             self.position = [x1 + dx, (y0 + y1) / 2, z]
             self.focal_point = [x0 - dx / 2, (y0 + y1) / 2, z]
 
@@ -401,13 +404,13 @@ class FlyOverSurface(vtki.vtkInteractorStyleUser):
             self.position = [newp[0], newp[1], p[2]]
 
         elif k in ["q", "Return"]:
-            self.interactor.ExitCallback()
+            self.GetInteractor().ExitCallback()
             return
 
         else:
             return
 
-        self.interactor.Render()
+        self.GetInteractor().Render()
 
 
 ###################################################################################
@@ -779,6 +782,10 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
         elif KEY == "ESCAPE":
             if self.callback_escape_key:
                 self.callback_escape_key()
+            if self._is_box_zooming:
+                self._is_box_zooming = False
+                self._left_button_down = False
+                self.GetInteractor().Render()
             if self.draginfo is not None:
                 self.cancel_drag()
         elif KEY == "DELETE":
@@ -1427,11 +1434,10 @@ class BlenderStyle(vtki.vtkInteractorStyleUser):
             self.draw_rubber_band(x1, x2, y1, y2)
             return
 
-        x2 = min(x2, size[0] - 1)
-        y2 = min(y2, size[1] - 1)
-
-        x2 = max(x2, 0)
-        y2 = max(y2, 0)
+        x1 = min(max(x1, 0), size[0] - 1)
+        x2 = min(max(x2, 0), size[0] - 1)
+        y1 = min(max(y1, 0), size[1] - 1)
+        y2 = min(max(y2, 0), size[1] - 1)
 
         # Modify the pixel array
         width = abs(x2 - x1)
