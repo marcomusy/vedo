@@ -532,14 +532,14 @@ class Settings:
                 dotsep="x",
                 islocal=False,
             ),
-            Darwin=dict(
-                mono=False,
-                fscale=0.8,
-                hspacing=0.75,
-                lspacing=0.15,
-                dotsep="x",
-                islocal=False,
-            ),
+            # Darwin=dict(
+            #     mono=False,
+            #     fscale=0.8,
+            #     hspacing=0.75,
+            #     lspacing=0.15,
+            #     dotsep="x",
+            #     islocal=False,
+            # ),
             Vega=dict(
                 mono=False,
                 fscale=0.8,
