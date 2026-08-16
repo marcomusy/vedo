@@ -35,6 +35,17 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
     Build an instance of object `Mesh` derived from `vedo.PointCloud`.
     """
 
+    @property
+    def vertex_normals(self) -> np.ndarray:
+        """Retrieve vertex normals as a numpy array.
+
+        Missing normals are computed from topology for polygonal surfaces and
+        with PCA for point- or line-only meshes.
+        """
+        if self.dataset.GetNumberOfPolys() or self.dataset.GetNumberOfStrips():
+            return MeshMetricsMixin.vertex_normals.fget(self)
+        return super().vertex_normals
+
     def __init__(self, inputobj=None, c="gold", alpha=1):
         """
         Initialize a ``Mesh`` object.
