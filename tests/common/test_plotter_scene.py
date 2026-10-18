@@ -4,7 +4,9 @@ from __future__ import annotations
 """Regression checks for Plotter scene object lookup."""
 
 import numpy as np
+import pytest
 
+import vedo.vtkclasses as vtki
 from vedo import Arrows, Plotter, Sphere
 
 
@@ -29,3 +31,22 @@ def test_plotter_scene_object_lookup() -> None:
     assert arrows not in pickable_meshes
     assert sphere in all_meshes
     assert arrows in all_meshes
+
+
+@pytest.mark.rendering
+def test_plotter_button_registers_actor_and_pick_callback() -> None:
+    plt = Plotter(offscreen=True)
+    plt.interactor = vtki.vtkRenderWindowInteractor()
+    plt.interactor.SetRenderWindow(plt.window)
+    plt.interactor.Initialize()
+    picked = []
+
+    try:
+        button = plt.add_button(lambda actor, event: picked.append((actor, event)))
+
+        assert button in plt.buttons
+        assert plt.renderer.HasViewProp(button.actor)
+        button.actor.InvokeEvent("PickEvent")
+        assert picked == [(button.actor, "PickEvent")]
+    finally:
+        plt.close()
