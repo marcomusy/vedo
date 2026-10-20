@@ -1456,10 +1456,11 @@ def ThickTube(pts, r1, r2, res=12, c=None, alpha=1.0) -> Mesh:
     capa = make_cap(tc1a, tc2a)
     capb = make_cap(tc1b, tc2b, flip=True)
 
+    t1.reverse(normals=True)
     thick_tube = merge(t1, t2, capa, capb)
     if thick_tube is None:
         raise RuntimeError("ThickTube: merge produced no output")
-    thick_tube.compute_normals()
+    thick_tube.clean().compute_normals()
     thick_tube.c(c).alpha(alpha)
     thick_tube.base = t1.base
     thick_tube.top = t1.top
