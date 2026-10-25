@@ -1304,7 +1304,7 @@ class Plotter:
             bu = addons.Button(
                 fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle
             )
-            self.renderer.AddActor2D(bu.actor)
+            self.renderer.AddActor(bu.actor)
             bu.function_id = bu.actor.AddObserver("PickEvent", bu.function)
             self.buttons.append(bu)
             return bu
