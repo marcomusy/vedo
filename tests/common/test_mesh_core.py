@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 import vtk
 
-from vedo import Assembly, Cone, Mesh, Sphere, Volume, merge, transformations
+from vedo import Assembly, Cone, Cube, Mesh, Sphere, Volume, merge, transformations
 
 
 def test_lazy_vertex_normals_match_explicit_compute() -> None:
@@ -26,6 +27,39 @@ def test_lazy_vertex_normals_for_point_mesh() -> None:
 
     assert mesh.vertex_normals.shape == points.shape
     assert np.isfinite(mesh.vertex_normals).all()
+
+
+@pytest.mark.parametrize("position", [(0, 0, 0), (10, 20, 30)])
+@pytest.mark.parametrize("direction,index", [
+    ("left", 0), ("right", 1), ("back", 2),
+    ("front", 3), ("bottom", 4), ("top", 5),
+])
+def test_crop_boundary_vertices(direction, index, position) -> None:
+    cube = Cube(side=2).pos(position)
+    cube.pointdata["x"] = cube.vertices[:, 0]
+    cube.celldata["face_id"] = np.arange(cube.ncells)
+    expected_bounds = cube.bounds().copy()
+    expected_bounds[index] = position[index // 2]
+
+    assert cube.crop(**{direction: 0.5}) is cube
+
+    assert cube.npoints > 0
+    assert cube.ncells > 0
+    np.testing.assert_allclose(cube.bounds(), expected_bounds, atol=1e-6)
+    np.testing.assert_allclose(cube.pointdata["x"], cube.vertices[:, 0], atol=1e-6)
+    assert len(cube.celldata["face_id"]) == cube.ncells
+    assert cube.triangulate().area() == pytest.approx(12)
+
+
+def test_crop_explicit_bounds_on_translated_mesh() -> None:
+    cube = Cube(side=2).pos(10, 20, 30)
+    bounds = [10, 10.75, 19.25, 20.5, 29, 31]
+
+    cube.crop(bounds=bounds)
+
+    assert cube.ncells > 0
+    np.testing.assert_allclose(cube.bounds(), bounds, atol=1e-6)
+    assert cube.triangulate().area() == pytest.approx(2 * 0.75 * 1.25)
 
 
 def test_surface_and_volume_regressions() -> None:

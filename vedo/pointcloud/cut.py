@@ -611,10 +611,7 @@ class PointCutMixin:
             ![](https://user-images.githubusercontent.com/32848391/57081955-0ef1e800-6cf6-11e9-99de-b45220939bc9.png)
         """
         if len(bounds) == 0:
-            pos = np.array(self.pos())
             x0, x1, y0, y1, z0, z1 = self.bounds()
-            x0, y0, z0 = [x0, y0, z0] - pos
-            x1, y1, z1 = [x1, y1, z1] - pos
 
             dx, dy, dz = x1 - x0, y1 - y0, z1 - z0
             if top:
@@ -630,27 +627,29 @@ class PointCutMixin:
             if left:
                 x0 = x0 + left * dx
             bounds = (x0, x1, y0, y1, z0, z1)
-        else:
-            pos = np.array(self.pos())
-            b = bounds
-            bounds = (
-                b[0] - pos[0], b[1] - pos[0],
-                b[2] - pos[1], b[3] - pos[1],
-                b[4] - pos[2], b[5] - pos[2],
-            )
 
-        cu = vtki.new("Box")
-        cu.SetBounds(bounds)
+        # Clip each face separately: a box function can be zero at every retained
+        # vertex (e.g. a cone's base and tip), losing the enclosed surface.
+        data = self.dataset
+        for axis in range(3):
+            for side in range(2):
+                origin = [0, 0, 0]
+                normal = [0, 0, 0]
+                origin[axis] = bounds[2 * axis + side]
+                normal[axis] = 1 if side == 0 else -1
+                plane = vtki.vtkPlane()
+                plane.SetOrigin(origin)
+                plane.SetNormal(normal)
 
-        clipper = vtki.new("ClipPolyData")
-        clipper.SetInputData(self.dataset)
-        clipper.SetClipFunction(cu)
-        clipper.InsideOutOn()
-        clipper.GenerateClippedOutputOff()
-        clipper.GenerateClipScalarsOff()
-        clipper.SetValue(0)
-        clipper.Update()
-        self._update(clipper.GetOutput())
+                clipper = vtki.new("ClipPolyData")
+                clipper.SetInputData(data)
+                clipper.SetClipFunction(plane)
+                clipper.GenerateClippedOutputOff()
+                clipper.GenerateClipScalarsOff()
+                clipper.SetValue(0)
+                clipper.Update()
+                data = clipper.GetOutput()
+        self._update(data)
 
         self.pipeline = utils.OperationNode(
             "crop", parents=[self], comment=f"#pts {self.dataset.GetNumberOfPoints()}"
