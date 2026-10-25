@@ -81,7 +81,7 @@ class PointAlgorithms(CommonAlgorithms):
 
         ################
         if isinstance(self.dataset, vtki.vtkPolyData):
-            tp = vtki.new("TransformPolyDataFilter")
+            tp = vtki.new("TransformFilter")
         elif isinstance(
             self.dataset, (vtki.vtkStructuredGrid, vtki.vtkUnstructuredGrid)
         ):

@@ -235,7 +235,7 @@ class Arrow(Mesh):
         else:
             t.Scale(length, length, length)
 
-        tf = vtki.new("TransformPolyDataFilter")
+        tf = vtki.new("TransformFilter")
         tf.SetInputData(self.source.GetOutput())
         tf.SetTransform(t)
         tf.Update()
@@ -455,7 +455,7 @@ class Arrow2D(Mesh):
             t.RotateX(rotation)
         t.Scale(length, length, length)
 
-        tf = vtki.new("TransformPolyDataFilter")
+        tf = vtki.new("TransformFilter")
         tf.SetInputData(poly)
         tf.SetTransform(t)
         tf.Update()

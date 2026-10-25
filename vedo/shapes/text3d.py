@@ -159,7 +159,7 @@ class Text3D(Mesh):
         )
 
         # apply the current transformation to the new polydata
-        tf = vtki.new("TransformPolyDataFilter")
+        tf = vtki.new("TransformFilter")
         tf.SetInputData(poly)
         tf.SetTransform(self.transform.T)
         tf.Update()
@@ -304,7 +304,7 @@ class Text3D(Mesh):
                         tr.Concatenate(
                             [1, italic * 0.15, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
                         )
-                    tf = vtki.new("TransformPolyDataFilter")
+                    tf = vtki.new("TransformFilter")
                     tf.SetInputData(poly)
                     tf.SetTransform(tr)
                     tf.Update()
@@ -352,7 +352,7 @@ class Text3D(Mesh):
             t.PostMultiply()
             t.Scale(s, s, s)
             t.Translate(shift)
-            tf = vtki.new("TransformPolyDataFilter")
+            tf = vtki.new("TransformFilter")
             tf.SetInputData(tpoly)
             tf.SetTransform(t)
             tf.Update()

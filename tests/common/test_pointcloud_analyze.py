@@ -125,14 +125,14 @@ def test_lloyd_moves_points():
 def test_lloyd_increases_min_distance():
     """After relaxation points should be more evenly spread: minimum
     pairwise distance should be greater than before relaxation."""
-    from scipy.spatial import distance_matrix
+    from scipy.spatial.distance import cdist
     cloud = _random_cloud_2d(n=40)
     before = cloud.vertices[:, :2]
     result = cloud.smooth_lloyd_2d(iterations=10)
     after = result.vertices[:, :2]
 
     def _min_dist(pts):
-        d = distance_matrix(pts, pts)
+        d = cdist(pts, pts)
         np.fill_diagonal(d, np.inf)
         return d.min()
 

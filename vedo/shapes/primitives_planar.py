@@ -431,7 +431,7 @@ class Grid(Mesh):
             t.Translate(pos)
             t.Scale(sx, sy, 1)
 
-            tf = vtki.new("TransformPolyDataFilter")
+            tf = vtki.new("TransformFilter")
             tf.SetInputData(ps.GetOutput())
             tf.SetTransform(t)
             tf.Update()

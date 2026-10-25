@@ -935,7 +935,7 @@ class PointsVisual(
             else:
                 size = 350 / msiz
 
-        tp = vtki.new("TransformPolyDataFilter")
+        tp = vtki.new("TransformFilter")
         transform = vtki.vtkTransform()
         transform.Scale(size, size, size)
         if len(offset) == 0:

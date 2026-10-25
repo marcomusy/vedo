@@ -156,20 +156,20 @@ def test_plot_fxy_zlim_negative():
 
 
 def test_plot_complex_mode():
-    fig = plot(lambda x, y: complex(x, y), mode="complex", bins=(10, 10))
+    fig = plot(lambda x, y: x + 1j * y, mode="complex", bins=(10, 10))
     assert fig is not None
 
 
 def test_plot_complex_all_real():
     # regression: v=0 caused degenerate colormap (vmin=vmax=0)
-    fig = plot(lambda x, y: complex(x, 0), mode="complex", bins=(10, 10))
+    fig = plot(lambda x, y: x, mode="complex", bins=(10, 10))
     assert fig is not None
 
 
 def test_plot_complex_zlimits_zero():
     # regression: if zlimits[0]: was False for 0.0
     fig = plot(
-        lambda x, y: complex(x, y),
+        lambda x, y: x + 1j * y,
         mode="complex",
         bins=(10, 10),
         zlimits=(0.0, 0.5),

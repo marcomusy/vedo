@@ -1372,7 +1372,7 @@ def _histogram_hex_bin(
             else:
                 t.Translate(p[0], p[1], ne)
             t.RotateX(90)  # put it along Z
-            tf = vtki.new("TransformPolyDataFilter")
+            tf = vtki.new("TransformFilter")
             tf.SetInputData(cyl.GetOutput())
             tf.SetTransform(t)
             tf.Update()

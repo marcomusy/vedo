@@ -1933,7 +1933,7 @@ class Plotter:
 
         rlabel = vtki.new("VectorText")
         rlabel.SetText("scale")
-        tf = vtki.new("TransformPolyDataFilter")
+        tf = vtki.new("TransformFilter")
         tf.SetInputConnection(rlabel.GetOutputPort())
         t = vtki.vtkTransform()
         t.Scale(s * wsy / wsx, s, 1)

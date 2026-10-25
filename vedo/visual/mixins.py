@@ -373,7 +373,7 @@ class PointsVisualAnnotationsMixin:
                     T.RotateZ(zrot)
             T.Scale(scale, scale, scale)
             T.Translate(e)
-            tf = vtki.new("TransformPolyDataFilter")
+            tf = vtki.new("TransformFilter")
             tf.SetInputData(tx_poly)
             tf.SetTransform(T)
             tf.Update()

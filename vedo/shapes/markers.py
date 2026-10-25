@@ -207,7 +207,7 @@ class Brace(Mesh):
         pscale = 1
         tr.Scale(pscale / (y1 - y0) * d, pscale / (y1 - y0) * d, 1)
 
-        tf = vtki.new("TransformPolyDataFilter")
+        tf = vtki.new("TransformFilter")
         tf.SetInputData(poly)
         tf.SetTransform(tr)
         tf.Update()

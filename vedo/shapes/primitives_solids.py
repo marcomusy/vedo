@@ -230,7 +230,7 @@ class Spring(Mesh):
         t.RotateZ(np.rad2deg(phi))
         t.RotateY(np.rad2deg(theta))
 
-        tf = vtki.new("TransformPolyDataFilter")
+        tf = vtki.new("TransformFilter")
         tf.SetInputData(sp.dataset)
         tf.SetTransform(t)
         tf.Update()
@@ -571,7 +571,7 @@ class Cylinder(Mesh):
         t.RotateZ(np.rad2deg(phi))
         t.Translate(pos)
 
-        tf = vtki.new("TransformPolyDataFilter")
+        tf = vtki.new("TransformFilter")
         tf.SetInputData(cyl.GetOutput())
         tf.SetTransform(t)
         tf.Update()
