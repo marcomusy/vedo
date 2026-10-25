@@ -4,7 +4,98 @@ import numpy as np
 import pytest
 import vtk
 
-from vedo import Assembly, Cone, Cube, Mesh, Sphere, Volume, merge, transformations
+from vedo import Assembly, Box, Cone, Cube, Mesh, Points, Sphere, Volume, merge, transformations, vtk_version
+
+
+@pytest.mark.parametrize("p0,p1,expected_y", [
+    ([0, 0, 0], [0, 800, 0], [399.7766]),
+    ([0, -800, 0], [0, 800, 0], [-399.7766, 399.7766]),
+    ([0, 800, 0], [0, -800, 0], [399.7766, -399.7766]),
+    ([800, 0, 0], [800, 800, 0], []),
+    ([0, 0, 0], [0, 100, 0], []),
+])
+def test_intersect_with_line_sphere(p0, p1, expected_y) -> None:
+    # Issue #1309: vtkOBBTree returns incorrect points with VTK 9.7.
+    sphere = Sphere(r=400, res=48)
+    points, cell_ids = sphere.intersect_with_line(p0, p1, return_ids=True)
+    expected = np.zeros((len(expected_y), 3))
+    expected[:, 1] = expected_y
+
+    np.testing.assert_allclose(points, expected, atol=1e-3)
+    assert cell_ids.shape == (len(expected_y),)
+    assert np.all(cell_ids < sphere.ncells)
+    for point, cell_id in zip(points, cell_ids):
+        cell = sphere.dataset.GetCell(int(cell_id))
+        closest = [0.0, 0.0, 0.0]
+        sub_id, distance2 = vtk.reference(0), vtk.reference(0.0)
+        cell.EvaluatePosition(
+            point, closest, sub_id, [0.0, 0.0, 0.0], distance2,
+            [0.0] * cell.GetNumberOfPoints(),
+        )
+        assert float(distance2) < 1e-6
+
+
+def test_intersect_with_line_preserves_close_crossings() -> None:
+    mesh = Box(length=2, width=2, height=2e-4).triangulate()
+
+    points = mesh.intersect_with_line([0.2, 0.3, -1], [0.2, 0.3, 1], tol=1e-3)
+
+    np.testing.assert_allclose(
+        points, [[0.2, 0.3, -1e-4], [0.2, 0.3, 1e-4]], atol=1e-8,
+    )
+
+
+def test_intersect_with_line_triangle_strips() -> None:
+    cube = Cube(side=2).triangulate()
+    stripper = vtk.vtkStripper()
+    stripper.SetInputData(cube.dataset)
+    stripper.Update()
+    mesh = Mesh(stripper.GetOutput())
+
+    points = mesh.intersect_with_line([0.2, 0.3, -2], [0.2, 0.3, 2])
+
+    np.testing.assert_allclose(points, [[0.2, 0.3, -1], [0.2, 0.3, 1]], atol=1e-7)
+
+
+@pytest.mark.parametrize("direction", [
+    [-203.005549, 69.000135, 770.731943],
+    [-128.134886, 284.730479, -736.552785],
+])
+def test_intersect_with_line_near_shared_edge(direction) -> None:
+    sphere = Sphere(r=400, res=48)
+
+    points, cell_ids = sphere.intersect_with_line([0, 0, 0], direction, return_ids=True)
+
+    assert points.shape == (1, 3)
+    assert cell_ids.shape == (1,)
+    assert np.linalg.norm(points[0]) == pytest.approx(400, abs=0.5)
+
+
+@pytest.mark.skipif(vtk_version < (9, 7, 0), reason="Exercises the VTK 9.7 explicit-tolerance path")
+def test_intersect_with_line_tolerance_changes() -> None:
+    mesh = Mesh([[[0, 0, 0], [1, 0, 0], [0, 1, 0]], [[0, 1, 2]]])
+    # The line just misses the triangle's hypotenuse.
+    p0, p1 = [0.8, 0.2001, -1], [0.8, 0.2001, 1]
+
+    assert mesh.intersect_with_line(p0, p1, tol=1e-8).shape == (0, 3)
+    np.testing.assert_allclose(
+        mesh.intersect_with_line(p0, p1, tol=1e-3), [[0.8, 0.2001, 0]], atol=1e-7,
+    )
+    assert mesh.intersect_with_line(p0, p1, tol=1e-8).shape == (0, 3)
+
+
+def test_intersect_with_line_points_input_and_mesh_update() -> None:
+    sphere = Sphere(r=400, res=48)
+    segment = Points([[0, 0, 0], [0, 800, 0]])
+    np.testing.assert_allclose(
+        sphere.intersect_with_line(segment), [[0, 399.7766, 0]], atol=1e-3,
+    )
+
+    sphere.vertices = sphere.vertices + [0, 100, 0]
+
+    np.testing.assert_allclose(
+        sphere.intersect_with_line(segment), [[0, 499.7766, 0]], atol=1e-3,
+    )
 
 
 def test_lazy_vertex_normals_match_explicit_compute() -> None:

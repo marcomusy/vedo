@@ -2324,8 +2324,7 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         in which case `p1` is ignored.
 
         Use `return_ids` to return the cell ids along with point coords.
-        Pass `tol` to set the intersection tolerance; rebuilds the locator
-        if the tolerance changes.
+        Pass `tol` to set the intersection tolerance.
 
         Examples:
             ```python
@@ -2352,26 +2351,76 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         if not tol:
             tol = mag(p1 - p0) / 10000
 
-        if not self.line_locator or self.line_locator.GetTolerance() != tol:
-            self.line_locator = vtki.new("OBBTree")
+        explicit_tol = vedo.vtk_version >= (9, 7, 0)
+        # These releases index cell-local coordinates with global point ids in
+        # vtkOBBTree (VTK fix 023cea962593eb3501f94afeb61f519c22f6fe90).
+        use_fallback = (9, 7, 0) <= vedo.vtk_version <= (9, 7, 1)
+        if not self.line_locator or (
+            not explicit_tol and self.line_locator.GetTolerance() != tol
+        ):
+            self.line_locator = vtki.new("StaticCellLocator" if use_fallback else "OBBTree")
             self.line_locator.SetDataSet(self.dataset)
-            self.line_locator.SetTolerance(tol)
+            if not explicit_tol:
+                self.line_locator.SetTolerance(tol)
             self.line_locator.BuildLocator()
 
         vpts = vtki.vtkPoints()
+        if use_fallback:
+            vpts.SetDataTypeToDouble()
         idlist = vtki.vtkIdList()
-        self.line_locator.IntersectWithLine(p0, p1, vpts, idlist)
+        if explicit_tol:
+            self.line_locator.IntersectWithLine(p0, p1, tol, vpts, idlist)
+        else:
+            self.line_locator.IntersectWithLine(p0, p1, vpts, idlist)
 
         n = vpts.GetNumberOfPoints()
         pts2 = np.zeros((n, 3))
         for i in range(n):
             vpts.GetPoint(i, pts2[i])
 
+        if use_fallback and n > 1:
+            # Cell locators report each incident cell at shared edges/vertices.
+            # Keep alternating entrance/exit hits as OBBTree does. This also
+            # removes near-edge hits on adjacent faces admitted by tol, without
+            # merging nearby entrance and exit points on a thin surface.
+            scale = max(mag(p1 - p0), np.max(np.abs(pts2)))
+            epsilon = 8 * np.finfo(float).eps * scale
+            keep = np.zeros(n, dtype=bool)
+            last, last_sense = None, 0
+            polygon = vtki.get_class("Polygon")
+            for i in range(n):
+                if last is not None and mag(pts2[i] - pts2[last]) <= epsilon:
+                    continue
+                cell = self.dataset.GetCell(idlist.GetId(i))
+                normal = [0.0, 0.0, 0.0]
+                if cell.IsA("vtkTriangleStrip"):
+                    # A strip's point order is not a polygon boundary. Use the
+                    # triangle hit by the line, including its alternating winding.
+                    sub_id = vtki.mutable(0)
+                    cell.IntersectWithLine(
+                        p0, p1, tol, vtki.mutable(0.0), [0.0] * 3, [0.0] * 3, sub_id,
+                    )
+                    j = int(sub_id)
+                    a = np.array(cell.GetPoints().GetPoint(j))
+                    b = np.array(cell.GetPoints().GetPoint(j + 1 + (j % 2)))
+                    c = np.array(cell.GetPoints().GetPoint(j + 2 - (j % 2)))
+                    normal = np.cross(b - a, c - a)
+                else:
+                    polygon.ComputeNormal(cell.GetPoints(), normal)
+                sense = np.sign(np.dot(normal, p1 - p0))
+                if sense and sense == last_sense:
+                    continue
+                keep[i] = True
+                last, last_sense = i, sense
+            pts2 = pts2[keep]
+
         if return_ids:
             pts_ids = np.array(
                 [idlist.GetId(i) for i in range(idlist.GetNumberOfIds())],
                 dtype=np.uint32,
             )
+            if use_fallback and n > 1:
+                pts_ids = pts_ids[keep]
             return (pts2, pts_ids)
 
         return pts2
