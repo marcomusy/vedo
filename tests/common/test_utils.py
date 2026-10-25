@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from vedo.utils import make3d
+from vedo.utils import line_line_distance, make3d, segment_segment_distance
 
 
 @pytest.mark.parametrize(
@@ -32,3 +32,23 @@ from vedo.utils import make3d
 def test_make3d(input_values, expected) -> None:
     result = make3d(input_values)
     assert np.array_equal(result, expected)
+
+
+def test_line_line_distance() -> None:
+    d, pt1, pt2, t1, t2 = line_line_distance([0, 0, 0], [1, 0, 0], [0, 5, 1], [0, 6, 1])
+    assert np.isclose(d, 1.0)
+    assert np.allclose(pt1, [0, 0, 0])
+    assert np.allclose(pt2, [0, 0, 1])
+    assert np.isclose(t1, 0.0)
+    assert np.isclose(t2, -5.0)
+
+
+def test_segment_segment_distance() -> None:
+    d, pt1, pt2, t1, t2 = segment_segment_distance(
+        [0, 0, 0], [1, 0, 0], [0.5, -1, 1], [0.5, 1, 1]
+    )
+    assert np.isclose(d, 1.0)
+    assert np.allclose(pt1, [0.5, 0, 0])
+    assert np.allclose(pt2, [0.5, 0, 1])
+    assert np.isclose(t1, 0.5)
+    assert np.isclose(t2, 0.5)

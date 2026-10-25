@@ -1654,11 +1654,11 @@ def line_line_distance(
     """
     closest_pt1: MutableSequence[float] = [0, 0, 0]
     closest_pt2: MutableSequence[float] = [0, 0, 0]
-    t1, t2 = 0.0, 0.0
+    t1, t2 = vtki.mutable(0.0), vtki.mutable(0.0)
     d = vtki.vtkLine.DistanceBetweenLines(
         p1, p2, q1, q2, closest_pt1, closest_pt2, t1, t2
     )
-    return np.sqrt(d), closest_pt1, closest_pt2, t1, t2
+    return np.sqrt(d), closest_pt1, closest_pt2, float(t1), float(t2)
 
 
 def segment_segment_distance(p1, p2, q1, q2):
@@ -1672,11 +1672,11 @@ def segment_segment_distance(p1, p2, q1, q2):
     """
     closest_pt1 = [0, 0, 0]
     closest_pt2 = [0, 0, 0]
-    t1, t2 = 0.0, 0.0
+    t1, t2 = vtki.mutable(0.0), vtki.mutable(0.0)
     d = vtki.vtkLine.DistanceBetweenLineSegments(
         p1, p2, q1, q2, closest_pt1, closest_pt2, t1, t2
     )
-    return np.sqrt(d), closest_pt1, closest_pt2, t1, t2
+    return np.sqrt(d), closest_pt1, closest_pt2, float(t1), float(t2)
 
 
 def closest(point, points, n=1, return_ids=False, use_tree=False):
