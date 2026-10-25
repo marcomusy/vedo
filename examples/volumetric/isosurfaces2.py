@@ -36,7 +36,8 @@ iso_discrete = blobs.isosurface_discrete(
     internal_boundaries=True,
     nsmooth=10,
 )
-iso_discrete.cmap(lut)
+# Surface Nets stores the region labels on cells, not points.
+iso_discrete.cmap(lut, "BoundaryLabels", on="cells")
 
 separate_blobs = []
 txt_vols = []
