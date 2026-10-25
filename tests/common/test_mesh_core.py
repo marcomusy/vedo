@@ -3,7 +3,29 @@ from __future__ import annotations
 import numpy as np
 import vtk
 
-from vedo import Assembly, Cone, Sphere, Volume, merge, transformations
+from vedo import Assembly, Cone, Mesh, Sphere, Volume, merge, transformations
+
+
+def test_lazy_vertex_normals_match_explicit_compute() -> None:
+    sphere = Sphere(res=6).triangulate()
+    vertices = np.asarray(sphere.vertices).copy()
+    faces = np.asarray(sphere.cells).copy()
+
+    lazy = Mesh([vertices, faces])
+    explicit = Mesh([vertices, faces]).compute_normals()
+
+    assert lazy.dataset.GetPointData().GetNormals() is None
+    np.testing.assert_allclose(lazy.vertex_normals, explicit.vertex_normals)
+
+
+def test_lazy_vertex_normals_for_point_mesh() -> None:
+    angles = np.linspace(0, 2 * np.pi, 30, endpoint=False)
+    points = np.column_stack((np.cos(angles), np.sin(angles), angles))
+
+    mesh = Mesh([points])
+
+    assert mesh.vertex_normals.shape == points.shape
+    assert np.isfinite(mesh.vertex_normals).all()
 
 
 def test_surface_and_volume_regressions() -> None:
