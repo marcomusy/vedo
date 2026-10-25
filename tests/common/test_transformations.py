@@ -95,6 +95,25 @@ def test_linear_transform_rad_mode() -> None:
     assert np.allclose(lt_deg.transform_point(pt), lt_rad.transform_point(pt), atol=1e-6)
 
 
+@pytest.mark.parametrize("matrix", [
+    [[0.3, -0.2, 0.1], [0.4, 0.1, -0.3], [-0.1, 0.2, 0.4]],
+    [[0.1, 0.2, 0.3], [0.2, 0.4, 0.6], [0.3, 0.6, 0.9]],
+    np.diag([0.0, 2.0, 3.0]),
+    np.zeros((3, 3)),
+])
+def test_linear_transform_main_axes_are_real_and_finite(matrix) -> None:
+    matrix = np.asarray(matrix)
+    axes = LinearTransform(matrix).translate([10, 20, 30]).compute_main_axes()
+
+    assert axes.shape == (3, 3)
+    assert np.isrealobj(axes)
+    assert np.isfinite(axes).all()
+    # The axes describe the same ellipsoid, regardless of their order or signs.
+    np.testing.assert_allclose(axes.T @ axes, matrix @ matrix.T, atol=1e-14)
+    gram = axes @ axes.T
+    np.testing.assert_allclose(gram, np.diag(np.diag(gram)), atol=1e-14)
+
+
 # ── NonLinearTransform ───────────────────────────────────────────────────────
 
 def test_non_linear_transform_basic() -> None:
@@ -111,3 +130,17 @@ def test_non_linear_transform_basic() -> None:
 def test_non_linear_transform_position_always_zero() -> None:
     nlt = NonLinearTransform()
     assert np.allclose(nlt.position, [0, 0, 0])
+
+
+def test_non_linear_transform_main_axes_are_real_and_finite() -> None:
+    source = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=float)
+    transform = NonLinearTransform()
+    transform.source_points = source
+    transform.target_points = source * [2, 3, 4] + [10, 20, 30]
+    transform.update()
+
+    axes = transform.compute_main_axes()
+
+    assert np.isrealobj(axes)
+    assert np.isfinite(axes).all()
+    np.testing.assert_allclose(axes.T @ axes, np.diag([4, 9, 16]), atol=1e-5)

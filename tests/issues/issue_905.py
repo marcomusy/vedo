@@ -1,15 +1,15 @@
 import sys
-from PyQt5 import Qt
-from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
+from PyQt6 import QtCore, QtWidgets
+from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 from vedo import Plotter, Cone, printc, settings
 
 
-class MainWindow(Qt.QMainWindow):
+class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
 
-        Qt.QMainWindow.__init__(self, parent)
-        self.frame = Qt.QFrame()
-        self.layout = Qt.QVBoxLayout()
+        QtWidgets.QMainWindow.__init__(self, parent)
+        self.frame = QtWidgets.QFrame()
+        self.layout = QtWidgets.QVBoxLayout()
         self.vtkWidget = QVTKRenderWindowInteractor(self.frame)
 
         # Create renderer and add the vedo objects and callbacks
@@ -31,7 +31,7 @@ class MainWindow(Qt.QMainWindow):
         self.plt.show()  # <--- show the vedo rendering
 
         # Set-up the rest of the Qt window
-        button = Qt.QPushButton("My Button makes the cone red")
+        button = QtWidgets.QPushButton("My Button makes the cone red")
         button.setToolTip("This is an example button")
         button.clicked.connect(self.onClick)
         self.layout.addWidget(self.vtkWidget)
@@ -44,7 +44,7 @@ class MainWindow(Qt.QMainWindow):
         print("btn is clicked...")
         self.plt.objects[0].color("green5").rotate_z(40)
 
-    @Qt.pyqtSlot()
+    @QtCore.pyqtSlot()
     def onClick(self):
         printc("..calling onClick")
         self.plt.objects[0].color("red5").rotate_z(40)
@@ -54,6 +54,6 @@ class MainWindow(Qt.QMainWindow):
 if __name__ == "__main__":
     if settings.dry_run_mode:
         sys.exit()
-    app = Qt.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     window = MainWindow()
-    app.exec_()
+    app.exec()

@@ -277,8 +277,9 @@ class LinearTransform:
         ```
         """
         m = self.matrix3x3
-        eigval, eigvec = np.linalg.eig(m @ m.T)
-        eigval = np.sqrt(eigval)
+        eigval, eigvec = np.linalg.eigh(m @ m.T)
+        # The Gram matrix is positive semidefinite; remove negative roundoff.
+        eigval = np.sqrt(np.clip(eigval, 0, None))
         return np.array(
             [
                 eigvec[:, 0] * eigval[0],
@@ -1293,8 +1294,8 @@ class NonLinearTransform:
                 self.transform_point(pt + [0, 0, ds]) - p0,
             ]
         )
-        eigval, eigvec = np.linalg.eig(m @ m.T)
-        eigval = np.sqrt(np.abs(eigval))
+        eigval, eigvec = np.linalg.eigh(m @ m.T)
+        eigval = np.sqrt(np.clip(eigval, 0, None))
         return np.array(
             [
                 eigvec[:, 0] * eigval[0],

@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QMainWindow, QApplication, QFrame, QVBoxLayout
+from PyQt6.QtWidgets import QMainWindow, QApplication, QFrame, QVBoxLayout
 from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 from vedo import dataurl, Volume, settings
 from vedo.applications import Slicer3DPlotter

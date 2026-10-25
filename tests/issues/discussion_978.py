@@ -16,7 +16,8 @@ properties = measure.regionprops(labels)
 
 centroid = properties[0].centroid
 inertia_tensor = properties[0].inertia_tensor * 0.1
-eigenvalues, eigenvectors = np.linalg.eig(inertia_tensor)
+# The inertia tensor is real and symmetric; use the symmetric eigensolver.
+eigenvalues, eigenvectors = np.linalg.eigh(inertia_tensor)
 e0 = eigenvectors[:, 0] * eigenvalues[0]
 e1 = eigenvectors[:, 1] * eigenvalues[1]
 e2 = eigenvectors[:, 2] * eigenvalues[2]
