@@ -85,17 +85,17 @@ cd ~/Projects/rio_organoid
     python main4.py
     python piv_read_fw2_C3.py
 ################
-cd ~/Projects/cell_density
+cd ~/Projects/OTHERS/cell_density
    analyse_density.py test_image.png test_image_gfp.png
    edu_histogram.py test_image.png
 ################
 cd ~/Projects/welsh_embryo_stager
    python stager.py pics/E14.5_L3-03_HL2.5X.jpg
 ################
-cd ~/Projects/oocytes
+cd ~/Projects/EMBL/oocytes
    python step5.py
 ################
-cd ~/Projects/umap_viewer3d
+cd ~/Projects/OTHERS/umap_viewer3d
    python main6.py
 ################
 cd ~/Projects/napari-vedo-bridge
@@ -108,12 +108,11 @@ cd ~/Projects/napari-vedo-bridge
     python $VEDODIR/examples/extras/napari1.py # then open plugins ...
     conda deactivate
 ################
-cd ~/Projects/clonal_analysis
-    python -m analysis_plots2d
+cd ~/Projects/EMBL/clonal_analysis
     python main3d_v5.py
 ################
-cd ~/Projects/clonal_analysis/clone_viewer
-    ./clone_viewer3d_v2.py
+cd ~/Projects/EMBL/clonal_analysis/clone_viewer
+    ./clone_viewer3d_v3.py
 ################
 cd ~/Projects/gustaf
     git pull
@@ -133,7 +132,7 @@ cd ~/Projects/tetgenpy/examples
 cd ~/Projects/4d-gene-reconstruction/useful_scripts
     python plc_to_tets.py
 ################
-cd ~/Projects/abm_playground/
+cd ~/Projects/OTHERS/abm_playground/
     python cell_sim.py
 
 rm $VEDOLOGFILE
