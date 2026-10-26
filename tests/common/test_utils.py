@@ -3,7 +3,12 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from vedo.utils import line_line_distance, make3d, segment_segment_distance
+from vedo.utils import (
+    line_line_distance,
+    make3d,
+    segment_segment_distance,
+    triangle_solver,
+)
 
 
 @pytest.mark.parametrize(
@@ -52,3 +57,22 @@ def test_segment_segment_distance() -> None:
     assert np.allclose(pt2, [0.5, 0, 1])
     assert np.isclose(t1, 0.5)
     assert np.isclose(t2, 0.5)
+
+
+def test_triangle_solver_three_sides() -> None:
+    # 3-4-5 right triangle: bc is opposite a, ac is opposite b
+    t = triangle_solver(a=3, b=4, c=5)[0]
+    assert np.isclose(t["ab"], np.pi / 2)
+    assert np.isclose(t["bc"], np.arctan2(3, 4))
+    assert np.isclose(t["ac"], np.arctan2(4, 3))
+
+    # obtuse angle ac (opposite the longest side b)
+    t = triangle_solver(a=1, b=1.9, c=1)[0]
+    assert t["ac"] > np.pi / 2
+    assert np.isclose(t["ab"] + t["bc"] + t["ac"], np.pi)
+
+    # two sides and the included angle go through the same formulas
+    t = triangle_solver(a=3, b=4, ab=np.pi / 2)[0]
+    assert np.isclose(t["c"], 5)
+    assert np.isclose(t["bc"], np.arctan2(3, 4))
+    assert np.isclose(t["ac"], np.arctan2(4, 3))

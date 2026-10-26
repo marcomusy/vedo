@@ -1530,15 +1530,13 @@ def triangle_solver(**input_dict):
 
     if a is not None and b is not None and c is not None:
         ab = np.arccos((a**2 + b**2 - c**2) / (2 * a * b))
-        sinab = np.sin(ab)
-        ac = np.arcsin(a / c * sinab)
-        bc = np.arcsin(b / c * sinab)
+        ac = np.arccos((a**2 + c**2 - b**2) / (2 * a * c))
+        bc = np.pi - ab - ac
 
     elif a is not None and b is not None and ab is not None:
         c = np.sqrt(a**2 + b**2 - 2 * a * b * np.cos(ab))
-        sinab = np.sin(ab)
-        ac = np.arcsin(a / c * sinab)
-        bc = np.arcsin(b / c * sinab)
+        ac = np.arccos((a**2 + c**2 - b**2) / (2 * a * c))
+        bc = np.pi - ab - ac
 
     elif a is not None and ac is not None and ab is not None:
         h = a * np.sin(ac)
