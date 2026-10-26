@@ -5,53 +5,24 @@ All notable changes to the project will be documented in this file.
 ===================================================================================
 # Development Version
 
-## Changes and Fixes
-- add interactive widget wrappers for line, sphere, point and cylinder placement
-- add Three.js scene export support
-- add quaternion utilities, Gaussian cube loading, and explicit structured-grid methods
-- improve CLI: Rich logging, better `--search`, `--convert`, `--eog`, and `--run` behaviour
-- fix trame backend state collisions across multiple notebook views
-- fix k3d backend: cell-to-point color mapping no longer mutates the original mesh
-- fix `NonLinearTransform.compute_main_axes`: Jacobian now correct at any pivot, not just the origin
-- fix `LinearTransform.reorient`: antiparallel case now picks a proper perpendicular axis
-- fix `grid_corners`: wrong box positions for non-square grids when `yflip=True`
-- fix `color_map`: degenerate `vmax==vmin` scalar path returned wrong value
-- fix `Minimizer`: convergence check, `eval()` argument type, and repeated `minimize()` calls
-- fix `cart2cyl`: use `np.hypot` to avoid overflow on large inputs
-- fix `write()`: pipeline was attached to discarded return value instead of the object
-- migrate documentation to MkDocs; refresh examples
-- improve `Settings.__str__` to show live values grouped by category;
-  `"key" in settings` now works; `dry_run_mode` visible in `print(settings)`
 
 
 ## Soft-breaking Changes
-- examples under `examples/other/` were moved to `examples/extras/`
-- `settings.init_colab()` and `Settings.start_xvfb()` are now module-level functions;
-  use `vedo.init_colab()` and `vedo.start_xvfb()` instead
+
 
 
 ## Hard-breaking Changes
-- None
 
 
 
 ## New/Revised Examples
-```
-examples/extras/export_threejs.py
-examples/extras/quaternion.py
-examples/extras/chemistry2.py
-examples/animation/aizawa_attractor.py
-examples/volumetric/slicer_set_volume.py
-examples/volumetric/streamlines2_linewidget.py
-examples/volumetric/streamlines2_spherewidget.py
-examples/volumetric/streamlines2_pointwidget.py
-examples/volumetric/streamlines2_cylinderwidget.py
-```
+
+
+
 
 #### (Internal) Broken Examples
 Examples that are not fully functional and need some fixing:
 ```
-advanced/warp4b.py (problem with picker?)
 interpolate_scalar4.py misplaced scalarbar
 markpoint.py (misplaced leader indicator)
 cut_and_cap.py (incomplete capping)
@@ -81,6 +52,52 @@ streamlines1.py
 
 
 
+
+
+===================================================================================
+# Version 2026.6.3
+
+## Changes and Fixes
+- add interactive widget wrappers for line, sphere, point and cylinder placement
+- add Three.js scene export support
+- add quaternion utilities, Gaussian cube loading, and explicit structured-grid methods
+- improve CLI: Rich logging, better `--search`, `--convert`, `--eog`, and `--run` behaviour
+- fix trame backend state collisions across multiple notebook views
+- fix k3d backend: cell-to-point color mapping no longer mutates the original mesh
+- fix `NonLinearTransform.compute_main_axes`: Jacobian now correct at any pivot, not just the origin
+- fix `LinearTransform.reorient`: antiparallel case now picks a proper perpendicular axis
+- fix `grid_corners`: wrong box positions for non-square grids when `yflip=True`
+- fix `color_map`: degenerate `vmax==vmin` scalar path returned wrong value
+- fix `Minimizer`: convergence check, `eval()` argument type, and repeated `minimize()` calls
+- fix `cart2cyl`: use `np.hypot` to avoid overflow on large inputs
+- fix `write()`: pipeline was attached to discarded return value instead of the object
+- migrate documentation to MkDocs; refresh examples
+- improve `Settings.__str__` to show live values grouped by category;
+  `"key" in settings` now works; `dry_run_mode` visible in `print(settings)`
+
+
+## Soft-breaking Changes
+- examples under `examples/other/` were moved to `examples/extras/`
+- `settings.init_colab()` and `Settings.start_xvfb()` are now module-level functions;
+  use `vedo.init_colab()` and `vedo.start_xvfb()` instead
+
+
+## Hard-breaking Changes
+- None
+
+
+## New/Revised Examples
+```
+examples/extras/export_threejs.py
+examples/extras/quaternion.py
+examples/extras/chemistry2.py
+examples/animation/aizawa_attractor.py
+examples/volumetric/slicer_set_volume.py
+examples/volumetric/streamlines2_linewidget.py
+examples/volumetric/streamlines2_spherewidget.py
+examples/volumetric/streamlines2_pointwidget.py
+examples/volumetric/streamlines2_cylinderwidget.py
+```
 
 ===================================================================================
 # Version 2026.6.1
