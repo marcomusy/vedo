@@ -644,7 +644,7 @@ class Minimizer:
         tolerance, convergence flag, parameters path,
         function path, Hessian matrix, and parameter errors.
 
-        Args:
+        Returns:
             init_parameters (dict):
                 the initial parameters
             parameters (dict):

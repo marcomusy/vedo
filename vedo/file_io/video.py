@@ -84,10 +84,12 @@ class Video:
         Args:
             elevation : list
                 initial and final elevation angles
-            azimuth_range : list
+            azimuth : list
                 initial and final azimuth angles
             cameras : list
                 list of cameras to go through, each camera can be dictionary or a vtkCamera
+            resetcam : bool
+                reset the camera before shooting
         """
         if not self.duration:
             self.duration = 5

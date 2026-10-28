@@ -581,8 +581,6 @@ class Assembly(CommonVisual, Actor3DHelper):
                 rotation angle in degrees.
             ontop (bool):
                 if `True` the now 2D object is rendered on top of the 3D scene.
-            scale (float):
-                deprecated, use `size` instead.
             justify (str):
                 justification for the 2D object.
 
