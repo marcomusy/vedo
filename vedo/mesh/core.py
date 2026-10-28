@@ -1054,9 +1054,6 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
         Args:
             divisions (list):
                 number of divisions along x, y and z axes.
-            auto_adjust (bool):
-                if True, the number of divisions is automatically adjusted to
-                create more uniform cells.
             use_clustering (bool):
                 use [vtkQuadricClustering](https://vtk.org/doc/nightly/html/classvtkQuadricClustering.html)
                 instead of

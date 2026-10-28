@@ -598,10 +598,14 @@ class LinearTransform:
         Set/Get object orientation.
 
         Args:
+            initaxis (list):
+                initial orientation axis of the object.
+            newaxis (list):
+                new axis to align `initaxis` to.
+            around (list):
+                point around which the rotation is done.
             rotation (float):
                 rotate object around newaxis.
-            concatenate (bool):
-                concatenate the orientation operation with the previous existing transform (if any)
             rad (bool):
                 set to True if angle is expressed in radians.
             xyplane (bool):

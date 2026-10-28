@@ -1036,7 +1036,7 @@ class Plotter:
         Play camera, mouse, keystrokes and all other events.
 
         Args:
-            events (str):
+            recorded_events (str):
                 file o string of events.
                 The default is `vedo.settings.cache_directory+"vedo/recorded_events.log"`.
             repeats (int):

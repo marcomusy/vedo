@@ -1507,8 +1507,6 @@ class Tubes(Mesh):
                 capping of the tube
             res (int):
                 resolution, number of the sides of the tube
-            c (color):
-                constant color or list of colors for each point.
 
         Examples:
             - [streamlines1.py](https://github.com/marcomusy/vedo/blob/master/examples/volumetric/streamlines1.py)
