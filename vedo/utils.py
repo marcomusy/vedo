@@ -1740,7 +1740,7 @@ def otsu_threshold(image):
     denominator = omega * (1 - omega)
 
     with np.errstate(divide="ignore", invalid="ignore"):
-        sigma_b_squared = np.divide(numerator, denominator, where=denominator > 0)
+        sigma_b_squared = np.divide(numerator, denominator, out=np.zeros_like(numerator), where=denominator > 0)
 
     idx = np.argmax(sigma_b_squared)
     return bin_centers[idx]

@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import warnings
+
 import numpy as np
 import pytest
 
 from vedo.utils import (
     line_line_distance,
     make3d,
+    otsu_threshold,
     segment_segment_distance,
     triangle_solver,
 )
@@ -76,3 +79,14 @@ def test_triangle_solver_three_sides() -> None:
     assert np.isclose(t["c"], 5)
     assert np.isclose(t["bc"], np.arctan2(3, 4))
     assert np.isclose(t["ac"], np.arctan2(4, 3))
+
+
+def test_otsu_threshold_initializes_the_whole_ratio() -> None:
+    # np.divide with where= but no out= leaves the empty-denominator bins uninitialized,
+    # and their values can win the argmax; numpy warns about it.
+    rng = np.random.default_rng(0)
+    image = np.concatenate([rng.normal(50, 5, 5000), rng.normal(200, 5, 5000)])
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        threshold = otsu_threshold(image)
+    assert 60 < threshold < 190
