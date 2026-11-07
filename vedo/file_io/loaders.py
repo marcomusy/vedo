@@ -195,7 +195,23 @@ def _load_file(filename, unpack):
         wacts = []
         for i in range(actors.GetNumberOfItems()):
             act = actors.GetNextActor()
-            m = Mesh(act.GetMapper().GetInput())
+            data = act.GetMapper().GetInput()
+            tcoords = data.GetPointData().GetTCoords()
+            keys = act.GetPropertyKeys()
+            texture_transform = vtki.vtkProp.GENERAL_TEXTURE_TRANSFORM()
+            if tcoords is not None and keys is not None and keys.Has(texture_transform):
+                # Assemblies overwrite actor property keys while rendering. Bake
+                # the GLTF texture transform before its vertical flip is lost.
+                matrix = np.array(keys.Get(texture_transform)).reshape(4, 4)
+                uv = utils.vtk2numpy(tcoords)
+                transformed = uv @ matrix[:2, :2].T + matrix[:2, 3]
+                baked = utils.numpy2vtk(transformed.astype(uv.dtype), name=tcoords.GetName())
+                data = vtki.vtkPolyData()
+                data.ShallowCopy(act.GetMapper().GetInput())
+                data.GetPointData().SetTCoords(baked)
+                act.GetMapper().SetInputData(data)
+                keys.Remove(texture_transform)
+            m = Mesh(data)
             m.actor = act
             wacts.append(m)
         objt = Assembly(wacts)
