@@ -322,3 +322,29 @@ def test_surface_and_volume_regressions() -> None:
     coords = transformations.spher2cyl(*coords)
     coords = transformations.cyl2cart(*coords)
     assert np.allclose(coords, [5, 2, 3], atol=0.001)
+
+
+def test_merge_accepts_raw_vtk_polydata() -> None:
+    # Issue #1239: merge() accepts raw vtkPolyData inputs (no vedo `.dataset`
+    # attribute) through its AppendPolyData fallback, but crashed with
+    # AttributeError when such an input came first, because properties were
+    # copied unconditionally from objs[0].
+    from vedo import utils
+
+    raw = utils.buildPolyData([[0, 0, 0], [1, 0, 0], [0, 1, 0]], [[0, 1, 2]])
+    assert not hasattr(raw, "dataset")
+
+    sphere = Sphere(r=0.5)
+
+    merged = merge(raw, sphere)
+    assert isinstance(merged, Mesh)
+    assert merged.npoints == sphere.npoints + 3
+    assert merged.ncells == sphere.ncells + 1
+
+    merged = merge(raw)
+    assert merged.npoints == 3
+    assert merged.ncells == 1
+
+    merged = merge(raw, flag=True)
+    assert merged.npoints == 3
+    assert np.asarray(merged.pointdata["OriginalMeshID"]).size == 3

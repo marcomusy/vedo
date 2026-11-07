@@ -79,7 +79,13 @@ def merge(*meshs, flag=False) -> vedo.Mesh | vedo.Points | None:
     else:
         msh = Points(mpoly)  # type: ignore
 
-    msh.copy_properties_from(objs[0])
+    # Raw vtkPolyData inputs (accepted above via the AttributeError fallback)
+    # carry no vedo properties to copy: take them from the first vedo object
+    # instead, and skip copying when every input is a raw dataset.
+    for ob in objs:
+        if hasattr(ob, "dataset"):
+            msh.copy_properties_from(ob)
+            break
 
     msh.pipeline = utils.OperationNode(
         "merge", parents=objs, comment=f"#pts {msh.dataset.GetNumberOfPoints()}"
