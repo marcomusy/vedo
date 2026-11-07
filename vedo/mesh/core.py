@@ -2322,6 +2322,9 @@ class Mesh(MeshVisual, Points, MeshMetricsMixin):
 
         Use `return_ids` to return the cell ids along with point coords.
         Pass `tol` to set the intersection tolerance.
+        Acceptance of near misses depends on the VTK locator: the
+        `vtkStaticCellLocator` workaround used for VTK 9.7.0–9.7.1 can admit
+        near-edge intersections that `vtkOBBTree` rejects at the same tolerance.
 
         Examples:
             ```python

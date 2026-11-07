@@ -71,10 +71,14 @@ def test_intersect_with_line_near_shared_edge(direction) -> None:
     assert np.linalg.norm(points[0]) == pytest.approx(400, abs=0.5)
 
 
-@pytest.mark.skipif(vtk_version < (9, 7, 0), reason="Exercises the VTK 9.7 explicit-tolerance path")
+@pytest.mark.skipif(
+    not ((9, 7, 0) <= vtk_version <= (9, 7, 1)),
+    reason="Exercises near-miss tolerance in the VTK 9.7.0–9.7.1 StaticCellLocator workaround",
+)
 def test_intersect_with_line_tolerance_changes() -> None:
     mesh = Mesh([[[0, 0, 0], [1, 0, 0], [0, 1, 0]], [[0, 1, 2]]])
-    # The line just misses the triangle's hypotenuse.
+    # The line just misses the triangle's hypotenuse. StaticCellLocator admits
+    # this near miss with a larger tolerance; OBBTree does not.
     p0, p1 = [0.8, 0.2001, -1], [0.8, 0.2001, 1]
 
     assert mesh.intersect_with_line(p0, p1, tol=1e-8).shape == (0, 3)
