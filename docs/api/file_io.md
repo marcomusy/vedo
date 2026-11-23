@@ -51,16 +51,9 @@ the same bytes that are subsequently loaded; a mismatch is rejected even when
 the compatibility option is enabled. Cached fonts can be verified offline.
 Unrecognized custom legacy fonts require explicit opt-in.
 
-To convert a trusted custom font from a source checkout, use:
-
-```bash
-VEDO_ALLOW_UNSAFE_PICKLE=1 PYTHONPATH=. python tools/migrate_font_archive.py old-font.npz new-font.npz
-```
-
-The tool checks that glyph order, numeric types, coordinates and triangle indices
-are preserved. The new font then loads without the compatibility option. The
-new format stores a version number, Unicode codepoints, point and triangle
-arrays, and offsets delimiting each glyph; it contains no object arrays.
+The numeric font format stores a version number, Unicode codepoints, point and
+triangle arrays, and offsets delimiting each glyph. It contains no object arrays
+and loads without the compatibility option.
 
 ## API
 
