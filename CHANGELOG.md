@@ -5,10 +5,22 @@ All notable changes to the project will be documented in this file.
 ===================================================================================
 # Development Version
 
+## Changes and Fixes
+
+- Disable implicit pickle loading of NumPy scenes, assemblies, and custom 3D
+  fonts (security issue #1319). Trusted legacy files require the explicit
+  `VEDO_ALLOW_UNSAFE_PICKLE=1` environment variable, with a warning on first use.
+- Convert all bundled 3D fonts to pickle-free numeric arrays, preserving glyph
+  geometry and filenames. Official downloaded fonts retain their legacy format
+  for older releases and are verified against packaged SHA-256 hashes.
 
 
 ## Soft-breaking Changes
 
+- Reading existing pickle-based `.npy`/`.npz` scenes and assemblies, including
+  newly exported files in the current legacy format, now requires the trusted-file
+  compatibility option above. Other values of the environment variable leave
+  pickle disabled.
 
 
 ## Hard-breaking Changes

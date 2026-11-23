@@ -52,6 +52,9 @@ def export_window(
         Pass `backend="threejs"` to generate a standalone Three.js scene page instead.
         Optional `backend_options` can tune the Three.js material mapping, e.g.
         `{"headlight_intensity": 1.1, "specular_scale": 0.55, "preserve_base_color": True}`.
+
+        NumPy scene exports currently use the legacy pickle-based format.
+        Reading them requires `VEDO_ALLOW_UNSAFE_PICKLE=1` for trusted files.
     """
     fileoutput = str(fileoutput)
     if plt is None:
@@ -455,6 +458,9 @@ def _export_threejs(
 def import_window(fileinput: str | os.PathLike) -> vedo.Plotter | None:
     """
     Import a whole scene from a Numpy NPZ file.
+
+    Legacy NumPy scenes require `VEDO_ALLOW_UNSAFE_PICKLE=1`. Only enable this
+    for trusted files, because pickle loading can execute arbitrary Python code.
 
     Returns:
         `vedo.Plotter` instance

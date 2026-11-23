@@ -13,6 +13,7 @@ import vedo
 from vedo.core.summary import format_bounds, summary_panel, summary_string
 from vedo.core.transformations import LinearTransform
 from vedo.visual import CommonVisual, Actor3DHelper
+from vedo.file_io.numpy_io import load_numpy
 
 __docformat__ = "google"
 
@@ -199,6 +200,8 @@ class Assembly(CommonVisual, Actor3DHelper):
 
         A file can be loaded by passing its name as a string.
         Format must be `.npy`.
+        Legacy files require `VEDO_ALLOW_UNSAFE_PICKLE=1`; only enable this for
+        trusted files, because pickle loading can execute arbitrary Python code.
 
         Examples:
             - [gyroscope1.py](https://github.com/marcomusy/vedo/tree/master/examples/animation/gyroscope1.py)
@@ -222,7 +225,7 @@ class Assembly(CommonVisual, Actor3DHelper):
         # Init by filename
         if len(meshs) == 1 and isinstance(meshs[0], str):
             filename = vedo.file_io.download(meshs[0], verbose=False)
-            data = np.load(filename, allow_pickle=True)
+            data = load_numpy(filename)
             try:
                 # old format with a single object
                 meshs = [vedo.file_io.from_numpy(dd) for dd in data]
@@ -487,6 +490,9 @@ class Assembly(CommonVisual, Actor3DHelper):
     def write(self, filename="assembly.npy") -> Self:
         """
         Write the object to file in `numpy` format (npy).
+
+        This legacy format uses pickle. Reading it requires the trusted-file
+        opt-in `VEDO_ALLOW_UNSAFE_PICKLE=1`.
         """
         vedo.file_io.write(self, filename)
         return self

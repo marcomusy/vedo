@@ -73,6 +73,11 @@ class Text3D(Mesh):
 
                 Default is Normografo, which can be changed using `settings.default_font`.
 
+                Bundled fonts use pickle-free arrays. Official downloaded fonts
+                are verified against packaged SHA-256 checksums. A custom legacy
+                `.npz` font requires `VEDO_ALLOW_UNSAFE_PICKLE=1`; only enable this
+                for trusted files, because pickle can execute Python code.
+
             hspacing (float):
                 horizontal spacing of the font
             vspacing (float):

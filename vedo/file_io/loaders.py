@@ -19,6 +19,7 @@ from vedo.pointcloud import Points
 from vedo.volume import Volume
 
 from .network import download, file_info, gunzip
+from .numpy_io import load_numpy
 
 __docformat__ = "google"
 __all__ = [
@@ -50,6 +51,9 @@ def load(inputobj: list | str | os.PathLike, unpack=True, force=False) -> Any:
     The output will depend on the file extension. See examples below.
     Unzip is made on the fly, if file ends with `.gz`.
     Can load an object directly from a URL address.
+
+    Legacy NumPy object files require `VEDO_ALLOW_UNSAFE_PICKLE=1`. Enable this
+    only for trusted files: pickle loading can execute arbitrary Python code.
 
     Args:
         unpack (bool):
@@ -277,7 +281,7 @@ def _load_file(filename, unpack):
 
     ######################################################### assembly:
     elif fl.endswith(".npy"):
-        data = np.load(filename, allow_pickle=True)
+        data = load_numpy(filename)
         try:
             # old format with a single object
             meshs = [from_numpy(dd) for dd in data]
@@ -816,9 +820,9 @@ def _import_npy(fileinput: str | os.PathLike) -> vedo.Plotter:
 
     fileinput = download(fileinput, verbose=False, force=True)
     if fileinput.endswith(".npy"):
-        data = np.load(fileinput, allow_pickle=True, encoding="latin1").flatten()[0]
+        data = load_numpy(fileinput, encoding="latin1").flatten()[0]
     elif fileinput.endswith(".npz"):
-        data = np.load(fileinput, allow_pickle=True)["vedo_scenes"][0]
+        data = load_numpy(fileinput, key="vedo_scenes")[0]
 
     if "use_parallel_projection" in data.keys():
         vedo.settings.use_parallel_projection = data["use_parallel_projection"]

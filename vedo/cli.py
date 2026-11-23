@@ -22,14 +22,17 @@ The library includes a handy Command Line Interface.
     alias vv='vedo -bg blackboard -bg2 gray3 -z 1.05 -k glossy -c blue9 '
 """
 import argparse
+from contextlib import contextmanager
 import glob
 import importlib
 import inspect
 import os
 import pkgutil
 import re
+import shlex
 import subprocess
 import sys
+import warnings
 from importlib.metadata import PackageNotFoundError, version as pkg_version
 
 __all__ = []
@@ -258,6 +261,90 @@ def _show_and_finalize(plt, args, *objects, close_on_exit=False, **show_kwargs):
 
 
 ##############################################################################################
+def _print_loading_notice(message, *, title, prefix, command=None):
+    """Keep a loading notice and its recovery instructions in one Rich panel."""
+    from rich.console import Console
+    from rich.panel import Panel
+    from rich.text import Text
+
+    colored = _use_rich_help(sys.stderr)
+    console = Console(file=sys.stderr, force_terminal=colored, highlight=False)
+    if colored:
+        body = Text(message)
+        body.highlight_words(
+            ["execute code", "execute Python code", "checksum mismatch"], style="bold red"
+        )
+        body.highlight_words(["VEDO_ALLOW_UNSAFE_PICKLE=1"], style="bold cyan")
+        if command:
+            body.append("\n\nOnly if you trust the input files, run:\n", style="bold")
+            body.append(command, style="bold cyan")
+        console.print(Panel(
+            body,
+            title=Text(title, style="bold yellow"),
+            title_align="left",
+            border_style="yellow",
+            expand=False,
+        ))
+    else:
+        console.print(Text(f"vedo: {prefix}: {message}"), soft_wrap=True)
+        if command:
+            console.print(Text("Only if you trust the input files, run:"))
+            console.print(Text(f"  {command}"), soft_wrap=True)
+
+
+def _print_loading_error(message, *, command=None):
+    _print_loading_notice(message, title="Loading blocked", prefix="loading blocked", command=command)
+
+
+@contextmanager
+def _cli_pickle_warnings():
+    """Style the opt-in warning for the CLI; preserve other warning handling."""
+    from vedo.file_io.numpy_io import UnsafePickleWarning
+
+    with warnings.catch_warnings():
+        original_showwarning = warnings.showwarning
+
+        def showwarning(message, category, filename, lineno, file=None, line=None):
+            if issubclass(category, UnsafePickleWarning) and file is None:
+                _print_loading_notice(str(message), title="Unsafe pickle enabled", prefix="warning")
+            else:
+                original_showwarning(message, category, filename, lineno, file=file, line=line)
+
+        warnings.showwarning = showwarning
+        try:
+            yield
+        finally:
+            # Context-aware warnings do not restore the global display hook.
+            warnings.showwarning = original_showwarning
+
+
+##############################################################################################
+def _run_cli_action(action, args):
+    """Report expected NumPy loading refusals without a Python traceback."""
+    _ensure_cli_runtime()
+    from vedo.file_io.numpy_io import NumpyIntegrityError, UnsafePickleError
+
+    try:
+        with _cli_pickle_warnings():
+            action(args)
+    except UnsafePickleError:
+        command_args = ["vedo", *sys.argv[1:]]
+        if os.name == "nt":
+            command = "set VEDO_ALLOW_UNSAFE_PICKLE=1 && " + subprocess.list2cmdline(command_args)
+        else:
+            command = "VEDO_ALLOW_UNSAFE_PICKLE=1 " + shlex.join(command_args)
+        _print_loading_error(
+            "This legacy NumPy data uses pickle, which can execute code.",
+            command=command,
+        )
+        return 1
+    except NumpyIntegrityError as error:
+        _print_loading_error(str(error))
+        return 1
+    return 0
+
+
+##############################################################################################
 def main():
     """Execute the command line interface and return the result."""
     parser = get_parser()
@@ -285,40 +372,28 @@ def main():
         return 0
 
     elif args.run:
-        _ensure_cli_runtime()
-        exe_run(args)
-        return 0
+        return _run_cli_action(exe_run, args)
 
     elif args.search:
-        _ensure_cli_runtime()
-        exe_search(args)
-        return 0
+        return _run_cli_action(exe_search, args)
 
     elif args.search_vtk:
         exe_search_vtk(args)
         return 0
 
     elif args.search_code:
-        _ensure_cli_runtime()
-        exe_search_code(args)
-        return 0
+        return _run_cli_action(exe_search_code, args)
 
     elif args.locate:
-        _ensure_cli_runtime()
-        exe_locate(args)
-        return 0
+        return _run_cli_action(exe_locate, args)
 
     elif args.convert is not None:
         if not args.convert:
             parser.error("--convert requires at least one input file")
-        _ensure_cli_runtime()
-        exe_convert(args)
-        return 0
+        return _run_cli_action(exe_convert, args)
 
     elif args.eog:
-        _ensure_cli_runtime()
-        exe_eog(args)
-        return 0
+        return _run_cli_action(exe_eog, args)
 
     elif not args.files:
         system_info()
@@ -355,9 +430,7 @@ def main():
         return 0
 
     else:
-        _ensure_cli_runtime()
-        draw_scene(args)
-        return 0
+        return _run_cli_action(draw_scene, args)
 
 
 ##############################################################################################
