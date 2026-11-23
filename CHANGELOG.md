@@ -3,7 +3,7 @@
 All notable changes to the project will be documented in this file.
 
 ===================================================================================
-# Development Version
+# Version 2026.6.4
 
 ## Changes and Fixes
 
