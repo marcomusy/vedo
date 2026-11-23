@@ -23,6 +23,10 @@ class UnsafePickleWarning(RuntimeWarning):
     """The explicit compatibility option is permitting pickle execution."""
 
 
+class InvalidGeometryError(ValueError):
+    """Serialized coordinates or connectivity cannot safely be passed to VTK."""
+
+
 @lru_cache(maxsize=1)
 def _warn_unsafe_pickle() -> None:
     warnings.warn(

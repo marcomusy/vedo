@@ -19,8 +19,28 @@ pickle disabled. The option affects the entire process, including downloaded
 files. Vedo emits a warning once when the option is first used to unpickle data.
 There is no automatic unsafe retry without explicit opt-in.
 
-Scene and assembly writers still produce their existing legacy format, so their
-output also requires this option when read back. Numeric NumPy arrays do not
+New scene exports, including the `E` shortcut and `export_window()`, use a
+versioned pickle-free format and load without the compatibility option. NPZ
+scenes store JSON metadata beside typed NumPy arrays; NPY scenes store UTF-8 JSON
+with embedded pickle-free arrays. NPZ is preferred for compact storage of larger
+scenes. Geometry, array types, camera state and ordinary metadata are preserved.
+Object arrays and arbitrary Python classes cannot be exported; convert custom
+metadata to plain containers or typed arrays first. A failed export leaves an
+existing output file intact.
+
+Mesh geometry is checked before reconstruction: coordinates must be finite real
+arrays with two or three components, and polygon/line connectivity must contain
+complete cells with integer vertex indices inside the coordinate array. These
+checks also apply to legacy NumPy geometry and nested assembly parts. Invalid
+geometry is rejected before being passed to VTK.
+
+To convert an old trusted scene, open it once with the compatibility option and
+press `E` to save a new `scene.npz`, or use `export_window()` from Python. The new
+file can then be opened with the option unset. Older vedo releases do not support
+the new scene format.
+
+Assembly writers still produce their existing legacy format, so assembly files
+require the compatibility option when read back. Numeric NumPy arrays do not
 require pickle; the `.npy` and `.npz` extensions alone do not imply pickle.
 
 Bundled 3D fonts have been converted to numeric arrays and need no opt-in.

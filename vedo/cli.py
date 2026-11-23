@@ -322,7 +322,7 @@ def _cli_pickle_warnings():
 def _run_cli_action(action, args):
     """Report expected NumPy loading refusals without a Python traceback."""
     _ensure_cli_runtime()
-    from vedo.file_io.numpy_io import NumpyIntegrityError, UnsafePickleError
+    from vedo.file_io.numpy_io import InvalidGeometryError, NumpyIntegrityError, UnsafePickleError
 
     try:
         with _cli_pickle_warnings():
@@ -338,7 +338,7 @@ def _run_cli_action(action, args):
             command=command,
         )
         return 1
-    except NumpyIntegrityError as error:
+    except (NumpyIntegrityError, InvalidGeometryError) as error:
         _print_loading_error(str(error))
         return 1
     return 0

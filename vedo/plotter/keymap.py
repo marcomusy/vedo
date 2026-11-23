@@ -382,7 +382,7 @@ def _key_print_camera(_plotter, _iren, renderer) -> bool:
 
 
 def _key_export_npz(_plotter, _iren, _renderer) -> bool:
-    vedo.file_io.export_window("scene.npz")
+    vedo.file_io.export_window("scene.npz", plt=_plotter)
     _print_keymap_notice(
         "Scene Exported",
         rows=[

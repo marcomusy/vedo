@@ -177,8 +177,11 @@ def test_legacy_assembly_roundtrip_requires_opt_in(tmp_path, monkeypatch):
     assert len(restored_by_load.objects) == 2
 
 
-@pytest.mark.parametrize("suffix", [".npy", ".npz"])
-def test_legacy_scene_roundtrip_requires_opt_in(tmp_path, monkeypatch, suffix):
+@pytest.mark.parametrize("suffix,legacy,via_key", [
+    (".npy", True, False), (".npz", True, False),
+    (".npy", False, False), (".npz", False, False), (".npz", False, True),
+])
+def test_scene_roundtrip_and_legacy_opt_in(tmp_path, monkeypatch, suffix, legacy, via_key):
     # Exercise real scene serialization and reconstruction without creating a
     # native window. Even offscreen Plotters probe the display; importing a
     # scene also constructs a new, on-screen Plotter by default. Neither is
@@ -211,19 +214,70 @@ def test_legacy_scene_roundtrip_requires_opt_in(tmp_path, monkeypatch, suffix):
     monkeypatch.setattr(vedo, "Plotter", ScenePlotter)
     path = tmp_path / ("scene" + suffix)
     cube = vedo.Cube()
+    cube.pointdata["temperature"] = np.arange(cube.npoints, dtype=np.float32)
+    cube.celldata["region"] = np.arange(cube.ncells, dtype=np.int32)
+    cube.metadata["labels"] = ["alpha", "βeta"]
     plotter = vedo.Plotter()
     plotter.camera.SetPosition(1, 2, 3)
     plotter.camera.SetFocalPoint(0.5, 0.25, 0)
     plotter.add(cube)
-    vedo.export_window(path, plt=plotter)
-    with pytest.raises(UnsafePickleError):
-        vedo.import_window(path)
-    monkeypatch.setenv("VEDO_ALLOW_UNSAFE_PICKLE", "1")
-    with pytest.warns(RuntimeWarning):
-        restored = vedo.import_window(path)
-    assert len(restored.objects) == 1
+    volume = vedo.Volume(np.arange(24, dtype=np.uint16).reshape(2, 3, 4))
+    volume.spacing([0.5, 1.5, 2.5]).origin([1, 2, 3])
+    image = vedo.Image(np.arange(18, dtype=np.uint8).reshape(2, 3, 3))
+    text = vedo.Text2D("Unicode β", font="Arial")
+    plotter.add([volume, image, text])
+    if legacy:
+        from vedo.file_io.scene import _plotter_to_scene_dict
+
+        data = _plotter_to_scene_dict(plotter)
+        if suffix == ".npz":
+            np.savez_compressed(path, vedo_scenes=[data])
+        else:
+            np.save(path, [data])
+        with pytest.raises(UnsafePickleError):
+            vedo.import_window(path)
+        monkeypatch.setenv("VEDO_ALLOW_UNSAFE_PICKLE", "1")
+        with pytest.warns(RuntimeWarning):
+            restored = vedo.import_window(path)
+        # Opening a trusted legacy scene and saving it again migrates it. The
+        # new file must then load with the compatibility option unset.
+        migrated = tmp_path / ("migrated" + suffix)
+        vedo.export_window(migrated, plt=restored)
+        monkeypatch.delenv("VEDO_ALLOW_UNSAFE_PICKLE")
+        with warnings.catch_warnings(record=True) as recorded:
+            warnings.simplefilter("always")
+            restored = vedo.import_window(migrated)
+        assert not recorded
+    else:
+        if via_key:
+            from vedo.plotter import keymap
+
+            monkeypatch.chdir(tmp_path)
+            monkeypatch.setattr(keymap, "_print_keymap_notice", lambda *a, **k: None)
+            assert keymap._key_export_npz(plotter, None, None)
+        else:
+            vedo.export_window(path, plt=plotter)
+        raw = np.load(path, allow_pickle=False)
+        if isinstance(raw, np.lib.npyio.NpzFile):
+            with raw:
+                assert all(not raw[name].dtype.hasobject for name in raw.files)
+        else:
+            assert not raw.dtype.hasobject
+        with warnings.catch_warnings(record=True) as recorded:
+            warnings.simplefilter("always")
+            restored = vedo.import_window(path)
+        assert not recorded
+    assert len(restored.objects) == 4
     np.testing.assert_array_equal(restored.objects[0].vertices, cube.vertices)
     np.testing.assert_array_equal(restored.objects[0].cells, cube.cells)
+    np.testing.assert_array_equal(restored.objects[0].pointdata["temperature"], cube.pointdata["temperature"])
+    np.testing.assert_array_equal(restored.objects[0].celldata["region"], cube.celldata["region"])
+    assert restored.objects[0].metadata["labels"] == cube.metadata["labels"]
+    np.testing.assert_array_equal(restored.objects[1].tonumpy(), volume.tonumpy())
+    np.testing.assert_allclose(restored.objects[1].spacing(), volume.spacing())
+    np.testing.assert_allclose(restored.objects[1].origin(), volume.origin())
+    np.testing.assert_array_equal(restored.objects[2].tonumpy(), image.tonumpy())
+    assert restored.objects[3].text() == text.text()
     np.testing.assert_allclose(restored.camera.GetPosition(), plotter.camera.GetPosition())
     np.testing.assert_allclose(restored.camera.GetFocalPoint(), plotter.camera.GetFocalPoint())
     assert restored.size == plotter.size

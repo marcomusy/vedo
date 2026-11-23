@@ -693,6 +693,9 @@ def loadPCD(filename: str | os.PathLike) -> Points:
 #########################################################################
 def from_numpy(d: dict) -> Mesh:
     """Create a Mesh object from a dictionary."""
+    from .scene import _validate_mesh_geometry
+
+    _validate_mesh_geometry(d)
     # recreate a mesh from numpy arrays
     keys = d.keys()
 
@@ -816,13 +819,12 @@ def from_numpy(d: dict) -> Mesh:
 #############################################################################
 def _import_npy(fileinput: str | os.PathLike) -> vedo.Plotter:
     """Import a vedo scene from numpy format."""
+    from .scene import _read_scene
+
     fileinput = str(fileinput)
 
     fileinput = download(fileinput, verbose=False, force=True)
-    if fileinput.endswith(".npy"):
-        data = load_numpy(fileinput, encoding="latin1").flatten()[0]
-    elif fileinput.endswith(".npz"):
-        data = load_numpy(fileinput, key="vedo_scenes")[0]
+    data = _read_scene(fileinput)
 
     if "use_parallel_projection" in data.keys():
         vedo.settings.use_parallel_projection = data["use_parallel_projection"]

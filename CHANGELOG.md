@@ -7,6 +7,12 @@ All notable changes to the project will be documented in this file.
 
 ## Changes and Fixes
 
+- Validate NumPy mesh coordinates and polygon/line connectivity before VTK
+  reconstruction, including legacy inputs and nested scene assemblies. Reject
+  malformed cell counts and invalid vertex indices with a clear CLI message.
+- Export NumPy scenes, including the `E` shortcut, using versioned JSON metadata
+  and pickle-free arrays. Newly saved `.npy`/`.npz` scenes load without enabling
+  unsafe pickle compatibility; legacy scenes retain the explicit opt-in.
 - Disable implicit pickle loading of NumPy scenes, assemblies, and custom 3D
   fonts (security issue #1319). Trusted legacy files require the explicit
   `VEDO_ALLOW_UNSAFE_PICKLE=1` environment variable, with a warning on first use.
@@ -17,10 +23,11 @@ All notable changes to the project will be documented in this file.
 
 ## Soft-breaking Changes
 
-- Reading existing pickle-based `.npy`/`.npz` scenes and assemblies, including
-  newly exported files in the current legacy format, now requires the trusted-file
-  compatibility option above. Other values of the environment variable leave
-  pickle disabled.
+- Reading existing pickle-based `.npy`/`.npz` scenes and assemblies requires the
+  trusted-file compatibility option above. New scene exports use the safe format;
+  assembly exports still require the opt-in. Other values of the environment
+  variable leave pickle disabled.
+- Older vedo releases cannot read scenes saved in the new pickle-free format.
 
 
 ## Hard-breaking Changes

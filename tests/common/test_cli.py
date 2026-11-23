@@ -10,7 +10,7 @@ from types import SimpleNamespace
 import pytest
 
 import vedo.cli as cli
-from vedo.file_io.numpy_io import NumpyIntegrityError, UnsafePickleError, _warn_unsafe_pickle
+from vedo.file_io.numpy_io import InvalidGeometryError, NumpyIntegrityError, UnsafePickleError, _warn_unsafe_pickle
 
 
 class TtyStringIO(io.StringIO):
@@ -179,6 +179,22 @@ def test_main_preserves_unexpected_exceptions(monkeypatch):
     monkeypatch.setattr(cli, "draw_scene", fail)
     with pytest.raises(ValueError, match="unexpected failure"):
         cli.main()
+
+
+def test_main_reports_invalid_geometry_without_traceback(monkeypatch, capsys):
+    monkeypatch.setattr(cli.sys, "argv", ["vedo", "scene.npz"])
+    monkeypatch.setattr(cli, "_ensure_cli_runtime", lambda: None)
+
+    def reject_geometry(args):
+        raise InvalidGeometryError("Invalid mesh cells: vertex indices must be in [0, 3)")
+
+    monkeypatch.setattr(cli, "draw_scene", reject_geometry)
+    assert cli.main() == 1
+    output = capsys.readouterr()
+    assert not output.out
+    assert "loading blocked: Invalid mesh cells" in output.err
+    assert "Traceback" not in output.err
+    assert "VEDO_ALLOW_UNSAFE_PICKLE" not in output.err
 
 
 def test_write_cli_output_dispatches_screenshot(monkeypatch) -> None:

@@ -2,7 +2,13 @@ from __future__ import annotations
 
 """Scene import/export, screenshots, and terminal interaction helpers."""
 
+import base64
+import io
+import json
+import math
 import os
+from pathlib import Path
+from tempfile import NamedTemporaryFile
 from typing import Any
 
 import numpy as np
@@ -16,6 +22,7 @@ from vedo.pointcloud import Points
 from vedo.volume import Volume
 
 from .loaders import _import_npy
+from .numpy_io import InvalidGeometryError, _requires_pickle, load_numpy
 
 __docformat__ = "google"
 __all__ = [
@@ -53,8 +60,8 @@ def export_window(
         Optional `backend_options` can tune the Three.js material mapping, e.g.
         `{"headlight_intensity": 1.1, "specular_scale": 0.55, "preserve_base_color": True}`.
 
-        NumPy scene exports currently use the legacy pickle-based format.
-        Reading them requires `VEDO_ALLOW_UNSAFE_PICKLE=1` for trusted files.
+        NumPy scenes use versioned JSON metadata and pickle-free arrays.
+        Newly exported scenes can be read without enabling pickle loading.
     """
     fileoutput = str(fileoutput)
     if plt is None:
@@ -431,11 +438,326 @@ def _plotter_to_scene_dict(plt) -> dict:
 
 
 #########################################################################
-def _export_npy(plt, fileoutput="scene.npz") -> None:
-    """Compatibility wrapper for the dedicated NPY exporter."""
-    from .export_npy import _export_npy as _export_npy_impl
+_SCENE_FORMAT = "vedo.scene"
+_SCENE_VERSION = 1
+_SCENE_METADATA = "vedo_scenes"
 
-    _export_npy_impl(plt, fileoutput)
+
+def _encode_scene_value(value, arrays):
+    if isinstance(value, (np.ndarray, np.generic)):
+        array = np.asarray(value)
+        if array.dtype.hasobject:
+            raise TypeError("Scene object arrays are not supported; use typed arrays or plain lists")
+        name = f"array_{len(arrays)}"
+        arrays[name] = array
+        return {"type": "array", "name": name, "scalar": isinstance(value, np.generic)}
+    if value is None or isinstance(value, (str, bool, int)):
+        return value
+    if isinstance(value, float):
+        if math.isfinite(value):
+            return value
+        return {"type": "float", "value": str(value)}
+    if isinstance(value, bytes):
+        return {"type": "bytes", "value": base64.b64encode(value).decode("ascii")}
+    if isinstance(value, dict):
+        if any(not isinstance(key, str) for key in value):
+            raise TypeError("Scene metadata dictionary keys must be strings")
+        return {"type": "dict", "items": [[key, _encode_scene_value(item, arrays)] for key, item in value.items()]}
+    if isinstance(value, list):
+        return [_encode_scene_value(item, arrays) for item in value]
+    if isinstance(value, (tuple, set, frozenset)):
+        return {"type": type(value).__name__, "items": [_encode_scene_value(item, arrays) for item in value]}
+    raise TypeError(f"Unsupported scene metadata type: {type(value).__name__}")
+
+
+def _decode_scene_value(value, arrays):
+    if value is None or isinstance(value, (str, bool, int, float)):
+        return value
+    if isinstance(value, list):
+        return [_decode_scene_value(item, arrays) for item in value]
+    if not isinstance(value, dict):
+        raise ValueError("Invalid scene metadata")
+    kind = value.get("type")
+    if kind == "array":
+        name = value.get("name")
+        if not isinstance(name, str) or name not in arrays:
+            raise ValueError("Scene metadata references a missing array")
+        array = arrays[name]
+        if value.get("scalar", False):
+            if array.shape != ():
+                raise ValueError("A scene scalar must reference a zero-dimensional array")
+            return array[()]
+        return array
+    if kind == "dict":
+        items = value.get("items")
+        if not isinstance(items, list) or any(
+            not isinstance(pair, list) or len(pair) != 2 or not isinstance(pair[0], str)
+            for pair in items
+        ):
+            raise ValueError("Invalid scene dictionary")
+        if len({pair[0] for pair in items}) != len(items):
+            raise ValueError("Duplicate scene dictionary keys")
+        return {key: _decode_scene_value(item, arrays) for key, item in items}
+    if kind in ("tuple", "set", "frozenset"):
+        items = value.get("items")
+        if not isinstance(items, list):
+            raise ValueError("Invalid scene container")
+        constructor = {"tuple": tuple, "set": set, "frozenset": frozenset}[kind]
+        return constructor(_decode_scene_value(item, arrays) for item in items)
+    if kind == "bytes":
+        return base64.b64decode(value["value"], validate=True)
+    if kind == "float" and value.get("value") in ("nan", "inf", "-inf"):
+        return float(value["value"])
+    raise ValueError(f"Unsupported scene metadata node: {kind!r}")
+
+
+def _scene_array_name(name):
+    return isinstance(name, str) and name.startswith("array_") and name[6:].isdigit()
+
+
+def _parse_scene_metadata(value):
+    if not isinstance(value, np.ndarray) or value.shape != () or value.dtype.kind not in "US":
+        raise ValueError("Expected scalar JSON scene metadata")
+    try:
+        descriptor = json.loads(value.item())
+    except (ValueError, UnicodeError) as error:
+        raise ValueError("Invalid scene JSON metadata") from error
+    if (not isinstance(descriptor, dict) or descriptor.get("format") != _SCENE_FORMAT
+            or type(descriptor.get("version")) is not int or descriptor["version"] != _SCENE_VERSION):
+        raise ValueError("Unsupported vedo scene format or version")
+    return descriptor
+
+
+def _validate_scene_array(name, array):
+    if not _scene_array_name(name) or not isinstance(array, np.ndarray) or array.dtype.hasobject:
+        raise ValueError("Scene arrays must be named, pickle-free NumPy arrays")
+    return array
+
+
+def _validate_mesh_geometry(data):
+    """Reject malformed coordinates and connectivity before constructing VTK data."""
+    def fail(part, detail):
+        raise InvalidGeometryError(f"Invalid mesh {part}: {detail}")
+
+    if not isinstance(data, dict) or "points" not in data:
+        fail("points", "expected a coordinate array")
+    try:
+        points = np.asarray(data["points"])
+    except (TypeError, ValueError) as error:
+        raise InvalidGeometryError("Invalid mesh points: expected a rectangular coordinate array") from error
+    empty = points.ndim == 1 and points.size == 0
+    if not empty and (points.ndim != 2 or points.shape[1] not in (2, 3)):
+        fail("points", "expected shape (n, 2) or (n, 3)")
+    if points.dtype.kind not in "fiu" or not np.isfinite(points).all():
+        fail("points", "coordinates must be finite real numbers")
+    npoints = len(points)
+
+    def integer_array(value, part):
+        try:
+            array = np.asarray(value)
+        except (TypeError, ValueError) as error:
+            raise InvalidGeometryError(f"Invalid mesh {part}: expected integer connectivity") from error
+        if array.dtype.kind not in "iu":
+            fail(part, "connectivity must contain integers")
+        return array
+
+    def check_indices(indices, part):
+        if np.any(indices < 0) or np.any(indices >= npoints):
+            fail(part, f"vertex indices must be in [0, {npoints})")
+
+    def connectivity(value, part, minimum):
+        if value is None:
+            return
+        if not isinstance(value, (list, tuple, np.ndarray)):
+            fail(part, "expected an array or a sequence of cells")
+        if isinstance(value, np.ndarray) and value.ndim not in (1, 2):
+            fail(part, "connectivity must have one or two dimensions")
+        if not len(value):
+            return
+        if isinstance(value, np.ndarray) and value.dtype.kind not in "iu":
+            fail(part, "connectivity must contain integers")
+        if isinstance(value, np.ndarray) and value.ndim == 2:
+            array = integer_array(value, part)
+            if array.shape[1] < minimum:
+                fail(part, f"each cell requires at least {minimum} vertices")
+            check_indices(array, part)
+        elif isinstance(value[0], (list, tuple, np.ndarray)):
+            for row in value:
+                array = integer_array(row, part)
+                if array.ndim != 1 or len(array) < minimum:
+                    fail(part, f"each cell requires at least {minimum} vertices")
+                check_indices(array, part)
+        else:
+            packed = integer_array(value, part)
+            if packed.ndim != 1:
+                fail(part, "expected a flat connectivity stream")
+            # Counts and IDs share the packed array. Exclude count positions
+            # from the bounds mask only after checking each complete cell.
+            invalid = (packed < 0) | (packed >= npoints)
+            offset = 0
+            while offset < len(packed):
+                count = int(packed[offset])
+                if count < minimum:
+                    fail(part, f"each cell requires at least {minimum} vertices")
+                end = offset + 1 + count
+                if end > len(packed):
+                    fail(part, "truncated connectivity stream")
+                invalid[offset] = False
+                offset = end
+            if np.any(invalid):
+                fail(part, f"vertex indices must be in [0, {npoints})")
+
+    connectivity(data.get("cells"), "cells", 3)
+    connectivity(data.get("lines"), "lines", 2)
+
+
+def _validate_scene_geometry(scene):
+    """Check every mesh, including assembly parts, before building the scene."""
+    def validate_object(obj):
+        if not isinstance(obj, dict):
+            raise InvalidGeometryError("Invalid scene object: expected a dictionary")
+        kind = obj.get("type", "")
+        if not isinstance(kind, str):
+            raise InvalidGeometryError("Invalid scene object type")
+        if kind.lower() == "mesh" or "points" in obj:
+            _validate_mesh_geometry(obj)
+        if kind.lower() == "assembly":
+            for key in ("parts", "actors"):
+                if key not in obj:
+                    continue
+                parts = obj[key]
+                if (not isinstance(parts, (list, tuple, np.ndarray))
+                        or (isinstance(parts, np.ndarray) and parts.ndim != 1)):
+                    raise InvalidGeometryError("Invalid assembly parts: expected a sequence")
+                for part in parts:
+                    validate_object(part)
+
+    if not isinstance(scene, dict):
+        raise InvalidGeometryError("Invalid scene: expected a dictionary")
+    if "objects" in scene:
+        objects = scene["objects"]
+        if (not isinstance(objects, (list, tuple, np.ndarray))
+                or (isinstance(objects, np.ndarray) and objects.ndim != 1)):
+            raise InvalidGeometryError("Invalid scene objects: expected a sequence")
+        for obj in objects:
+            validate_object(obj)
+    else:
+        # Older NPY mesh lists are probed as scenes by the CLI before falling
+        # back to Assembly. Validate their geometry without changing that path.
+        validate_object(scene)
+
+
+def _decode_scene(descriptor, arrays):
+    if "data" not in descriptor:
+        raise ValueError("Scene metadata has no data")
+    scene = _decode_scene_value(descriptor["data"], arrays)
+    if not isinstance(scene, dict) or not isinstance(scene.get("objects"), list):
+        raise ValueError("Scene data must contain an objects list")
+    _validate_scene_geometry(scene)
+    return scene
+
+
+def _embedded_scene_arrays(descriptor):
+    encoded = descriptor.get("arrays")
+    if not isinstance(encoded, dict):
+        raise ValueError("NPY scene metadata has no embedded arrays")
+    arrays = {}
+    for name, content in encoded.items():
+        if not _scene_array_name(name) or not isinstance(content, str):
+            raise ValueError("Invalid embedded scene array")
+        with io.BytesIO(base64.b64decode(content, validate=True)) as stream:
+            array = np.load(stream, allow_pickle=False)
+            if isinstance(array, np.lib.npyio.NpzFile):
+                array.close()
+                raise ValueError("An embedded scene array must be an NPY array")
+            arrays[name] = _validate_scene_array(name, array)
+    return arrays
+
+
+def _read_scene(filename):
+    """Read the new format safely, or use the explicit opt-in for legacy scenes.
+
+    Once JSON metadata identifies the new format, every array is loaded with
+    pickle disabled even if legacy compatibility has been enabled.
+    """
+    legacy_npz = False
+    with open(filename, "rb") as stream:
+        try:
+            data = np.load(stream, allow_pickle=False)
+        except ValueError as error:
+            if not _requires_pickle(error):
+                raise
+        else:
+            if isinstance(data, np.lib.npyio.NpzFile):
+                legacy_npz = True
+                with data:
+                    try:
+                        metadata = data[_SCENE_METADATA]
+                    except ValueError as error:
+                        if not _requires_pickle(error):
+                            raise
+                    else:
+                        descriptor = _parse_scene_metadata(metadata)
+                        arrays = {}
+                        for name in data.files:
+                            if name != _SCENE_METADATA:
+                                # No unsafe retry for arrays in the new format.
+                                arrays[name] = _validate_scene_array(name, data[name])
+                        return _decode_scene(descriptor, arrays)
+            else:
+                descriptor = _parse_scene_metadata(data)
+                return _decode_scene(descriptor, _embedded_scene_arrays(descriptor))
+    if legacy_npz:
+        scene = load_numpy(filename, key=_SCENE_METADATA)[0]
+    else:
+        scene = load_numpy(filename, encoding="latin1").flatten()[0]
+    _validate_scene_geometry(scene)
+    return scene
+
+
+def _write_scene(filename, scene):
+    """Write a pickle-free scene, validating it before replacing the output.
+
+    NPZ stores typed arrays beside JSON metadata. NPY stores scalar UTF-8 JSON
+    with base64-encoded, pickle-free NPY arrays, since NPY holds just one array.
+    """
+    destination = Path(filename)
+    suffix = destination.suffix.lower()
+    if suffix not in (".npy", ".npz"):
+        raise ValueError("Scene output must have an .npy or .npz extension")
+    arrays = {}
+    descriptor = {"format": _SCENE_FORMAT, "version": _SCENE_VERSION, "data": _encode_scene_value(scene, arrays)}
+    if suffix == ".npy":
+        embedded = {}
+        for name, array in arrays.items():
+            with io.BytesIO() as stream:
+                np.save(stream, array, allow_pickle=False)
+                embedded[name] = base64.b64encode(stream.getvalue()).decode("ascii")
+        descriptor["arrays"] = embedded
+    metadata = json.dumps(descriptor, ensure_ascii=True, allow_nan=False, separators=(",", ":"))
+    with NamedTemporaryFile(dir=destination.parent, suffix=suffix, delete=False) as temporary:
+        temporary_path = Path(temporary.name)
+    try:
+        with open(temporary_path, "wb") as stream:
+            if suffix == ".npz":
+                np.savez_compressed(stream, **{_SCENE_METADATA: np.array(metadata)}, **arrays)
+            else:
+                np.save(stream, np.array(metadata.encode("utf-8")), allow_pickle=False)
+        _read_scene(temporary_path)
+        mode = destination.stat().st_mode & 0o777 if destination.exists() else 0o644
+        temporary_path.chmod(mode)
+        os.replace(temporary_path, destination)
+    finally:
+        temporary_path.unlink(missing_ok=True)
+
+
+#########################################################################
+def _export_npy(plt, fileoutput="scene.npz") -> None:
+    """Export a scene using pickle-free NPY/NPZ storage."""
+    if plt is None:
+        vedo.logger.error("_export_npy(): no active Plotter found")
+        return
+    _write_scene(str(fileoutput), _plotter_to_scene_dict(plt))
 
 
 def _export_x3d(plt, fileoutput="scene.x3d", binary=False) -> None:
@@ -459,8 +781,9 @@ def import_window(fileinput: str | os.PathLike) -> vedo.Plotter | None:
     """
     Import a whole scene from a Numpy NPZ file.
 
-    Legacy NumPy scenes require `VEDO_ALLOW_UNSAFE_PICKLE=1`. Only enable this
-    for trusted files, because pickle loading can execute arbitrary Python code.
+    Current NumPy scenes load without pickle. Legacy NumPy scenes require
+    `VEDO_ALLOW_UNSAFE_PICKLE=1`; only enable this for trusted files, because
+    pickle loading can execute arbitrary Python code.
 
     Returns:
         `vedo.Plotter` instance
