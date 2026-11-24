@@ -28,6 +28,7 @@ _LAZY_EXPORT_MAP, __all__ = build_attr_map(
             "loadSTEP",
             "loadStructuredGrid",
             "loadStructuredPoints",
+            "load_gltf",
             "load_obj",
         ],
     ),

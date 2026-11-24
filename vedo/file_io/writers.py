@@ -3,6 +3,8 @@ from __future__ import annotations
 """Object writing helpers."""
 
 import os
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import Any
 
 import numpy as np
@@ -40,6 +42,89 @@ def _ply_input_with_float_tcoords(obj: Any) -> Any:
     return converted
 
 
+def _gltf_polydata(data, matrix=None):
+    """Prepare the float arrays required by glTF without changing the input."""
+    if matrix is not None and not matrix.IsIdentity():
+        transform = vtki.vtkTransform()
+        transform.SetMatrix(matrix)
+        transform_filter = vtki.new("TransformFilter")
+        transform_filter.SetTransform(transform)
+        transform_filter.SetInputData(data)
+        transform_filter.Update()
+        data = transform_filter.GetOutput()
+
+    if not data.GetNumberOfCells():
+        glyph = vtki.new("VertexGlyphFilter")
+        glyph.SetInputData(data)
+        glyph.Update()
+        data = glyph.GetOutput()
+
+    result = vtki.vtkPolyData()
+    result.ShallowCopy(data)
+    if data.GetPoints().GetDataType() != vtki.VTK_FLOAT:
+        points = vtki.vtkPoints()
+        points.DeepCopy(data.GetPoints())
+        result.SetPoints(points)
+
+    point_data = result.GetPointData()
+    normals = point_data.GetNormals()
+    if normals is not None and normals.GetDataType() != vtki.VTK_FLOAT:
+        point_data.SetNormals(utils.numpy2vtk(utils.vtk2numpy(normals), dtype=np.float32))
+    tcoords = point_data.GetTCoords()
+    if tcoords is not None:
+        if tcoords.GetNumberOfComponents() != 2:
+            point_data.SetTCoords(None)
+        elif tcoords.GetDataType() != vtki.VTK_FLOAT:
+            point_data.SetTCoords(utils.numpy2vtk(utils.vtk2numpy(tcoords), dtype=np.float32))
+    return result
+
+
+def _write_gltf(objct: Any, fileoutput: str) -> None:
+    path = Path(fileoutput)
+    extension = path.suffix.lower()
+    writer = vtki.new("GLTFWriter")
+    if extension == ".glb" and not hasattr(writer, "GetBinary"):
+        raise ValueError("this VTK version only supports writing .gltf datasets")
+
+    data = getattr(objct, "dataset", objct)
+    parts = vtki.vtkMultiBlockDataSet()
+    if isinstance(data, vtki.vtkPolyData):
+        if data.GetNumberOfPoints():
+            actor = getattr(objct, "actor", None)
+            matrix = actor.GetMatrix() if actor is not None else None
+            parts.SetBlock(0, _gltf_polydata(data, matrix))
+    elif isinstance(data, vtki.vtkMultiBlockDataSet):
+        iterator = data.NewIterator()
+        iterator.InitTraversal()
+        while not iterator.IsDoneWithTraversal():
+            part = iterator.GetCurrentDataObject()
+            if not isinstance(part, vtki.vtkPolyData):
+                raise TypeError("glTF dataset writing requires polygonal geometry")
+            if part.GetNumberOfPoints():
+                parts.SetBlock(parts.GetNumberOfBlocks(), _gltf_polydata(part))
+            iterator.GoToNextItem()
+    else:
+        raise TypeError("glTF dataset writing requires a mesh, point cloud or polygonal multiblock dataset")
+
+    if not parts.GetNumberOfBlocks():
+        raise ValueError("no points to write")
+
+    # VTK expects a multiblock containing groups of polygonal parts.
+    groups = vtki.vtkMultiBlockDataSet()
+    groups.SetBlock(0, parts)
+    writer.SetInputData(groups)
+    writer.InlineDataOn()
+    writer.SaveNormalOn()
+
+    # Some VTK versions use a fixed scratch filename beside the .glb output.
+    with TemporaryDirectory(dir=path.parent) as directory:
+        temporary_path = Path(directory) / ("dataset" + extension)
+        writer.SetFileName(str(temporary_path))
+        if not writer.Write() or writer.GetErrorCode():
+            raise OSError("VTK could not write the glTF dataset")
+        temporary_path.replace(path)
+
+
 def write(objct: Any, fileoutput: str | os.PathLike, binary=True) -> Any:
     """
     Write object to file. Same as `save()`.
@@ -47,8 +132,19 @@ def write(objct: Any, fileoutput: str | os.PathLike, binary=True) -> Any:
     Supported extensions are:
 
     - `vtk, vti, ply, obj, stl, byu, vtp, vti, mhd, xyz, xml, tif, png, bmp`
+    - `gltf, glb` for meshes, point clouds and polygonal multiblock datasets.
+      The extension selects JSON or binary glTF output. GLB writing requires
+      a VTK version with binary glTF writer support.
     """
     fileoutput = str(fileoutput)
+    fr = fileoutput.lower()
+
+    if fr.endswith((".gltf", ".glb")):
+        try:
+            _write_gltf(objct, fileoutput)
+        except (OSError, RuntimeError, TypeError, ValueError) as e:
+            vedo.logger.error(f"could not save {fileoutput}: {e}")
+        return objct
 
     ###############################
     if isinstance(objct, Assembly):
@@ -72,7 +168,6 @@ def write(objct: Any, fileoutput: str | os.PathLike, binary=True) -> Any:
             f"object '{objct.name}' was manually moved. Writing uses current position."
         )
 
-    fr = fileoutput.lower()
     if fr.endswith(".vtk"):
         writer = vtki.new("DataSetWriter")
     elif fr.endswith(".ply"):

@@ -244,6 +244,7 @@ _LAZY_EXPORT_MAP, _LAZY_EXPORTS = build_attr_map(
             "save",
             "export_window",
             "import_window",
+            "load_gltf",
             "load_obj",
             "screenshot",
             "ask",

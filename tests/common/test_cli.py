@@ -21,6 +21,7 @@ class TtyStringIO(io.StringIO):
 def test_classify_output_path() -> None:
     assert cli._classify_output_path("figure.png") == "image"
     assert cli._classify_output_path("scene.html") == "scene"
+    assert cli._classify_output_path("scene.gltf") == "scene"
     assert cli._classify_output_path("scene.xyz") is None
 
 

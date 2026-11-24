@@ -38,7 +38,7 @@ from importlib.metadata import PackageNotFoundError, version as pkg_version
 __all__ = []
 
 _IMAGE_OUTPUT_EXTS = {".png", ".jpg", ".jpeg", ".pdf", ".svg", ".eps"}
-_SCENE_OUTPUT_EXTS = {".npy", ".npz", ".x3d", ".html"}
+_SCENE_OUTPUT_EXTS = {".npy", ".npz", ".x3d", ".html", ".gltf"}
 
 vedo = None
 np = None
@@ -628,7 +628,7 @@ def get_parser() -> argparse.ArgumentParser:
     pr.add_argument(
         "--output",
         type=str,
-        help="write a non-interactive output (.png, .jpg, .pdf, .svg, .eps, .html, .x3d, .npy, .npz)",
+        help="write a non-interactive output (.png, .jpg, .pdf, .svg, .eps, .html, .x3d, .gltf, .npy, .npz)",
         default="",
         metavar="",
     )

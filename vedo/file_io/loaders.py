@@ -33,6 +33,7 @@ __all__ = [
     "loadOFF",
     "loadSTEP",
     "loadGeoJSON",
+    "load_gltf",
     "loadPVD",
     "loadNeutral",
     "loadGmesh",
@@ -51,6 +52,9 @@ def load(inputobj: list | str | os.PathLike, unpack=True, force=False) -> Any:
     The output will depend on the file extension. See examples below.
     Unzip is made on the fly, if file ends with `.gz`.
     Can load an object directly from a URL address.
+
+    For `.gltf` and `.glb` files, return an `Assembly` with materials.
+    Use `load_gltf()` to obtain the geometry as a VTK multiblock dataset.
 
     Legacy NumPy object files require `VEDO_ALLOW_UNSAFE_PICKLE=1`. Enable this
     only for trusted files: pickle loading can execute arbitrary Python code.
@@ -190,35 +194,11 @@ def _load_file(filename, unpack):
             m.actor = act
             wacts.append(m)
         objt = Assembly(wacts)
-    elif fl.endswith(".glb") or fl.endswith(".gltf"):
-        importer = vtki.new("GLTFImporter")
-        importer.SetFileName(filename)
-        importer.Update()
-        actors = importer.GetRenderer().GetActors()  # vtkActorCollection
-        actors.InitTraversal()
-        wacts = []
-        for i in range(actors.GetNumberOfItems()):
-            act = actors.GetNextActor()
-            data = act.GetMapper().GetInput()
-            tcoords = data.GetPointData().GetTCoords()
-            keys = act.GetPropertyKeys()
-            texture_transform = vtki.vtkProp.GENERAL_TEXTURE_TRANSFORM()
-            if tcoords is not None and keys is not None and keys.Has(texture_transform):
-                # Assemblies overwrite actor property keys while rendering. Bake
-                # the GLTF texture transform before its vertical flip is lost.
-                matrix = np.array(keys.Get(texture_transform)).reshape(4, 4)
-                uv = utils.vtk2numpy(tcoords)
-                transformed = uv @ matrix[:2, :2].T + matrix[:2, 3]
-                baked = utils.numpy2vtk(transformed.astype(uv.dtype), name=tcoords.GetName())
-                data = vtki.vtkPolyData()
-                data.ShallowCopy(act.GetMapper().GetInput())
-                data.GetPointData().SetTCoords(baked)
-                act.GetMapper().SetInputData(data)
-                keys.Remove(texture_transform)
-            m = Mesh(data)
-            m.actor = act
-            wacts.append(m)
-        objt = Assembly(wacts)
+    elif fl.endswith((".gltf", ".glb")):
+        importer = _gltf_importer(filename)
+        if importer.Update() is False:
+            return None
+        objt = Assembly(_gltf_meshes(importer.GetRenderer(), bake_texture_transforms=True))
 
     ######################################################## volumetric:
     elif fl.endswith(
@@ -359,6 +339,80 @@ def _load_file(filename, unpack):
     objt.filename = filename
     objt.file_size, objt.created = file_info(filename)
     return objt
+
+
+def _gltf_importer(filename):
+    importer = vtki.new("GLTFImporter")
+    extension = os.path.splitext(filename)[1]
+    if extension.lower() == ".glb" and extension != ".glb" and hasattr(importer, "SetStream"):
+        # Some VTK versions only recognize a lowercase .glb filename.
+        stream = vtki.vtkFileResourceStream()
+        if stream.Open(filename):
+            uri_loader = vtki.vtkURILoader()
+            uri_loader.SetBaseFileName(os.path.abspath(filename))
+            importer.SetStream(stream)
+            importer.SetStreamURILoader(uri_loader)
+            if vedo.vtk_version[:2] < (9, 7):
+                importer.StreamIsBinaryOn()
+            return importer
+    importer.SetFileName(filename)
+    return importer
+
+
+def _gltf_meshes(renderer, *, bake_texture_transforms=False) -> list[Mesh]:
+    """Wrap imported actors while preserving their mappers and materials."""
+    actors = renderer.GetActors()
+    actors.InitTraversal()
+    meshes = []
+    texture_transform = vtki.vtkProp.GENERAL_TEXTURE_TRANSFORM()
+    for _ in range(actors.GetNumberOfItems()):
+        actor = actors.GetNextActor()
+        mapper = actor.GetMapper()
+        data = mapper.GetInput()
+        tcoords = data.GetPointData().GetTCoords()
+        keys = actor.GetPropertyKeys()
+        if (
+            bake_texture_transforms
+            and tcoords is not None
+            and keys is not None
+            and keys.Has(texture_transform)
+        ):
+            # Assemblies overwrite actor property keys while rendering. Bake
+            # the texture transform into a private copy of the UV array.
+            matrix = np.array(keys.Get(texture_transform)).reshape(4, 4)
+            uv = utils.vtk2numpy(tcoords)
+            transformed = uv @ matrix[:2, :2].T + matrix[:2, 3]
+            baked = utils.numpy2vtk(transformed.astype(uv.dtype), name=tcoords.GetName())
+            original = data
+            data = vtki.vtkPolyData()
+            data.ShallowCopy(original)
+            data.GetPointData().SetTCoords(baked)
+            mapper.SetInputData(data)
+            keys.Remove(texture_transform)
+
+        mesh = Mesh(data)
+        actor.retrieve_object = mesh.actor.retrieve_object
+        mesh.actor = actor
+        mesh.mapper = mapper
+        mesh.properties = actor.GetProperty()
+        mesh.properties_backface = actor.GetBackfaceProperty()
+        meshes.append(mesh)
+    return meshes
+
+
+def load_gltf(filename: str | os.PathLike) -> vtki.vtkMultiBlockDataSet | None:
+    """
+    Read geometry from a local `.gltf` or `.glb` file as a `vtkMultiBlockDataSet`.
+
+    The dataset contains the glTF scene's geometry with node transforms applied.
+    Use `load()` for an `Assembly` with the original materials and textures.
+    """
+    reader = vtki.new("GLTFReader")
+    reader.SetFileName(os.fspath(filename))
+    if reader.Update() is False or not reader.GetNumberOfScenes():
+        vedo.logger.error(f"unable to load {filename}")
+        return None
+    return reader.GetOutput()
 
 
 def loadStructuredPoints(filename: str | os.PathLike, as_points=True):

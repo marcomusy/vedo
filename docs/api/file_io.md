@@ -1,5 +1,26 @@
 # vedo.file_io
 
+## glTF files
+
+```python
+from vedo import export_window, import_window, load, load_gltf, write
+
+model = load("model.glb")  # Assembly with materials and textures
+geometry = load_gltf("model.glb")  # vtkMultiBlockDataSet
+write(geometry, "geometry.gltf")
+
+plotter = import_window("model.glb")
+export_window("scene.gltf", plt=plotter)
+```
+
+Use `write()` for a mesh, point cloud or polygonal multiblock dataset. The
+`.gltf` output embeds its buffers in the JSON file. With a VTK build that
+supports binary glTF writing, use `.glb` to write a binary dataset.
+
+Use `import_window()` to bring supported materials, lights and the first camera
+into a `Plotter`. `export_window()` uses VTK's scene exporter for visible
+polygonal actors and cameras. Scene exports use `.gltf`.
+
 ## NumPy files and trusted legacy data
 
 Pickle loading is disabled by default. Legacy vedo `.npy` assemblies and
@@ -19,7 +40,7 @@ pickle disabled. The option affects the entire process, including downloaded
 files. Vedo emits a warning once when the option is first used to unpickle data.
 There is no automatic unsafe retry without explicit opt-in.
 
-New scene exports, including the `E` shortcut and `export_window()`, use a
+New NumPy scene exports, including the `E` shortcut and `export_window()`, use a
 versioned pickle-free format and load without the compatibility option. NPZ
 scenes store JSON metadata beside typed NumPy arrays; NPY scenes store UTF-8 JSON
 with embedded pickle-free arrays. NPZ is preferred for compact storage of larger

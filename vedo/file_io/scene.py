@@ -21,7 +21,7 @@ from vedo.grids.image import Image
 from vedo.pointcloud import Points
 from vedo.volume import Volume
 
-from .loaders import _import_npy
+from .loaders import _gltf_importer, _gltf_meshes, _import_npy
 from .numpy_io import InvalidGeometryError, _requires_pickle, load_numpy
 
 __docformat__ = "google"
@@ -42,7 +42,10 @@ def export_window(
     backend_options: dict | None = None,
 ) -> vedo.Plotter | None:
     """
-    Exporter which writes out the rendered scene into an HTML, X3D or Numpy file.
+    Export the rendered scene to HTML, X3D, glTF or NumPy.
+
+    A `.gltf` export embeds its binary data in the JSON file. The VTK exporter
+    supports visible polygonal actors and cameras.
 
     Examples:
         - [export_x3d.py](https://github.com/marcomusy/vedo/tree/master/examples/extras/export_x3d.py)
@@ -78,6 +81,17 @@ def export_window(
     ####################################################################
     elif fr.endswith(".x3d"):
         _export_x3d(plt, fileoutput, binary=binary)
+
+    elif fr.endswith(".gltf"):
+        if plt.window is None:
+            vedo.logger.error("glTF scene export requires a VTK render window")
+            return None
+        exporter = vtki.new("GLTFExporter")
+        exporter.SetRenderWindow(plt.window)
+        exporter.SetFileName(fileoutput)
+        exporter.InlineDataOn()
+        exporter.SaveNormalOn()
+        exporter.Write()
 
     ####################################################################
     elif fr.endswith(".html"):
@@ -779,7 +793,9 @@ def _export_threejs(
 ########################################################################
 def import_window(fileinput: str | os.PathLike) -> vedo.Plotter | None:
     """
-    Import a whole scene from a Numpy NPZ file.
+    Import a whole scene from a NumPy, glTF (`.gltf`) or GLB (`.glb`) file.
+
+    For glTF, the imported scene uses the asset's first camera when available.
 
     Current NumPy scenes load without pickle. Legacy NumPy scenes require
     `VEDO_ALLOW_UNSAFE_PICKLE=1`; only enable this for trusted files, because
@@ -789,6 +805,34 @@ def import_window(fileinput: str | os.PathLike) -> vedo.Plotter | None:
         `vedo.Plotter` instance
     """
     fileinput = str(fileinput)
+
+    if fileinput.lower().endswith((".gltf", ".glb")):
+        if not os.path.isfile(fileinput):
+            vedo.logger.error(f"unable to load {fileinput}")
+            return None
+
+        previous_plotter = vedo.current_plotter()
+        plt = vedo.Plotter()
+        if plt.window is None:
+            vedo.logger.error("glTF scene import requires a VTK render window")
+            plt.close()
+            vedo.set_current_plotter(previous_plotter)
+            return None
+
+        importer = _gltf_importer(fileinput)
+        importer.SetRenderWindow(plt.window)
+        if importer.Update() is False:
+            plt.close()
+            vedo.set_current_plotter(previous_plotter)
+            return None
+
+        plt.add(_gltf_meshes(importer.GetRenderer()))
+        if importer.GetNumberOfCameras() and hasattr(importer, "GetCamera"):
+            plt.camera = importer.GetCamera(0)
+            plt.resetcam = False
+        else:
+            plt.renderer.ResetCamera()
+        return plt
 
     if fileinput.endswith(".npy") or fileinput.endswith(".npz"):
         return _import_npy(fileinput)

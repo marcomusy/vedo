@@ -456,13 +456,19 @@ location["vtkCellSizeFilter"] = "vtkFiltersVerdict"
 
 location["vtkPolyDataToImageStencil"] = "vtkImagingStencil"
 
+location["vtkGLTFExporter"] = "vtkIOExport"
 location["vtkX3DExporter"] = "vtkIOExport"
 
 location["vtkGL2PSExporter"] = "vtkIOExportGL2PS"
 
+location["vtkFileResourceStream"] = "vtkIOCore"
+location["vtkURILoader"] = "vtkIOCore"
+
 for name in [
     "vtkBYUReader",
     "vtkFacetWriter",
+    "vtkGLTFReader",
+    "vtkGLTFWriter",
     "vtkOBJReader",
     "vtkOpenFOAMReader",
     "vtkParticleReader",

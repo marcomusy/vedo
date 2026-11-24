@@ -1,4 +1,4 @@
-"""GLTF materials must survive the Assembly returned by load()."""
+"""glTF geometry and scene I/O."""
 import base64
 import json
 import struct
@@ -100,3 +100,84 @@ def test_gltf_without_texture_coordinates(gltf_file):
     model = vedo.load(gltf_file)
     assert len(model.objects) == 4
     assert all(m.dataset.GetPointData().GetTCoords() is None for m in model.objects)
+
+
+@pytest.mark.parametrize("gltf_file", [".gltf", ".glb"], indirect=True)
+def test_gltf_geometry_reader_and_multiblock_writer(gltf_file, tmp_path):
+    geometry = vedo.load_gltf(gltf_file)
+    assert isinstance(geometry, vtki.vtkMultiBlockDataSet)
+    assert geometry.GetNumberOfPoints() == 12
+    bounds = [0.0] * 6
+    geometry.GetBounds(bounds)
+    np.testing.assert_allclose(bounds, [-1, 4, -1, 1, 0, 0])
+
+    output = tmp_path / "geometry.gltf"
+    assert vedo.write(geometry, output) is geometry
+    loaded = vedo.load_gltf(output)
+    assert loaded.GetNumberOfPoints() == 12
+    loaded.GetBounds(bounds)
+    np.testing.assert_allclose(bounds, [-1, 4, -1, 1, 0, 0])
+
+
+@pytest.mark.parametrize("extension", [".gltf", ".glb"])
+def test_gltf_writer_preserves_transformed_double_precision_input(tmp_path, extension):
+    if extension == ".glb" and not hasattr(vtki.vtkGLTFWriter, "GetBinary"):
+        pytest.skip("VTK has no binary glTF writer")
+
+    cube = vedo.Cube()
+    coordinates = cube.coordinates.astype(np.float64)
+    points = vtki.vtkPoints()
+    points.SetData(vedo.utils.numpy2vtk(coordinates))
+    cube.dataset.SetPoints(points)
+    cube.actor.SetPosition(3, 4, 5)
+
+    output = tmp_path / ("geometry" + extension)
+    # The filename, independent of the legacy binary flag, specifies the format.
+    vedo.write(cube, output, binary=False)
+    if extension == ".glb":
+        assert output.read_bytes()[:4] == b"glTF"
+    else:
+        document = json.loads(output.read_text())
+        assert all(buffer["uri"].startswith("data:") for buffer in document["buffers"])
+
+    geometry = vedo.load_gltf(output)
+    assert geometry.GetNumberOfPoints() == cube.npoints
+    bounds = [0.0] * 6
+    geometry.GetBounds(bounds)
+    np.testing.assert_allclose(bounds, [2.5, 3.5, 3.5, 4.5, 4.5, 5.5])
+    assert cube.dataset.GetPoints().GetDataType() == vtki.VTK_DOUBLE
+    np.testing.assert_array_equal(cube.coordinates, coordinates)
+    assert cube.actor.GetPosition() == (3, 4, 5)
+
+
+@pytest.mark.parametrize("gltf_file", [".gltf", ".glb"], indirect=True)
+def test_gltf_scene_import_retains_renderable_materials(gltf_file):
+    plotter = vedo.import_window(gltf_file)
+
+    assert len(plotter.objects) == 4
+    assert plotter.renderer.GetActors().GetNumberOfItems() == 4
+    assert sum(mesh.properties.GetTexture("albedoTex") is not None for mesh in plotter.objects) == 2
+    assert all(mesh.actor.retrieve_object() is mesh for mesh in plotter.objects)
+
+
+def test_gltf_scene_round_trip(tmp_path):
+    cube = vedo.Cube(c="red")
+    sphere = vedo.Sphere(pos=(4, 0, 0), c="blue")
+    output = tmp_path / "scene.gltf"
+    plotter = vedo.Plotter(offscreen=True).add(cube, sphere)
+    plotter.camera.SetPosition(4, 5, 6)
+    try:
+        assert vedo.export_window(output, plt=plotter) is plotter
+    finally:
+        plotter.close()
+
+    document = json.loads(output.read_text())
+    assert len(document["meshes"]) == 2
+    assert all(buffer["uri"].startswith("data:") for buffer in document["buffers"])
+
+    imported = vedo.import_window(output)
+    assert len(imported.objects) == 2
+    actual = sorted(tuple(mesh.bounds()) for mesh in imported.objects)
+    expected = sorted(tuple(mesh.bounds()) for mesh in (cube, sphere))
+    np.testing.assert_allclose(actual, expected)
+    np.testing.assert_allclose(imported.camera.GetPosition(), [4, 5, 6])
