@@ -33,6 +33,21 @@ def test_plotter_scene_object_lookup() -> None:
     assert arrows in all_meshes
 
 
+def test_close_before_interactor_initialization(monkeypatch) -> None:
+    plt = Plotter()
+    interactor = plt.interactor
+    assert not interactor.GetInitialized()
+
+    shutdown_calls = []
+    monkeypatch.setattr(interactor, "ExitCallback", lambda: shutdown_calls.append("exit"))
+    monkeypatch.setattr(interactor, "TerminateApp", lambda: shutdown_calls.append("terminate"))
+    plt.close()
+
+    assert shutdown_calls == []
+    assert plt.interactor is None
+    assert plt.window is None
+
+
 @pytest.mark.rendering
 def test_plotter_button_registers_actor_and_pick_callback() -> None:
     plt = Plotter(offscreen=True)

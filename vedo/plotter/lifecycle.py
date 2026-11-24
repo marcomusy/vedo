@@ -126,7 +126,9 @@ def break_interaction(plotter) -> Any:
     """Break window interaction and return to the python execution flow"""
     if plotter.interactor:
         plotter.check_actors_transform()
-        plotter.interactor.ExitCallback()
+        # The X11 exit callback needs an initialized display connection.
+        if plotter.interactor.GetInitialized():
+            plotter.interactor.ExitCallback()
     return plotter
 
 
@@ -255,13 +257,16 @@ def close(plotter) -> Any:
 
     if plotter._interactive:
         plotter.break_interaction()
-    plotter.interactor.GetRenderWindow().Finalize()
+    interactor = plotter.interactor
+    initialized = interactor.GetInitialized()
+    interactor.GetRenderWindow().Finalize()
     try:
-        if "Darwin" in vedo.sys_platform:
-            plotter.interactor.ProcessEvents()
+        if initialized and "Darwin" in vedo.sys_platform:
+            interactor.ProcessEvents()
     except Exception:
         pass
-    plotter.interactor.TerminateApp()
+    if initialized:
+        interactor.TerminateApp()
     plotter.camera = None
     plotter.renderer = None
     plotter.renderers = []
