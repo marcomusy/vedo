@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from vedo import Ellipsoid, Line, RectilinearGrid, Sphere, TetMesh, Volume
+from vedo import Ellipsoid, Line, RectilinearGrid, Sphere, TetMesh, UnstructuredGrid, Volume
 
 
 def _make_datasets() -> dict[str, object]:
@@ -143,6 +143,26 @@ def test_tetmesh_special_cases(dataset_bundle) -> None:
     extracted = tm.extract_cells_by_type("tetra")
     assert extracted is not None
     assert extracted.ncells > 0
+
+
+@pytest.mark.parametrize(("ids", "use_point_ids"), [([1], False), ([4], True)])
+def test_extract_cells_by_id(ids: list[int], use_point_ids: bool) -> None:
+    grid = UnstructuredGrid(
+        [
+            [(0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1), (0, 0, -1)],
+            [[0, 1, 2, 3], [0, 2, 1, 4]],
+            [10, 10],
+        ]
+    )
+    grid.celldata["values"] = np.array([11, 22])
+
+    extracted = grid.extract_cells_by_id(ids, use_point_ids=use_point_ids)
+
+    assert isinstance(extracted, UnstructuredGrid)
+    assert extracted is not grid
+    assert extracted.ncells == 1
+    assert extracted.celldata["values"].tolist() == [22]
+    assert grid.ncells == 2
 
 
 def test_write(dataset_bundle, tmp_path: Path) -> None:

@@ -705,17 +705,12 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         selection = vtki.new("Selection")
         selection.AddNode(selection_node)
         es = vtki.new("ExtractSelection")
-        es.SetInputData(0, self)
+        es.SetInputData(0, self.dataset)
         es.SetInputData(1, selection)
         es.Update()
 
         ug = UnstructuredGrid(es.GetOutput())
-        pr = vtki.vtkProperty()
-        pr.DeepCopy(self.properties)
-        ug.actor.SetProperty(pr)
-        ug.properties = pr
-
-        ug.mapper.SetLookupTable(utils.ctf2lut(self))
+        ug.copy_properties_from(self)
         ug.pipeline = utils.OperationNode(
             "extract_cells_by_id",
             parents=[self],
