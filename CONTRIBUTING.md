@@ -22,7 +22,7 @@ All contributions will be reviewed by the vedo development team, and we may requ
 ### Code style
 When contributing code to vedo, please follow the PEP 8 style guide.
 
-###Licensing
+### Licensing
 All contributions to vedo are subject to the MIT license. 
 By contributing to vedo, you agree to license your contributions under the terms of this license.
 
