@@ -202,6 +202,7 @@ for name in [
     "vtkDataSetAttributes",
     "vtkDataObject",
     "vtkDataSet",
+    "vtkExplicitStructuredGrid",
     "vtkFieldData",
     "vtkHexagonalPrism",
     "vtkHexahedron",

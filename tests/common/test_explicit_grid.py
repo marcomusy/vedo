@@ -2,11 +2,13 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 
 from vtkmodules.vtkCommonDataModel import vtkImageData
 from vtkmodules.vtkFiltersCore import vtkImageDataToExplicitStructuredGrid
 
 import vedo
+from vedo import utils
 from vedo import vtkclasses as vtki
 
 
@@ -17,6 +19,44 @@ def make_grid() -> vedo.ExplicitStructuredGrid:
     conv.SetInputData(img)
     conv.Update()
     return vedo.ExplicitStructuredGrid(conv.GetOutput())
+
+
+def test_explicit_grid_from_points_and_cells() -> None:
+    cube = np.array([
+        (0, 0, 0), (1, 0, 0), (1, 1, 0), (0, 1, 0),
+        (0, 0, 1), (1, 0, 1), (1, 1, 1), (0, 1, 1),
+    ])
+    points = np.concatenate((cube, cube + (2, 0, 1)))
+    cells = np.arange(16).reshape(2, 8)
+    grid = vedo.ExplicitStructuredGrid(points, cells=cells, dims=(3, 2, 2))
+
+    assert grid.number_of_cells() == 2
+    right = grid.compute_cellid((1, 0, 0))
+    np.testing.assert_array_equal(grid.cell_points(right), cells[1])
+    np.testing.assert_array_equal(grid.cell_bounds(right), [2, 3, 0, 1, 1, 2])
+    assert grid.actor.GetMapper().GetInput().GetNumberOfCells() == 12
+
+    with pytest.raises(ValueError, match="cells must be"):
+        vedo.ExplicitStructuredGrid(points, cells=cells[:1], dims=(3, 2, 2))
+    cells[1, -1] = len(points)
+    with pytest.raises(ValueError, match="point IDs"):
+        vedo.ExplicitStructuredGrid(points, cells=cells, dims=(3, 2, 2))
+
+
+def test_explicit_grid_cellcolors_update_existing_actor() -> None:
+    grid = make_grid()
+    mapper = grid.actor.GetMapper()
+    grid.cellcolors = [[200, 100, 10]]
+
+    expected = np.array([[200, 100, 10, 255]], dtype=np.uint8)
+    np.testing.assert_array_equal(grid.cellcolors, expected)
+    mapper.Update()
+    surface_colors = np.repeat(expected, 6, axis=0)
+    np.testing.assert_array_equal(utils.vtk2numpy(mapper.MapScalars(1.0)), surface_colors)
+
+    clone = grid.clone()
+    clone_mapper = clone.actor.GetMapper()
+    np.testing.assert_array_equal(utils.vtk2numpy(clone_mapper.MapScalars(1.0)), surface_colors)
 
 
 def test_explicit_grid_basics() -> None:

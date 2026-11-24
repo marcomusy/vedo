@@ -7,15 +7,12 @@ from weakref import ref as weak_ref_to
 from typing import Any
 from typing_extensions import Self
 import numpy as np
-from vtkmodules.vtkCommonDataModel import (
-    vtkExplicitStructuredGrid as vtkExplicitStructuredGrid_,
-)
 
 import vedo.vtkclasses as vtki  # a wrapper for lazy imports
 
 import vedo
 from vedo import utils
-from vedo.core import PointAlgorithms
+from vedo.core import CommonAlgorithms
 from vedo.core.summary import (
     active_array_label,
     format_bounds,
@@ -25,42 +22,37 @@ from vedo.core.summary import (
 )
 from vedo.mesh import Mesh
 from vedo.file_io import download
-from vedo.visual import MeshVisual
+from vedo.visual import PointsVisual
 from vedo.core.transformations import LinearTransform
 from .unstructured import UnstructuredGrid
 
 
-class ExplicitStructuredGrid:
+class ExplicitStructuredGrid(CommonAlgorithms, PointsVisual):
     """
     Build an explicit structured grid.
 
-    An explicit structured grid is a dataset where edges of the hexahedrons are
-    not necessarily parallel to the coordinate axes.
-    It can be thought of as a tessellation of a block of 3D space,
-    similar to a `RectilinearGrid`
-    except that the cells are not necessarily cubes, they can have different
-    orientations but are connected in the same way as a `RectilinearGrid`.
-
-    Args:
-        inputobj (vtkExplicitStructuredGrid, list, str):
-            list of points and indices, or filename
+    Hexahedral cells are addressed by structured `(i, j, k)` indices, but
+    adjacent cells can use distinct points, for example on either side of a fault.
     """
 
-    def __init__(self, inputobj=None):
+    def __init__(self, inputobj=None, *, cells=None, dims=None):
         """
-        A StructuredGrid is a dataset where edges of the hexahedrons are
-        not necessarily parallel to the coordinate axes.
-        It can be thought of as a tessellation of a block of 3D space,
-        similar to a `RectilinearGrid`
-        except that the cells are not necessarily cubes, they can have different
-        orientations but are connected in the same way as a `RectilinearGrid`.
+        Build a grid from an existing dataset or from coordinates.
 
         Args:
-            inputobj (vtkExplicitStructuredGrid, list, str):
-                list of points and indices, or filename"
+            inputobj: An existing grid, a filename, or three coordinate arrays
+                `[x, y, z]`. When `cells` and `dims` are supplied, pass an
+                `(npoints, 3)` array of point coordinates instead.
+            cells (array-like): An `(ncells, 8)` array of zero-based point IDs
+                in VTK hexahedron order. Cells are ordered with `i` varying
+                fastest, then `j`, then `k`.
+            dims (array-like): Logical point dimensions `(nx, ny, nz)`, each
+                at least 2. The grid has `(nx - 1) * (ny - 1) * (nz - 1)` cells.
         """
+        super().__init__()
         self.dataset = None
         self.mapper = vtki.new("PolyDataMapper")
+        self._geometry_filter = None
         self._actor = vtki.vtkActor()
         self._actor.retrieve_object = weak_ref_to(self)
         self._actor.SetMapper(self.mapper)
@@ -78,10 +70,15 @@ class ExplicitStructuredGrid:
         self.time = time.time()
 
         ###############################
-        if inputobj is None:
-            self.dataset = vtkExplicitStructuredGrid_()
+        if cells is not None or dims is not None:
+            if cells is None or dims is None:
+                raise ValueError("ExplicitStructuredGrid: supply both cells and dims")
+            self.dataset = self._build_dataset(inputobj, cells, dims)
 
-        elif isinstance(inputobj, vtkExplicitStructuredGrid_):
+        elif inputobj is None:
+            self.dataset = vtki.vtkExplicitStructuredGrid()
+
+        elif isinstance(inputobj, vtki.vtkExplicitStructuredGrid):
             self.dataset = inputobj
 
         elif isinstance(inputobj, ExplicitStructuredGrid):
@@ -100,14 +97,12 @@ class ExplicitStructuredGrid:
             self.dataset = reader.GetOutput()
 
         elif utils.is_sequence(inputobj):
-            self.dataset = vtkExplicitStructuredGrid_()
+            self.dataset = vtki.vtkExplicitStructuredGrid()
             x, y, z = inputobj
             xyz = np.vstack(
                 (x.flatten(order="F"), y.flatten(order="F"), z.flatten(order="F"))
             ).T
-            dims = x.shape
-            self.dataset.SetDimensions(dims)
-            # self.dataset.SetDimensions(dims[1], dims[0], dims[2])
+            self.dataset.SetDimensions(x.shape)
             vpoints = vtki.vtkPoints()
             vpoints.SetData(utils.numpy2vtk(xyz))
             self.dataset.SetPoints(vpoints)
@@ -124,14 +119,55 @@ class ExplicitStructuredGrid:
             self, comment=f"#cells {self.dataset.GetNumberOfCells()}", c="#9e2a2b"
         )
 
+    @staticmethod
+    def _build_dataset(points, cells, dims):
+        dims = np.asarray(dims)
+        if dims.shape != (3,) or dims.dtype.kind not in "iu" or np.any(dims < 2):
+            raise ValueError("ExplicitStructuredGrid: dims must be three integers >= 2")
+        nx, ny, nz = map(int, dims)
+        ncells = (nx - 1) * (ny - 1) * (nz - 1)
+
+        points = np.asarray(points)
+        if points.ndim != 2 or points.shape[1] != 3 or points.dtype.kind not in "iuf":
+            raise ValueError(
+                "ExplicitStructuredGrid: points must be an (npoints, 3) numeric array"
+            )
+
+        cells = np.asarray(cells)
+        if cells.shape != (ncells, 8) or cells.dtype.kind not in "iu":
+            raise ValueError(
+                f"ExplicitStructuredGrid: cells must be an ({ncells}, 8) integer array"
+            )
+        if cells.min() < 0 or cells.max() >= len(points):
+            raise ValueError("ExplicitStructuredGrid: cell point IDs must index the points array")
+
+        vtk_points = vtki.vtkPoints()
+        if points.dtype not in (np.float32, np.float64):
+            points = points.astype(np.float64)
+        vtk_points.SetData(utils.numpy2vtk(points))
+
+        vtk_cells = vtki.vtkCellArray()
+        offsets = np.arange(ncells + 1) * 8
+        vtk_cells.SetData(
+            utils.numpy2vtk(offsets, dtype="id"),
+            utils.numpy2vtk(cells.ravel(), dtype="id"),
+        )
+
+        dataset = vtki.vtkExplicitStructuredGrid()
+        dataset.SetDimensions(nx, ny, nz)
+        dataset.SetPoints(vtk_points)
+        dataset.SetCells(vtk_cells)
+        dataset.ComputeFacesConnectivityFlagsArray()
+        return dataset
+
     @property
     def actor(self):
         """Return the `vtkActor` of the object."""
-        gf = vtki.new("GeometryFilter")
-        gf.SetInputData(self.dataset)
-        gf.Update()
-        self.mapper.SetInputData(gf.GetOutput())
-        self.mapper.Modified()
+        if self._geometry_filter is None:
+            self._geometry_filter = vtki.new("GeometryFilter")
+            self.mapper.SetInputConnection(self._geometry_filter.GetOutputPort())
+        self._geometry_filter.SetInputData(self.dataset)
+        self._geometry_filter.Update()
         return self._actor
 
     @actor.setter
@@ -140,6 +176,8 @@ class ExplicitStructuredGrid:
 
     def _update(self, data, reset_locators=False):
         self.dataset = data
+        if self._geometry_filter is not None:
+            self._geometry_filter.SetInputData(data)
         if reset_locators:
             self.cell_locator = None
             self.point_locator = None
@@ -423,17 +461,14 @@ class ExplicitStructuredGrid:
     def clone(self, deep=True) -> ExplicitStructuredGrid:
         """Return a clone copy of the StructuredGrid. Alias of `copy()`."""
         if deep:
-            newrg = vtkExplicitStructuredGrid_()
+            newrg = vtki.vtkExplicitStructuredGrid()
             newrg.CopyStructure(self.dataset)
             newrg.CopyAttributes(self.dataset)
             newvol = ExplicitStructuredGrid(newrg)
         else:
             newvol = ExplicitStructuredGrid(self.dataset)
 
-        prop = vtki.vtkProperty()
-        prop.DeepCopy(self.properties)
-        newvol.actor.SetProperty(prop)
-        newvol.properties = prop
+        newvol.copy_properties_from(self)
         newvol.pipeline = utils.OperationNode(
             "clone", parents=[self], c="#bbd0ff", shape="diamond"
         )
