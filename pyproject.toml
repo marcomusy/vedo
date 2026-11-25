@@ -18,8 +18,7 @@ maintainers = [
 
 readme = "README.md"
 requires-python = ">=3.10"
-license = "MIT AND OFL-1.1 AND LicenseRef-Public-Domain"
-license-files = ["LICENSE", "FONT.LICENSE"]
+license = {file = "LICENSE"}
 
 keywords = ["vtk", "numpy", "3d", "visualization", "mesh", "volume", "point-cloud"]
 

@@ -78,6 +78,9 @@ https://colab.research.google.com/drive/
 cd $VEDODIR
 pip install .
 
+cd ~/Projects/vedo-stuff/vedo-epug-tutorial/scripts && ./run_all.sh
+
+################
 cd ~/Projects/trackviewer
     ./main_test.py
 ################
@@ -103,9 +106,9 @@ cd ~/Projects/napari-vedo-bridge
     # conda activate napari-env
     # python -m pip install "napari[all]"
     conda activate napari-env
-    cd $VEDODIR && pip install -q . && cd -
+    cd "$VEDODIR" && pip install -q . && cd -
     pip install -e .
-    python $VEDODIR/examples/extras/napari1.py # then open plugins ...
+    python "$VEDODIR/examples/extras/napari1.py" # then open plugins ...
     conda deactivate
 ################
 cd ~/Projects/EMBL/clonal_analysis
@@ -135,27 +138,24 @@ cd ~/Projects/4d-gene-reconstruction/useful_scripts
 cd ~/Projects/OTHERS/abm_playground/
     python cell_sim.py
 
-rm $VEDOLOGFILE
-
-
-# DOCUMENTATION ###############################################################
-cd $VEDODIR
+# Documentation reference
+cd "$VEDODIR"
 pip install -qe .
-pip install mkdocs-swank mkdocs-material mkdocstrings[python]
+pip install mkdocs-swan mkdocs-material mkdocstrings[python]
 mkdocs build
 # or, for local preview:
 # mkdocs serve
 
 # check web page examples
-cd $VEDODIR
+cd "$VEDODIR"
 code docs/examples_db.js
 
 
-# RELEASE #####################################################################
-cd $VEDODIR
+# Publishing reference
+cd "$VEDODIR"
 
 # check version and status
-code vedo/version.py
+code pyproject.toml
 git status
 git commit -am 'release'
 git push
@@ -173,13 +173,13 @@ python -m twine upload dist/*
 # https://pypi.org/project/vedo/
 
 # make github release
-cd $VEDODIR
+cd "$VEDODIR"
 code CHANGELOG.md
-code vedo/version.py  # edit to add +dev0
+code pyproject.toml vedo/__init__.py  # update the development version
 https://repology.org/project/vedo/badges
 
 
-# SITES ######################################################################
+# Sites
 https://vedo.embl.es/
 https://vedo.embl.es/docs
 https://vedo.embl.es/fonts
