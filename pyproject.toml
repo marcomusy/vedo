@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vedo"
-version = "2026.6.3+dev03"
+version = "2026.6.3+dev04"
 
 description = "A python module for scientific visualization, analysis of 3D objects and point clouds."
 
@@ -18,7 +18,7 @@ maintainers = [
 
 readme = "README.md"
 requires-python = ">=3.10"
-license = {file = "LICENSE"}
+license-files = ["LICENSE", "FONT.LICENSE"]
 
 keywords = ["vtk", "numpy", "3d", "visualization", "mesh", "volume", "point-cloud"]
 
