@@ -1,52 +1,64 @@
-# Python CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-python/ for more details
-
 version: 2.1
 
 jobs:
-
-  ##############################################################
   test-vedo:
-
-    machine:
-      image: ubuntu-2204:current
-
+    parameters:
+      python-version:
+        type: string
+      vtk-requirement:
+        type: string
+    docker:
+      - image: cimg/python:<< parameters.python-version >>
     resource_class: medium
-
     environment:
-      MPLBACKEND: "agg"
-      DEBIAN_FRONTEND: "noninteractive"
-
+      MPLBACKEND: Agg
+      DEBIAN_FRONTEND: noninteractive
     steps:
       - checkout
-
       - run:
-          name: installing vedo
+          name: Install rendering and build dependencies
           command: |
             sudo apt-get update
-            sudo apt install libgl1-mesa-dev xvfb -y
-            python3 -m pip install --upgrade pip
-            python3 -m pip install vtk matplotlib scipy typing-extensions
-            python3 -m pip install --no-deps .
-
+            sudo apt-get install -y libgl1 libegl1 libgl1-mesa-dri libxrender1 xvfb xauth
+            python -m pip install build pytest scipy "<< parameters.vtk-requirement >>"
       - run:
-          name: Run test scripts
+          name: Build and install the wheel
           command: |
-            cd ~/project
-            python3 -m pip install pytest rich
-            xvfb-run -a python3 -m pytest tests/common -v
+            python -m build --wheel
+            python -m pip install dist/vedo-*.whl
+      - run:
+          name: Smoke-test the installed wheel outside the checkout
+          command: |
+            cd "$(mktemp -d)"
+            vedo --help
+            xvfb-run -a python - <<'PY'
+            from pathlib import Path
 
-      - store_artifacts:
+            import vedo
+
+            package = Path(vedo.__file__).resolve().parent
+            assert "site-packages" in package.parts
+            assert next((package / "examples").rglob("warp2.py"), None) is not None
+            assert vedo.Text3D("vedo").npoints > 0
+            with vedo.Plotter(offscreen=True, size=(240, 180)) as plotter:
+                plotter.show(vedo.Sphere())
+                plotter.screenshot("smoke.png")
+            assert Path("smoke.png").read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
+            PY
+      - run:
+          name: Run the test suite
+          command: xvfb-run -a python -m pytest --junitxml=test-reports/pytest.xml
+      - store_test_results:
           path: test-reports
-          destination: test-reports
 
-
-
-######################################################
 workflows:
-  version: 2
   build-stuff:
     jobs:
-      - test-vedo
-
+      - test-vedo:
+          name: python-3.10-vtk-9.7.1
+          python-version: "3.10"
+          vtk-requirement: "vtk==9.7.1"
+      - test-vedo:
+          name: python-3.14-vtk-current
+          python-version: "3.14"
+          vtk-requirement: vtk

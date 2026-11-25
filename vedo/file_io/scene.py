@@ -64,7 +64,8 @@ def export_window(
         `{"headlight_intensity": 1.1, "specular_scale": 0.55, "preserve_base_color": True}`.
 
         NumPy scenes use versioned JSON metadata and pickle-free arrays.
-        Newly exported scenes can be read without enabling pickle loading.
+        Newly exported scenes preserve viewport layout and object placement and
+        can be read without enabling pickle loading.
     """
     fileoutput = str(fileoutput)
     if plt is None:
@@ -378,13 +379,13 @@ def _json_compatible(value):
     return value
 
 
-def _plotter_to_scene_dict(plt) -> dict:
+def _plotter_to_scene_dict(plt, *, all_renderers=False) -> dict:
     """Serialize the current Plotter scene into a dictionary."""
     if plt is None:
         vedo.logger.error("_plotter_to_scene_dict(): no active Plotter found")
         return {}
 
-    def _append_scene_object(ob, index_tag) -> None:
+    def _append_scene_object(ob, index_tag, rendered_at=None) -> None:
         if isinstance(ob, Assembly):
             asse_actor = ob.actor if hasattr(ob, "actor") else ob
             asse_scale = asse_actor.GetScale()
@@ -393,6 +394,8 @@ def _plotter_to_scene_dict(plt) -> dict:
             asse_org = asse_actor.GetOrigin()
             for elem in ob.unpack():
                 npobj = to_numpy(elem)
+                if rendered_at is not None:
+                    npobj["rendered_at"] = rendered_at
                 npobj["name"] = f"ASSEMBLY{index_tag}_{ob.name}_{npobj.get('name', '')}"
                 metadata = npobj.get("metadata")
                 if not isinstance(metadata, dict):
@@ -405,7 +408,10 @@ def _plotter_to_scene_dict(plt) -> dict:
                 metadata["assembly_origin"] = asse_org
                 sdict["objects"].append(npobj)
         else:
-            sdict["objects"].append(to_numpy(ob))
+            npobj = to_numpy(ob)
+            if rendered_at is not None:
+                npobj["rendered_at"] = rendered_at
+            sdict["objects"].append(npobj)
 
     sdict = {}
     sdict["shape"] = plt.shape
@@ -431,6 +437,32 @@ def _plotter_to_scene_dict(plt) -> dict:
     sdict["default_font"] = vedo.settings.default_font
 
     sdict["objects"] = []
+
+    if all_renderers:
+        from vedo.plotter.scene import _scene_object_from_prop
+
+        sdict["active_renderer"] = plt.renderers.index(plt.renderer)
+        sdict["renderers"] = []
+        objects = {}
+        for index, renderer in enumerate(plt.renderers):
+            camera = renderer.GetActiveCamera()
+            sdict["renderers"].append(dict(
+                viewport=renderer.GetViewport(),
+                background=renderer.GetBackground(),
+                background2=renderer.GetBackground2() if renderer.GetGradientBackground() else None,
+                use_depth_peeling=renderer.GetUseDepthPeeling(),
+                use_parallel_projection=camera.GetParallelProjection(),
+                camera=utils.camera_to_dict(camera),
+            ))
+            for actor in plt.get_actors(at=index, include_non_pickables=True):
+                if actor.GetVisibility():
+                    obj = _scene_object_from_prop(plt, actor)
+                    if obj is not None:
+                        objects.setdefault(obj, set()).add(index)
+
+        for index, (obj, rendered_at) in enumerate(objects.items()):
+            _append_scene_object(obj, index, rendered_at)
+        return sdict
 
     actors = plt.get_actors(include_non_pickables=True)
     for i, a in enumerate(actors):
@@ -771,7 +803,7 @@ def _export_npy(plt, fileoutput="scene.npz") -> None:
     if plt is None:
         vedo.logger.error("_export_npy(): no active Plotter found")
         return
-    _write_scene(str(fileoutput), _plotter_to_scene_dict(plt))
+    _write_scene(str(fileoutput), _plotter_to_scene_dict(plt, all_renderers=True))
 
 
 def _export_x3d(plt, fileoutput="scene.x3d", binary=False) -> None:

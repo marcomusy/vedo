@@ -3,6 +3,7 @@ from __future__ import annotations
 """Object loading and conversion utilities."""
 
 import glob
+import math
 import os
 from tempfile import TemporaryDirectory
 from typing import Any
@@ -77,6 +78,10 @@ def load(inputobj: list | str | os.PathLike, unpack=True, force=False) -> Any:
         show(g)
         ```
     """
+    return _load(inputobj, unpack, force)
+
+
+def _load(inputobj, unpack=True, force=False, *, conversion_target=None):
     if isinstance(inputobj, list):
         inputobj = [str(f) for f in inputobj]
     else:
@@ -98,7 +103,7 @@ def load(inputobj: list | str | os.PathLike, unpack=True, force=False) -> Any:
             if fod.endswith(".gz"):
                 fod = gunzip(fod)
 
-            a = _load_file(fod, unpack)
+            a = _load_file(fod, unpack, conversion_target=conversion_target)
             acts.append(a)
 
         elif os.path.isdir(fod):  ### it's a directory or DICOM
@@ -142,7 +147,7 @@ def load(inputobj: list | str | os.PathLike, unpack=True, force=False) -> Any:
                     full_path = os.path.join(fod, ifile)
                     if not os.path.isfile(full_path):
                         continue
-                    a = _load_file(full_path, unpack)
+                    a = _load_file(full_path, unpack, conversion_target=conversion_target)
                     acts.append(a)
         else:
             vedo.logger.error(f"in load(), cannot find {fod}")
@@ -163,7 +168,7 @@ def load(inputobj: list | str | os.PathLike, unpack=True, force=False) -> Any:
 
 
 ########################################################################
-def _load_file(filename, unpack):
+def _load_file(filename, unpack, *, conversion_target=None):
     fl = str(filename).lower()
 
     ########################################################## other formats:
@@ -320,16 +325,25 @@ def _load_file(filename, unpack):
         else:
             return None
 
-        reader.SetFileName(filename)
-        reader.Update()
+        if fl.endswith((".byu", ".g")):
+            reader.SetGeometryFileName(filename)
+        else:
+            reader.SetFileName(filename)
+        errors = []
+        if conversion_target is not None:
+            reader.AddObserver("ErrorEvent", lambda *_: errors.append(True))
+            reader.GetExecutive().AddObserver("ErrorEvent", lambda *_: errors.append(True))
+        status = reader.Update()
         routput = reader.GetOutput()
 
-        if not routput:
+        if not routput or (conversion_target is not None and (status is False or errors or reader.GetErrorCode())):
             vedo.logger.error(f"unable to load {filename}")
             return None
 
         if isinstance(routput, vtki.vtkUnstructuredGrid):
             objt = vedo.UnstructuredGrid(routput)
+        elif conversion_target == "vts" and isinstance(routput, vtki.vtkStructuredGrid):
+            objt = vedo.StructuredGrid(routput)
 
         else:
             objt = Mesh(routput)
@@ -903,37 +917,53 @@ def _import_npy(fileinput: str | os.PathLike) -> vedo.Plotter:
     backgrcol2 = data.pop("backgrcol2", None)
     cam = data.pop("camera", None)
 
-    if data["shape"] != (1, 1):
-        data["size"] = "auto"  # disable size
+    saved_shape = data["shape"]
+    saved_renderers = data.get("renderers", [])
+    shape = (1, 1)
+    size = data["size"]
+    if saved_renderers:
+        if len(saved_shape) == 2 and math.prod(saved_shape) == len(saved_renderers):
+            shape = tuple(saved_shape)
+        else:
+            # Split windows and custom layouts store their exact viewport bounds.
+            shape = [
+                dict(bottomleft=r["viewport"][:2], topright=r["viewport"][2:])
+                for r in saved_renderers
+            ]
+    elif saved_shape != (1, 1):
+        # Old files contain only the renderer that was active on export.
+        size = "auto"
 
     plt = vedo.Plotter(
-        size=data["size"],  # not necessarily a good idea to set it
+        shape=shape,
+        size=size,
+        sharecam=data.get("sharecam", True),
         axes=axes,  # must be zero to avoid recreating the axes
         title=title,
         bg=backgrcol,
         bg2=backgrcol2,
     )
 
-    if cam:
-        if "pos" in cam.keys():
-            plt.camera.SetPosition(cam["pos"])
-        if "focalPoint" in cam.keys():  # obsolete
-            plt.camera.SetFocalPoint(cam["focalPoint"])
-        if "focal_point" in cam.keys():
-            plt.camera.SetFocalPoint(cam["focal_point"])
-        if "viewup" in cam.keys():
-            plt.camera.SetViewUp(cam["viewup"])
-        if "distance" in cam.keys():
-            plt.camera.SetDistance(cam["distance"])
-        if "clippingRange" in cam.keys():  # obsolete
-            plt.camera.SetClippingRange(cam["clippingRange"])
-        if "clipping_range" in cam.keys():
-            plt.camera.SetClippingRange(cam["clipping_range"])
-        if "parallel_scale" in cam.keys():
-            plt.camera.SetParallelScale(cam["parallel_scale"])
+    if saved_renderers and plt.renderers:
+        plt.at(data.get("active_renderer", 0))
+        for renderer, saved in zip(plt.renderers, saved_renderers):
+            renderer.SetViewport(saved["viewport"])
+            renderer.SetBackground(saved["background"])
+            background2 = saved["background2"]
+            renderer.SetGradientBackground(background2 is not None)
+            if background2 is not None:
+                renderer.SetBackground2(background2)
+            renderer.SetUseDepthPeeling(saved["use_depth_peeling"])
+            camera = renderer.GetActiveCamera()
+            utils.camera_from_dict(saved["camera"], modify_inplace=camera)
+            camera.SetParallelProjection(saved["use_parallel_projection"])
+        if plt.sharecam:
+            for renderer in plt.renderers:
+                renderer.SetActiveCamera(plt.camera)
+    elif cam and plt.camera is not None:
+        utils.camera_from_dict(cam, modify_inplace=plt.camera)
 
     ##############################################
-    objs = []
     for d in data["objects"]:
         ### Mesh
         if d["type"].lower() == "mesh":
@@ -1000,9 +1030,12 @@ def _import_npy(fileinput: str | os.PathLike) -> vedo.Plotter:
             # if "info" in keys: obj.info = d["info"]
             if "filename" in keys:
                 obj.filename = d["filename"]
-            objs.append(obj)
+            if saved_renderers and plt.renderers and d.get("rendered_at"):
+                for index in sorted(d["rendered_at"]):
+                    plt.add(obj, at=index)
+            else:
+                plt.add(obj)
 
-    plt.add(objs)
     plt.resetcam = False
     return plt
 

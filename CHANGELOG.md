@@ -7,6 +7,9 @@ All notable changes to the project will be documented in this file.
 
 ## Changes and Fixes
 
+- Preserve viewport layout, cameras, and object placement in NumPy scene round trips.
+- Fix viewport-specific clearing and finalize offscreen render windows on close.
+- Return a nonzero CLI status when conversion fails, and support BYU and VTS output.
 - Validate NumPy mesh coordinates and polygon/line connectivity before VTK
   reconstruction, including legacy inputs and nested scene assemblies. Reject
   malformed cell counts and invalid vertex indices with a clear CLI message.

@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools>=77.0.3"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -18,14 +18,14 @@ maintainers = [
 
 readme = "README.md"
 requires-python = ">=3.10"
-license = {file = "LICENSE"}
+license = "MIT AND OFL-1.1 AND LicenseRef-Public-Domain"
+license-files = ["LICENSE", "FONT.LICENSE"]
 
 keywords = ["vtk", "numpy", "3d", "visualization", "mesh", "volume", "point-cloud"]
 
 classifiers = [
     "Intended Audience :: Science/Research",
     "Development Status :: 5 - Production/Stable",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -71,6 +71,7 @@ packages = [
     "vedo.addons",
     "vedo.external",
     "vedo.file_io",
+    "vedo.fonts",
     "vedo.grids",
     "vedo.mesh",
     "vedo.plotter",
@@ -87,16 +88,8 @@ packages = [
     "vedo.examples.extras"
 ]
 
-include-package-data = true
-
-license-files = ["LICENSE", "FONT.LICENSE"]
-
-
 [tool.setuptools.package-data]
-vedo = [
-    "*",
-    "fonts/*",
-]
+"vedo.fonts" = ["*.ttf", "*.npz"]
 
 [tool.setuptools.package-dir]
 vedo = "vedo"

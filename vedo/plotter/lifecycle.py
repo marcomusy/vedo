@@ -6,6 +6,7 @@ from typing import Any
 
 import vedo
 import vedo.vtkclasses as vtki
+from vedo.plotter.scene import _prop_in_other_renderers, _scene_object_from_prop
 
 
 __docformat__ = "google"
@@ -92,33 +93,30 @@ def use_depth_peeling(plotter, at=None, value=True) -> Any:
 
 
 def clear(plotter, at=None, deep=False) -> Any:
-    """Clear the scene from all visible objects."""
+    """Clear the selected renderer, or the current renderer when `at` is omitted."""
     renderer = plotter.renderer if at is None else plotter.renderers[at]
     if not renderer:
         return plotter
 
+    index = plotter.renderers.index(renderer)
+    axes = plotter.axes_instances[index]
+    if isinstance(axes, vtki.vtkInteractorObserver):
+        axes.EnabledOff()
+        axes.SetInteractor(None)
+    plotter.axes_instances[index] = None
+
+    objects = []
+    for prop in plotter.get_actors(at=index, include_non_pickables=True):
+        obj = _scene_object_from_prop(plotter, prop)
+        if not deep and isinstance(obj, vedo.shapes.Text2D) and not _prop_in_other_renderers(plotter, prop, renderer):
+            obj.mapper.SetInput("")
+        else:
+            objects.append(prop if obj is None else obj)
+    plotter.remove(objects, at=index)
     if deep:
         renderer.RemoveAllViewProps()
-        plotter.objects.clear()
-        at_idx = plotter.renderers.index(renderer)
-        plotter.axes_instances[at_idx] = None
-    else:
-        for ob in set(
-            plotter.get_meshes()
-            + plotter.get_volumes()
-            + plotter.objects
-            + plotter.axes_instances
-        ):
-            if isinstance(ob, vedo.shapes.Text2D):
-                # the object is not removed but the text is cleared
-                ob.mapper.SetInput("")
-                continue
-            plotter.remove(ob)
-            try:
-                if ob.scalarbar:
-                    plotter.remove(ob.scalarbar)
-            except AttributeError:
-                pass
+        if len(plotter.renderers) == 1:
+            plotter.objects.clear()
     return plotter
 
 
@@ -242,24 +240,19 @@ def close(plotter) -> Any:
     if vedo.settings.dry_run_mode >= 2:
         return plotter
 
-    if not hasattr(plotter, "window"):
-        return plotter
-    if not plotter.window:
-        return plotter
-    if not hasattr(plotter, "interactor"):
-        return plotter
-    if not plotter.interactor:
+    window = getattr(plotter, "window", None)
+    if window is None:
         return plotter
 
     ###################################################
 
     plotter._must_close_now = True
 
-    if plotter._interactive:
+    interactor = getattr(plotter, "interactor", None)
+    if interactor is not None and plotter._interactive:
         plotter.break_interaction()
-    interactor = plotter.interactor
-    initialized = interactor.GetInitialized()
-    interactor.GetRenderWindow().Finalize()
+    initialized = interactor is not None and interactor.GetInitialized()
+    window.Finalize()
     try:
         if initialized and "Darwin" in vedo.sys_platform:
             interactor.ProcessEvents()

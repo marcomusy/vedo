@@ -8,7 +8,6 @@ from pathlib import Path
 import subprocess
 import sys
 from tempfile import gettempdir
-from types import SimpleNamespace
 import warnings
 
 import numpy as np
@@ -188,19 +187,22 @@ def test_scene_roundtrip_and_legacy_opt_in(tmp_path, monkeypatch, suffix, legacy
     # needed to test the pickle policy and both can crash headless VTK builds.
     class ScenePlotter:
         def __init__(self, *, size=(640, 480), axes=0, title="test scene",
-                     bg="white", bg2=None):
+                     bg="white", bg2=None, shape=(1, 1), sharecam=True):
             self.objects = []
             self.size, self.axes, self.title = size, axes, title
-            self.shape, self.sharecam, self.pos = (1, 1), True, (0, 0)
-            self.camera = vtki.vtkCamera()
-            self.renderer = SimpleNamespace(
-                GetBackground=lambda: vedo.colors.get_color(bg),
-                GetGradientBackground=lambda: bg2 is not None,
-                GetBackground2=lambda: vedo.colors.get_color(bg2),
-                GetUseDepthPeeling=lambda: False,
-            )
+            self.shape, self.sharecam, self.pos = shape, sharecam, (0, 0)
+            self.renderer = vtki.vtkRenderer()
+            self.renderers = [self.renderer]
+            self.camera = self.renderer.GetActiveCamera()
+            self.renderer.SetBackground(vedo.colors.get_color(bg))
+            if bg2 is not None:
+                self.renderer.GradientBackgroundOn()
+                self.renderer.SetBackground2(vedo.colors.get_color(bg2))
 
-        def add(self, objects):
+        def at(self, index):
+            self.renderer = self.renderers[index]
+
+        def add(self, objects, at=None):
             self.objects.extend(objects if isinstance(objects, list) else [objects])
             return self
 

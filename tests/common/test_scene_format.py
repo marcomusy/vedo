@@ -45,6 +45,41 @@ def test_scene_metadata_and_typed_arrays_roundtrip(tmp_path, monkeypatch, suffix
         assert restored[key].dtype == scene[key].dtype
 
 
+@pytest.mark.rendering
+@pytest.mark.parametrize("suffix,shape", [(".npy", (1, 2)), (".npz", "1|1")])
+def test_multiview_scene_roundtrip(tmp_path, suffix, shape):
+    import vedo
+
+    path = tmp_path / ("multiview" + suffix)
+    with vedo.Plotter(shape=shape, size=(300, 200), sharecam=False, offscreen=True) as source:
+        left, right, shared = vedo.Sphere(), vedo.Cube(), vedo.Line((0, 0, 0), (1, 0, 0))
+        source.add(left, shared, at=0).add(right, shared, at=1)
+        source.at(0).camera.SetPosition(1, 2, 3)
+        source.at(1).camera.SetPosition(4, 5, 6)
+        source.camera.ParallelProjectionOn()
+        source.background("black", "red")
+        background2 = source.renderer.GetBackground2()
+        viewports = [renderer.GetViewport() for renderer in source.renderers]
+        vedo.export_window(path, plt=source)
+
+    with vedo.import_window(path) as restored:
+        assert restored.size == (300, 200)
+        assert restored.renderer is restored.renderers[1]
+        assert not restored.sharecam
+        assert [renderer.GetViewport() for renderer in restored.renderers] == viewports
+        assert [renderer.GetActiveCamera().GetPosition() for renderer in restored.renderers] == [(1, 2, 3), (4, 5, 6)]
+        assert not restored.renderers[0].GetActiveCamera().GetParallelProjection()
+        assert restored.camera.GetParallelProjection()
+        assert restored.renderer.GetGradientBackground()
+        assert restored.renderer.GetBackground2() == background2
+        assert {obj.name for obj in restored.get_meshes(at=0, include_non_pickables=True)} == {"Sphere", "Line"}
+        assert {obj.name for obj in restored.get_meshes(at=1, include_non_pickables=True)} == {"Cube", "Line"}
+        assert len(restored.objects) == 3
+        line = next(obj for obj in restored.objects if obj.name == "Line")
+        assert line.rendered_at == {0, 1}
+        assert all(renderer.HasViewProp(line.actor) for renderer in restored.renderers)
+
+
 @pytest.mark.parametrize("suffix", [".npy", ".npz"])
 @pytest.mark.parametrize("unsafe", [False, True])
 def test_new_scene_never_unpickles_arrays_even_with_opt_in(tmp_path, monkeypatch, suffix, unsafe):

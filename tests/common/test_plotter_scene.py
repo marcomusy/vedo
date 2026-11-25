@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 
 import vedo.vtkclasses as vtki
-from vedo import Arrows, Plotter, Sphere
+from vedo import Arrows, Cube, Plotter, Sphere, Text2D
 
 
 def test_plotter_scene_object_lookup() -> None:
@@ -46,6 +46,44 @@ def test_close_before_interactor_initialization(monkeypatch) -> None:
     assert shutdown_calls == []
     assert plt.interactor is None
     assert plt.window is None
+
+
+@pytest.mark.parametrize("deep", [False, True])
+def test_clear_only_removes_objects_from_the_requested_renderer(deep) -> None:
+    with Plotter(shape=(1, 2), offscreen=True) as plt:
+        left, right, shared = Sphere(), Cube(), Text2D("shared")
+        plt.add(left, shared, at=0).add(right, shared, at=1)
+
+        assert plt.clear(at=1, deep=deep) is plt
+        assert plt.renderer is plt.renderers[0]
+        assert plt.renderers[0].HasViewProp(left.actor)
+        assert plt.renderers[0].HasViewProp(shared.actor)
+        assert not plt.get_actors(at=1, include_non_pickables=True)
+        assert plt.objects == [left, shared]
+        assert right.rendered_at == set()
+        assert shared.rendered_at == {0}
+        assert shared.text() == "shared"
+
+
+def test_offscreen_close_finalizes_window_once(monkeypatch) -> None:
+    plt = Plotter(offscreen=True)
+    finalize = plt.window.Finalize
+    finalized = []
+
+    def record_finalize():
+        finalized.append(True)
+        finalize()
+
+    monkeypatch.setattr(plt.window, "Finalize", record_finalize)
+    with plt:
+        assert plt.interactor is None
+
+    assert plt.close() is plt
+    assert finalized == [True]
+    assert plt.window is None
+    assert plt.camera is None
+    assert plt.renderer is None
+    assert not plt.renderers
 
 
 @pytest.mark.rendering

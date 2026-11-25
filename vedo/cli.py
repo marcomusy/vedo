@@ -326,7 +326,7 @@ def _run_cli_action(action, args):
 
     try:
         with _cli_pickle_warnings():
-            action(args)
+            status = action(args)
     except UnsafePickleError:
         command_args = ["vedo", *sys.argv[1:]]
         if os.name == "nt":
@@ -341,7 +341,7 @@ def _run_cli_action(action, args):
     except (NumpyIntegrityError, InvalidGeometryError) as error:
         _print_loading_error(str(error))
         return 1
-    return 0
+    return 0 if status is None else status
 
 
 ##############################################################################################
@@ -823,8 +823,11 @@ def exe_run(args) -> None:
 
 
 ################################################################################################
-def exe_convert(args) -> None:
+def exe_convert(args) -> int:
     """Convert input files to a different supported output format."""
+    from vedo.file_io.loaders import _load
+    from vedo.file_io.scene import _write_scene, to_numpy
+    from vedo.file_io.writers import _write
 
     allowed_exts = [
         "vtk",
@@ -843,32 +846,51 @@ def exe_convert(args) -> None:
     ]
 
     humansort(args.convert)
-    nfiles = len(args.convert)
-    if nfiles == 0:
-        return
-
     target_ext = args.to.lower()
 
     if target_ext not in allowed_exts:
         vedo.logger.error(
             f"Sorry target cannot be {target_ext}. Must be {allowed_exts}"
         )
-        sys.exit()
+        return 1
 
+    failed = False
     for f in args.convert:
         root, source_ext = os.path.splitext(f)
         source_ext = source_ext.lower().lstrip(".")
 
         if not source_ext:
-            vedo.logger.warning(f"Skipping {f}: cannot determine source file extension")
+            vedo.logger.error(f"Cannot convert {f}: cannot determine source file extension")
+            failed = True
             continue
 
+        try:
+            obj = _load(f, force=args.reload, conversion_target=target_ext)
+        except OSError as e:
+            vedo.logger.error(f"Cannot load {f}: {e}")
+            failed = True
+            continue
+
+        if obj is None:
+            vedo.logger.error(f"Cannot convert {f}: no object loaded")
+            failed = True
+            continue
         if target_ext == source_ext:
             continue
 
-        a = vedo.load(f)
         newf = root + "." + target_ext
-        a.write(newf, binary=True)
+        try:
+            if target_ext == "npy":
+                scene_object = to_numpy(obj)
+                if scene_object["type"].lower() not in ("mesh", "image", "volume"):
+                    raise TypeError("NumPy conversion requires a mesh, point cloud, image or volume")
+                _write_scene(newf, {"shape": (1, 1), "size": "auto", "axes": 0, "objects": [scene_object]})
+            else:
+                _write(obj, newf, strict=True)
+        except (OSError, RuntimeError, TypeError, ValueError) as e:
+            vedo.logger.error(f"Cannot convert {f} to {newf}: {e}")
+            failed = True
+    return int(failed)
 
 
 ##############################################################################################

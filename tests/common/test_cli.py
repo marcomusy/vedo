@@ -7,8 +7,10 @@ import shlex
 import warnings
 from types import SimpleNamespace
 
+import numpy as np
 import pytest
 
+import vedo
 import vedo.cli as cli
 from vedo.file_io.numpy_io import InvalidGeometryError, NumpyIntegrityError, UnsafePickleError, _warn_unsafe_pickle
 
@@ -64,6 +66,50 @@ def test_main_rejects_backend_without_html_output(monkeypatch) -> None:
     )
     with pytest.raises(SystemExit):
         cli.main()
+
+
+@pytest.mark.parametrize("target", ["unknown", "vts"])
+def test_convert_reports_unsupported_targets_and_incompatible_datasets(tmp_path, monkeypatch, target):
+    source = tmp_path / "cube.vtp"
+    vedo.Cube().write(source)
+    monkeypatch.setattr(cli.sys, "argv", ["vedo", "--convert", str(source), "--to", target])
+    assert cli.main() == 1
+    assert not source.with_suffix("." + target).exists()
+
+
+def test_convert_writes_byu_and_reports_partial_batch_failure(tmp_path, monkeypatch):
+    source = tmp_path / "cube.vtp"
+    missing = tmp_path / "missing.vtp"
+    cube = vedo.Cube()
+    cube.write(source)
+    monkeypatch.setattr(cli.sys, "argv", ["vedo", "--convert", str(source), str(missing), "--to", "byu"])
+    assert cli.main() == 1
+    restored = vedo.load(source.with_suffix(".byu"))
+    assert restored.npoints == cube.npoints
+    assert restored.ncells == cube.ncells
+    assert not missing.with_suffix(".byu").exists()
+
+
+def test_convert_preserves_native_structured_grid(tmp_path, monkeypatch):
+    source = tmp_path / "grid.vtk"
+    grid = vedo.StructuredGrid(np.meshgrid([0, 1], [0, 1], [0, 1]))
+    grid.pointdata["temperature"] = np.arange(grid.npoints)
+    grid.write(source)
+    monkeypatch.setattr(cli.sys, "argv", ["vedo", "--convert", str(source), "--to", "vts"])
+    assert cli.main() == 0
+    restored = vedo.StructuredGrid(str(source.with_suffix(".vts")))
+    np.testing.assert_array_equal(restored.coordinates, grid.coordinates)
+    np.testing.assert_array_equal(restored.pointdata["temperature"], grid.pointdata["temperature"])
+
+
+def test_convert_does_not_write_a_dataset_when_the_reader_fails(tmp_path, monkeypatch):
+    source = tmp_path / "broken.vtp"
+    source.write_text("not a VTK dataset")
+    output = source.with_suffix(".vtk")
+    output.write_bytes(b"existing output")
+    monkeypatch.setattr(cli.sys, "argv", ["vedo", "--convert", str(source), "--to", "vtk"])
+    assert cli.main() == 1
+    assert output.read_bytes() == b"existing output"
 
 
 @pytest.mark.parametrize("convert", [False, True])

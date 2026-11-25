@@ -466,6 +466,7 @@ location["vtkURILoader"] = "vtkIOCore"
 
 for name in [
     "vtkBYUReader",
+    "vtkBYUWriter",
     "vtkFacetWriter",
     "vtkGLTFReader",
     "vtkGLTFWriter",
@@ -536,6 +537,7 @@ for name in [
     "vtkXMLRectilinearGridReader",
     "vtkXMLRectilinearGridWriter",
     "vtkXMLStructuredGridReader",
+    "vtkXMLStructuredGridWriter",
     "vtkXMLUnstructuredGridReader",
     "vtkXMLUnstructuredGridWriter",
 ]:

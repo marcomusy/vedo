@@ -29,6 +29,12 @@ def _scene_object_from_prop(plotter, prop):
     return None
 
 
+def _prop_in_other_renderers(plotter, prop, renderer):
+    return isinstance(prop, vtki.vtkProp) and any(
+        r.HasViewProp(prop) for r in plotter.renderers if r is not renderer
+    )
+
+
 def add(plotter, *objs, at=None) -> Any:
     """
     Append the input objects to the internal list of objects to be shown.
@@ -67,11 +73,12 @@ def add(plotter, *objs, at=None) -> Any:
             except TypeError:
                 ren.AddActor(a.actor)
 
-            try:
+            if ren in plotter.renderers:
                 ir = plotter.renderers.index(ren)
-                a.rendered_at.add(ir)  # might not have rendered_at
-            except (AttributeError, ValueError):
-                pass
+                retrieve_object = getattr(a, "retrieve_object", None)
+                obj = retrieve_object() if retrieve_object is not None else a
+                if hasattr(obj, "rendered_at"):
+                    obj.rendered_at.add(ir)
 
             if isinstance(a, vtki.vtkFollower):
                 a.SetCamera(plotter.camera)
@@ -105,7 +112,7 @@ def remove(plotter, *objs, at=None) -> Any:
         return plotter
     ir = plotter.renderers.index(ren)
 
-    on_scene_actors = plotter.get_actors(include_non_pickables=True)
+    on_scene_actors = plotter.get_actors(at=ir, include_non_pickables=True)
 
     # add to objs_to_remove the ones with string name and remove the rest
     objs_to_remove = []
@@ -159,7 +166,11 @@ def remove(plotter, *objs, at=None) -> Any:
             except AttributeError:
                 pass
 
-    plotter.objects = [ele for ele in plotter.objects if ele not in objs_to_remove]
+    plotter.objects = [
+        obj for obj in plotter.objects
+        if obj not in objs_to_remove
+        or _prop_in_other_renderers(plotter, getattr(obj, "actor", obj), ren)
+    ]
     return plotter
 
 

@@ -131,11 +131,15 @@ def write(objct: Any, fileoutput: str | os.PathLike, binary=True) -> Any:
 
     Supported extensions are:
 
-    - `vtk, vti, ply, obj, stl, byu, vtp, vti, mhd, xyz, xml, tif, png, bmp`
+    - `vtk, vti, ply, obj, stl, byu, vtp, vts, mhd, xyz, tif, png, bmp`
     - `gltf, glb` for meshes, point clouds and polygonal multiblock datasets.
       The extension selects JSON or binary glTF output. GLB writing requires
       a VTK version with binary glTF writer support.
     """
+    return _write(objct, fileoutput, binary, strict=False)
+
+
+def _write(objct, fileoutput, binary=True, *, strict):
     fileoutput = str(fileoutput)
     fr = fileoutput.lower()
 
@@ -143,18 +147,24 @@ def write(objct: Any, fileoutput: str | os.PathLike, binary=True) -> Any:
         try:
             _write_gltf(objct, fileoutput)
         except (OSError, RuntimeError, TypeError, ValueError) as e:
+            if strict:
+                raise
             vedo.logger.error(f"could not save {fileoutput}: {e}")
         return objct
 
     ###############################
     if isinstance(objct, Assembly):
+        if strict:
+            raise TypeError("this output format requires a single dataset")
         dd = to_numpy(objct)
         sdict = {"objects": [dd]}
         np.save(fileoutput, sdict)
         return objct
 
     ###############################
-    obj = objct.dataset
+    obj = getattr(objct, "dataset", None)
+    if obj is None:
+        raise TypeError("this output format requires a dataset")
 
     # Check if object actor has a non-identity transform and bake it before writing.
     try:
@@ -184,10 +194,14 @@ def write(objct: Any, fileoutput: str | os.PathLike, binary=True) -> Any:
             writer.SetLookupTable(lut)
     elif fr.endswith(".stl"):
         writer = vtki.new("STLWriter")
+    elif fr.endswith((".byu", ".g")):
+        writer = vtki.new("BYUWriter")
     elif fr.endswith(".vtp"):
         writer = vtki.new("XMLPolyDataWriter")
     elif fr.endswith(".vtu"):
         writer = vtki.new("XMLUnstructuredGridWriter")
+    elif fr.endswith(".vts"):
+        writer = vtki.new("XMLStructuredGridWriter")
     elif fr.endswith(".xyz"):
         writer = vtki.new("SimplePointsWriter")
     elif fr.endswith(".facet"):
@@ -265,6 +279,8 @@ def write(objct: Any, fileoutput: str | os.PathLike, binary=True) -> Any:
         return objct
 
     else:
+        if strict:
+            raise ValueError(f"unknown format {fileoutput}")
         vedo.logger.error(f"Unknown format {fileoutput}, file not saved")
         return objct
 
@@ -277,10 +293,31 @@ def write(objct: Any, fileoutput: str | os.PathLike, binary=True) -> Any:
         pass
 
     try:
+        errors = []
+        if strict:
+            from vtkmodules.vtkCommonExecutionModel import vtkAlgorithm
+
+            info = writer.GetInputPortInformation(0)
+            key = vtkAlgorithm.INPUT_REQUIRED_DATA_TYPE()
+            accepted = [info.Get(key, i) for i in range(info.Length(key))]
+            if accepted and not any(obj.IsA(kind) for kind in accepted):
+                suffix = Path(fileoutput).suffix
+                raise TypeError(f"{suffix} requires {', '.join(accepted)}, got {obj.GetClassName()}")
+            writer.AddObserver("ErrorEvent", lambda *_: errors.append(True))
+            writer.GetExecutive().AddObserver("ErrorEvent", lambda *_: errors.append(True))
+
         writer.SetInputData(obj)
-        writer.SetFileName(fileoutput)
-        writer.Write()
+        if fr.endswith((".byu", ".g")):
+            writer.SetGeometryFileName(fileoutput)
+        else:
+            writer.SetFileName(fileoutput)
+
+        status = writer.Write()
+        if status == 0 or errors or writer.GetErrorCode() or not Path(fileoutput).is_file():
+            raise OSError("VTK could not write the dataset")
     except Exception as e:
+        if strict:
+            raise
         vedo.logger.error(f"could not save {fileoutput}: {e}")
     return objct
 
