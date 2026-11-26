@@ -1631,17 +1631,37 @@ def add_global_axes(axtype=None, c=None, bounds=()) -> None:
         largestact, sz = None, -1
         for a in plt.objects:
             try:
-                if a.pickable():
-                    b = a.bounds()
-                    if b is None:
-                        return
-                    d = max(b[1] - b[0], b[3] - b[2], b[5] - b[4])
-                    if sz < d:
-                        largestact = a
-                        sz = d
-            except AttributeError:
-                pass
+                if hasattr(a, "GetPickable"):
+                    is_pickable = a.GetPickable()
+                elif hasattr(a, "actor") and a.actor is not None and hasattr(a.actor, "GetPickable"):
+                    is_pickable = a.actor.GetPickable()
+                else:
+                    pickable = getattr(a, "pickable", None)
+                    is_pickable = pickable() if callable(pickable) else pickable
+                if not is_pickable:
+                    continue
 
+                bounds = getattr(a, "bounds", None)
+                if callable(bounds):
+                    b = bounds()
+                elif bounds is not None:
+                    b = bounds
+                elif hasattr(a, "GetBounds"):
+                    b = a.GetBounds()
+                else:
+                    continue
+                if b is None or len(b) < 6:
+                    continue
+
+                d = max(b[1] - b[0], b[3] - b[2], b[5] - b[4])
+                if sz < d:
+                    largestact = a
+                    sz = d
+            except AttributeError:
+                continue
+
+        if largestact is None:
+            return
         try:
             ocf.SetInputData(largestact)
         except TypeError:
